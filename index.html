@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HI Health - 건강 챌린지</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #5B8AF5;
+      --primary-dark: #3D6FE8;
+      --primary-light: #EBF0FF;
+      --secondary: #5DC38B;
+      --secondary-light: #E8FAF1;
+      --accent: #FF6B6B;
+      --accent-light: #FFE8E8;
+      --warning: #F59E0B;
+      --warning-light: #FFF8E1;
+      --purple: #8B5CF6;
+      --purple-light: #F3EEFF;
+      --bg: #F0F4FF;
+      --card: #FFFFFF;
+      --text: #1A1F36;
+      --text-secondary: #6B7280;
+      --border: #E5E7EB;
+      --shadow: 0 4px 20px rgba(91,138,245,0.08);
+      --shadow-hover: 0 8px 30px rgba(91,138,245,0.18);
+      --nav-height: 68px;
+      --header-height: 64px;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --radius-lg: 24px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      max-width: 480px;
+      margin: 0 auto;
+      position: relative;
+      -webkit-tap-highlight-color: transparent;
+    }
+    @media (min-width: 481px) {
+      body { background: #D8E4FF; }
+    }
+
+    /* ── Header ── */
+    .app-header {
+      position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 480px;
+      height: var(--header-height);
+      background: #fff; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 18px; z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .header-logo { display: flex; align-items: center; gap: 9px; }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .logo-text { font-size: 19px; font-weight: 700; color: var(--primary); letter-spacing: -0.5px; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .header-points {
+      display: flex; align-items: center; gap: 4px;
+      background: var(--warning-light); padding: 6px 12px;
+      border-radius: 20px; font-size: 13px; font-weight: 700; color: #92400E;
+      cursor: pointer;
+    }
+    .header-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--purple));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; cursor: pointer;
+      border: 2px solid var(--primary-light);
+    }
+
+    /* ── Main ── */
+    .app-content {
+      margin-top: var(--header-height);
+      margin-bottom: var(--nav-height);
+      min-height: calc(100vh - var(--header-height) - var(--nav-height));
+      overflow-x: hidden;
+    }
+    .page {
+      display: none; padding: 18px;
+      animation: pageIn 0.3s cubic-bezier(0.22,1,0.36,1);
+    }
+    .page.active { display: block; }
+    @keyframes pageIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Bottom Nav ── */
+    .app-nav {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 480px; height: var(--nav-height);
+      background: #fff; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-around;
+      z-index: 100; box-shadow: 0 -4px 20px rgba(0,0,0,0.07);
+    }
+    .nav-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      padding: 8px 14px; border: none; background: none; cursor: pointer;
+      border-radius: var(--radius-sm); transition: all 0.2s;
+      color: var(--text-secondary); font-family: inherit;
+    }
+    .nav-icon { font-size: 22px; transition: transform 0.25s; display: block; }
+    .nav-label { font-size: 10px; font-weight: 500; }
+    .nav-btn.active { color: var(--primary); }
+    .nav-btn.active .nav-icon { transform: translateY(-3px) scale(1.1); }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--card); border-radius: var(--radius);
+      padding: 18px; box-shadow: var(--shadow); margin-bottom: 14px;
+    }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .card-title { font-size: 15px; font-weight: 700; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+    }
+    .badge-primary { background: var(--primary-light); color: var(--primary); }
+    .badge-success { background: var(--secondary-light); color: #166534; }
+    .badge-warning { background: var(--warning-light); color: #92400E; }
+    .badge-purple  { background: var(--purple-light);  color: var(--purple); }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      padding: 12px 22px; border-radius: var(--radius-sm);
+      border: none; font-family: inherit; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff; box-shadow: 0 4px 14px rgba(91,138,245,0.35);
+    }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-secondary { background: var(--primary-light); color: var(--primary); }
+    .btn-success {
+      background: linear-gradient(135deg, var(--secondary), #3DA96A);
+      color: #fff; box-shadow: 0 4px 14px rgba(93,195,139,0.35);
+    }
+    .btn-full { width: 100%; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: calc(var(--nav-height) + 14px); left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: #1A1F36; color: #fff;
+      padding: 11px 24px; border-radius: 30px;
+      font-size: 14px; font-weight: 500;
+      z-index: 300; opacity: 0; transition: all 0.3s; pointer-events: none;
+      white-space: nowrap; box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ══════════════════════════════
+       HOME
+    ══════════════════════════════ */
+    .hero-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: var(--radius-lg); padding: 22px; color: #fff;
+      margin-bottom: 14px; position: relative; overflow: hidden;
+    }
+    .hero-card::before {
+      content: ''; position: absolute; top: -40px; right: -40px;
+      width: 130px; height: 130px; background: rgba(255,255,255,0.1); border-radius: 50%;
+    }
+    .hero-card::after {
+      content: ''; position: absolute; bottom: -30px; right: 50px;
+      width: 80px; height: 80px; background: rgba(255,255,255,0.07); border-radius: 50%;
+    }
+    .hero-greeting { font-size: 13px; opacity: 0.85; margin-bottom: 3px; }
+    .hero-name { font-size: 21px; font-weight: 700; margin-bottom: 16px; }
+    .hero-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+    .hero-stat {
+      background: rgba(255,255,255,0.15); border-radius: 12px;
+      padding: 12px 6px; text-align: center; backdrop-filter: blur(10px);
+    }
+    .hero-stat-value { font-size: 22px; font-weight: 700; }
+    .hero-stat-label { font-size: 10px; opacity: 0.8; margin-top: 2px; }
+
+    .level-card { background: #fff; border-radius: var(--radius); padding: 18px; margin-bottom: 14px; box-shadow: var(--shadow); }
+    .level-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .level-info { display: flex; align-items: center; gap: 12px; }
+    .level-icon-large { font-size: 34px; line-height: 1; }
+    .level-name { font-size: 17px; font-weight: 700; }
+    .level-num { font-size: 12px; color: var(--text-secondary); }
+    .streak-badge {
+      display: flex; align-items: center; gap: 5px;
+      background: var(--accent-light); padding: 6px 12px;
+      border-radius: 20px; font-size: 13px; font-weight: 700; color: var(--accent);
+    }
+    .level-bar-bg { width: 100%; height: 10px; background: var(--border); border-radius: 5px; overflow: hidden; }
+    .level-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      border-radius: 5px; transition: width 1.2s cubic-bezier(0.22,1,0.36,1);
+    }
+    .level-bar-text { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); margin-top: 6px; }
+
+    .quick-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-bottom: 14px; }
+    .quick-btn {
+      background: #fff; border-radius: var(--radius);
+      padding: 14px; display: flex; align-items: center; gap: 11px;
+      box-shadow: var(--shadow); cursor: pointer; transition: all 0.2s;
+      border: none; font-family: inherit; text-align: left;
+    }
+    .quick-btn:active { transform: scale(0.97); box-shadow: var(--shadow-hover); }
+    .qi-icon {
+      width: 42px; height: 42px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .qi-title { font-size: 13px; font-weight: 600; }
+    .qi-sub { font-size: 11px; color: var(--text-secondary); }
+
+    /* Weekly chart */
+    .week-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 5px; margin-top: 10px; }
+    .week-day { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .week-label { font-size: 10px; color: var(--text-secondary); }
+    .week-bar { width: 100%; height: 52px; background: var(--border); border-radius: 5px; display: flex; align-items: flex-end; overflow: hidden; }
+    .week-fill { width: 100%; background: linear-gradient(180deg, var(--primary), var(--secondary)); border-radius: 5px; transition: height 0.9s ease; }
+    .week-val { font-size: 9px; font-weight: 600; color: var(--text); }
+    .week-day.today .week-label { color: var(--primary); font-weight: 700; }
+    .week-day.today .week-bar { background: var(--primary-light); }
+
+    /* Achievement strip */
+    .ach-strip { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+    .ach-strip::-webkit-scrollbar { display: none; }
+    .ach-chip { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .ach-circle {
+      width: 54px; height: 54px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; font-size: 24px;
+    }
+    .ach-circle.earned {
+      background: linear-gradient(white,white) padding-box,
+                  linear-gradient(135deg, var(--warning), #FF8C00) border-box;
+      border: 2.5px solid transparent;
+      box-shadow: 0 3px 10px rgba(245,158,11,0.3);
+    }
+    .ach-circle.locked { background: var(--border); filter: grayscale(1); opacity: 0.4; }
+    .ach-label { font-size: 10px; color: var(--text-secondary); text-align: center; max-width: 58px; line-height: 1.3; }
+
+    /* ══════════════════════════════
+       EXERCISE
+    ══════════════════════════════ */
+    .ex-type-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 6px; }
+    .ex-type-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      padding: 12px 6px; border-radius: var(--radius-sm);
+      border: 2px solid var(--border); background: #fff;
+      cursor: pointer; transition: all 0.2s; font-family: inherit;
+    }
+    .ex-type-btn.selected { border-color: var(--primary); background: var(--primary-light); }
+    .ex-type-icon { font-size: 24px; }
+    .ex-type-name { font-size: 11px; font-weight: 500; }
+    .ex-type-pts { font-size: 10px; color: var(--text-secondary); }
+    .ex-type-btn.selected .ex-type-name { color: var(--primary); font-weight: 700; }
+
+    .duration-wrap { display: flex; align-items: center; justify-content: center; gap: 22px; margin: 14px 0; }
+    .dur-btn {
+      width: 42px; height: 42px; border-radius: 50%;
+      border: 2px solid var(--border); background: #fff;
+      font-size: 22px; cursor: pointer; display: flex;
+      align-items: center; justify-content: center; transition: all 0.2s;
+    }
+    .dur-btn:active { border-color: var(--primary); color: var(--primary); transform: scale(0.93); }
+    .dur-display { text-align: center; }
+    .dur-val { font-size: 44px; font-weight: 700; color: var(--primary); line-height: 1; }
+    .dur-unit { font-size: 13px; color: var(--text-secondary); }
+
+    .pts-preview {
+      background: linear-gradient(135deg, var(--primary-light), var(--secondary-light));
+      border-radius: var(--radius-sm); padding: 13px; text-align: center; margin: 13px 0;
+    }
+    .pts-preview-val { font-size: 26px; font-weight: 700; color: var(--primary); }
+    .pts-preview-lbl { font-size: 12px; color: var(--text-secondary); }
+
+    .workout-item { display: flex; align-items: center; gap: 13px; padding: 13px 0; border-bottom: 1px solid var(--border); }
+    .workout-item:last-child { border-bottom: none; }
+    .wo-icon { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .wo-info { flex: 1; }
+    .wo-name { font-size: 14px; font-weight: 600; }
+    .wo-meta { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+    .wo-pts { font-size: 14px; font-weight: 700; color: var(--warning); }
+
+    .form-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 7px; }
+    .form-textarea {
+      width: 100%; padding: 11px 14px;
+      border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+      font-family: inherit; font-size: 13px; color: var(--text);
+      resize: none; outline: none; background: var(--bg); transition: border-color 0.2s;
+    }
+    .form-textarea:focus { border-color: var(--primary); background: #fff; }
+
+    /* ══════════════════════════════
+       LEAGUE
+    ══════════════════════════════ */
+    .league-tabs {
+      display: flex; background: var(--border);
+      border-radius: 12px; padding: 4px; margin-bottom: 16px;
+    }
+    .league-tab {
+      flex: 1; padding: 9px; text-align: center;
+      border-radius: 9px; border: none; background: none;
+      font-family: inherit; font-size: 13px; font-weight: 600;
+      color: var(--text-secondary); cursor: pointer; transition: all 0.2s;
+    }
+    .league-tab.active { background: #fff; color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+    .my-rank-card {
+      background: linear-gradient(135deg, #EBF0FF, #fff);
+      border-radius: var(--radius); padding: 16px 18px;
+      box-shadow: var(--shadow); margin-bottom: 14px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .my-rank-left .mrl-label { font-size: 12px; color: var(--text-secondary); }
+    .my-rank-left .mrl-rank { font-size: 36px; font-weight: 900; color: var(--primary); line-height: 1; }
+    .my-rank-left .mrl-pct { font-size: 12px; color: var(--text-secondary); }
+    .my-rank-right { text-align: right; }
+    .my-rank-right .mrr-label { font-size: 12px; color: var(--text-secondary); }
+    .my-rank-right .mrr-pts { font-size: 24px; font-weight: 700; color: var(--warning); }
+    .my-rank-right .mrr-change { font-size: 12px; color: var(--secondary); font-weight: 600; }
+
+    /* Podium */
+    .podium {
+      display: flex; align-items: flex-end; justify-content: center; gap: 14px;
+      padding: 18px 0 20px;
+      background: linear-gradient(180deg, var(--primary-light) 0%, transparent 100%);
+      border-radius: var(--radius); margin-bottom: 14px;
+    }
+    .podium-item { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+    .podium-avatar { font-size: 30px; line-height: 1; }
+    .podium-name { font-size: 11px; font-weight: 600; text-align: center; max-width: 70px; }
+    .podium-pts { font-size: 10px; color: var(--text-secondary); }
+    .podium-stand {
+      border-radius: 8px 8px 0 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; font-weight: 700; color: #fff;
+    }
+    .stand-gold   { background: linear-gradient(180deg, #FFD700, #FFA500); width: 68px; height: 76px; }
+    .stand-silver { background: linear-gradient(180deg, #D0D0D0, #A8A8A8); width: 58px; height: 58px; }
+    .stand-bronze { background: linear-gradient(180deg, #CD7F32, #9A5A2A); width: 58px; height: 44px; }
+
+    .lb-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 14px; border-radius: var(--radius-sm);
+      margin-bottom: 7px; background: #fff; box-shadow: var(--shadow);
+      transition: all 0.2s;
+    }
+    .lb-item.me { background: var(--primary-light); border: 1.5px solid var(--primary); }
+    .lb-rank { font-size: 15px; font-weight: 700; width: 26px; text-align: center; color: var(--text-secondary); }
+    .lb-rank.top3 { color: var(--warning); }
+    .lb-avatar { font-size: 26px; }
+    .lb-info { flex: 1; }
+    .lb-name { font-size: 14px; font-weight: 600; }
+    .lb-level { font-size: 11px; color: var(--text-secondary); display: flex; align-items: center; gap: 3px; }
+    .lb-right { text-align: right; }
+    .lb-pts { font-size: 15px; font-weight: 700; color: var(--warning); }
+    .lb-change { font-size: 11px; font-weight: 600; }
+    .ch-up { color: var(--secondary); } .ch-dn { color: var(--accent); } .ch-eq { color: var(--text-secondary); }
+
+    /* ══════════════════════════════
+       COMMUNITY
+    ══════════════════════════════ */
+    .compose-wrap { display: flex; gap: 11px; align-items: flex-start; margin-bottom: 10px; }
+    .compose-avatar { font-size: 28px; flex-shrink: 0; }
+    .compose-input {
+      flex: 1; padding: 11px 15px; border: 1.5px solid var(--border);
+      border-radius: 18px; font-family: inherit; font-size: 13px;
+      color: var(--text); resize: none; outline: none;
+      background: var(--bg); transition: border-color 0.2s;
+    }
+    .compose-input:focus { border-color: var(--primary); background: #fff; }
+    .compose-actions { display: flex; justify-content: flex-end; }
+
+    .post-card {
+      background: #fff; border-radius: var(--radius);
+      padding: 16px; box-shadow: var(--shadow); margin-bottom: 12px;
+      animation: fadeIn 0.35s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .post-head { display: flex; align-items: center; gap: 10px; margin-bottom: 11px; }
+    .post-av { font-size: 30px; }
+    .post-uname { font-size: 14px; font-weight: 600; }
+    .post-meta { font-size: 11px; color: var(--text-secondary); display: flex; align-items: center; gap: 5px; }
+    .post-body { font-size: 14px; line-height: 1.65; margin-bottom: 13px; }
+    .post-exercise-tag {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--secondary-light); color: #166534;
+      padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+      margin-bottom: 13px;
+    }
+    .sticker-row { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 11px; }
+    .sticker-btn {
+      display: flex; align-items: center; gap: 4px;
+      padding: 5px 11px; border-radius: 20px;
+      border: 1.5px solid var(--border); background: var(--bg);
+      cursor: pointer; font-size: 12px; font-family: inherit; font-weight: 500;
+      transition: all 0.2s;
+    }
+    .sticker-btn:active { transform: scale(0.93); }
+    .sticker-btn.on { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+    .sticker-emoji { font-size: 15px; }
+    .sticker-cnt { color: var(--text-secondary); }
+    .sticker-btn.on .sticker-cnt { color: var(--primary); }
+    .comment-btn {
+      display: flex; align-items: center; gap: 5px;
+      background: none; border: none; cursor: pointer;
+      font-family: inherit; font-size: 12px; color: var(--text-secondary);
+      padding: 0; transition: color 0.2s;
+    }
+    .comment-btn:hover { color: var(--primary); }
+
+    /* ══════════════════════════════
+       REWARDS
+    ══════════════════════════════ */
+    .balance-card {
+      background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+      border-radius: var(--radius-lg); padding: 22px;
+      color: #fff; margin-bottom: 18px; text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .balance-card::before { content: '✨'; position: absolute; font-size: 90px; top: -15px; right: -15px; opacity: 0.15; }
+    .bal-label { font-size: 13px; opacity: 0.9; }
+    .bal-amt { font-size: 52px; font-weight: 900; line-height: 1.1; }
+    .bal-sub { font-size: 12px; opacity: 0.8; margin-top: 3px; }
+
+    .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
+
+    .reward-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-bottom: 18px; }
+    .reward-card {
+      background: #fff; border-radius: var(--radius); padding: 14px;
+      box-shadow: var(--shadow); text-align: center;
+      cursor: pointer; transition: all 0.2s; border: 2px solid transparent;
+    }
+    .reward-card:active { transform: scale(0.97); }
+    .reward-card.can { border-color: var(--secondary); }
+    .reward-card.done { opacity: 0.55; cursor: default; }
+    .reward-emoji { font-size: 34px; margin-bottom: 7px; }
+    .reward-name { font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+    .reward-cost {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 11px; font-weight: 700; color: var(--warning);
+      background: var(--warning-light); padding: 3px 9px; border-radius: 20px;
+    }
+    .reward-done-label { font-size: 11px; font-weight: 600; color: var(--secondary); }
+
+    .ach-list { display: grid; gap: 10px; }
+    .ach-item {
+      display: flex; align-items: center; gap: 13px;
+      padding: 14px; background: #fff; border-radius: var(--radius-sm); box-shadow: var(--shadow);
+    }
+    .ach-item.locked { opacity: 0.5; }
+    .ach-badge {
+      width: 48px; height: 48px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; flex-shrink: 0;
+    }
+    .ach-badge.earned { background: linear-gradient(135deg, var(--warning), #D97706); }
+    .ach-badge.pending { background: var(--border); filter: grayscale(0.7); }
+    .ach-info { flex: 1; }
+    .ach-name { font-size: 13px; font-weight: 600; }
+    .ach-desc { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+    .ach-prog-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 7px; overflow: hidden; }
+    .ach-prog-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 2px; }
+
+    /* Level guide */
+    .level-guide { display: grid; gap: 8px; }
+    .lg-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 13px; background: #fff;
+      border-radius: var(--radius-sm); box-shadow: var(--shadow);
+    }
+    .lg-icon { font-size: 26px; }
+    .lg-info { flex: 1; }
+    .lg-name { font-size: 13px; font-weight: 600; }
+    .lg-range { font-size: 11px; color: var(--text-secondary); }
+    .lg-current { font-size: 11px; font-weight: 700; color: var(--primary); }
+    .lg-row.current-level { border: 1.5px solid var(--primary); background: var(--primary-light); }
+
+    /* Divider */
+    .divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+    /* Pulse animation */
+    @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+    .pulse { animation: pulse 2s ease-in-out infinite; }
+
+    /* Notification dot */
+    .notif-dot {
+      position: absolute; top: -2px; right: -2px;
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--accent); border: 2px solid #fff;
+    }
+    .nav-icon-wrap { position: relative; display: inline-block; }
+
+    .empty-state { text-align: center; padding: 36px 20px; color: var(--text-secondary); }
+    .empty-state .ei { font-size: 44px; margin-bottom: 10px; }
+    .empty-state p { font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<!-- Header -->
+<header class="app-header">
+  <div class="header-logo">
+    <div class="logo-icon">💙</div>
+    <span class="logo-text">HI Health</span>
+  </div>
+  <div class="header-right">
+    <div class="header-points" id="header-pts" onclick="navigate('rewards')">
+      ⭐ <span id="hpts-val">0</span>p
+    </div>
+    <div class="header-avatar" id="header-avatar" onclick="navigate('rewards')"></div>
+  </div>
+</header>
+
+<!-- App content -->
+<main class="app-content">
+
+  <!-- ████  HOME  ████ -->
+  <section id="page-home" class="page active">
+
+    <div class="hero-card">
+      <p class="hero-greeting">안녕하세요! 오늘도 건강하게 👋</p>
+      <h2 class="hero-name" id="hero-name">사용자님</h2>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-value" id="today-cnt">0</div>
+          <div class="hero-stat-label">오늘 운동</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value" id="today-min">0</div>
+          <div class="hero-stat-label">운동(분)</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value" id="today-pts">+0</div>
+          <div class="hero-stat-label">획득 포인트</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="level-card">
+      <div class="level-header">
+        <div class="level-info">
+          <span class="level-icon-large" id="lv-icon">🌱</span>
+          <div>
+            <div class="level-name" id="lv-name">새싹</div>
+            <div class="level-num" id="lv-num">레벨 1</div>
+          </div>
+        </div>
+        <div class="streak-badge">🔥 <span id="streak-num">0</span>일 연속</div>
+      </div>
+      <div class="level-bar-bg">
+        <div class="level-bar-fill" id="lv-bar" style="width:0%"></div>
+      </div>
+      <div class="level-bar-text">
+        <span id="lv-cur-pts">0p</span>
+        <span id="lv-next-pts">다음 레벨까지 200p</span>
+      </div>
+    </div>
+
+    <div class="quick-grid">
+      <button class="quick-btn" onclick="navigate('exercise')">
+        <div class="qi-icon" style="background:#EBF0FF">🏃</div>
+        <div><div class="qi-title">운동 기록</div><div class="qi-sub">오늘 운동 추가</div></div>
+      </button>
+      <button class="quick-btn" onclick="navigate('league')">
+        <div class="qi-icon" style="background:#FFF8E1">🏆</div>
+        <div><div class="qi-title">내 순위</div><div class="qi-sub" id="my-rank-quick">순위 확인</div></div>
+      </button>
+      <button class="quick-btn" onclick="navigate('community')">
+        <div class="qi-icon" style="background:#E8FAF1">💬</div>
+        <div><div class="qi-title">커뮤니티</div><div class="qi-sub">응원 메시지 보기</div></div>
+      </button>
+      <button class="quick-btn" onclick="navigate('rewards')">
+        <div class="qi-icon" style="background:#FFE8E8">🎁</div>
+        <div><div class="qi-title">보상</div><div class="qi-sub" id="pts-quick">0p 보유</div></div>
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">이번 주 활동</span>
+        <span class="badge badge-primary" id="week-total-badge">0분</span>
+      </div>
+      <div class="week-grid" id="week-grid"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">획득한 배지</span>
+        <span class="badge badge-warning" id="ach-count-badge">0개</span>
+      </div>
+      <div class="ach-strip" id="ach-strip-home"></div>
+    </div>
+
+  </section>
+
+  <!-- ████  EXERCISE  ████ -->
+  <section id="page-exercise" class="page">
+
+    <div class="card">
+      <p class="card-title" style="margin-bottom:13px">운동 종류 선택</p>
+      <div class="ex-type-grid" id="ex-type-grid"></div>
+    </div>
+
+    <div class="card">
+      <p class="card-title" style="margin-bottom:5px">운동 시간</p>
+      <div class="duration-wrap">
+        <button class="dur-btn" onclick="changeDur(-5)">−</button>
+        <div class="dur-display">
+          <div class="dur-val" id="dur-val">30</div>
+          <div class="dur-unit">분</div>
+        </div>
+        <button class="dur-btn" onclick="changeDur(5)">+</button>
+      </div>
+      <div class="pts-preview">
+        <div class="pts-preview-val" id="pts-prev">+15</div>
+        <div class="pts-preview-lbl">획득 예정 포인트</div>
+      </div>
+      <div style="margin-bottom:13px">
+        <label class="form-label">메모 (선택)</label>
+        <textarea class="form-textarea" id="ex-memo" rows="2" placeholder="오늘 운동 소감을 남겨보세요..."></textarea>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="logExercise()">💪 운동 기록하기</button>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">운동 기록</span>
+        <span class="badge badge-success" id="wo-total-badge">총 0회</span>
+      </div>
+      <div id="wo-history"></div>
+    </div>
+
+  </section>
+
+  <!-- ████  LEAGUE  ████ -->
+  <section id="page-league" class="page">
+
+    <div class="league-tabs">
+      <button class="league-tab active" data-tab="weekly"  onclick="setTab(this,'weekly')">이번 주</button>
+      <button class="league-tab"        data-tab="monthly" onclick="setTab(this,'monthly')">이번 달</button>
+      <button class="league-tab"        data-tab="alltime" onclick="setTab(this,'alltime')">전체 기록</button>
+    </div>
+
+    <div class="my-rank-card" id="my-rank-card"></div>
+
+    <div class="podium" id="podium"></div>
+
+    <div id="lb-list"></div>
+
+  </section>
+
+  <!-- ████  COMMUNITY  ████ -->
+  <section id="page-community" class="page">
+
+    <div class="card">
+      <div class="compose-wrap">
+        <span class="compose-avatar" id="compose-av">🏃</span>
+        <textarea class="compose-input" id="post-input" rows="2" placeholder="운동 완료 후기나 응원 메시지를 남겨보세요!"></textarea>
+      </div>
+      <div class="compose-actions">
+        <button class="btn btn-primary" style="padding:9px 18px;font-size:13px" onclick="submitPost()">게시하기</button>
+      </div>
+    </div>
+
+    <div id="posts-feed"></div>
+
+  </section>
+
+  <!-- ████  REWARDS  ████ -->
+  <section id="page-rewards" class="page">
+
+    <div class="balance-card">
+      <p class="bal-label">보유 포인트</p>
+      <p class="bal-amt" id="bal-display">0</p>
+      <p class="bal-sub">⭐ 포인트로 다양한 혜택을 누리세요!</p>
+    </div>
+
+    <p class="section-title">🎁 교환 가능한 보상</p>
+    <div class="reward-grid" id="reward-grid"></div>
+
+    <p class="section-title">🏅 달성 배지</p>
+    <div class="ach-list" id="ach-list"></div>
+
+    <div style="margin-top:6px"></div>
+    <p class="section-title">📊 레벨 안내</p>
+    <div class="level-guide" id="level-guide"></div>
+
+  </section>
+
+</main>
+
+<!-- Bottom Nav -->
+<nav class="app-nav">
+  <button class="nav-btn active" onclick="navigate('home')" data-page="home">
+    <span class="nav-icon">🏠</span><span class="nav-label">홈</span>
+  </button>
+  <button class="nav-btn" onclick="navigate('exercise')" data-page="exercise">
+    <span class="nav-icon">🏃</span><span class="nav-label">운동</span>
+  </button>
+  <button class="nav-btn" onclick="navigate('league')" data-page="league">
+    <span class="nav-icon">🏆</span><span class="nav-label">리그</span>
+  </button>
+  <button class="nav-btn" onclick="navigate('community')" data-page="community">
+    <span class="nav-icon">💬</span><span class="nav-label">커뮤니티</span>
+  </button>
+  <button class="nav-btn" onclick="navigate('rewards')" data-page="rewards">
+    <span class="nav-icon">🎁</span><span class="nav-label">보상</span>
+  </button>
+</nav>
+
+<script>
+/* ════════════════════════════════════════
+   CONSTANTS
+════════════════════════════════════════ */
+const LEVELS = [
+  { lv:1, name:'새싹',    icon:'🌱', min:0,    max:199,  color:'#22C55E' },
+  { lv:2, name:'초보자',  icon:'🌿', min:200,  max:499,  color:'#84CC16' },
+  { lv:3, name:'활동가',  icon:'🌸', min:500,  max:999,  color:'#EC4899' },
+  { lv:4, name:'도전자',  icon:'🌺', min:1000, max:1999, color:'#F97316' },
+  { lv:5, name:'챔피언',  icon:'🌳', min:2000, max:3999, color:'#3B82F6' },
+  { lv:6, name:'레전드',  icon:'⭐', min:4000, max:Infinity, color:'#F59E0B' },
+];
+
+const EX_TYPES = [
+  { id:'walking',   name:'걷기',    icon:'🚶', ppm:0.5,  bg:'#DCFCE7' },
+  { id:'running',   name:'달리기',  icon:'🏃', ppm:1.0,  bg:'#FFE4E6' },
+  { id:'swimming',  name:'수영',    icon:'🏊', ppm:1.2,  bg:'#DBEAFE' },
+  { id:'cycling',   name:'자전거',  icon:'🚴', ppm:0.8,  bg:'#FEF3C7' },
+  { id:'yoga',      name:'요가',    icon:'🧘', ppm:0.7,  bg:'#F3E8FF' },
+  { id:'strength',  name:'근력운동',icon:'💪', ppm:1.0,  bg:'#FCE7F3' },
+  { id:'stretching',name:'스트레칭',icon:'🤸', ppm:0.4,  bg:'#CFFAFE' },
+  { id:'hiking',    name:'등산',    icon:'🥾', ppm:0.9,  bg:'#D1FAE5' },
+];
+
+const STICKERS = [
+  { id:'cheer',    emoji:'💪', label:'응원해요' },
+  { id:'love',     emoji:'❤️', label:'사랑해요' },
+  { id:'congrats', emoji:'🎉', label:'축하해요' },
+  { id:'cool',     emoji:'🌟', label:'최고예요' },
+  { id:'together', emoji:'🤗', label:'함께해요' },
+];
+
+const REWARDS_DATA = [
+  { id:'r1', emoji:'☕', name:'병원 카페 아메리카노', cost:300, desc:'원내 카페 무료 음료' },
+  { id:'r2', emoji:'🧴', name:'핸드크림 세트',      cost:500, desc:'보습 케어 선물' },
+  { id:'r3', emoji:'🎟️', name:'건강검진 할인 쿠폰', cost:800, desc:'추가 검사 10% 할인' },
+  { id:'r4', emoji:'🎁', name:'웰니스 선물 세트',   cost:1200,desc:'건강 용품 패키지' },
+  { id:'r5', emoji:'👕', name:'운동복 할인권',       cost:600, desc:'제휴 쇼핑몰 20% 할인' },
+  { id:'r6', emoji:'🍎', name:'과일 바구니',         cost:400, desc:'신선한 제철 과일' },
+];
+
+const ACHIEVEMENTS_DATA = [
+  { id:'a1', emoji:'🥇', name:'첫 걸음',     desc:'처음으로 운동을 기록했어요',   goal:1,   key:'totalWorkouts' },
+  { id:'a2', emoji:'🔥', name:'3일 연속',    desc:'3일 연속 운동에 성공했어요',   goal:3,   key:'streak' },
+  { id:'a3', emoji:'⚡', name:'10회 달성',   desc:'운동 10회를 기록했어요',       goal:10,  key:'totalWorkouts' },
+  { id:'a4', emoji:'💎', name:'7일 연속',    desc:'일주일 내내 운동했어요',       goal:7,   key:'streak' },
+  { id:'a5', emoji:'🚀', name:'30회 달성',   desc:'운동 30회를 기록했어요',       goal:30,  key:'totalWorkouts' },
+  { id:'a6', emoji:'🏆', name:'포인트 왕',   desc:'총 1000 포인트 달성',         goal:1000,key:'points' },
+  { id:'a7', emoji:'🌟', name:'레전드',      desc:'레벨 6에 도달했어요',         goal:6,   key:'level' },
+  { id:'a8', emoji:'❤️', name:'커뮤니티 스타',desc:'응원 스티커 50개 받기',      goal:50,  key:'stickersReceived' },
+];
+
+const MOCK_USERS = [
+  { id:101, name:'박지수',  avatar:'👩', lv:5, pts:2840, wPts:320, change:2 },
+  { id:102, name:'이준호',  avatar:'🧑', lv:5, pts:2750, wPts:290, change:-1 },
+  { id:103, name:'김서연',  avatar:'👩‍🦱', lv:4, pts:1930, wPts:270, change:1 },
+  { id:104, name:'최민수',  avatar:'👨', lv:4, pts:1820, wPts:240, change:0 },
+  { id:105, name:'정예린',  avatar:'👧', lv:3, pts:870,  wPts:210, change:3 },
+  { id:106, name:'강동현',  avatar:'👦', lv:3, pts:720,  wPts:195, change:-2 },
+  { id:107, name:'한소희',  avatar:'🙋‍♀️', lv:2, pts:460,  wPts:175, change:1 },
+  { id:108, name:'오태준',  avatar:'🙋', lv:2, pts:380,  wPts:150, change:-1 },
+  { id:109, name:'유미래',  avatar:'👩‍🦰', lv:1, pts:180,  wPts:120, change:0 },
+  { id:110, name:'임건우',  avatar:'👨‍🦱', lv:1, pts:90,   wPts:80,  change:-2 },
+];
+
+const MOCK_POSTS_SEED = [
+  {
+    id:1001, userId:101, name:'박지수', avatar:'👩', lv:5,
+    body:'오늘 달리기 30분 완료! 연속 14일 도전 중이에요 💪 매일 조금씩 나아지는 느낌이 너무 좋아요!',
+    exTag:'🏃 달리기 30분',
+    time:'10분 전',
+    stickers:{ cheer:12, love:5, cool:8, congrats:2, together:3 },
+    myReactions:[], comments:3,
+  },
+  {
+    id:1002, userId:103, name:'김서연', avatar:'👩‍🦱', lv:4,
+    body:'요가 수업 처음 들었는데 생각보다 너무 재밌었어요! 몸이 한결 가벼워진 기분 🧘',
+    exTag:'🧘 요가 45분',
+    time:'1시간 전',
+    stickers:{ cheer:7, love:11, cool:4, congrats:1, together:6 },
+    myReactions:[], comments:5,
+  },
+  {
+    id:1003, userId:105, name:'정예린', avatar:'👧', lv:3,
+    body:'처음으로 5km 걷기 완주했어요!! 힘들었지만 정말 뿌듯하네요 😭 다들 응원해주셔서 감사해요!',
+    exTag:'🚶 걷기 60분',
+    time:'3시간 전',
+    stickers:{ cheer:20, love:15, cool:9, congrats:18, together:11 },
+    myReactions:[], comments:12,
+  },
+  {
+    id:1004, userId:102, name:'이준호', avatar:'🧑', lv:5,
+    body:'주말에 등산 다녀왔어요. 정상에서 바라본 뷰가 최고였습니다 🏔️ 건강도 챙기고 힐링도 하고!',
+    exTag:'🥾 등산 120분',
+    time:'어제',
+    stickers:{ cheer:9, love:7, cool:14, congrats:3, together:5 },
+    myReactions:[], comments:7,
+  },
+  {
+    id:1005, userId:107, name:'한소희', avatar:'🙋‍♀️', lv:2,
+    body:'수영 시작한 지 2주가 됐어요. 아직 25m도 힘들지만 포기 안 하고 꾸준히 해볼게요! 다들 화이팅!',
+    exTag:'🏊 수영 40분',
+    time:'어제',
+    stickers:{ cheer:16, love:8, cool:5, congrats:2, together:13 },
+    myReactions:[], comments:9,
+  },
+];
+
+const WEEK_DAYS = ['일','월','화','수','목','금','토'];
+
+/* ════════════════════════════════════════
+   STATE
+════════════════════════════════════════ */
+let S = {
+  user: { name:'김민준', avatar:'🏃', points:0, streak:0, stickersReceived:0 },
+  workouts: [],
+  posts: JSON.parse(JSON.stringify(MOCK_POSTS_SEED)),
+  redeemedRewards: [],
+  selectedEx: 'walking',
+  duration: 30,
+  leagueTab: 'weekly',
+  myReactions: {},   // postId -> [stickerId,...]
+};
+
+/* ════════════════════════════════════════
+   STORAGE
+════════════════════════════════════════ */
+function save() {
+  try {
+    localStorage.setItem('hi_health_v2', JSON.stringify({
+      user: S.user,
+      workouts: S.workouts,
+      posts: S.posts,
+      redeemedRewards: S.redeemedRewards,
+      myReactions: S.myReactions,
+    }));
+  } catch(e) {}
+}
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem('hi_health_v2') || 'null');
+    if (!d) return;
+    S.user = { ...S.user, ...d.user };
+    S.workouts = d.workouts || [];
+    S.posts = d.posts || JSON.parse(JSON.stringify(MOCK_POSTS_SEED));
+    S.redeemedRewards = d.redeemedRewards || [];
+    S.myReactions = d.myReactions || {};
+  } catch(e) {}
+}
+
+/* ════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════ */
+function getLevel(pts) {
+  return LEVELS.slice().reverse().find(l => pts >= l.min) || LEVELS[0];
+}
+function getExType(id) {
+  return EX_TYPES.find(e => e.id === id) || EX_TYPES[0];
+}
+function calcPts(exId, dur) {
+  const ex = getExType(exId);
+  return Math.round(ex.ppm * dur);
+}
+function totalWorkouts() { return S.workouts.length; }
+function todayWorkouts() {
+  const today = new Date().toDateString();
+  return S.workouts.filter(w => new Date(w.ts).toDateString() === today);
+}
+function weekData() {
+  const now = new Date();
+  const dow = now.getDay(); // 0=Sun
+  return Array.from({length:7}, (_,i) => {
+    const d = new Date(now); d.setDate(now.getDate() - dow + i);
+    const ds = d.toDateString();
+    const mins = S.workouts
+      .filter(w => new Date(w.ts).toDateString() === ds)
+      .reduce((s,w) => s + w.duration, 0);
+    return { label: WEEK_DAYS[i], mins, isToday: ds === now.toDateString() };
+  });
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+function fmtTime(ts) {
+  const diff = Date.now() - ts;
+  const m = Math.floor(diff/60000);
+  if (m < 1)  return '방금 전';
+  if (m < 60) return m + '분 전';
+  const h = Math.floor(m/60);
+  if (h < 24) return h + '시간 전';
+  return Math.floor(h/24) + '일 전';
+}
+function updateStreak() {
+  // Calculate streak from workouts
+  if (!S.workouts.length) { S.user.streak = 0; return; }
+  const today = new Date(); today.setHours(0,0,0,0);
+  let streak = 0;
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today); d.setDate(today.getDate() - i);
+    const ds = d.toDateString();
+    const hasWorkout = S.workouts.some(w => new Date(w.ts).toDateString() === ds);
+    if (hasWorkout) streak++;
+    else if (i > 0) break;
+  }
+  S.user.streak = streak;
+}
+function earnedAchs() {
+  const lv = getLevel(S.user.points).lv;
+  return ACHIEVEMENTS_DATA.filter(a => {
+    const val = a.key === 'totalWorkouts' ? totalWorkouts()
+              : a.key === 'streak'        ? S.user.streak
+              : a.key === 'points'        ? S.user.points
+              : a.key === 'level'         ? lv
+              : a.key === 'stickersReceived' ? S.user.stickersReceived
+              : 0;
+    return val >= a.goal;
+  });
+}
+function myLeagueRank() {
+  const tab = S.leagueTab;
+  const myPts = tab === 'weekly' ? weekData().reduce((s,d) => s+Math.round(d.mins*0.8),0)
+               : tab === 'monthly' ? S.user.points
+               : S.user.points;
+  const others = MOCK_USERS.map(u => tab === 'weekly' ? u.wPts : u.pts);
+  return others.filter(p => p > myPts).length + 1;
+}
+function myWeekPts() {
+  return weekData().reduce((s,d) => s + Math.round(d.mins*0.8), 0);
+}
+
+/* ════════════════════════════════════════
+   NAVIGATION
+════════════════════════════════════════ */
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const pg = document.getElementById('page-' + page);
+  if (pg) pg.classList.add('active');
+  const nb = document.querySelector(`.nav-btn[data-page="${page}"]`);
+  if (nb) nb.classList.add('active');
+  // Render the page
+  if (page === 'home')      renderHome();
+  if (page === 'exercise')  renderExercise();
+  if (page === 'league')    renderLeague();
+  if (page === 'community') renderCommunity();
+  if (page === 'rewards')   renderRewards();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ════════════════════════════════════════
+   RENDER: HEADER
+════════════════════════════════════════ */
+function renderHeader() {
+  document.getElementById('hpts-val').textContent = S.user.points;
+  document.getElementById('header-avatar').textContent = S.user.avatar;
+}
+
+/* ════════════════════════════════════════
+   RENDER: HOME
+════════════════════════════════════════ */
+function renderHome() {
+  const lv = getLevel(S.user.points);
+  const tw = todayWorkouts();
+  const todayMins = tw.reduce((s,w) => s+w.duration, 0);
+  const todayPts  = tw.reduce((s,w) => s+w.points, 0);
+
+  document.getElementById('hero-name').textContent = S.user.name + '님';
+  document.getElementById('today-cnt').textContent = tw.length;
+  document.getElementById('today-min').textContent = todayMins;
+  document.getElementById('today-pts').textContent = '+' + todayPts;
+  document.getElementById('lv-icon').textContent = lv.icon;
+  document.getElementById('lv-name').textContent = lv.name;
+  document.getElementById('lv-num').textContent  = '레벨 ' + lv.lv;
+  document.getElementById('streak-num').textContent = S.user.streak;
+
+  // Level bar
+  const nextLv = LEVELS.find(l => l.lv === lv.lv + 1);
+  if (nextLv) {
+    const pct = ((S.user.points - lv.min) / (nextLv.min - lv.min) * 100).toFixed(1);
+    document.getElementById('lv-bar').style.width = pct + '%';
+    document.getElementById('lv-cur-pts').textContent = S.user.points + 'p';
+    document.getElementById('lv-next-pts').textContent = '다음 레벨까지 ' + (nextLv.min - S.user.points) + 'p';
+  } else {
+    document.getElementById('lv-bar').style.width = '100%';
+    document.getElementById('lv-cur-pts').textContent = S.user.points + 'p';
+    document.getElementById('lv-next-pts').textContent = '최고 레벨 달성! 🎉';
+  }
+
+  // Quick action subtitles
+  document.getElementById('my-rank-quick').textContent = myLeagueRank() + '위';
+  document.getElementById('pts-quick').textContent = S.user.points + 'p 보유';
+
+  // Weekly chart
+  const wd = weekData();
+  const maxMins = Math.max(...wd.map(d => d.mins), 1);
+  const totalWeekMins = wd.reduce((s,d) => s+d.mins, 0);
+  document.getElementById('week-total-badge').textContent = totalWeekMins + '분';
+  document.getElementById('week-grid').innerHTML = wd.map(d => `
+    <div class="week-day ${d.isToday ? 'today' : ''}">
+      <span class="week-label">${d.label}</span>
+      <div class="week-bar">
+        <div class="week-fill" style="height:${d.mins ? Math.max(10, (d.mins/maxMins*100)) : 0}%"></div>
+      </div>
+      <span class="week-val">${d.mins || ''}</span>
+    </div>
+  `).join('');
+
+  // Achievements strip
+  const earned = earnedAchs();
+  document.getElementById('ach-count-badge').textContent = earned.length + '개';
+  document.getElementById('ach-strip-home').innerHTML = ACHIEVEMENTS_DATA.map(a => {
+    const isEarned = earned.find(e => e.id === a.id);
+    return `
+      <div class="ach-chip">
+        <div class="ach-circle ${isEarned ? 'earned' : 'locked'}">${a.emoji}</div>
+        <div class="ach-label">${a.name}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* ════════════════════════════════════════
+   RENDER: EXERCISE
+════════════════════════════════════════ */
+function renderExercise() {
+  // Exercise type buttons
+  document.getElementById('ex-type-grid').innerHTML = EX_TYPES.map(e => `
+    <button class="ex-type-btn ${S.selectedEx === e.id ? 'selected' : ''}"
+            onclick="selectEx('${e.id}')">
+      <span class="ex-type-icon">${e.icon}</span>
+      <span class="ex-type-name">${e.name}</span>
+      <span class="ex-type-pts">${e.ppm}/분</span>
+    </button>
+  `).join('');
+
+  updatePtsPreview();
+
+  // History
+  const wo = document.getElementById('wo-history');
+  document.getElementById('wo-total-badge').textContent = '총 ' + S.workouts.length + '회';
+  if (!S.workouts.length) {
+    wo.innerHTML = `<div class="empty-state"><div class="ei">🏃</div><p>아직 기록된 운동이 없어요.<br>첫 운동을 기록해보세요!</p></div>`;
+    return;
+  }
+  wo.innerHTML = [...S.workouts].reverse().slice(0,20).map(w => {
+    const ex = getExType(w.exId);
+    return `
+      <div class="workout-item">
+        <div class="wo-icon" style="background:${ex.bg}">${ex.icon}</div>
+        <div class="wo-info">
+          <div class="wo-name">${ex.name}</div>
+          <div class="wo-meta">${w.duration}분 · ${fmtTime(w.ts)}${w.memo ? ' · '+w.memo : ''}</div>
+        </div>
+        <div class="wo-pts">+${w.points}p</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function selectEx(id) {
+  S.selectedEx = id;
+  renderExercise();
+}
+function changeDur(delta) {
+  S.duration = Math.max(5, Math.min(180, S.duration + delta));
+  document.getElementById('dur-val').textContent = S.duration;
+  updatePtsPreview();
+}
+function updatePtsPreview() {
+  const pts = calcPts(S.selectedEx, S.duration);
+  document.getElementById('pts-prev').textContent = '+' + pts;
+}
+function logExercise() {
+  const pts = calcPts(S.selectedEx, S.duration);
+  const memo = document.getElementById('ex-memo').value.trim();
+  S.workouts.push({
+    id: Date.now(),
+    exId: S.selectedEx,
+    duration: S.duration,
+    points: pts,
+    memo,
+    ts: Date.now(),
+  });
+  S.user.points += pts;
+  updateStreak();
+  document.getElementById('ex-memo').value = '';
+  save();
+  renderHeader();
+  showToast('🎉 운동 기록 완료! +' + pts + 'p 획득!');
+  renderExercise();
+
+  // Check level up
+  const lv = getLevel(S.user.points);
+  const prevPts = S.user.points - pts;
+  const prevLv = getLevel(prevPts);
+  if (lv.lv > prevLv.lv) {
+    setTimeout(() => showToast('🆙 레벨 업! ' + lv.icon + ' ' + lv.name + ' 달성!'), 1200);
+  }
+}
+
+/* ════════════════════════════════════════
+   RENDER: LEAGUE
+════════════════════════════════════════ */
+function renderLeague() {
+  const tab = S.leagueTab;
+  const myPts   = tab === 'weekly' ? myWeekPts() : S.user.points;
+  const myRank  = myLeagueRank();
+  const myLv    = getLevel(S.user.points);
+  const total   = MOCK_USERS.length + 1;
+  const pct     = Math.round((myRank / total) * 100);
+
+  // My rank card
+  document.getElementById('my-rank-card').innerHTML = `
+    <div class="my-rank-left">
+      <div class="mrl-label">내 순위</div>
+      <div class="mrl-rank">${myRank}위</div>
+      <div class="mrl-pct">상위 ${pct}%</div>
+    </div>
+    <div class="my-rank-right">
+      <div class="mrr-label">${tab === 'weekly' ? '이번주' : tab === 'monthly' ? '이번달' : '전체'} 포인트</div>
+      <div class="mrr-pts">⭐ ${myPts}p</div>
+      <div class="mrr-change">내 레벨: ${myLv.icon} ${myLv.name}</div>
+    </div>
+  `;
+
+  // Build sorted list including me
+  const me = {
+    id:0, name: S.user.name + ' (나)', avatar: S.user.avatar,
+    lv: getLevel(S.user.points).lv, pts: S.user.points,
+    wPts: myWeekPts(), change:0, isMe: true,
+  };
+  const list = [
+    ...MOCK_USERS.map(u => ({ ...u, pts: u.pts, wPts: u.wPts, isMe: false })),
+    me
+  ].sort((a,b) => (tab === 'weekly' ? b.wPts - a.wPts : b.pts - a.pts))
+   .map((u,i) => ({ ...u, rank: i+1 }));
+
+  // Podium (top 3)
+  const top3 = list.slice(0,3);
+  const podOrder = [top3[1], top3[0], top3[2]]; // silver, gold, bronze
+  const standClass = ['stand-silver','stand-gold','stand-bronze'];
+  const standNum   = ['2','1','3'];
+  document.getElementById('podium').innerHTML = podOrder.map((u,i) => `
+    <div class="podium-item">
+      <div class="podium-avatar">${u ? u.avatar : ''}</div>
+      <div class="podium-name">${u ? u.name : ''}</div>
+      <div class="podium-pts">${u ? (tab==='weekly'?u.wPts:u.pts)+'p' : ''}</div>
+      <div class="podium-stand ${standClass[i]}">${standNum[i]}</div>
+    </div>
+  `).join('');
+
+  // Full list from rank 4+
+  document.getElementById('lb-list').innerHTML = list.slice(3).map(u => {
+    const lv    = LEVELS[Math.min(u.lv-1, LEVELS.length-1)];
+    const chg   = tab==='weekly' ? u.change : 0;
+    const chgHtml = chg > 0 ? `<span class="lb-change ch-up">▲${chg}</span>`
+                  : chg < 0 ? `<span class="lb-change ch-dn">▼${Math.abs(chg)}</span>`
+                  :           `<span class="lb-change ch-eq">−</span>`;
+    return `
+      <div class="lb-item ${u.isMe ? 'me' : ''}">
+        <div class="lb-rank ${u.rank<=3?'top3':''}">${u.rank}</div>
+        <div class="lb-avatar">${u.avatar}</div>
+        <div class="lb-info">
+          <div class="lb-name">${u.name}</div>
+          <div class="lb-level">${lv.icon} ${lv.name}</div>
+        </div>
+        <div class="lb-right">
+          <div class="lb-pts">⭐ ${tab==='weekly'?u.wPts:u.pts}p</div>
+          ${chgHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function setTab(el, tab) {
+  document.querySelectorAll('.league-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  S.leagueTab = tab;
+  renderLeague();
+}
+
+/* ════════════════════════════════════════
+   RENDER: COMMUNITY
+════════════════════════════════════════ */
+function renderCommunity() {
+  document.getElementById('compose-av').textContent = S.user.avatar;
+  const feed = document.getElementById('posts-feed');
+  if (!S.posts.length) {
+    feed.innerHTML = `<div class="empty-state"><div class="ei">💬</div><p>아직 게시물이 없어요. 첫 글을 남겨보세요!</p></div>`;
+    return;
+  }
+  feed.innerHTML = [...S.posts].reverse().map(p => {
+    const lv = LEVELS[Math.min(p.lv-1, LEVELS.length-1)];
+    const myR = S.myReactions[p.id] || [];
+    const stickersHtml = STICKERS.map(s => {
+      const cnt = (p.stickers[s.id] || 0);
+      const on  = myR.includes(s.id);
+      return `
+        <button class="sticker-btn ${on?'on':''}" onclick="react(${p.id},'${s.id}')">
+          <span class="sticker-emoji">${s.emoji}</span>
+          <span class="sticker-cnt">${cnt > 0 ? cnt : ''} ${s.label}</span>
+        </button>
+      `;
+    }).join('');
+    return `
+      <div class="post-card" id="post-${p.id}">
+        <div class="post-head">
+          <span class="post-av">${p.avatar}</span>
+          <div>
+            <div class="post-uname">${p.name}</div>
+            <div class="post-meta">
+              <span>${lv.icon} ${lv.name}</span>
+              <span>·</span>
+              <span>${p.time}</span>
+            </div>
+          </div>
+        </div>
+        <div class="post-body">${p.body}</div>
+        ${p.exTag ? `<div class="post-exercise-tag">${p.exTag}</div>` : ''}
+        <div class="sticker-row">${stickersHtml}</div>
+        <button class="comment-btn">💬 댓글 ${p.comments || 0}개</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function react(postId, stickerId) {
+  const post = S.posts.find(p => p.id === postId);
+  if (!post) return;
+  if (!S.myReactions[postId]) S.myReactions[postId] = [];
+  const myR = S.myReactions[postId];
+  const idx = myR.indexOf(stickerId);
+  if (idx >= 0) {
+    myR.splice(idx,1);
+    post.stickers[stickerId] = Math.max(0, (post.stickers[stickerId]||0) - 1);
+  } else {
+    myR.push(stickerId);
+    post.stickers[stickerId] = (post.stickers[stickerId]||0) + 1;
+    // Stickers to poster
+    if (post.userId !== 0) S.user.stickersReceived++;
+  }
+  save();
+  renderCommunity();
+}
+
+function submitPost() {
+  const input = document.getElementById('post-input');
+  const body  = input.value.trim();
+  if (!body) { showToast('내용을 입력해주세요 ✏️'); return; }
+  const lv = getLevel(S.user.points);
+  const newPost = {
+    id: Date.now(),
+    userId: 0,
+    name: S.user.name,
+    avatar: S.user.avatar,
+    lv: lv.lv,
+    body,
+    exTag: null,
+    time: '방금 전',
+    stickers: { cheer:0, love:0, congrats:0, cool:0, together:0 },
+    myReactions: [],
+    comments: 0,
+  };
+  S.posts.push(newPost);
+  input.value = '';
+  save();
+  showToast('📣 게시물이 등록되었어요!');
+  renderCommunity();
+}
+
+/* ════════════════════════════════════════
+   RENDER: REWARDS
+════════════════════════════════════════ */
+function renderRewards() {
+  document.getElementById('bal-display').textContent = S.user.points;
+
+  // Rewards grid
+  document.getElementById('reward-grid').innerHTML = REWARDS_DATA.map(r => {
+    const done = S.redeemedRewards.includes(r.id);
+    const can  = !done && S.user.points >= r.cost;
+    return `
+      <div class="reward-card ${done?'done':''} ${can&&!done?'can':''}"
+           onclick="${done ? '' : 'redeemReward(\''+r.id+'\')'}">
+        <div class="reward-emoji">${r.emoji}</div>
+        <div class="reward-name">${r.name}</div>
+        ${done
+          ? `<div class="reward-done-label">✅ 교환 완료</div>`
+          : `<div class="reward-cost">⭐ ${r.cost}p</div>`
+        }
+      </div>
+    `;
+  }).join('');
+
+  // Achievements list
+  const earned = earnedAchs();
+  document.getElementById('ach-list').innerHTML = ACHIEVEMENTS_DATA.map(a => {
+    const isEarned = !!earned.find(e => e.id === a.id);
+    const lv = getLevel(S.user.points);
+    const curVal = a.key === 'totalWorkouts' ? totalWorkouts()
+                 : a.key === 'streak'        ? S.user.streak
+                 : a.key === 'points'        ? S.user.points
+                 : a.key === 'level'         ? lv.lv
+                 : S.user.stickersReceived;
+    const pct = Math.min(100, Math.round((curVal/a.goal)*100));
+    return `
+      <div class="ach-item ${isEarned ? '' : 'locked'}">
+        <div class="ach-badge ${isEarned ? 'earned' : 'pending'}">${a.emoji}</div>
+        <div class="ach-info">
+          <div class="ach-name">${a.name} ${isEarned ? '✅' : ''}</div>
+          <div class="ach-desc">${a.desc}</div>
+          ${!isEarned ? `
+            <div class="ach-prog-bar">
+              <div class="ach-prog-fill" style="width:${pct}%"></div>
+            </div>
+          ` : ''}
+        </div>
+        ${!isEarned ? `<div style="font-size:11px;color:var(--text-secondary);text-align:right;min-width:36px">${curVal}/${a.goal}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  // Level guide
+  const myLv = getLevel(S.user.points);
+  document.getElementById('level-guide').innerHTML = LEVELS.map(l => `
+    <div class="lg-row ${l.lv === myLv.lv ? 'current-level' : ''}">
+      <div class="lg-icon">${l.icon}</div>
+      <div class="lg-info">
+        <div class="lg-name">레벨 ${l.lv} · ${l.name}</div>
+        <div class="lg-range">${l.min}p ~ ${l.max === Infinity ? '∞' : l.max+'p'}</div>
+      </div>
+      ${l.lv === myLv.lv ? `<div class="lg-current">현재 레벨</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function redeemReward(id) {
+  const r = REWARDS_DATA.find(x => x.id === id);
+  if (!r) return;
+  if (S.redeemedRewards.includes(id)) { showToast('이미 교환한 보상이에요'); return; }
+  if (S.user.points < r.cost) { showToast('⚠️ 포인트가 부족해요 (필요: ' + r.cost + 'p)'); return; }
+  if (!confirm(`"${r.name}"을(를) ${r.cost}p로 교환하시겠어요?`)) return;
+  S.user.points -= r.cost;
+  S.redeemedRewards.push(id);
+  save();
+  renderHeader();
+  showToast('🎁 ' + r.name + ' 교환 완료!');
+  renderRewards();
+}
+
+/* ════════════════════════════════════════
+   INIT
+════════════════════════════════════════ */
+function init() {
+  load();
+  renderHeader();
+  renderHome();
+  // Animate level bar after short delay
+  setTimeout(() => {
+    const lv = getLevel(S.user.points);
+    const nextLv = LEVELS.find(l => l.lv === lv.lv + 1);
+    if (nextLv) {
+      const pct = ((S.user.points - lv.min) / (nextLv.min - lv.min) * 100).toFixed(1);
+      const bar = document.getElementById('lv-bar');
+      if (bar) { bar.style.width = '0%'; setTimeout(() => bar.style.width = pct + '%', 100); }
+    }
+  }, 200);
+}
+
+init();
+</script>
+</body>
+</html>
