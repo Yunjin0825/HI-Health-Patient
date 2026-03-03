@@ -79,6 +79,15 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 18px; cursor: pointer;
       border: 2px solid var(--primary-light);
+      position: relative;
+    }
+    .header-avatar::after {
+      content: '✏️';
+      position: absolute; bottom: -3px; right: -3px;
+      font-size: 10px; background: #fff;
+      border-radius: 50%; width: 14px; height: 14px;
+      display: flex; align-items: center; justify-content: center;
+      line-height: 1;
     }
 
     /* ── Main ── */
@@ -597,7 +606,7 @@
     <div class="header-points" id="header-pts" onclick="navigate('rewards')">
       ⭐ <span id="hpts-val">0</span>p
     </div>
-    <div class="header-avatar" id="header-avatar" onclick="navigate('rewards')"></div>
+    <div class="header-avatar" id="header-avatar" onclick="openProfileModal()" title="프로필 설정"></div>
   </div>
 </header>
 
