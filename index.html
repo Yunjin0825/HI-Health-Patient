@@ -2,8 +2,23 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>HI Health - 건강 챌린지</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#5B8AF5">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="HI Health">
+  <link rel="apple-touch-icon" href="icons/icon.svg">
+
+  <!-- SEO / Open Graph -->
+  <meta name="description" content="HI 건강 챌린지 — 운동·혈당·커뮤니티">
+
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -376,18 +391,42 @@
     .wo-health-tag-glucose { background:#FEE2E2; color:#DC2626; }
 
     /* ── Community Share ── */
-    .share-toggle-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-    .share-toggle-btn {
-      display:flex; align-items:center; gap:7px; padding:9px 16px;
-      border-radius:var(--radius-sm); border:1.5px solid var(--border);
-      background:var(--bg); font-size:13px; font-weight:600; cursor:pointer;
-      transition:all 0.2s; color:var(--text-secondary); flex:1;
+    .share-toggle-card {
+      display:flex; align-items:center; gap:12px; padding:13px 14px;
+      border-radius:var(--radius); border:1.5px solid var(--border);
+      background:var(--bg-secondary); cursor:pointer; transition:all 0.2s;
+      -webkit-user-select:none; user-select:none; margin-bottom:0;
     }
-    .share-toggle-btn.on {
-      border-color:#f97316; background:#FFF7ED; color:#ea580c;
+    .share-toggle-card.on { border-color:#f97316; background:#FFF7ED; }
+    .share-toggle-icon-wrap {
+      font-size:20px; width:40px; height:40px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      background:var(--border); border-radius:10px; transition:background 0.2s;
     }
+    .share-toggle-card.on .share-toggle-icon-wrap { background:#FFEDD5; }
+    .share-toggle-text { flex:1; min-width:0; }
+    .share-toggle-title { display:block; font-size:14px; font-weight:700; color:var(--text); transition:color 0.2s; }
+    .share-toggle-card.on .share-toggle-title { color:#ea580c; }
+    .share-toggle-sub { display:block; font-size:11px; color:var(--text-secondary); margin-top:2px; }
+    .share-toggle-switch {
+      width:44px; height:24px; border-radius:12px; background:var(--border);
+      position:relative; flex-shrink:0; transition:background 0.25s;
+    }
+    .share-toggle-card.on .share-toggle-switch { background:#f97316; }
+    .share-switch-thumb {
+      position:absolute; top:3px; left:3px; width:18px; height:18px;
+      border-radius:50%; background:#fff; transition:transform 0.25s;
+      box-shadow:0 1px 4px rgba(0,0,0,0.22);
+    }
+    .share-toggle-card.on .share-switch-thumb { transform:translateX(20px); }
     .share-expand { display:none; animation:fadeIn 0.2s ease; }
     .share-expand.show { display:block; }
+    .share-expand-inner {
+      margin-top:10px; background:var(--bg); border:1.5px solid #fed7aa;
+      border-radius:var(--radius-sm); padding:12px 13px;
+    }
+    .share-ex-tag-wrap { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+    .share-expand-label { font-size:11px; font-weight:600; color:var(--text-secondary); }
     .share-preview {
       background:#FFF7ED; border:1.5px solid #fed7aa; border-radius:var(--radius-sm);
       padding:11px 13px; margin-bottom:8px;
@@ -438,7 +477,22 @@
     .glucose-card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
     .glucose-badge-red { background:#FEE2E2; color:#DC2626; }
     .glucose-input-wrap-sa { display:flex; align-items:center; justify-content:center; gap:16px; margin:12px 0 8px; }
+    .glucose-time-toggle { border-style:dashed !important; }
+    .glucose-time-toggle.on { border-style:solid !important; }
+    .glucose-time-expand { display:none; margin-top:8px; }
+    .glucose-time-expand.show { display:block; }
+    .glucose-time-input {
+      width:100%; padding:7px 11px; border:1.5px solid var(--border); border-radius:var(--radius-sm);
+      font-size:13px; font-family:inherit; background:var(--bg); color:var(--text); box-sizing:border-box;
+    }
+    .glucose-time-input:focus { outline:none; border-color:var(--primary); }
     .glucose-log-btn { margin-top:10px; }
+    .load-more-btn {
+      display:block; width:100%; margin-top:10px; padding:9px;
+      background:none; border:1.5px dashed var(--border); border-radius:var(--radius-sm);
+      font-size:13px; color:var(--text-secondary); cursor:pointer; transition:all 0.15s;
+    }
+    .load-more-btn:hover { border-color:var(--primary); color:var(--primary); background:var(--primary-light); }
     .glucose-history-list { margin-top:12px; }
     .glucose-item {
       display:flex; align-items:center; gap:12px;
@@ -465,11 +519,37 @@
     .wo-del { background:none; border:none; cursor:pointer; color:var(--text-secondary); font-size:15px; padding:4px; opacity:0.45; transition:opacity 0.2s; flex-shrink:0; line-height:1; }
     .wo-del:hover { opacity:1; color:#ef4444; }
 
+    /* ── View Tabs (월별/목록/그래프) ── */
+    .card-header-right { display:flex; align-items:center; gap:8px; }
+    .wo-view-tabs { display:flex; gap:2px; background:var(--bg); border-radius:8px; padding:3px; }
+    .wo-view-tab { padding:4px 10px; border-radius:6px; border:none; font-family:inherit; font-size:11px; font-weight:600; cursor:pointer; background:transparent; color:var(--text-secondary); transition:all 0.18s; }
+    .wo-view-tab.active { background:#fff; color:var(--primary); box-shadow:0 1px 4px rgba(0,0,0,0.1); }
+    /* ── Month Nav ── */
+    .wo-month-nav { display:none; align-items:center; justify-content:space-between; padding:10px 0 10px; border-bottom:1px solid var(--border); margin-bottom:4px; }
+    .wo-month-nav.show { display:flex; }
+    .wo-month-btn { background:none; border:none; font-size:22px; cursor:pointer; color:var(--text-secondary); padding:0 6px; line-height:1; transition:color 0.2s; }
+    .wo-month-btn:hover { color:var(--primary); }
+    .wo-month-btn:disabled { opacity:0.3; cursor:default; }
+    .wo-month-lbl { font-size:15px; font-weight:700; }
+    /* ── Month Day Group ── */
+    .wo-day-group { display:flex; align-items:center; justify-content:space-between; padding:10px 0 6px; margin-top:4px; }
+    .wo-day-group + .workout-item { border-top:none; }
+    .wo-day-label { font-size:12px; font-weight:700; color:var(--text-secondary); }
+    .wo-day-pts { font-size:12px; font-weight:700; color:var(--warning); }
+    .wo-month-empty { text-align:center; padding:36px 0; color:var(--text-secondary); font-size:13px; }
+    /* ── Glucose Graph ── */
+    .glucose-graph-wrap { padding:6px 0 4px; }
+    .glucose-graph-legend { display:flex; gap:12px; justify-content:center; font-size:10px; font-weight:600; margin-top:8px; flex-wrap:wrap; color:var(--text-secondary); }
+    .glucose-graph-empty { text-align:center; padding:24px 0; color:var(--text-secondary); font-size:13px; line-height:1.7; }
+
     .hero-name { font-size:21px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
     .profile-edit-btn { background:rgba(255,255,255,0.22); border:none; cursor:pointer; font-size:12px; padding:3px 10px; border-radius:20px; color:white; flex-shrink:0; }
     .profile-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:200; display:flex; align-items:center; justify-content:center; padding:20px; }
     .profile-modal { background:var(--card); border-radius:var(--radius); padding:28px 24px; width:100%; max-width:360px; max-height:88vh; overflow-y:auto; }
-    .pm-title { font-size:18px; font-weight:700; text-align:center; margin-bottom:6px; }
+    .pm-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:6px; }
+    .pm-close-btn { background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-secondary); padding:0 0 0 8px; line-height:1; flex-shrink:0; }
+    .pm-close-btn:hover { color:var(--text); }
+    .pm-title { font-size:18px; font-weight:700; text-align:center; flex:1; }
     .pm-sub { font-size:13px; color:var(--text-secondary); text-align:center; margin-bottom:20px; }
     /* ── Profile Tags ── */
     .pm-tags-section { margin:16px 0 20px; }
@@ -683,12 +763,13 @@
     .reward-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-bottom: 18px; }
     .reward-card {
       background: #fff; border-radius: var(--radius); padding: 14px;
-      box-shadow: var(--shadow); text-align: center;
+      box-shadow: var(--shadow); text-align: center; position: relative; overflow: hidden;
       cursor: pointer; transition: all 0.2s; border: 2px solid transparent;
     }
     .reward-card:active { transform: scale(0.97); }
     .reward-card.can { border-color: var(--secondary); }
-    .reward-card.done { opacity: 0.55; cursor: default; }
+    .reward-card.pending { border-color: #f59e0b; background: #FFFBEB; cursor: default; }
+    .reward-card.done { opacity: 0.6; cursor: default; }
     .reward-emoji { font-size: 34px; margin-bottom: 7px; }
     .reward-name { font-size: 12px; font-weight: 600; margin-bottom: 6px; }
     .reward-cost {
@@ -696,8 +777,72 @@
       font-size: 11px; font-weight: 700; color: var(--warning);
       background: var(--warning-light); padding: 3px 9px; border-radius: 20px;
     }
-    .reward-done-label { font-size: 11px; font-weight: 600; color: var(--secondary); }
+    .reward-pending-badge { color: #b45309; background: #FEF3C7; }
+    .reward-done-badge    { color: #6b7280; background: #F3F4F6; }
+    .reward-confirm-btn {
+      display: block; width: 100%; margin-top: 8px;
+      padding: 6px 0; border-radius: 8px; border: none; cursor: pointer;
+      background: #16a34a; color: #fff; font-size: 11px; font-weight: 700;
+    }
+    .reward-confirm-btn:active { background: #15803d; }
+    /* 도장 */
+    .reward-stamp {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%) rotate(-18deg);
+      width: 72px; height: 72px; border-radius: 50%;
+      border: 3px solid #dc2626;
+      display: flex; align-items: center; justify-content: center;
+      color: #dc2626; font-size: 12px; font-weight: 900; line-height: 1.3;
+      opacity: 0.75; pointer-events: none; letter-spacing: -0.5px;
+    }
 
+    /* ── Reward Guide ── */
+    .reward-guide-card {
+      background: var(--bg-secondary); border: 1.5px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px; margin-bottom: 18px;
+    }
+    .reward-guide-title { font-size: 13px; font-weight: 700; margin-bottom: 12px; color: var(--text); }
+    .reward-guide-row {
+      display: flex; align-items: flex-start; gap: 11px;
+      padding: 10px 0; border-top: 1px solid var(--border);
+    }
+    .reward-guide-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+    .reward-guide-label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+    .reward-guide-only { font-size: 10px; font-weight: 600; color: var(--primary); background: var(--primary-light); padding: 1px 7px; border-radius: 10px; margin-left: 5px; vertical-align: middle; }
+    .reward-guide-desc  { display: block; font-size: 12px; color: var(--text-secondary); }
+    .reward-form-btn {
+      display: inline-block; margin-top: 7px; padding: 5px 12px;
+      background: var(--primary); color: #fff; border: none; border-radius: 20px;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    /* ── Reward Form Modal ── */
+    .reward-form-modal {
+      position: fixed; inset: 0; z-index: 1100;
+      display: flex; align-items: flex-end; justify-content: center;
+      background: rgba(0,0,0,0.45);
+    }
+    .reward-form-modal.rf-hidden { display: none; }
+    .reward-form-sheet {
+      background: var(--bg); width: 100%; max-width: 480px;
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 20px 20px 36px; max-height: 90vh; overflow-y: auto;
+    }
+    .rf-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .rf-title  { font-size: 16px; font-weight: 700; }
+    .rf-close  { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-secondary); }
+    .rf-field  { margin-bottom: 12px; }
+    .rf-label  { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; display: block; }
+    .rf-input  {
+      width: 100%; padding: 9px 11px; border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm); font-size: 14px; font-family: inherit;
+      background: var(--bg); box-sizing: border-box;
+    }
+    .rf-input:focus { outline: none; border-color: var(--primary); }
+    .rf-submit-btn { margin-top: 6px; }
+    .rf-notice {
+      background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: var(--radius-sm);
+      padding: 10px 12px; font-size: 12px; color: #1D4ED8; line-height: 1.6; margin-bottom: 14px;
+    }
     .ach-list { display: grid; gap: 10px; }
     .ach-item {
       display: flex; align-items: center; gap: 13px;
@@ -940,7 +1085,7 @@
       </div>
       <div style="margin-bottom:13px">
         <label class="form-label">메모 (선택)</label>
-        <textarea class="form-textarea" id="ex-memo" rows="2" placeholder="오늘 운동 소감을 남겨보세요..." oninput="if(_shareOn) updateSharePreview()"></textarea>
+        <textarea class="form-textarea" id="ex-memo" rows="2" placeholder="" oninput="updateMemoPlaceholder(); if(_shareOn) updateSharePreview()"></textarea>
       </div>
       <div>
         <label class="form-label">📷 운동 인증 사진 (선택)</label>
@@ -1011,6 +1156,8 @@
               <button type="button" class="hc-sub-chip hc-supp-preset" data-name="마그네슘"   onclick="toggleSuppItem('마그네슘')">마그네슘</button>
               <button type="button" class="hc-sub-chip hc-supp-preset" data-name="유산균"     onclick="toggleSuppItem('유산균')">유산균</button>
               <button type="button" class="hc-sub-chip hc-supp-preset" data-name="종합비타민" onclick="toggleSuppItem('종합비타민')">종합비타민</button>
+              <button type="button" class="hc-sub-chip hc-supp-preset" data-name="아르기닌"  onclick="toggleSuppItem('아르기닌')">아르기닌</button>
+              <button type="button" class="hc-sub-chip hc-supp-preset" data-name="코큐텐"    onclick="toggleSuppItem('코큐텐')">코큐텐</button>
             </div>
             <div class="hc-custom-supp">
               <input type="text" id="supp-custom-input" placeholder="기타 직접 입력" maxlength="20">
@@ -1022,19 +1169,26 @@
       </div>
 
       <div class="share-section">
-        <div class="share-toggle-row">
-          <button type="button" class="share-toggle-btn" id="share-toggle-btn" onclick="toggleShare()">
-            <span id="share-toggle-icon">📣</span> 커뮤니티에 공유하기
-          </button>
+        <div class="share-toggle-card" id="share-toggle-btn" onclick="toggleShare()">
+          <div class="share-toggle-icon-wrap">📣</div>
+          <div class="share-toggle-text">
+            <span class="share-toggle-title">커뮤니티에 공유하기</span>
+            <span class="share-toggle-sub" id="share-toggle-sub">오늘의 운동을 친구들과 나눠보세요</span>
+          </div>
+          <div class="share-toggle-switch">
+            <div class="share-switch-thumb"></div>
+          </div>
         </div>
         <div class="share-expand" id="share-expand">
-          <div class="share-preview">
-            <div class="share-preview-tag" id="share-ex-tag">🏃 달리기 30분</div>
-            <div class="share-memo-preview pm-hidden" id="share-memo-preview"></div>
-            <textarea class="share-msg-input" id="share-msg" rows="3" placeholder="공유할 메시지를 입력하세요..."></textarea>
+          <div class="share-expand-inner">
+            <div class="share-ex-tag-wrap">
+              <span class="share-preview-tag" id="share-ex-tag">🏃 달리기 30분</span>
+              <span class="share-expand-label">공유 메시지</span>
+            </div>
+            <textarea class="share-msg-input" id="share-msg" rows="3" placeholder="공유할 메시지를 입력하세요..." oninput="_shareMsgAuto=false"></textarea>
+            <div id="share-options"></div>
+            <div class="share-hint">💡 운동 종목·시간이 자동으로 태그됩니다</div>
           </div>
-          <div id="share-options"></div>
-          <div class="share-hint">💡 운동 종목·시간이 자동으로 태그됩니다</div>
         </div>
       </div>
 
@@ -1044,7 +1198,18 @@
     <div class="card">
       <div class="card-header">
         <span class="card-title">운동 기록</span>
-        <span class="badge badge-success" id="wo-total-badge">총 0회</span>
+        <div class="card-header-right">
+          <span class="badge badge-success" id="wo-total-badge">총 0회</span>
+          <div class="wo-view-tabs">
+            <button type="button" class="wo-view-tab active" id="wo-tab-recent" onclick="setWoView('recent')">최근</button>
+            <button type="button" class="wo-view-tab" id="wo-tab-monthly" onclick="setWoView('monthly')">월별</button>
+          </div>
+        </div>
+      </div>
+      <div class="wo-month-nav" id="wo-month-nav">
+        <button type="button" class="wo-month-btn" id="wo-prev-btn" onclick="changeWoMonth(-1)">‹</button>
+        <span class="wo-month-lbl" id="wo-month-label">-</span>
+        <button type="button" class="wo-month-btn" id="wo-next-btn" onclick="changeWoMonth(1)">›</button>
       </div>
       <div id="wo-history"></div>
     </div>
@@ -1052,7 +1217,13 @@
     <div class="card">
       <div class="glucose-card-header">
         <span class="card-title">🩸 혈당 기록</span>
-        <span class="badge glucose-badge-red" id="glucose-total-badge">총 0회</span>
+        <div class="card-header-right">
+          <span class="badge glucose-badge-red" id="glucose-total-badge">총 0회</span>
+          <div class="wo-view-tabs">
+            <button type="button" class="wo-view-tab active" id="gl-tab-list" onclick="setGlucoseView('list')">목록</button>
+            <button type="button" class="wo-view-tab" id="gl-tab-graph" onclick="setGlucoseView('graph')">그래프</button>
+          </div>
+        </div>
       </div>
       <div class="glucose-input-wrap-sa">
         <button type="button" class="dur-btn" onclick="changeGlucoseVal(-5)">−</button>
@@ -1064,9 +1235,14 @@
       </div>
       <div class="glucose-timing-row">
         <button type="button" class="glucose-timing-btn" id="sa-gt-fasting"  onclick="setGlucoseTiming('공복')">공복</button>
+        <button type="button" class="glucose-timing-btn" id="sa-gt-after"    onclick="setGlucoseTiming('식후')">식후</button>
         <button type="button" class="glucose-timing-btn" id="sa-gt-after2h"  onclick="setGlucoseTiming('식후2h')">식후 2h</button>
         <button type="button" class="glucose-timing-btn" id="sa-gt-before"   onclick="setGlucoseTiming('식전')">식전</button>
         <button type="button" class="glucose-timing-btn" id="sa-gt-bedtime"  onclick="setGlucoseTiming('취침전')">취침 전</button>
+        <button type="button" class="glucose-timing-btn glucose-time-toggle" id="sa-gt-time" onclick="toggleGlucoseTimeInput()">🕐 시간</button>
+      </div>
+      <div class="glucose-time-expand" id="sa-glucose-time-wrap">
+        <input type="time" id="sa-glucose-time" class="glucose-time-input" oninput="_glucoseTime=this.value">
       </div>
       <button class="btn btn-primary btn-full glucose-log-btn" onclick="logGlucoseStandalone()">🩸 혈당 기록하기</button>
       <div class="glucose-history-list" id="glucose-history"></div>
@@ -1078,9 +1254,10 @@
   <section id="page-league" class="page">
 
     <div class="league-tabs">
-      <button class="league-tab active" data-tab="weekly"  onclick="setTab(this,'weekly')">이번 주</button>
-      <button class="league-tab"        data-tab="monthly" onclick="setTab(this,'monthly')">이번 달</button>
-      <button class="league-tab"        data-tab="alltime" onclick="setTab(this,'alltime')">전체 기록</button>
+      <button class="league-tab active" data-tab="weekly"     onclick="setTab(this,'weekly')">이번 주</button>
+      <button class="league-tab"        data-tab="monthly"    onclick="setTab(this,'monthly')">이번 달</button>
+      <button class="league-tab"        data-tab="alltime"    onclick="setTab(this,'alltime')">전체 기록</button>
+      <button class="league-tab"        data-tab="challenger" onclick="setTab(this,'challenger')">🏃 챌린지</button>
     </div>
 
     <div class="my-rank-card" id="my-rank-card"></div>
@@ -1109,6 +1286,45 @@
 
   </section>
 
+  <!-- ████  REWARD FORM MODAL  ████ -->
+  <div class="reward-form-modal rf-hidden" id="reward-form-modal">
+    <div class="reward-form-sheet">
+      <div class="rf-header">
+        <span class="rf-title">📬 우편 수령 신청서</span>
+        <button type="button" class="rf-close" onclick="closeRewardForm()">✕</button>
+      </div>
+      <div class="rf-notice">
+        📋 아래 정보를 작성하신 후 담당자에게 제출해주세요.<br>
+        선물은 신청 후 영업일 기준 3~5일 이내 발송됩니다.
+      </div>
+      <div class="rf-field">
+        <label class="rf-label">이름</label>
+        <input type="text" class="rf-input" id="rf-name" placeholder="홍길동">
+      </div>
+      <div class="rf-field">
+        <label class="rf-label">생년월일</label>
+        <input type="date" class="rf-input" id="rf-birth">
+      </div>
+      <div class="rf-field">
+        <label class="rf-label">연락처</label>
+        <input type="tel" class="rf-input" id="rf-phone" placeholder="010-0000-0000">
+      </div>
+      <div class="rf-field">
+        <label class="rf-label">수령 보상 항목</label>
+        <input type="text" class="rf-input" id="rf-item" value="아르기닌 1box (1500p)" readonly>
+      </div>
+      <div class="rf-field">
+        <label class="rf-label">배송 주소</label>
+        <input type="text" class="rf-input" id="rf-addr" placeholder="도로명 주소 입력">
+      </div>
+      <div class="rf-field">
+        <label class="rf-label">상세 주소</label>
+        <input type="text" class="rf-input" id="rf-addr2" placeholder="동·호수, 건물명 등">
+      </div>
+      <button type="button" class="btn btn-primary btn-full rf-submit-btn" onclick="submitRewardForm()">신청서 제출하기</button>
+    </div>
+  </div>
+
   <!-- ████  REWARDS  ████ -->
   <section id="page-rewards" class="page">
 
@@ -1120,6 +1336,25 @@
 
     <p class="section-title">🎁 교환 가능한 보상</p>
     <div class="reward-grid" id="reward-grid"></div>
+
+    <div class="reward-guide-card">
+      <p class="reward-guide-title">📦 선물 수령 안내</p>
+      <div class="reward-guide-row">
+        <span class="reward-guide-icon">🏢</span>
+        <div>
+          <span class="reward-guide-label">직접 수령</span>
+          <span class="reward-guide-desc">평일 08:00 – 16:00 · 1층 라운지</span>
+        </div>
+      </div>
+      <div class="reward-guide-row">
+        <span class="reward-guide-icon">📬</span>
+        <div>
+          <span class="reward-guide-label">우편 신청 <span class="reward-guide-only">아르기닌 1box만 가능</span></span>
+          <span class="reward-guide-desc">신청서 작성 후 제출</span>
+          <button type="button" class="reward-form-btn" onclick="openRewardForm()">신청서 작성하기 →</button>
+        </div>
+      </div>
+    </div>
 
     <p class="section-title">🏅 달성 배지</p>
     <div class="ach-list" id="ach-list"></div>
@@ -1194,7 +1429,7 @@ const AVATARS = ['🏃','🚴','🏊','🤸','💪','🧘','🏋️','⚽','🎯
 const PROFILE_TAGS = [
   {
     cat: '🩺 치료 단계',
-    tags: ['🌱 준비 중', '💉 배란 유도중', '🥚 채란 완료', '🔬 배아 배양중', '🌡️ 이식 완료', '🤞 착상 기다리는 중', '✅ 임신 확인!', '❄️ 동결배아 보관중', '🔄 다음 시도 준비중', '⏸️ 잠시 휴식중', '🏁 최종 단계'],
+    tags: ['🌱 준비 중', '💉 배란 유도중', '🥚 채취 완료', '🔬 배아 배양중', '🌡️ 이식 완료', '🤞 착상 기다리는 중', '✅ 임신 확인!', '❄️ 동결배아 보관중', '🔄 다음 시도 준비중', '⏸️ 잠시 휴식중'],
   },
   {
     cat: '🔢 시술 차수',
@@ -1247,12 +1482,11 @@ const STICKERS = [
 ];
 
 const REWARDS_DATA = [
-  { id:'r1', emoji:'☕', name:'병원 카페 아메리카노', cost:300, desc:'원내 카페 무료 음료' },
-  { id:'r2', emoji:'🧴', name:'핸드크림 세트',      cost:500, desc:'보습 케어 선물' },
-  { id:'r3', emoji:'🎟️', name:'건강검진 할인 쿠폰', cost:800, desc:'추가 검사 10% 할인' },
-  { id:'r4', emoji:'🎁', name:'웰니스 선물 세트',   cost:1200,desc:'건강 용품 패키지' },
-  { id:'r5', emoji:'👕', name:'운동복 할인권',       cost:600, desc:'제휴 쇼핑몰 20% 할인' },
-  { id:'r6', emoji:'🍎', name:'과일 바구니',         cost:400, desc:'신선한 제철 과일' },
+  { id:'r1', emoji:'🍶', name:'HI 로고 보틀',   cost:300,  desc:'HI 브랜드 로고 보틀' },
+  { id:'r2', emoji:'🏊', name:'HI 스포츠타올',  cost:500,  desc:'HI 브랜드 스포츠 타올' },
+  { id:'r3', emoji:'👜', name:'HI 슈즈백',      cost:800,  desc:'HI 브랜드 슈즈 가방' },
+  { id:'r4', emoji:'🥤', name:'HI 텀블러',      cost:1200, desc:'HI 브랜드 텀블러' },
+  { id:'r5', emoji:'💊', name:'아르기닌 1box',   cost:1500, desc:'아르기닌 1박스' },
 ];
 
 const ACHIEVEMENTS_DATA = [
@@ -1267,21 +1501,21 @@ const ACHIEVEMENTS_DATA = [
 ];
 
 const MOCK_USERS = [
-  { id:101, name:'박지수',  avatar:'👩',   lv:5, pts:2840, wPts:320, change:2,  tags:['💉 배란 유도중','💪 꾸준한 운동','🌸 긍정 마인드'] },
-  { id:102, name:'이준호',  avatar:'🧑',   lv:5, pts:2750, wPts:290, change:-1, tags:['🧪 신선 배아 이식','🏃 매일 걷기','😴 수면 개선'] },
-  { id:103, name:'김서연',  avatar:'👩‍🦱', lv:4, pts:1930, wPts:270, change:1,  tags:['🤞 착상 기다리는 중','🌿 한방 병행','🧘 스트레스 관리'] },
-  { id:104, name:'최민수',  avatar:'👨',   lv:4, pts:1820, wPts:240, change:0,  tags:['❄️ 동결배아 보관중','💊 엽산 복용','🚫 금주 실천'] },
-  { id:105, name:'정예린',  avatar:'👧',   lv:3, pts:870,  wPts:210, change:3,  tags:['🌱 준비 중','🥗 식단 관리','💕 남편과 함께'] },
-  { id:106, name:'강동현',  avatar:'👦',   lv:3, pts:720,  wPts:195, change:-2, tags:['2️⃣ 2차 시험관','🏥 대학병원','🌈 희망 잃지 않아요'] },
-  { id:107, name:'한소희',  avatar:'🙋‍♀️', lv:2, pts:460,  wPts:175, change:1,  tags:['1️⃣ 1차 시험관','💪 포기 안 해요','👶 아기 기다려요'] },
-  { id:108, name:'오태준',  avatar:'🙋',   lv:2, pts:380,  wPts:150, change:-1, tags:['🔬 PGT 검사','🏨 전문 클리닉'] },
-  { id:109, name:'유미래',  avatar:'👩‍🦰', lv:1, pts:180,  wPts:120, change:0,  tags:['🌱 준비 중','💊 엽산 복용'] },
-  { id:110, name:'임건우',  avatar:'👨‍🦱', lv:1, pts:90,   wPts:80,  change:-2, tags:['🥗 식단 관리'] },
+  { id:101, name:'박지수',  avatar:'👩',   lv:5, pts:2840, wPts:320, change:2,  isChallenger:true,  tags:['💉 배란 유도중','💪 꾸준한 운동','🌸 긍정 마인드'] },
+  { id:102, name:'이준호',  avatar:'🧑',   lv:5, pts:2750, wPts:290, change:-1, isChallenger:true,  tags:['🧪 신선 배아 이식','🏃 매일 걷기','😴 수면 개선'] },
+  { id:103, name:'김서연',  avatar:'👩‍🦱', lv:4, pts:1930, wPts:270, change:1,  isChallenger:true,  tags:['🤞 착상 기다리는 중','🌿 한방 병행','🧘 스트레스 관리'] },
+  { id:104, name:'최민수',  avatar:'👨',   lv:4, pts:1820, wPts:240, change:0,  isChallenger:false, tags:['❄️ 동결배아 보관중','💊 엽산 복용','🚫 금주 실천'] },
+  { id:105, name:'정예린',  avatar:'👧',   lv:3, pts:870,  wPts:210, change:3,  isChallenger:true,  tags:['🌱 준비 중','🥗 식단 관리','💕 남편과 함께'] },
+  { id:106, name:'강동현',  avatar:'👦',   lv:3, pts:720,  wPts:195, change:-2, isChallenger:true,  tags:['2️⃣ 2차 시험관','🏥 대학병원','🌈 희망 잃지 않아요'] },
+  { id:107, name:'한소희',  avatar:'🙋‍♀️', lv:2, pts:460,  wPts:175, change:1,  isChallenger:true,  tags:['1️⃣ 1차 시험관','💪 포기 안 해요','👶 아기 기다려요'] },
+  { id:108, name:'오태준',  avatar:'🙋',   lv:2, pts:380,  wPts:150, change:-1, isChallenger:false, tags:['🔬 PGT 검사','🏨 전문 클리닉'] },
+  { id:109, name:'유미래',  avatar:'👩‍🦰', lv:1, pts:180,  wPts:120, change:0,  isChallenger:true,  tags:['🌱 준비 중','💊 엽산 복용'] },
+  { id:110, name:'임건우',  avatar:'👨‍🦱', lv:1, pts:90,   wPts:80,  change:-2, isChallenger:false, tags:['🥗 식단 관리'] },
 ];
 
 const MOCK_POSTS_SEED = [
   {
-    id:1001, userId:101, name:'박지수', avatar:'👩', lv:5,
+    id:1001, userId:101, name:'박지수', avatar:'👩', lv:5, isChallenger:true,
     body:'오늘 달리기 30분 완료! 연속 14일 도전 중이에요 💪 매일 조금씩 나아지는 느낌이 너무 좋아요!',
     exTag:'🏃 달리기 30분',
     userTags:['💉 배란 유도중','💪 꾸준한 운동'],
@@ -1295,7 +1529,7 @@ const MOCK_POSTS_SEED = [
     ],
   },
   {
-    id:1002, userId:103, name:'김서연', avatar:'👩‍🦱', lv:4,
+    id:1002, userId:103, name:'김서연', avatar:'👩‍🦱', lv:4, isChallenger:true,
     body:'요가 수업 처음 들었는데 생각보다 너무 재밌었어요! 몸이 한결 가벼워진 기분 🧘',
     exTag:'🧘 요가 45분',
     userTags:['🤞 착상 기다리는 중','🌿 한방 병행'],
@@ -1311,7 +1545,7 @@ const MOCK_POSTS_SEED = [
     ],
   },
   {
-    id:1003, userId:105, name:'정예린', avatar:'👧', lv:3,
+    id:1003, userId:105, name:'정예린', avatar:'👧', lv:3, isChallenger:true,
     body:'처음으로 5km 걷기 완주했어요!! 힘들었지만 정말 뿌듯하네요 😭 다들 응원해주셔서 감사해요!',
     exTag:'🚶 걷기 60분',
     userTags:['🌱 준비 중','💕 남편과 함께'],
@@ -1361,10 +1595,11 @@ const WEEK_DAYS = ['일','월','화','수','목','금','토'];
    STATE
 ════════════════════════════════════════ */
 let S = {
-  user: { name:'김민준', avatar:'🏃', points:0, streak:0, stickersReceived:0, registrationId:null, tags:[] },
+  user: { name:'', avatar:'🏃', points:0, streak:0, stickersReceived:0, registrationId:null, tags:[] },
   workouts: [],
   posts: JSON.parse(JSON.stringify(MOCK_POSTS_SEED)),
   redeemedRewards: [],
+  pendingRewards: [],
   selectedEx: 'walking',
   duration: 30,
   leagueTab: 'weekly',
@@ -1382,6 +1617,7 @@ function save() {
       workouts: S.workouts,
       posts: S.posts,
       redeemedRewards: S.redeemedRewards,
+      pendingRewards: S.pendingRewards,
       myReactions: S.myReactions,
       glucoseRecords: S.glucoseRecords,
     }));
@@ -1395,6 +1631,7 @@ function load() {
     S.workouts = d.workouts || [];
     S.posts = d.posts || JSON.parse(JSON.stringify(MOCK_POSTS_SEED));
     S.redeemedRewards = d.redeemedRewards || [];
+    S.pendingRewards  = d.pendingRewards  || [];
     S.myReactions = d.myReactions || {};
     S.glucoseRecords = d.glucoseRecords || [];
   } catch(e) {}
@@ -1582,6 +1819,112 @@ function renderHome() {
 /* ════════════════════════════════════════
    RENDER: EXERCISE
 ════════════════════════════════════════ */
+/* ── Workout view state ── */
+let _woViewMode = 'recent';
+let _woMonthOffset = 0;
+let _woShowCount = 10;
+
+function setWoView(mode) {
+  _woViewMode = mode;
+  _woShowCount = 10;
+  if (mode === 'monthly') _woMonthOffset = 0;
+  document.getElementById('wo-tab-recent').classList.toggle('active', mode === 'recent');
+  document.getElementById('wo-tab-monthly').classList.toggle('active', mode === 'monthly');
+  document.getElementById('wo-month-nav').classList.toggle('show', mode === 'monthly');
+  renderExerciseHistory();
+}
+
+function changeWoMonth(dir) {
+  const now = new Date();
+  const next = new Date(now.getFullYear(), now.getMonth() + _woMonthOffset + dir, 1);
+  if (next > now) return;
+  _woMonthOffset += dir;
+  renderExerciseHistory();
+}
+
+function workoutItemHTML(w) {
+  const ex = getExType(w.exId);
+  return `
+    <div class="workout-item">
+      <div class="wo-icon" style="background:${ex.bg}">${ex.icon}</div>
+      <div class="wo-info">
+        <div class="wo-name">${w.customName || ex.name}</div>
+        <div class="wo-meta">${w.duration}분 · ${fmtTime(w.ts)}${w.memo ? ' · '+w.memo : ''}</div>
+        ${(w.diet || w.mealTypes || w.sleep != null || w.supp != null || w.suppList || w.glucose != null) ? `
+        <div class="wo-health-tags">
+          ${w.diet  ? `<span class="wo-health-tag">🥗 ${w.diet}</span>` : ''}
+          ${w.mealTypes ? `<span class="wo-health-tag">🍽️ ${w.mealTypes.join('·')}</span>` : ''}
+          ${w.sleep != null ? `<span class="wo-health-tag">😴 ${w.sleep}h</span>` : ''}
+          ${w.supp === true && !w.suppList ? `<span class="wo-health-tag">💊 영양제</span>` : ''}
+          ${w.suppList ? `<span class="wo-health-tag">💊 ${w.suppList.join('·')}</span>` : ''}
+          ${w.supp === false ? `<span class="wo-health-tag wo-health-tag-muted">💊 미복용</span>` : ''}
+          ${w.glucose != null ? `<span class="wo-health-tag wo-health-tag-glucose">🩸 ${w.glucose} mg/dL</span>` : ''}
+        </div>` : ''}
+      </div>
+      ${w.photo ? `<img class="wo-photo" src="${w.photo}" onclick="viewPhoto(${w.id})" alt="인증">` : ''}
+      <div class="wo-pts">+${w.points}p</div>
+      <button type="button" class="wo-del" onclick="deleteWorkout(${w.id})" title="삭제">🗑️</button>
+    </div>
+  `;
+}
+
+function renderExerciseHistory() {
+  const wo = document.getElementById('wo-history');
+  if (_woViewMode === 'recent') {
+    document.getElementById('wo-total-badge').textContent = '총 ' + S.workouts.length + '회';
+    if (!S.workouts.length) {
+      wo.innerHTML = `<div class="empty-state"><div class="ei">🏃</div><p>아직 기록된 운동이 없어요.<br>첫 운동을 기록해보세요!</p></div>`;
+      return;
+    }
+    const reversed = [...S.workouts].reverse();
+    const visible  = reversed.slice(0, _woShowCount);
+    const remain   = reversed.length - visible.length;
+    wo.innerHTML = visible.map(w => workoutItemHTML(w)).join('')
+      + (remain > 0 ? `<button class="load-more-btn" onclick="_woShowCount+=10;renderExerciseHistory()">더보기 (${remain}개 남음)</button>` : '');
+    return;
+  }
+
+  // Monthly view
+  const now = new Date();
+  const target = new Date(now.getFullYear(), now.getMonth() + _woMonthOffset, 1);
+  const year = target.getFullYear();
+  const month = target.getMonth();
+  document.getElementById('wo-month-label').textContent = year + '년 ' + (month + 1) + '월';
+  document.getElementById('wo-next-btn').disabled = (new Date(year, month + 1, 1) > now);
+
+  const monthWo = S.workouts.filter(w => {
+    const d = new Date(w.ts);
+    return d.getFullYear() === year && d.getMonth() === month;
+  });
+  document.getElementById('wo-total-badge').textContent = (month + 1) + '월 ' + monthWo.length + '회';
+
+  if (!monthWo.length) {
+    wo.innerHTML = `<div class="wo-month-empty">이 달에는 운동 기록이 없어요 💪</div>`;
+    return;
+  }
+
+  // Group by day
+  const dayMap = {};
+  monthWo.forEach(w => {
+    const d = new Date(w.ts).getDate();
+    if (!dayMap[d]) dayMap[d] = [];
+    dayMap[d].push(w);
+  });
+  const days = Object.keys(dayMap).map(Number).sort((a, b) => b - a);
+
+  wo.innerHTML = days.map(day => {
+    const dws = dayMap[day].sort((a, b) => b.ts - a.ts);
+    const totalPts = dws.reduce((s, w) => s + w.points, 0);
+    return `
+      <div class="wo-day-group">
+        <span class="wo-day-label">${month + 1}월 ${day}일</span>
+        <span class="wo-day-pts">+${totalPts}p · ${dws.length}회</span>
+      </div>
+      ${dws.map(w => workoutItemHTML(w)).join('')}
+    `;
+  }).join('');
+}
+
 function renderExercise() {
   // Exercise type buttons
   document.getElementById('ex-type-grid').innerHTML = EX_TYPES.map(e => `
@@ -1599,52 +1942,40 @@ function renderExercise() {
   const cw = document.getElementById('custom-ex-wrap');
   if (cw) cw.classList.toggle('show', S.selectedEx === 'custom');
 
-  // History
-  const wo = document.getElementById('wo-history');
-  document.getElementById('wo-total-badge').textContent = '총 ' + S.workouts.length + '회';
-  if (!S.workouts.length) {
-    wo.innerHTML = `<div class="empty-state"><div class="ei">🏃</div><p>아직 기록된 운동이 없어요.<br>첫 운동을 기록해보세요!</p></div>`;
-    return;
-  }
-  wo.innerHTML = [...S.workouts].reverse().slice(0,20).map(w => {
-    const ex = getExType(w.exId);
-    return `
-      <div class="workout-item">
-        <div class="wo-icon" style="background:${ex.bg}">${ex.icon}</div>
-        <div class="wo-info">
-          <div class="wo-name">${w.customName || ex.name}</div>
-          <div class="wo-meta">${w.duration}분 · ${fmtTime(w.ts)}${w.memo ? ' · '+w.memo : ''}</div>
-          ${(w.diet || w.mealTypes || w.sleep != null || w.supp != null || w.suppList || w.glucose != null) ? `
-          <div class="wo-health-tags">
-            ${w.diet  ? `<span class="wo-health-tag">🥗 ${w.diet}</span>` : ''}
-            ${w.mealTypes ? `<span class="wo-health-tag">🍽️ ${w.mealTypes.join('·')}</span>` : ''}
-            ${w.sleep != null ? `<span class="wo-health-tag">😴 ${w.sleep}h</span>` : ''}
-            ${w.supp === true && !w.suppList ? `<span class="wo-health-tag">💊 영양제</span>` : ''}
-            ${w.suppList ? `<span class="wo-health-tag">💊 ${w.suppList.join('·')}</span>` : ''}
-            ${w.supp === false ? `<span class="wo-health-tag wo-health-tag-muted">💊 미복용</span>` : ''}
-            ${w.glucose != null ? `<span class="wo-health-tag wo-health-tag-glucose">🩸 ${w.glucose} mg/dL</span>` : ''}
-          </div>` : ''}
-        </div>
-        ${w.photo ? `<img class="wo-photo" src="${w.photo}" onclick="viewPhoto(${w.id})" alt="인증">` : ''}
-        <div class="wo-pts">+${w.points}p</div>
-        <button type="button" class="wo-del" onclick="deleteWorkout(${w.id})" title="삭제">🗑️</button>
-      </div>
-    `;
-  }).join('');
-
+  renderExerciseHistory();
   renderGlucose();
+  updateMemoPlaceholder();
 }
 
+function updateMemoPlaceholder() {
+  const ex = EX_TYPES.find(e => e.id === S.selectedEx);
+  const name = S.selectedEx === 'custom'
+    ? (document.getElementById('custom-ex-name')?.value.trim() || '운동')
+    : (ex ? ex.name : '운동');
+  const icon = ex ? ex.icon : '💪';
+  const memo = document.getElementById('ex-memo')?.value.trim();
+  const base = `오늘 ${name} ${S.duration}분 완료했어요! ${icon}`;
+  const shareMsg = document.getElementById('share-msg');
+  if (shareMsg) {
+    shareMsg.placeholder = memo ? `${base} ${memo}` : base;
+    // Also update value if it was auto-filled (not manually edited)
+    if (_shareMsgAuto) {
+      shareMsg.value = memo ? `${base} ${memo}` : base;
+    }
+  }
+}
 function selectEx(id) {
   haptic('light');
   S.selectedEx = id;
   renderExercise();
+  updateMemoPlaceholder();
   if (_shareOn) updateSharePreview();
 }
 function changeDur(delta) {
   S.duration = Math.max(5, Math.min(180, S.duration + delta));
   document.getElementById('dur-val').textContent = S.duration;
   updatePtsPreview();
+  updateMemoPlaceholder();
   if (_shareOn) updateSharePreview();
 }
 let _shareOn = false;
@@ -1659,6 +1990,7 @@ function toggleShare() {
 
 let _sharePhoto  = false;
 let _shareHealth = false;
+let _shareMsgAuto = false;
 
 function updateSharePreview() {
   const ex = EX_TYPES.find(e => e.id === S.selectedEx);
@@ -1670,22 +2002,13 @@ function updateSharePreview() {
   const tagEl = document.getElementById('share-ex-tag');
   if (tagEl) tagEl.textContent = tag;
 
-  // Memo preview
-  const memo = document.getElementById('ex-memo')?.value.trim();
-  const memoEl = document.getElementById('share-memo-preview');
-  if (memoEl) {
-    if (memo) {
-      memoEl.textContent = memo;
-      memoEl.classList.remove('pm-hidden');
-    } else {
-      memoEl.classList.add('pm-hidden');
-    }
-  }
-
-  // Auto-fill message only if empty
+  // Auto-fill message (include memo); respect manual edits
   const msgEl = document.getElementById('share-msg');
-  if (msgEl && !msgEl.value.trim()) {
-    msgEl.value = '오늘 ' + name + ' ' + S.duration + '분 완료했어요! 💪';
+  if (msgEl && (_shareMsgAuto || !msgEl.value.trim())) {
+    const memo2 = document.getElementById('ex-memo')?.value.trim();
+    const icon = ex.icon;
+    msgEl.value = '오늘 ' + name + ' ' + S.duration + '분 완료했어요! ' + icon + (memo2 ? ' ' + memo2 : '');
+    _shareMsgAuto = true;
   }
 
   renderShareOptions();
@@ -1753,7 +2076,9 @@ function logExercise() {
     const ex = EX_TYPES.find(e => e.id === S.selectedEx);
     const exName = customName || (ex ? ex.name : '운동');
     const exIcon = ex ? ex.icon : '💪';
-    const shareMsg = document.getElementById('share-msg').value.trim()
+    const shareMsgEl = document.getElementById('share-msg');
+    const shareMsg = shareMsgEl.value.trim()
+      || shareMsgEl.placeholder
       || '오늘 ' + exName + ' ' + S.duration + '분 완료했어요! 💪';
     const curLv = getLevel(S.user.points);
     const hasSleep = document.getElementById('hc-sleep-sec').classList.contains('show');
@@ -1786,6 +2111,7 @@ function logExercise() {
   _shareOn = false;
   _sharePhoto  = false;
   _shareHealth = false;
+  _shareMsgAuto = false;
   document.getElementById('share-toggle-btn').classList.remove('on');
   document.getElementById('share-expand').classList.remove('show');
   document.getElementById('share-options').innerHTML = '';
@@ -1939,9 +2265,25 @@ function addCustomSupp() {
 /* ── Blood Glucose ── */
 let _glucoseVal    = 100;
 let _glucoseTiming = null;
+let _glucoseTime   = '';
 
-const GLUCOSE_TIMINGS = ['공복','식후2h','식전','취침전'];
-const TIMING_ID_MAP = { '공복':'fasting', '식후2h':'after2h', '식전':'before', '취침전':'bedtime' };
+const GLUCOSE_TIMINGS = ['공복','식후','식후2h','식전','취침전'];
+const TIMING_ID_MAP = { '공복':'fasting', '식후':'after', '식후2h':'after2h', '식전':'before', '취침전':'bedtime' };
+let _glucoseTimeOpen = false;
+
+function toggleGlucoseTimeInput() {
+  haptic('light');
+  _glucoseTimeOpen = !_glucoseTimeOpen;
+  document.getElementById('sa-glucose-time-wrap').classList.toggle('show', _glucoseTimeOpen);
+  document.getElementById('sa-gt-time').classList.toggle('on', _glucoseTimeOpen);
+  if (!_glucoseTimeOpen) {
+    _glucoseTime = '';
+    const el = document.getElementById('sa-glucose-time');
+    if (el) el.value = '';
+  } else {
+    document.getElementById('sa-glucose-time')?.focus();
+  }
+}
 
 function getGlucoseStatus(val) {
   if (val < 70)  return { label:'저혈당', cls:'glucose-status-low' };
@@ -1974,11 +2316,23 @@ function setGlucoseTiming(timing) {
 function logGlucoseStandalone() {
   if (!_glucoseTiming) { haptic('error'); showToast('측정 시점을 선택해주세요'); return; }
   haptic('success');
-  const rec = { id: Date.now(), value: _glucoseVal, timing: _glucoseTiming, ts: new Date().toISOString() };
+  let ts;
+  if (_glucoseTime) {
+    const [h, m] = _glucoseTime.split(':').map(Number);
+    const d = new Date(); d.setHours(h, m, 0, 0);
+    ts = d.toISOString();
+  } else {
+    ts = new Date().toISOString();
+  }
+  const rec = { id: Date.now(), value: _glucoseVal, timing: _glucoseTiming, ts };
   S.glucoseRecords.unshift(rec);
   save();
-  _glucoseVal = 100; _glucoseTiming = null;
-  syncGlucoseUI('sa');
+  _glucoseVal = 100; _glucoseTiming = null; _glucoseTime = ''; _glucoseTimeOpen = false;
+  const timeEl = document.getElementById('sa-glucose-time');
+  if (timeEl) timeEl.value = '';
+  document.getElementById('sa-glucose-time-wrap')?.classList.remove('show');
+  document.getElementById('sa-gt-time')?.classList.remove('on');
+  syncGlucoseUI();
   renderGlucose();
   const st = getGlucoseStatus(rec.value);
   showToast('🩸 혈당 기록 완료! ' + rec.value + ' mg/dL (' + st.label + ')');
@@ -1991,17 +2345,101 @@ function deleteGlucose(id) {
   renderGlucose();
 }
 
+/* ── Glucose view state ── */
+let _glucoseViewMode = 'list';
+let _glShowCount = 10;
+
+function setGlucoseView(mode) {
+  _glucoseViewMode = mode;
+  _glShowCount = 10;
+  document.getElementById('gl-tab-list').classList.toggle('active', mode === 'list');
+  document.getElementById('gl-tab-graph').classList.toggle('active', mode === 'graph');
+  renderGlucose();
+}
+
+function glucoseGraphHTML() {
+  const recs = [...S.glucoseRecords].reverse(); // chronological order
+  if (recs.length < 2) {
+    return '<div class="glucose-graph-empty">그래프를 보려면<br>2개 이상의 기록이 필요해요</div>';
+  }
+  const recent = recs.slice(-20);
+  const vals = recent.map(r => r.value);
+  const minVal = Math.max(40,  Math.min(...vals) - 20);
+  const maxVal = Math.min(360, Math.max(...vals) + 20);
+  const range  = maxVal - minVal || 1;
+
+  const W = 300, H = 160, pL = 38, pR = 10, pT = 12, pB = 28;
+  const gW = W - pL - pR;
+  const gH = H - pT - pB;
+  const n  = recent.length;
+  const toX = i => pL + (n === 1 ? gW / 2 : (i / (n - 1)) * gW);
+  const toY = v => pT + gH - ((v - minVal) / range) * gH;
+
+  const dotColor = { 'glucose-status-low':'#3B82F6', 'glucose-status-ok':'#10B981', 'glucose-status-warn':'#F59E0B', 'glucose-status-high':'#EF4444' };
+
+  const refLines = [{ val:70, c:'#93C5FD' }, { val:140, c:'#FCA5A5' }]
+    .filter(r => r.val > minVal && r.val < maxVal)
+    .map(r => {
+      const y = toY(r.val).toFixed(1);
+      return `<line x1="${pL}" y1="${y}" x2="${W-pR}" y2="${y}" stroke="${r.c}" stroke-width="1" stroke-dasharray="4,3"/>
+              <text x="${pL-3}" y="${(+y+3.5).toFixed(1)}" text-anchor="end" font-size="9" fill="${r.c}">${r.val}</text>`;
+    }).join('');
+
+  const linePts = recent.map((r, i) => `${toX(i).toFixed(1)},${toY(r.value).toFixed(1)}`).join(' ');
+
+  const dots = recent.map((r, i) => {
+    const col = dotColor[getGlucoseStatus(r.value).cls] || '#6366f1';
+    return `<circle cx="${toX(i).toFixed(1)}" cy="${toY(r.value).toFixed(1)}" r="4" fill="${col}" stroke="#fff" stroke-width="1.5"/>`;
+  }).join('');
+
+  const labelIndices = n <= 4 ? recent.map((_, i) => i) : [0, Math.floor((n-1)/2), n-1];
+  const xLabels = [...new Set(labelIndices)].map(i => {
+    const d = new Date(recent[i].ts);
+    return `<text x="${toX(i).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="9" fill="#9CA3AF">${d.getMonth()+1}/${d.getDate()}</text>`;
+  }).join('');
+
+  const yLabels = `
+    <text x="${pL-3}" y="${(pT+4).toFixed(1)}" text-anchor="end" font-size="9" fill="#9CA3AF">${Math.round(maxVal)}</text>
+    <text x="${pL-3}" y="${(pT+gH+4).toFixed(1)}" text-anchor="end" font-size="9" fill="#9CA3AF">${Math.round(minVal)}</text>`;
+
+  return `
+    <div class="glucose-graph-wrap">
+      <svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;overflow:visible">
+        <line x1="${pL}" y1="${pT}" x2="${pL}" y2="${pT+gH}" stroke="#E5E7EB" stroke-width="1"/>
+        ${refLines}
+        <polyline points="${linePts}" fill="none" stroke="#6366f1" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        ${dots}
+        ${yLabels}
+        ${xLabels}
+      </svg>
+      <div class="glucose-graph-legend">
+        <span style="color:#3B82F6">● 저혈당(&lt;70)</span>
+        <span style="color:#10B981">● 정상</span>
+        <span style="color:#F59E0B">● 주의(140~)</span>
+        <span style="color:#EF4444">● 고혈당(180~)</span>
+      </div>
+    </div>`;
+}
+
 function renderGlucose() {
   const el = document.getElementById('glucose-history');
   const badge = document.getElementById('glucose-total-badge');
   if (!el) return;
   const recs = S.glucoseRecords;
   if (badge) badge.textContent = '총 ' + recs.length + '회';
+
+  if (_glucoseViewMode === 'graph') {
+    el.innerHTML = glucoseGraphHTML();
+    return;
+  }
+
   if (recs.length === 0) {
     el.innerHTML = '<div class="wo-empty">아직 혈당 기록이 없어요</div>';
     return;
   }
-  el.innerHTML = recs.map(r => {
+  const visible = recs.slice(0, _glShowCount);
+  const remain  = recs.length - visible.length;
+  el.innerHTML = visible.map(r => {
     const st = getGlucoseStatus(r.value);
     const d  = new Date(r.ts);
     const timeStr = (d.getMonth()+1) + '/' + d.getDate() + ' ' +
@@ -2015,7 +2453,8 @@ function renderGlucose() {
       <span class="glucose-status-tag ${st.cls}">${st.label}</span>
       <button class="glucose-del" onclick="deleteGlucose(${r.id})">✕</button>
     </div>`;
-  }).join('');
+  }).join('')
+  + (remain > 0 ? `<button class="load-more-btn" onclick="_glShowCount+=10;renderGlucose()">더보기 (${remain}개 남음)</button>` : '');
 }
 function triggerPhotoInput() { document.getElementById('photo-input').click(); }
 function handlePhotoInput(input) {
@@ -2084,14 +2523,19 @@ function openProfileModal(onboarding = false) {
     document.getElementById('pm-sub').textContent   = '이름과 아바타를 설정하고 챌린지를 시작해보세요';
     document.getElementById('pm-save-btn').textContent = '시작하기!';
     document.getElementById('pm-logout-section').style.display = 'none';
+    document.getElementById('pm-close-btn').style.display = 'none';
   } else {
     document.getElementById('pm-title').textContent = '👤 프로필 설정';
     document.getElementById('pm-sub').textContent   = '이름과 아바타를 선택해주세요';
     document.getElementById('pm-save-btn').textContent = '저장하기';
     document.getElementById('pm-logout-section').style.display = '';
+    document.getElementById('pm-close-btn').style.display = '';
   }
 
   document.getElementById('profile-modal').classList.remove('pm-hidden');
+}
+function closeProfileModal() {
+  document.getElementById('profile-modal').classList.add('pm-hidden');
 }
 function renderPmTags() {
   const listEl = document.getElementById('pm-tag-list');
@@ -2151,6 +2595,7 @@ function logout() {
     workouts: [],
     posts: JSON.parse(JSON.stringify(MOCK_POSTS_SEED)),
     redeemedRewards: [],
+    pendingRewards: [],
     selectedEx: 'walking',
     duration: 30,
     leagueTab: 'weekly',
@@ -2168,13 +2613,85 @@ function logout() {
 ════════════════════════════════════════ */
 function renderLeague() {
   const tab = S.leagueTab;
-  const myPts   = tab === 'weekly' ? myWeekPts() : S.user.points;
-  const myRank  = myLeagueRank();
-  const myLv    = getLevel(S.user.points);
-  const total   = MOCK_USERS.length + 1;
-  const pct     = Math.round((myRank / total) * 100);
 
-  // My rank card
+  // ── 챌린지 전용 랭킹 ──
+  if (tab === 'challenger') {
+    const isRegistered = !!S.user.registrationId;
+    const me = {
+      id:0, name: S.user.name + ' (나)', avatar: S.user.avatar,
+      lv: getLevel(S.user.points).lv, pts: S.user.points,
+      wPts: myWeekPts(), change:0, isMe: true, isChallenger: isRegistered,
+      tags: S.user.tags || [],
+    };
+    const challengers = [
+      ...MOCK_USERS.filter(u => u.isChallenger).map(u => ({ ...u, isMe: false })),
+      ...(isRegistered ? [me] : []),
+    ].sort((a, b) => b.pts - a.pts).map((u, i) => ({ ...u, rank: i + 1 }));
+
+    // My rank card
+    if (isRegistered) {
+      const myRankCh = challengers.find(u => u.isMe)?.rank || '-';
+      const myLv = getLevel(S.user.points);
+      document.getElementById('my-rank-card').innerHTML = `
+        <div class="my-rank-left">
+          <div class="mrl-label">챌린지 순위</div>
+          <div class="mrl-rank">${myRankCh}위</div>
+          <div class="mrl-pct">참가자 ${challengers.length}명</div>
+        </div>
+        <div class="my-rank-right">
+          <div class="mrr-label">전체 포인트</div>
+          <div class="mrr-pts">⭐ ${S.user.points}p</div>
+          <div class="mrr-change">내 레벨: ${myLv.icon} ${myLv.name}</div>
+        </div>
+      `;
+    } else {
+      document.getElementById('my-rank-card').innerHTML = `
+        <div style="padding:16px;text-align:center;color:var(--text-secondary);font-size:13px">
+          🏃 챌린지에 신청하면 랭킹에 참여할 수 있어요
+        </div>`;
+    }
+
+    const top3 = challengers.slice(0, 3);
+    const podOrder = [top3[1], top3[0], top3[2]];
+    const standClass = ['stand-silver','stand-gold','stand-bronze'];
+    const standNum   = ['2','1','3'];
+    document.getElementById('podium').innerHTML = podOrder.map((u, i) => `
+      <div class="podium-item">
+        <div class="podium-avatar">${u ? u.avatar : ''}</div>
+        <div class="podium-name">${u ? u.name : ''}</div>
+        <div class="podium-pts">${u ? u.pts + 'p' : ''}</div>
+        <div class="podium-stand ${standClass[i]}">${standNum[i]}</div>
+      </div>
+    `).join('');
+
+    document.getElementById('lb-list').innerHTML = challengers.slice(3).map(u => {
+      const lv = LEVELS[Math.min(u.lv - 1, LEVELS.length - 1)];
+      return `
+        <div class="lb-item ${u.isMe ? 'me' : ''}">
+          <div class="lb-rank ${u.rank <= 3 ? 'top3' : ''}">${u.rank}</div>
+          <div class="lb-avatar">${u.avatar}</div>
+          <div class="lb-info">
+            <div class="lb-name">${u.name}</div>
+            <div class="lb-level">${lv.icon} ${lv.name}</div>
+            ${(u.tags || []).length ? `<div class="lb-tags">${u.tags.map(t => `<span class="profile-tag">${t}</span>`).join('')}</div>` : ''}
+          </div>
+          <div class="lb-right">
+            <div class="lb-pts">⭐ ${u.pts}p</div>
+            <span class="lb-change ch-eq">−</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+    return;
+  }
+
+  // ── 일반 랭킹 ──
+  const myPts  = tab === 'weekly' ? myWeekPts() : S.user.points;
+  const myRank = myLeagueRank();
+  const myLv   = getLevel(S.user.points);
+  const total  = MOCK_USERS.length + 1;
+  const pct    = Math.round((myRank / total) * 100);
+
   document.getElementById('my-rank-card').innerHTML = `
     <div class="my-rank-left">
       <div class="mrl-label">내 순위</div>
@@ -2188,21 +2705,19 @@ function renderLeague() {
     </div>
   `;
 
-  // Build sorted list including me
   const me = {
     id:0, name: S.user.name + ' (나)', avatar: S.user.avatar,
     lv: getLevel(S.user.points).lv, pts: S.user.points,
     wPts: myWeekPts(), change:0, isMe: true, tags: S.user.tags || [],
   };
   const list = [
-    ...MOCK_USERS.map(u => ({ ...u, pts: u.pts, wPts: u.wPts, isMe: false })),
+    ...MOCK_USERS.map(u => ({ ...u, isMe: false })),
     me
   ].sort((a,b) => (tab === 'weekly' ? b.wPts - a.wPts : b.pts - a.pts))
    .map((u,i) => ({ ...u, rank: i+1 }));
 
-  // Podium (top 3)
   const top3 = list.slice(0,3);
-  const podOrder = [top3[1], top3[0], top3[2]]; // silver, gold, bronze
+  const podOrder = [top3[1], top3[0], top3[2]];
   const standClass = ['stand-silver','stand-gold','stand-bronze'];
   const standNum   = ['2','1','3'];
   document.getElementById('podium').innerHTML = podOrder.map((u,i) => `
@@ -2214,7 +2729,6 @@ function renderLeague() {
     </div>
   `).join('');
 
-  // Full list from rank 4+
   document.getElementById('lb-list').innerHTML = list.slice(3).map(u => {
     const lv    = LEVELS[Math.min(u.lv-1, LEVELS.length-1)];
     const chg   = tab==='weekly' ? u.change : 0;
@@ -2228,7 +2742,7 @@ function renderLeague() {
         <div class="lb-info">
           <div class="lb-name">${u.name}</div>
           <div class="lb-level">${lv.icon} ${lv.name}</div>
-          ${(u.tags || []).length ? `<div class="lb-tags">${(u.tags).map(t => `<span class="profile-tag">${t}</span>`).join('')}</div>` : ''}
+          ${(u.tags || []).length ? `<div class="lb-tags">${u.tags.map(t => `<span class="profile-tag">${t}</span>`).join('')}</div>` : ''}
         </div>
         <div class="lb-right">
           <div class="lb-pts">⭐ ${tab==='weekly'?u.wPts:u.pts}p</div>
@@ -2277,7 +2791,11 @@ function renderCommunity() {
   const filterRow = document.getElementById('feed-filter-row');
   const tagSet = new Set();
   S.posts.forEach(p => { (p.userTags || []).forEach(t => tagSet.add(t)); });
-  const filters = [{ key:'all', label:'전체' }, ...[...tagSet].map(t => ({ key:t, label:t }))];
+  const filters = [
+    { key:'all', label:'전체' },
+    { key:'챌린지', label:'🏃 챌린지' },
+    ...[...tagSet].map(t => ({ key:t, label:t })),
+  ];
   filterRow.innerHTML = '';
   filters.forEach(f => {
     const btn = document.createElement('button');
@@ -2292,6 +2810,9 @@ function renderCommunity() {
   const sorted = [...S.posts].sort((a, b) => b.id - a.id);
   const visible = sorted.filter(p => {
     if (_feedFilter === 'all') return true;
+    if (_feedFilter === '챌린지') {
+      return p.isChallenger || (p.userId === 0 && !!S.user.registrationId);
+    }
     return (p.userTags || []).includes(_feedFilter);
   });
 
@@ -2495,15 +3016,24 @@ function renderRewards() {
 
   // Rewards grid
   document.getElementById('reward-grid').innerHTML = REWARDS_DATA.map(r => {
-    const done = S.redeemedRewards.includes(r.id);
-    const can  = !done && S.user.points >= r.cost;
+    const done    = S.redeemedRewards.includes(r.id);
+    const pending = !done && S.pendingRewards.includes(r.id);
+    const can     = !done && !pending && S.user.points >= r.cost;
+    let cardClass = 'reward-card';
+    if (done)    cardClass += ' done';
+    else if (pending) cardClass += ' pending';
+    else if (can)     cardClass += ' can';
+    const onclick = done || pending ? '' : `onclick="redeemReward('${r.id}')"`;
     return `
-      <div class="reward-card ${done?'done':''} ${can&&!done?'can':''}"
-           onclick="${done ? '' : 'redeemReward(\''+r.id+'\')'}">
+      <div class="${cardClass}" ${onclick}>
         <div class="reward-emoji">${r.emoji}</div>
         <div class="reward-name">${r.name}</div>
         ${done
-          ? `<div class="reward-done-label">✅ 교환 완료</div>`
+          ? `<div class="reward-cost reward-done-badge">교환 완료</div>
+             <div class="reward-stamp"><span>교환<br>완료</span></div>`
+          : pending
+          ? `<div class="reward-cost reward-pending-badge">⏳ 요청 중</div>
+             <button class="reward-confirm-btn" onclick="confirmReward('${r.id}')">✓ 직원 확인 완료</button>`
           : `<div class="reward-cost">⭐ ${r.cost}p</div>`
         }
       </div>
@@ -2556,15 +3086,62 @@ function redeemReward(id) {
   const r = REWARDS_DATA.find(x => x.id === id);
   if (!r) return;
   if (S.redeemedRewards.includes(id)) { haptic('error'); showToast('이미 교환한 보상이에요'); return; }
+  if (S.pendingRewards.includes(id))  { haptic('error'); showToast('이미 교환 요청 중이에요'); return; }
   if (S.user.points < r.cost) { haptic('error'); showToast('⚠️ 포인트가 부족해요 (필요: ' + r.cost + 'p)'); return; }
-  if (!confirm(`"${r.name}"을(를) ${r.cost}p로 교환하시겠어요?`)) return;
-  S.user.points -= r.cost;
-  S.redeemedRewards.push(id);
-  save();
-  renderHeader();
+  showConfirm(
+    `"${r.name}"을(를) ${r.cost}p로 교환 요청할까요?`,
+    () => {
+      S.user.points -= r.cost;
+      S.pendingRewards.push(id);
+      save();
+      renderHeader();
+      haptic('success');
+      showToast('📋 교환 요청 완료! 직원 확인 후 수령하세요');
+      renderRewards();
+    }
+  );
+}
+
+function confirmReward(id) {
+  const r = REWARDS_DATA.find(x => x.id === id);
+  if (!r) return;
+  showConfirm(
+    `"${r.name}" 교환을 확인하시겠어요?`,
+    () => {
+      S.pendingRewards  = S.pendingRewards.filter(x => x !== id);
+      S.redeemedRewards.push(id);
+      save();
+      haptic('success');
+      showToast('✅ 교환 완료 확인!');
+      renderRewards();
+    }
+  );
+}
+
+function openRewardForm() {
+  const nameEl = document.getElementById('rf-name');
+  if (nameEl && S.user.name) nameEl.value = S.user.name;
+  document.getElementById('reward-form-modal').classList.remove('rf-hidden');
+}
+
+function closeRewardForm() {
+  document.getElementById('reward-form-modal').classList.add('rf-hidden');
+}
+
+function submitRewardForm() {
+  const name  = document.getElementById('rf-name').value.trim();
+  const birth = document.getElementById('rf-birth').value.trim();
+  const phone = document.getElementById('rf-phone').value.trim();
+  const item  = document.getElementById('rf-item').value.trim();
+  const addr  = document.getElementById('rf-addr').value.trim();
+  if (!name || !phone || !item || !addr) {
+    haptic('error');
+    showToast('⚠️ 필수 항목을 모두 입력해주세요');
+    return;
+  }
   haptic('success');
-  showToast('🎁 ' + r.name + ' 교환 완료!');
-  renderRewards();
+  showToast('📬 신청서가 제출됐어요! 3~5 영업일 내 발송됩니다');
+  closeRewardForm();
 }
 
 /* ════════════════════════════════════════
@@ -2596,6 +3173,14 @@ function getMyReg() {
   if (!S.user.registrationId) return null;
   return (JSON.parse(localStorage.getItem(CH_REG_KEY) || '[]'))
     .find(r => r.id === S.user.registrationId) || null;
+}
+
+function scrollToExerciseForm() {
+  navigate('exercise');
+  setTimeout(() => {
+    const el = document.getElementById('ex-type-grid');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
 }
 
 function renderChallenge() {
@@ -2679,6 +3264,7 @@ function renderChallenge() {
         <div class="ch-reg-row"><span class="ch-reg-label">신발 사이즈</span><span class="ch-reg-value">${myReg.shoeSize}mm</span></div>
         <div class="ch-reg-row"><span class="ch-reg-label">가족 참여</span><span class="ch-reg-value">${myReg.familyParticipation ? '예 (' + myReg.familyCount + '명)' : '본인만'}</span></div>
         <div class="ch-reg-row"><span class="ch-reg-label">상태</span><span class="ch-reg-value">${statusLbl}</span></div>
+        <button type="button" class="btn btn-primary btn-full" style="margin-top:14px" onclick="scrollToExerciseForm()">💪 오늘 운동 기록하기</button>
       </div>
     `;
   } else if (phase === 'registration') {
@@ -2703,12 +3289,10 @@ function renderChallenge() {
               <label class="form-label">부서 <span style="color:var(--accent)">*</span></label>
               <select class="ch-form-select" id="ch-dept">
                 <option value="">선택</option>
-                <option>내과</option><option>외과</option><option>정형외과</option>
-                <option>소아청소년과</option><option>산부인과</option><option>응급의학과</option>
-                <option>마취통증의학과</option><option>영상의학과</option><option>진단검사의학과</option>
-                <option>약제부</option><option>간호부</option><option>원무과</option>
-                <option>행정부</option><option>영양팀</option><option>물리치료실</option>
-                <option>재활의학과</option><option>기타</option>
+                <option>의료진</option><option>외래</option><option>상담실</option>
+                <option>주사실</option><option>검사실</option><option>수술실</option>
+                <option>연구소</option><option>커뮤니케이션팀</option><option>원무팀</option>
+                <option>경영지원부</option>
               </select>
             </div>
           </div>
@@ -2741,8 +3325,7 @@ function renderChallenge() {
               <div class="ch-form-group">
                 <label class="form-label">가족 인원 (본인 제외)</label>
                 <select class="ch-form-select" id="ch-fam-cnt">
-                  <option value="1">1명</option><option value="2">2명</option>
-                  <option value="3">3명</option><option value="4">4명 이상</option>
+                  <option value="1">1명</option>
                 </select>
               </div>
               <div class="ch-form-group">
@@ -2872,7 +3455,10 @@ init();
 <!-- Profile Modal -->
 <div id="profile-modal" class="profile-modal-overlay pm-hidden">
   <div class="profile-modal">
-    <div class="pm-title" id="pm-title">👤 프로필 설정</div>
+    <div class="pm-header">
+      <div class="pm-title" id="pm-title">👤 프로필 설정</div>
+      <button type="button" class="pm-close-btn" id="pm-close-btn" onclick="closeProfileModal()">✕</button>
+    </div>
     <div class="pm-sub" id="pm-sub">이름과 아바타를 선택해주세요</div>
     <div class="form-label">이름</div>
     <input type="text" class="ch-form-input" id="pm-name" placeholder="이름을 입력하세요" maxlength="10">
@@ -2919,5 +3505,14 @@ init();
   </div>
 </div>
 
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .catch(err => console.warn('SW 등록 실패:', err));
+    });
+  }
+</script>
 </body>
 </html>

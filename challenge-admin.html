@@ -481,6 +481,7 @@ function renderTable() {
             ${r.status !== 'confirmed' ? `<button class="action-btn btn-confirm"  onclick="updateStatus('${r.id}','confirmed')">선정</button>` : ''}
             ${r.status !== 'cancelled' ? `<button class="action-btn btn-cancel"   onclick="updateStatus('${r.id}','cancelled')">미선정</button>` : ''}
             ${r.status !== 'pending'   ? `<button class="action-btn btn-pending"  onclick="updateStatus('${r.id}','pending')">재검토</button>` : ''}
+            <button class="action-btn btn-delete" onclick="deleteReg('${r.id}')">삭제</button>
           </div>
         </td>
       </tr>

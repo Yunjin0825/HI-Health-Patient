@@ -7,8 +7,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary: #4F46E5;
-      --primary-dark: #3730A3;
+      --primary: #7b46e5;
+      --primary-dark: #5e30a3;
       --primary-light: #EEF2FF;
       --green: #10B981;
       --green-light: #D1FAE5;
@@ -405,7 +405,7 @@
     </div>
     <div class="notice-grid" style="margin-top:30px">
       <div class="notice-card fade-up"><div class="nc-title">👟 신발 사이즈 필수</div><div class="nc-body">정확한 신발 사이즈(mm)를 기재해 주세요. 마감 후 변경이 어렵습니다.</div></div>
-      <div class="notice-card fade-up"><div class="nc-title">👨‍👩‍👧 가족 참여 안내</div><div class="nc-body">가족과 함께 참여 시 가족 인원수를 정확히 기재해 주세요. 가족도 선물이 지급됩니다.</div></div>
+      <div class="notice-card fade-up"><div class="nc-title">👨‍👩‍👧 가족 참여 안내</div><div class="nc-body">가족은 1인까지 함께 참여하실 수 있습니다. 가족도 선물이 지급됩니다.</div></div>
       <div class="notice-card fade-up"><div class="nc-title">📅 신청 마감 준수</div><div class="nc-body">3월 18일(수) 이후 추가 신청은 불가합니다. 기한 내 신청해 주세요.</div></div>
       <div class="notice-card fade-up"><div class="nc-title">🎁 선물 지급 일정</div><div class="nc-body">4월 1일(수)부터 입고 순서대로 지급됩니다. 일정이 변동될 수 있습니다.</div></div>
     </div>
@@ -450,13 +450,10 @@
           <label class="form-label">부서 <span class="req">*</span></label>
           <select class="form-select" id="f-dept">
             <option value="">부서 선택</option>
-            <option>내과</option><option>외과</option><option>정형외과</option>
-            <option>소아청소년과</option><option>산부인과</option><option>응급의학과</option>
-            <option>마취통증의학과</option><option>영상의학과</option><option>진단검사의학과</option>
-            <option>약제부</option><option>간호부</option><option>원무과</option>
-            <option>행정부</option><option>영양팀</option><option>물리치료실</option>
-            <option>재활의학과</option><option>피부과</option><option>안과</option>
-            <option>이비인후과</option><option>기타</option>
+            <option>의료진</option><option>외래</option><option>상담실</option>
+            <option>주사실</option><option>검사실</option><option>수술실</option>
+            <option>연구소</option><option>커뮤니케이션팀</option><option>원무팀</option>
+            <option>경영지원부</option>
           </select>
           <div class="form-error" id="err-dept">부서를 선택해주세요</div>
         </div>
@@ -499,8 +496,7 @@
           <div class="form-group">
             <label class="form-label">가족 참여 인원 <span class="req">*</span> <span style="font-size:11px;color:var(--text-3)">(본인 제외)</span></label>
             <select class="form-select" id="f-family-cnt">
-              <option value="1">1명</option><option value="2">2명</option>
-              <option value="3">3명</option><option value="4">4명 이상</option>
+              <option value="1">1명</option>
             </select>
           </div>
           <div class="form-group">
