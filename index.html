@@ -2425,8 +2425,9 @@ function closeConfirm() {
   _confirmCallback = null;
 }
 function confirmOk() {
+  const cb = _confirmCallback;
   closeConfirm();
-  if (_confirmCallback) _confirmCallback();
+  if (cb) cb();
 }
 
 function deletePost(id) {
@@ -2858,8 +2859,8 @@ init();
 <!-- Profile Modal -->
 <div id="profile-modal" class="profile-modal-overlay pm-hidden">
   <div class="profile-modal">
-    <div class="pm-title">👤 프로필 설정</div>
-    <div class="pm-sub">이름과 아바타를 선택해주세요</div>
+    <div class="pm-title" id="pm-title">👤 프로필 설정</div>
+    <div class="pm-sub" id="pm-sub">이름과 아바타를 선택해주세요</div>
     <div class="form-label">이름</div>
     <input type="text" class="ch-form-input" id="pm-name" placeholder="이름을 입력하세요" maxlength="10">
     <div class="form-label pm-avatar-label">아바타 선택</div>
@@ -2868,9 +2869,10 @@ init();
       <div class="pm-tags-label">🏷️ 나의 태그 <span class="pm-sel-count" id="pm-sel-count"></span></div>
       <div id="pm-tag-list"></div>
     </div>
-    <button type="button" class="btn btn-primary btn-full" onclick="saveProfile()">저장하기</button>
-    <div class="pm-divider"></div>
-    <button type="button" class="btn btn-danger btn-full" onclick="logout()">🚪 로그아웃 (데이터 초기화)</button>
+    <button type="button" class="btn btn-primary btn-full" id="pm-save-btn" onclick="saveProfile()">저장하기</button>
+    <div class="pm-divider" id="pm-logout-section">
+      <button type="button" class="btn btn-danger btn-full" onclick="logout()">🚪 로그아웃 (데이터 초기화)</button>
+    </div>
   </div>
 </div>
 
