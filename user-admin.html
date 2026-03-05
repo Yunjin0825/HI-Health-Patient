@@ -46,6 +46,11 @@
     .ah-user-name { background:rgba(255,255,255,0.15); padding:5px 13px; border-radius:20px; font-size:12px; font-weight:600; }
     .ah-logout { background:none; border:1px solid rgba(255,255,255,0.3); color:#fff; padding:7px 14px; border-radius:20px; font-family:inherit; font-size:12px; cursor:pointer; transition:all 0.2s; }
     .ah-logout:hover { background:rgba(255,255,255,0.15); }
+    .ah-pw-btn { background:none; border:1px solid rgba(255,255,255,0.3); color:#fff; padding:7px 14px; border-radius:20px; font-family:inherit; font-size:12px; cursor:pointer; transition:all 0.2s; }
+    .ah-pw-btn:hover { background:rgba(255,255,255,0.15); }
+    .pw-modal-input { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:inherit; font-size:14px; outline:none; margin-bottom:10px; }
+    .pw-modal-input:focus { border-color:#6366f1; }
+    .pw-modal-btn { width:100%; padding:12px; background:#6366f1; color:#fff; border:none; border-radius:var(--radius-sm); font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; margin-top:4px; }
     .admin-body { padding:24px; max-width:1200px; margin:0 auto; }
 
     /* STAT CARDS */
@@ -230,6 +235,7 @@
     </div>
     <div class="ah-right">
       <span class="ah-user-name" id="ah-user-name">-</span>
+      <button type="button" class="ah-pw-btn" onclick="openPwModal()">비밀번호 변경</button>
       <button type="button" class="ah-logout" onclick="doLogout()">로그아웃</button>
     </div>
   </header>
@@ -252,23 +258,7 @@
       </div>
     </div>
 
-    <!-- PW CHANGE -->
-    <div class="sheets-config" style="border-left-color:#6366f1; margin-top:12px;">
-      <div class="sheets-top">
-        <span class="sheets-icon">🔐</span>
-        <div>
-          <div class="sheets-title">관리자 비밀번호 변경</div>
-          <div class="sheets-sub">새 비밀번호를 입력 후 저장하세요</div>
-        </div>
-      </div>
-      <div class="sheets-row">
-        <input type="password" class="sheets-url-input" id="new-pw-input" placeholder="새 비밀번호">
-        <input type="password" class="sheets-url-input" id="new-pw-confirm" placeholder="비밀번호 확인" style="margin-left:8px;">
-        <button type="button" class="btn-sheets-load" style="background:#6366f1;" onclick="changeAdminPw()">저장</button>
-      </div>
-    </div>
-
-    <!-- USER FILTER (sheets mode) -->
+<!-- USER FILTER (sheets mode) -->
     <div class="user-filter-bar hidden" id="user-filter-bar">
       <span class="user-filter-label">이용자 선택</span>
       <select class="user-filter-select" id="user-filter-select" onchange="onUserFilterChange()">
@@ -522,6 +512,19 @@
   <div class="loading-text">Google Sheets에서 불러오는 중...</div>
 </div>
 
+<!-- PW CHANGE MODAL -->
+<div class="modal-overlay" id="pw-modal">
+  <div class="modal" style="max-width:360px;">
+    <div class="modal-header">
+      <span class="modal-title">🔐 비밀번호 변경</span>
+      <button type="button" class="modal-close" onclick="closePwModal()">✕</button>
+    </div>
+    <input type="password" class="pw-modal-input" id="new-pw-input" placeholder="새 비밀번호">
+    <input type="password" class="pw-modal-input" id="new-pw-confirm" placeholder="비밀번호 확인">
+    <button type="button" class="pw-modal-btn" onclick="changeAdminPw()">저장</button>
+  </div>
+</div>
+
 <!-- WORKOUT DETAIL MODAL -->
 <div class="modal-overlay" id="wo-modal">
   <div class="modal">
@@ -594,6 +597,14 @@ function doLogin() {
     setTimeout(() => { inp.classList.remove('error'); inp.placeholder = '관리자 비밀번호'; }, 2000);
   }
 }
+function openPwModal() {
+  document.getElementById('pw-modal').classList.add('open');
+  document.getElementById('new-pw-input').value = '';
+  document.getElementById('new-pw-confirm').value = '';
+}
+function closePwModal() {
+  document.getElementById('pw-modal').classList.remove('open');
+}
 function changeAdminPw() {
   const np = document.getElementById('new-pw-input').value;
   const nc = document.getElementById('new-pw-confirm').value;
@@ -601,8 +612,7 @@ function changeAdminPw() {
   if (np !== nc) { toast('비밀번호가 일치하지 않습니다'); return; }
   ADMIN_PW = np;
   localStorage.setItem('hi_admin_pw', np);
-  document.getElementById('new-pw-input').value = '';
-  document.getElementById('new-pw-confirm').value = '';
+  closePwModal();
   toast('비밀번호가 변경됐습니다 ✓');
 }
 function doLogout() {
