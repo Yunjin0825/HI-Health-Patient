@@ -65,7 +65,36 @@ function doGet(e) {
       result.glucose = sheetToObjects(getOrCreateSheet(ss, 'Glucose',
         ['id','deviceId','userName','value','timing','points','ts']));
     }
-    // 사번으로 사용자 데이터 조회 (로그인 시 사용)
+    // 등록번호로 사용자 데이터 조회 (로그인 시 사용)
+    if (action === 'getUserByRegId') {
+      const regId = e.parameter.regId || '';
+      const registrations = sheetToObjects(getOrCreateSheet(ss, 'Registrations',
+        ['id','deviceId','empId','name','dept','phone','shoeSize','familyParticipation','familyCount','status','registeredAt']));
+      const reg = registrations.find(r => String(r.id).toUpperCase() === regId.toUpperCase());
+      if (!reg) {
+        result.found = false;
+      } else {
+        result.found = true;
+        result.registration = reg;
+        const users = sheetToObjects(getOrCreateSheet(ss, 'Users',
+          ['deviceId','name','avatar','empId','dept','points','streak','tags','registrationId','updatedAt']));
+        const user = users.find(u => String(u.registrationId).toUpperCase() === regId.toUpperCase());
+        if (user) {
+          const did = user.deviceId;
+          result.user = user;
+          result.workouts = sheetToObjects(getOrCreateSheet(ss, 'Workouts',
+            ['id','deviceId','userName','date','exId','exName','duration','points','memo','ts']))
+            .filter(w => w.deviceId === did);
+          result.glucose = sheetToObjects(getOrCreateSheet(ss, 'Glucose',
+            ['id','deviceId','userName','value','timing','points','ts']))
+            .filter(g => g.deviceId === did);
+          result.posts = sheetToObjects(getOrCreateSheet(ss, 'Posts',
+            ['id','deviceId','userName','body','exTag','userTags','ts']))
+            .filter(p => p.deviceId === did);
+        }
+      }
+    }
+    // 사번으로 사용자 데이터 조회 (하위 호환)
     if (action === 'getUserData') {
       const empId = e.parameter.empId || '';
       const users = sheetToObjects(getOrCreateSheet(ss, 'Users',

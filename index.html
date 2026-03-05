@@ -1113,14 +1113,14 @@
   <div class="app-login-card">
     <img src="images/logo.png" alt="HI Health" class="app-login-logo">
     <div class="app-login-title">HI Health</div>
-    <div class="app-login-sub">사번을 입력해 시작하세요</div>
+    <div class="app-login-sub">등록번호를 입력해 시작하세요</div>
     <input type="text" class="app-login-input" id="login-empid-input"
-      placeholder="사번 입력 (예: EMP001)"
+      placeholder="등록번호 입력"
       onkeydown="if(event.key==='Enter')doAppLogin()"
       autocomplete="off">
     <button type="button" class="app-login-btn" id="login-btn" onclick="doAppLogin()">시작하기</button>
     <div class="app-login-loading" id="login-loading">데이터 불러오는 중...</div>
-    <div class="app-login-err" id="login-err">사번을 입력해주세요</div>
+    <div class="app-login-err" id="login-err">등록번호를 입력해주세요</div>
   </div>
 </div>
 
@@ -4036,52 +4036,72 @@ function submitChReg(e) {
 ════════════════════════════════════════ */
 async function doAppLogin() {
   const input = document.getElementById('login-empid-input');
-  const empId = input.value.trim().toUpperCase();
+  const regId = input.value.trim().toUpperCase();
   const errEl = document.getElementById('login-err');
   const loadEl = document.getElementById('login-loading');
   const btn = document.getElementById('login-btn');
 
-  if (!empId) {
+  if (!regId) {
     input.classList.add('error');
-    errEl.textContent = '사번을 입력해주세요';
+    errEl.textContent = '등록번호를 입력해주세요';
     errEl.style.display = 'block';
     setTimeout(() => { input.classList.remove('error'); errEl.style.display = 'none'; }, 2000);
     return;
   }
 
-  ACTIVE_EMPID = empId;
-  STORAGE_KEY  = 'hi_health_v2_' + empId;
-
   btn.disabled = true;
 
-  // 기존 'hi_health_v2' 데이터 마이그레이션 (최초 1회)
-  const oldData = localStorage.getItem('hi_health_v2');
-  if (oldData && !localStorage.getItem(STORAGE_KEY)) {
-    localStorage.setItem(STORAGE_KEY, oldData);
-  }
-
-  // Sheets에서 데이터 불러오기 (SCRIPT_URL 설정된 경우)
+  // Sheets에서 등록번호로 조회
   if (SCRIPT_URL) {
     loadEl.style.display = 'block';
     try {
-      const res = await fetch(SCRIPT_URL + '?action=getUserData&empId=' + encodeURIComponent(empId));
+      const res = await fetch(SCRIPT_URL + '?action=getUserByRegId&regId=' + encodeURIComponent(regId));
       const json = await res.json();
-      if (json.ok && json.data && json.data.found) {
+      loadEl.style.display = 'none';
+
+      if (!json.ok || !json.data || !json.data.found) {
+        // 등록번호 없음
+        input.classList.add('error');
+        errEl.textContent = '등록번호를 찾을 수 없습니다. 담당자에게 문의하세요.';
+        errEl.style.display = 'block';
+        setTimeout(() => { input.classList.remove('error'); errEl.style.display = 'none'; }, 4000);
+        btn.disabled = false;
+        return;
+      }
+
+      // 등록 정보로 ACTIVE_EMPID 설정
+      const reg = json.data.registration;
+      ACTIVE_EMPID = regId;
+      STORAGE_KEY  = 'hi_health_v2_' + regId;
+
+      if (json.data.user) {
+        // 기존 사용자 데이터 로드
         loadSheetsUserData(json.data);
         save();
       } else {
+        // 첫 로그인: 등록 정보로 기본값 설정
         load();
+        if (!S.user.name && reg.name) S.user.name = reg.name;
+        if (!S.user.dept && reg.dept) S.user.dept = reg.dept;
+        S.user.empId = reg.empId || '';
+        S.user.registrationId = regId;
       }
     } catch(e) {
-      load(); // 오프라인 fallback
+      loadEl.style.display = 'none';
+      // 오프라인 fallback: 등록번호를 그대로 ID로 사용
+      ACTIVE_EMPID = regId;
+      STORAGE_KEY  = 'hi_health_v2_' + regId;
+      load();
     }
-    loadEl.style.display = 'none';
   } else {
+    // SCRIPT_URL 미설정: 로컬 전용
+    ACTIVE_EMPID = regId;
+    STORAGE_KEY  = 'hi_health_v2_' + regId;
     load();
   }
 
-  S.user.empId = empId;
-  sessionStorage.setItem('hi_session_empid', empId);
+  S.user.empId = S.user.empId || ACTIVE_EMPID;
+  sessionStorage.setItem('hi_session_empid', ACTIVE_EMPID);
 
   document.getElementById('app-login-screen').classList.add('hidden');
   document.getElementById('header-logout-btn').classList.remove('hidden');
