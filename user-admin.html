@@ -691,7 +691,7 @@ async function loadFromSheets() {
   showLoading(true);
   const statusEl = document.getElementById('sheets-status');
   try {
-    const res = await fetch(SHEETS_URL + '?action=getAll');
+    const res = await fetch(SHEETS_URL + '?action=getAll', { credentials: 'omit' });
     const json = await res.json();
     if (!json.ok) throw new Error(json.error || '응답 오류');
     GD = json.data;

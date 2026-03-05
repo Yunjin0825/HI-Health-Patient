@@ -4055,7 +4055,7 @@ async function doAppLogin() {
   if (SCRIPT_URL) {
     loadEl.style.display = 'block';
     try {
-      const res = await fetch(SCRIPT_URL + '?action=getUserByRegId&regId=' + encodeURIComponent(regId));
+      const res = await fetch(SCRIPT_URL + '?action=getUserByRegId&regId=' + encodeURIComponent(regId), { credentials: 'omit' });
       const json = await res.json();
       loadEl.style.display = 'none';
 
