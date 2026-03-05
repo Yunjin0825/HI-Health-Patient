@@ -20,7 +20,7 @@
   <meta name="description" content="HI 건강 챌린지 — 운동·혈당·커뮤니티">
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-  <style>
+11  <style>
     :root {
       --primary:        #4F46E5;
       --primary-dark:   #3730A3;
@@ -196,6 +196,8 @@
       content: ''; position: absolute; bottom: -30px; right: 50px;
       width: 80px; height: 80px; background: rgba(255,255,255,0.07); border-radius: 50%;
     }
+    .home-logo-wrap { text-align: center; padding: 18px 0 10px; }
+    .home-logo-img  { height: 72px; width: auto; display: inline-block; }
     .hero-greeting { font-size: 13px; opacity: 0.85; margin-bottom: 3px; }
     /* .hero-name overridden below with flex layout */
     .hero-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
@@ -1062,6 +1064,10 @@
 
   <!-- ████  HOME  ████ -->
   <section id="page-home" class="page active">
+
+    <div class="home-logo-wrap">
+      <img src="logo.png" alt="HI Health" class="home-logo-img">
+    </div>
 
     <div class="hero-card">
       <p class="hero-greeting">안녕하세요! 오늘도 건강하게 👋</p>

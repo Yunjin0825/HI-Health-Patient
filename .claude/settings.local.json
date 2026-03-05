@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(open \"/Users/round-star/Desktop/HI Health/index.html\")",
+      "WebFetch(domain:github.com)",
+      "Bash(gh auth login)",
+      "Bash(gh --version)",
+      "Bash(gh auth status)",
+      "Bash(gh api repos/Yunjin0825/HI-Health/pages)",
+      "WebFetch(domain:yunjin0825.github.io)",
+      "Bash(gh api repos/Yunjin0825/HI-Health/contents/challenge-promo.html --jq '.content')",
+      "Bash(gh api repos/Yunjin0825/HI-Health/contents/challenge-admin.html --jq '.content')",
+      "Bash(gh api repos/Yunjin0825/HI-Health/contents/health-challenge.html --jq '.content')"
+    ]
+  }
+}
