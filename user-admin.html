@@ -396,7 +396,6 @@
           <option value="mine">내 게시글만</option>
         </select>
         <span class="ctrl-count" id="post-count"></span>
-        <button type="button" class="ctrl-btn danger" onclick="deleteAllMyPosts()">내 게시글 전체 삭제</button>
       </div>
       <div class="table-wrap">
         <div class="table-scroll">
@@ -1182,12 +1181,18 @@ function renderPosts() {
       const preview = (p.body||'').substring(0,60) + ((p.body||'').length > 60 ? '...' : '');
       const d = new Date(Number(p.ts)||0);
       const dateStr = p.ts ? `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}` : '-';
+      const safeId = String(p.id).replace(/'/g, '');
       return `<tr>
         <td class="td-date">${dateStr}</td>
         <td><span class="td-user">${p.userName||'-'}</span></td>
         <td>${p.exTag ? `<span class="ex-badge">${p.exTag}</span>` : '-'}</td>
         <td class="td-memo">${preview}</td>
-        <td></td>
+        <td>
+          <div style="display:flex;gap:5px;">
+            <button type="button" class="action-btn btn-detail" onclick="showPostDetailSheets('${safeId}')">상세</button>
+            <button type="button" class="action-btn btn-delete" onclick="deletePostSheets('${safeId}')">삭제</button>
+          </div>
+        </td>
       </tr>`;
     }
     const isMine = p.userId === 0;
@@ -1231,6 +1236,41 @@ function deletePost(id) {
   if (!confirm('이 게시글을 삭제하시겠습니까?')) return;
   D.posts = D.posts.filter(x => x.id !== id);
   saveData();
+  renderPosts();
+  renderStats();
+  toast('게시글이 삭제됐습니다');
+}
+
+function showPostDetailSheets(id) {
+  const p = (GD.posts || []).find(x => String(x.id) === String(id));
+  if (!p) return;
+  const d = new Date(Number(p.ts)||0);
+  const dateStr = p.ts ? d.toLocaleString('ko-KR') : '-';
+  const rows = [
+    ['작성자', p.userName || '-'],
+    ['시간', dateStr],
+    ['운동 태그', p.exTag || '-'],
+    ['태그', p.userTags || '-'],
+    ['내용', p.body || '-'],
+  ];
+  document.getElementById('post-modal-body').innerHTML = rows.map(([l,v]) =>
+    `<div class="detail-row"><div class="detail-label">${l}</div><div class="detail-value">${v}</div></div>`
+  ).join('');
+  const delBtn = document.getElementById('post-modal-del-btn');
+  delBtn.style.display = '';
+  delBtn.onclick = () => { deletePostSheets(id); closeModal('post-modal'); };
+  document.getElementById('post-modal').classList.add('open');
+}
+
+function deletePostSheets(id) {
+  if (!confirm('이 게시글을 삭제하시겠습니까?')) return;
+  GD.posts = (GD.posts || []).filter(x => String(x.id) !== String(id));
+  fetch(SHEETS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ action: 'deletePost', id }),
+    mode: 'no-cors',
+  });
   renderPosts();
   renderStats();
   toast('게시글이 삭제됐습니다');
