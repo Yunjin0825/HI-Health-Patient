@@ -65,6 +65,10 @@ function doGet(e) {
       result.glucose = sheetToObjects(getOrCreateSheet(ss, 'Glucose',
         ['id','deviceId','userName','value','timing','points','ts']));
     }
+    if (action === 'getAll' || action === 'getAdminPosts') {
+      result.adminPosts = sheetToObjects(getOrCreateSheet(ss, 'AdminPosts',
+        ['id','title','body','mediaUrl','mediaType','category','author','createdAt']));
+    }
     // 등록번호로 사용자 데이터 조회 (로그인 시 사용)
     if (action === 'getUserByRegId') {
       const regId = e.parameter.regId || '';
@@ -276,6 +280,28 @@ function doPost(e) {
           });
         }
         result = { updated: true };
+        break;
+      }
+
+      case 'addAdminPost': {
+        const sheet = getOrCreateSheet(ss, 'AdminPosts',
+          ['id','title','body','mediaUrl','mediaType','category','author','createdAt']);
+        const p = payload;
+        const data = sheetToObjects(sheet);
+        if (!data.find(x => String(x.id) === String(p.id))) {
+          sheet.appendRow([p.id, p.title||'', p.body||'', p.mediaUrl||'', p.mediaType||'', p.category||'', p.author||'관리자', p.createdAt||new Date().toISOString()]);
+        }
+        result = { added: true };
+        break;
+      }
+
+      case 'deleteAdminPost': {
+        const sheet = getOrCreateSheet(ss, 'AdminPosts',
+          ['id','title','body','mediaUrl','mediaType','category','author','createdAt']);
+        const data = sheetToObjects(sheet);
+        const idx = data.findIndex(x => String(x.id) === String(body.id));
+        if (idx >= 0) sheet.deleteRow(idx + 2);
+        result = { deleted: true };
         break;
       }
 

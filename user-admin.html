@@ -166,6 +166,30 @@
 
     @media(max-width:640px) { .admin-body{padding:14px;} .stat-grid{grid-template-columns:repeat(2,1fr);} .tab-btn{font-size:12px;padding:8px 4px;} }
 
+    /* CONTENT MANAGEMENT */
+    .content-write-card { background:var(--card); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); margin-bottom:16px; }
+    .content-write-title { font-size:15px; font-weight:700; margin-bottom:14px; }
+    .content-form-row { display:flex; gap:10px; align-items:center; margin-bottom:10px; }
+    .content-form-row-end { display:flex; gap:10px; align-items:center; margin-bottom:10px; justify-content:flex-end; }
+    .content-form-media { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+    .content-form-media .ctrl-search { flex:1; min-width:200px; }
+    .ct-body { width:100%; min-height:120px; padding:11px 14px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:inherit; font-size:14px; outline:none; resize:vertical; transition:border-color 0.2s; margin-bottom:10px; }
+    .ct-body:focus { border-color:var(--primary); }
+    .ct-card { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:12px; overflow:hidden; }
+    .ct-card-header { display:flex; align-items:flex-start; gap:12px; padding:16px 18px 12px; }
+    .ct-card-meta { flex:1; }
+    .ct-card-category { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; background:var(--primary-light); color:var(--primary); margin-bottom:6px; }
+    .ct-card-title { font-size:15px; font-weight:700; margin-bottom:4px; }
+    .ct-card-body { font-size:13px; color:var(--text-2); line-height:1.6; white-space:pre-wrap; }
+    .ct-card-date { font-size:11px; color:var(--text-3); margin-top:6px; }
+    .ct-media-wrap { padding:0 18px 14px; }
+    .ct-media-wrap iframe { width:100%; border:none; border-radius:var(--radius-sm); aspect-ratio:16/9; }
+    .ct-media-wrap img { width:100%; border-radius:var(--radius-sm); max-height:300px; object-fit:cover; }
+    .ct-card-actions { padding:0 18px 14px; display:flex; justify-content:flex-end; }
+    .ct-panel-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+    .ct-panel-title { font-size:14px; font-weight:700; }
+    .ct-count { font-size:13px; color:var(--text-3); font-weight:600; }
+
     /* SHEETS CONFIG */
     .sheets-config { background:#fff; border-radius:var(--radius); padding:14px 18px; box-shadow:var(--shadow); margin-bottom:16px; border-left:4px solid #34A853; }
     .sheets-top { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
@@ -319,6 +343,7 @@
       <button type="button" class="tab-btn" onclick="switchTab('orders', this)">구매 주문</button>
       <button type="button" class="tab-btn" onclick="switchTab('user', this)">이용자 정보</button>
       <button type="button" class="tab-btn hidden" id="tab-users-btn" onclick="switchTab('users', this)">이용자 목록 <span id="tab-users-count" style="font-size:10px;opacity:0.8;"></span></button>
+      <button type="button" class="tab-btn" onclick="switchTab('content', this)">콘텐츠 관리</button>
     </div>
 
     <!-- PANEL: 운동 기록 -->
@@ -539,6 +564,40 @@
       <div class="pagination" id="users-pagination"></div>
     </div>
 
+    <!-- PANEL: 콘텐츠 관리 -->
+    <div class="panel" id="panel-content">
+      <div class="content-write-card">
+        <div class="content-write-title">✍️ 새 콘텐츠 작성</div>
+        <div class="content-form-row">
+          <select class="ctrl-select" id="ct-category" style="min-width:120px;">
+            <option value="운동">💪 운동</option>
+            <option value="영양">🥗 영양</option>
+            <option value="건강팁">💡 건강팁</option>
+            <option value="영상">🎬 영상</option>
+            <option value="공지">📢 공지</option>
+          </select>
+          <input type="text" class="ctrl-search" id="ct-title" placeholder="제목을 입력하세요" style="flex:1;">
+        </div>
+        <textarea class="ct-body" id="ct-body" placeholder="내용을 입력하세요..."></textarea>
+        <div class="content-form-row" style="gap:8px;flex-wrap:wrap;">
+          <input type="text" class="ctrl-search" id="ct-media-url" placeholder="YouTube URL 또는 이미지 URL (선택)" style="flex:1;min-width:200px;">
+          <select class="ctrl-select" id="ct-media-type">
+            <option value="">미디어 없음</option>
+            <option value="youtube">YouTube 영상</option>
+            <option value="image">이미지</option>
+          </select>
+        </div>
+        <div class="content-form-row" style="justify-content:flex-end;">
+          <button type="button" class="ctrl-btn primary" onclick="submitAdminPost()">게시하기</button>
+        </div>
+      </div>
+      <div class="controls" style="margin-top:16px;">
+        <span style="font-size:14px;font-weight:700;">📋 게시된 콘텐츠</span>
+        <span class="ctrl-count" id="ct-count"></span>
+      </div>
+      <div id="ct-list"></div>
+    </div>
+
   </div>
 </div>
 
@@ -689,7 +748,7 @@ function renderAll() {
   renderPosts();
   renderChallenge();
   renderOrders();
-  if (sheetsMode) renderUsers();
+  if (sheetsMode) { renderUsers(); renderAdminPosts(); }
   if (!sheetsMode) {
     renderUserInfo();
     buildExFilter();
@@ -919,6 +978,7 @@ function switchTab(name, btn) {
   document.getElementById('panel-' + name).classList.add('active');
   btn.classList.add('active');
   if (name === 'users') renderUsers();
+  if (name === 'content') renderAdminPosts();
 }
 
 /* ── WORKOUT FILTER BUILD ── */
@@ -1362,6 +1422,108 @@ function ordSetStatus(id, status) {
   saveOrders(orders);
   renderOrders();
   toast(`주문 ${o.id} 상태가 '${STATUS_LABEL[status]||status}'으로 변경됐습니다`);
+}
+
+/* ── ADMIN CONTENT ── */
+async function submitAdminPost() {
+  const category = document.getElementById('ct-category').value;
+  const title = document.getElementById('ct-title').value.trim();
+  const body = document.getElementById('ct-body').value.trim();
+  const mediaUrl = document.getElementById('ct-media-url').value.trim();
+  const mediaType = document.getElementById('ct-media-type').value;
+  if (!title) { toast('제목을 입력해주세요'); return; }
+  if (!body) { toast('내용을 입력해주세요'); return; }
+  if (!SHEETS_URL) { toast('Google Sheets 연결이 필요합니다'); return; }
+  const post = {
+    id: 'ap_' + Date.now(),
+    title, body, mediaUrl, mediaType, category,
+    author: '관리자',
+    createdAt: new Date().toISOString()
+  };
+  showLoading(true);
+  try {
+    const res = await fetch(SHEETS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'addAdminPost', payload: post }),
+      credentials: 'omit'
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || '오류');
+    GD.adminPosts = GD.adminPosts || [];
+    GD.adminPosts.unshift(post);
+    document.getElementById('ct-title').value = '';
+    document.getElementById('ct-body').value = '';
+    document.getElementById('ct-media-url').value = '';
+    renderAdminPosts();
+    toast('콘텐츠가 게시됐습니다!');
+  } catch(e) {
+    toast('오류: ' + e.message);
+  } finally {
+    showLoading(false);
+  }
+}
+
+async function deleteAdminPost(id) {
+  if (!confirm('이 콘텐츠를 삭제하시겠습니까?')) return;
+  if (!SHEETS_URL) { toast('Google Sheets 연결이 필요합니다'); return; }
+  showLoading(true);
+  try {
+    const res = await fetch(SHEETS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'deleteAdminPost', id }),
+      credentials: 'omit'
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || '오류');
+    GD.adminPosts = (GD.adminPosts || []).filter(p => String(p.id) !== String(id));
+    renderAdminPosts();
+    toast('삭제됐습니다');
+  } catch(e) {
+    toast('오류: ' + e.message);
+  } finally {
+    showLoading(false);
+  }
+}
+
+function renderAdminPosts() {
+  const list = document.getElementById('ct-list');
+  if (!list) return;
+  const posts = (GD.adminPosts || []).slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  if (!posts.length) {
+    list.innerHTML = '<p style="color:#999;text-align:center;padding:24px">게시된 콘텐츠가 없습니다</p>';
+    return;
+  }
+  const CATEGORY_LABEL = { notice: '공지', column: '칼럼', video: '영상', tip: '팁' };
+  list.innerHTML = posts.map(p => {
+    const date = p.createdAt ? new Date(p.createdAt).toLocaleDateString('ko-KR') : '';
+    const cat = CATEGORY_LABEL[p.category] || p.category || '';
+    let mediaHtml = '';
+    if (p.mediaUrl) {
+      if (p.mediaType === 'youtube') {
+        const vid = p.mediaUrl.match(/(?:youtu\.be\/|v=)([^&?]+)/)?.[1] || '';
+        if (vid) mediaHtml = `<div class="ct-media-wrap"><iframe src="https://www.youtube.com/embed/${vid}" frameborder="0" allowfullscreen></iframe></div>`;
+      } else if (p.mediaType === 'image') {
+        mediaHtml = `<div class="ct-media-wrap"><img src="${p.mediaUrl}" alt="" style="width:100%;border-radius:8px"></div>`;
+      }
+    }
+    return `
+      <div class="ct-card">
+        <div class="ct-card-header">
+          <span class="ct-card-category">${cat}</span>
+          <span style="font-weight:700;font-size:15px;flex:1">${escHtml(p.title)}</span>
+          <span style="font-size:12px;color:#999">${date}</span>
+          <button class="ctrl-btn danger" style="padding:4px 10px;font-size:12px" onclick="deleteAdminPost('${p.id}')">삭제</button>
+        </div>
+        ${mediaHtml}
+        <div class="ct-body">${escHtml(p.body).replace(/\n/g,'<br>')}</div>
+      </div>`;
+  }).join('');
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 let _toastTimer;

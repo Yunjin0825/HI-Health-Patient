@@ -790,6 +790,18 @@
     .comment-btn:hover { color: var(--primary); }
 
     /* ── Feed filter ── */
+    /* ── Admin Content Cards ── */
+    .admin-posts-section { margin-bottom:16px; }
+    .admin-posts-title { font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; padding-left:2px; }
+    .admin-post-card { background:var(--card); border-radius:16px; border:1.5px solid var(--border); overflow:hidden; margin-bottom:12px; }
+    .admin-post-card-header { padding:14px 16px 0; }
+    .admin-post-category { display:inline-block; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; background:var(--primary-light); color:var(--primary); margin-bottom:6px; }
+    .admin-post-title { font-size:15px; font-weight:700; color:var(--text-primary); margin-bottom:4px; }
+    .admin-post-meta { font-size:12px; color:var(--text-secondary); margin-bottom:10px; }
+    .admin-post-media { width:100%; }
+    .admin-post-media iframe { width:100%; aspect-ratio:16/9; display:block; border:none; }
+    .admin-post-media img { width:100%; display:block; max-height:240px; object-fit:cover; }
+    .admin-post-body { padding:12px 16px 16px; font-size:14px; color:var(--text-primary); line-height:1.6; white-space:pre-wrap; }
     .feed-filter-row { display:flex; gap:7px; overflow-x:auto; padding-bottom:4px; margin-bottom:12px; }
     .feed-filter-row::-webkit-scrollbar { display:none; }
     .feed-filter-chip { padding:6px 14px; border-radius:20px; border:1.5px solid var(--border); background:var(--card); font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap; transition:all 0.2s; flex-shrink:0; }
@@ -1498,6 +1510,7 @@
         </div>
       </div>
 
+      <div id="admin-posts-section"></div>
       <div class="feed-filter-row" id="feed-filter-row"></div>
       <div id="posts-feed"></div>
     </div>
@@ -1961,6 +1974,7 @@ let S = {
   leagueTab: 'weekly',
   myReactions: {},   // postId -> [stickerId,...]
   glucoseRecords: [], // { id, value, timing, ts }
+  adminPosts: [],    // admin-written column content
 };
 
 /* ════════════════════════════════════════
@@ -2122,7 +2136,7 @@ function navigate(page) {
   // Render the page
   if (page === 'home')      renderHome();
   if (page === 'exercise')  renderExercise();
-  if (page === 'community') { setCommunityTab('feed'); renderCommunity(); }
+  if (page === 'community') { setCommunityTab('feed'); renderCommunity(); fetchAdminPosts(); }
   if (page === 'rewards')   { setRewardsTab('rewards'); renderRewards(); }
   if (page === 'challenge') renderChallenge();
   window.scrollTo({top:0, behavior:'smooth'});
@@ -3306,6 +3320,7 @@ function buildPostHealthHtml(h) {
 
 function renderCommunity() {
   document.getElementById('compose-av').textContent = S.user.avatar;
+  renderAdminPostsSection();
 
   // Build filter chips
   const filterRow = document.getElementById('feed-filter-row');
@@ -3389,6 +3404,57 @@ function setFeedFilter(key) {
   haptic('light');
   _feedFilter = key;
   renderCommunity();
+}
+
+/* ── Admin Posts (Column content) ── */
+let _adminPostsFetched = false;
+
+async function fetchAdminPosts() {
+  if (!SCRIPT_URL || _adminPostsFetched) return;
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=getAdminPosts', { credentials: 'omit' });
+    const json = await res.json();
+    if (json.ok && json.data && json.data.adminPosts) {
+      S.adminPosts = json.data.adminPosts;
+      _adminPostsFetched = true;
+      renderAdminPostsSection();
+    }
+  } catch(e) {}
+}
+
+function renderAdminPostsSection() {
+  const el = document.getElementById('admin-posts-section');
+  if (!el) return;
+  const posts = (S.adminPosts || []).slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  if (!posts.length) { el.innerHTML = ''; return; }
+  const CATEGORY_LABEL = { notice: '공지', column: '칼럼', video: '영상', tip: '팁' };
+  el.innerHTML = `<div class="admin-posts-title">관리자 콘텐츠</div>` + posts.map(p => {
+    const cat = CATEGORY_LABEL[p.category] || p.category || '';
+    const date = p.createdAt ? new Date(p.createdAt).toLocaleDateString('ko-KR') : '';
+    let mediaHtml = '';
+    if (p.mediaUrl) {
+      if (p.mediaType === 'youtube') {
+        const vid = p.mediaUrl.match(/(?:youtu\.be\/|v=)([^&?]+)/)?.[1] || '';
+        if (vid) mediaHtml = `<div class="admin-post-media"><iframe src="https://www.youtube.com/embed/${vid}" allowfullscreen></iframe></div>`;
+      } else if (p.mediaType === 'image') {
+        mediaHtml = `<div class="admin-post-media"><img src="${p.mediaUrl}" alt=""></div>`;
+      }
+    }
+    return `
+      <div class="admin-post-card">
+        <div class="admin-post-card-header">
+          <span class="admin-post-category">${cat}</span>
+          <div class="admin-post-title">${escHtmlComm(p.title)}</div>
+          <div class="admin-post-meta">${p.author || '관리자'} · ${date}</div>
+        </div>
+        ${mediaHtml}
+        <div class="admin-post-body">${escHtmlComm(p.body).replace(/\n/g,'<br>')}</div>
+      </div>`;
+  }).join('');
+}
+
+function escHtmlComm(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 /* ── Comments ── */
