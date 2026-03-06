@@ -963,6 +963,9 @@
     .os-done      { background: #F3F4F6; color: #374151; }
     .os-cancelled { background: #FEE2E2; color: #991B1B; }
     .order-cancel-btn { margin-left: auto; padding: 3px 10px; font-size: 11px; font-weight: 700; border-radius: 20px; border: 1.5px solid #EF4444; background: transparent; color: #EF4444; cursor: pointer; }
+    .order-card-deposit { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
+    .order-card-img-wrap { margin-top: 8px; border-radius: 8px; overflow: hidden; }
+    .order-card-img { width: 100%; max-height: 120px; object-fit: cover; display: block; }
     .ch-cancel-reg-btn { margin-top: 8px; background: transparent; border: 1.5px solid #EF4444; color: #EF4444; font-weight: 700; }
     .reward-history { margin: 20px 0 8px; }
     .reward-history-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
@@ -1008,6 +1011,21 @@
     .so-hidden-field { display: none; }
     .so-addr2-input  { margin-top: 6px; }
     .so-submit-btn   { margin-top: 8px; }
+    .so-bank-box { background: #F0FDF4; border: 1.5px solid #86EFAC; border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 12px; }
+    .so-bank-title { font-size: 13px; font-weight: 800; color: #15803D; margin-bottom: 8px; }
+    .so-bank-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 4px; }
+    .so-bank-label { color: var(--text-secondary); font-size: 12px; }
+    .so-bank-value { font-weight: 700; color: #15803D; letter-spacing: .5px; }
+    .so-card-notice { background: #FEF9C3; border: 1.5px solid #FDE047; border-radius: var(--radius-sm); padding: 10px 14px; font-size: 12px; color: #854D0E; font-weight: 600; margin-bottom: 12px; }
+    .so-upload-wrap { margin-top: 6px; }
+    .so-upload-label { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; border: 1.5px dashed var(--border); border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; color: var(--text-secondary); font-weight: 600; background: var(--bg); transition: border-color .2s; }
+    .so-upload-label:active { border-color: var(--primary); }
+    .so-upload-preview { margin-top: 8px; border-radius: var(--radius-sm); overflow: hidden; }
+    .so-upload-preview img { width: 100%; max-height: 160px; object-fit: cover; display: block; }
+    .so-divider { height: 1px; background: var(--border); margin: 14px 0; }
+    .rf-label-opt { font-size: 11px; color: var(--text-secondary); font-weight: 400; }
+    .rf-label-req { color: var(--accent); }
+    .so-deposit-hidden { display: none; }
 
     /* ── Reward Guide ── */
     .reward-guide-card {
@@ -1642,6 +1660,44 @@
         <input type="text" class="rf-input" id="so-addr" placeholder="도로명 주소">
         <input type="text" class="rf-input so-addr2-input" id="so-addr2" placeholder="상세 주소">
       </div>
+
+      <div class="so-divider"></div>
+
+      <!-- 입금 안내 -->
+      <div class="so-bank-box">
+        <div class="so-bank-title">🏦 무통장 입금 안내</div>
+        <div class="so-bank-row">
+          <span class="so-bank-label">은행</span>
+          <span class="so-bank-value">국민은행</span>
+        </div>
+        <div class="so-bank-row">
+          <span class="so-bank-label">계좌번호</span>
+          <span class="so-bank-value">000000-00-000000</span>
+        </div>
+        <div class="so-bank-row">
+          <span class="so-bank-label">예금주</span>
+          <span class="so-bank-value">HI 헬스케어</span>
+        </div>
+      </div>
+      <div class="so-card-notice">💳 카드 결제는 방문 시에만 가능합니다</div>
+
+      <div class="rf-field">
+        <label class="rf-label">입금자명 <span class="rf-label-req">*</span></label>
+        <input type="text" class="rf-input" id="so-depositor" placeholder="실제 입금하신 분 이름">
+      </div>
+      <div class="rf-field">
+        <label class="rf-label">현금영수증 번호 <span class="rf-label-opt">(선택)</span></label>
+        <input type="text" class="rf-input" id="so-cash-receipt" placeholder="휴대폰번호 또는 사업자번호">
+      </div>
+      <div class="rf-field">
+        <label class="rf-label">입금확인증 업로드 <span class="rf-label-opt">(선택)</span></label>
+        <div class="so-upload-wrap">
+          <label class="so-upload-label" for="so-deposit-img">📎 사진 첨부하기</label>
+          <input type="file" id="so-deposit-img" accept="image/*" class="so-deposit-hidden" onchange="previewDepositImg(this)">
+          <div class="so-upload-preview" id="so-deposit-preview"></div>
+        </div>
+      </div>
+
       <button type="button" class="btn btn-primary btn-full so-submit-btn" onclick="submitShopOrder()">주문 신청하기</button>
     </div>
   </div>
@@ -3813,6 +3869,8 @@ function renderShopOrderHistory() {
         </div>
         <div class="order-card-items">${itemStr}</div>
         <div class="order-card-total">${(o.total||0).toLocaleString()}원 · ${o.pickup||''} · ${date}</div>
+        ${o.depositor ? `<div class="order-card-deposit">입금자 ${o.depositor}${o.cashReceipt ? ' · 현금영수증 ' + o.cashReceipt : ''}</div>` : ''}
+        ${o.depositImg ? `<div class="order-card-img-wrap"><img src="${o.depositImg}" alt="입금확인증" class="order-card-img"></div>` : ''}
       </div>`;
     }).join('');
 }
@@ -3847,10 +3905,23 @@ function setPickup(type) {
   document.getElementById('so-addr-wrap').classList.toggle('so-hidden-field', type !== '배송');
 }
 
+function previewDepositImg(input) {
+  const preview = document.getElementById('so-deposit-preview');
+  if (!input.files || !input.files[0]) { preview.innerHTML = ''; return; }
+  const reader = new FileReader();
+  reader.onload = e => { preview.innerHTML = `<img src="${e.target.result}" alt="입금확인증">`; };
+  reader.readAsDataURL(input.files[0]);
+}
+
 function openShopOrder() {
   if (cartCount() === 0) { showToast('장바구니가 비어있어요'); return; }
   const nameEl = document.getElementById('so-name');
   if (nameEl && S.user.name) nameEl.value = S.user.name;
+  // 입금 필드 초기화
+  document.getElementById('so-depositor').value = '';
+  document.getElementById('so-cash-receipt').value = '';
+  document.getElementById('so-deposit-img').value = '';
+  document.getElementById('so-deposit-preview').innerHTML = '';
   // 장바구니 요약
   const summaryEl = document.getElementById('so-cart-summary');
   if (summaryEl) {
@@ -3874,41 +3945,51 @@ function closeShopOrder() {
 }
 
 function submitShopOrder() {
-  const name  = document.getElementById('so-name').value.trim();
-  const phone = document.getElementById('so-phone').value.trim();
-  const addr  = _soPickup === '배송' ? document.getElementById('so-addr').value.trim() : 'ok';
+  const name       = document.getElementById('so-name').value.trim();
+  const phone      = document.getElementById('so-phone').value.trim();
+  const depositor  = document.getElementById('so-depositor').value.trim();
+  const cashReceipt = document.getElementById('so-cash-receipt').value.trim();
+  const addr       = _soPickup === '배송' ? document.getElementById('so-addr').value.trim() : 'ok';
   if (!name || !phone) { haptic('error'); showToast('⚠️ 이름과 연락처를 입력해주세요'); return; }
+  if (!depositor) { haptic('error'); showToast('⚠️ 입금자명을 입력해주세요'); return; }
   if (_soPickup === '배송' && !addr) { haptic('error'); showToast('⚠️ 배송 주소를 입력해주세요'); return; }
-  // 주문 저장
+
+  // 입금확인증 이미지 (base64, 로컬 저장용)
+  const previewImg = document.getElementById('so-deposit-preview').querySelector('img');
+  const depositImg = previewImg ? previewImg.src : '';
+
   const items = Object.entries(_cart).map(([id, qty]) => {
     const p = SHOP_PRODUCTS.find(x => x.id === id);
     return { id, name: p ? p.name : id, price: p ? p.price : 0, qty };
   });
   const orders = JSON.parse(localStorage.getItem(SHOP_ORDERS_KEY) || '[]');
-  orders.push({
+  const newOrder = {
     id: 'ORD-' + String(Date.now()).slice(-6),
     name, phone,
     pickup: _soPickup,
     addr: _soPickup === '배송' ? (document.getElementById('so-addr').value.trim() + ' ' + document.getElementById('so-addr2').value.trim()).trim() : '',
     items,
     total: cartTotal(),
+    depositor,
+    cashReceipt,
+    depositImg,
     status: 'pending',
     orderedAt: new Date().toISOString(),
-  });
+  };
+  orders.push(newOrder);
   localStorage.setItem(SHOP_ORDERS_KEY, JSON.stringify(orders));
-  const lastOrder = orders[orders.length - 1];
   apiSync('addOrder', {
-    id: lastOrder.id,
+    id: newOrder.id,
     deviceId: S.deviceId,
     userName: S.user.name,
-    name: lastOrder.name,
-    phone: lastOrder.phone,
-    pickup: lastOrder.pickup,
-    addr: lastOrder.addr,
-    items: JSON.stringify(lastOrder.items),
-    total: lastOrder.total,
-    status: lastOrder.status,
-    orderedAt: lastOrder.orderedAt,
+    name: newOrder.name,
+    phone: newOrder.phone,
+    pickup: newOrder.pickup,
+    addr: newOrder.addr,
+    items: JSON.stringify(newOrder.items),
+    total: newOrder.total,
+    status: newOrder.status,
+    orderedAt: newOrder.orderedAt,
   });
   haptic('success');
   showToast('✅ 주문 신청 완료! 담당자 확인 후 연락드립니다');
