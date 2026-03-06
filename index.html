@@ -899,6 +899,7 @@
     .shop-item-name  { font-size: 13px; font-weight: 700; }
     .shop-item-price { font-size: 12px; color: var(--primary); font-weight: 700; margin-top: 2px; }
     .shop-item-ctrl  { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .shop-section-title { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; color: var(--text-primary); padding: 10px 0 6px; border-bottom: 2px solid var(--border); margin-bottom: 4px; }
     .shop-qty-btn {
       width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--border);
       background: var(--bg); font-size: 16px; line-height: 1;
@@ -1819,22 +1820,39 @@ const REWARDS_DATA = [
 ];
 
 const SHOP_PRODUCTS = [
-  { id:'sp01', emoji:'💪', name:'글루타민',               price:60000 },
-  { id:'sp02', emoji:'🦷', name:'닥터징크(아연) 2개월',   price:24000 },
-  { id:'sp03', emoji:'💊', name:'덱시안',                 price:38000 },
-  { id:'sp04', emoji:'🧬', name:'마그네슘정 2개월',       price:22000 },
-  { id:'sp05', emoji:'🌸', name:'이노시톨',               price:36000 },
-  { id:'sp06', emoji:'💪', name:'아르기닌',               price:35000 },
-  { id:'sp07', emoji:'🍬', name:'아르기닌(젤리)',          price:68000 },
-  { id:'sp08', emoji:'🌿', name:'엽산(60정)',              price:45000 },
-  { id:'sp09', emoji:'✨', name:'엘레뉴1',                price:45000 },
-  { id:'sp10', emoji:'✨', name:'엘레뉴2',                price:85000 },
-  { id:'sp11', emoji:'⭐', name:'엘레뉴럭스',             price:86000 },
-  { id:'sp12', emoji:'🐟', name:'알티지 오메가',           price:55000 },
-  { id:'sp13', emoji:'💧', name:'아스트로(윤활제)',        price:30000 },
-  { id:'sp14', emoji:'☀️', name:'에브리D 성인(스프레이)', price:39000 },
-  { id:'sp15', emoji:'👩', name:'퍼틸우먼 액티브',        price:90000 },
-  { id:'sp16', emoji:'👨', name:'퍼틸맨 액티브',          price:95000 },
+  // ── 영양제
+  { id:'sp01', emoji:'💪', name:'글루타민',               price:60000, cat:'supp' },
+  { id:'sp02', emoji:'🦷', name:'닥터징크(아연) 2개월',   price:24000, cat:'supp' },
+  { id:'sp03', emoji:'💊', name:'덱시안',                 price:38000, cat:'supp' },
+  { id:'sp04', emoji:'🧬', name:'마그네슘정 2개월',       price:22000, cat:'supp' },
+  { id:'sp05', emoji:'🌸', name:'이노시톨',               price:36000, cat:'supp' },
+  { id:'sp06', emoji:'💪', name:'아르기닌',               price:35000, cat:'supp' },
+  { id:'sp07', emoji:'🍬', name:'아르기닌(젤리)',          price:68000, cat:'supp' },
+  { id:'sp08', emoji:'🌿', name:'엽산(60정)',              price:45000, cat:'supp' },
+  { id:'sp09', emoji:'✨', name:'엘레뉴1',                price:45000, cat:'supp' },
+  { id:'sp10', emoji:'✨', name:'엘레뉴2',                price:85000, cat:'supp' },
+  { id:'sp11', emoji:'⭐', name:'엘레뉴럭스',             price:86000, cat:'supp' },
+  { id:'sp12', emoji:'🐟', name:'알티지 오메가',           price:55000, cat:'supp' },
+  { id:'sp13', emoji:'💧', name:'아스트로(윤활제)',        price:30000, cat:'supp' },
+  { id:'sp14', emoji:'☀️', name:'에브리D 성인(스프레이)', price:39000, cat:'supp' },
+  { id:'sp15', emoji:'👩', name:'퍼틸우먼 액티브',        price:90000, cat:'supp' },
+  { id:'sp16', emoji:'👨', name:'퍼틸맨 액티브',          price:95000, cat:'supp' },
+  // ── 병원제작상품
+  { id:'hp01', emoji:'🍶', name:'병원 물병 (500ml)',      price:8000,  cat:'merch' },
+  { id:'hp02', emoji:'🫙', name:'병원 텀블러 (350ml)',    price:15000, cat:'merch' },
+  { id:'hp03', emoji:'🧣', name:'병원 담요',              price:18000, cat:'merch' },
+  { id:'hp04', emoji:'🏨', name:'병원 수건 (대)',         price:10000, cat:'merch' },
+  { id:'hp05', emoji:'🏨', name:'병원 수건 (소)',         price:6000,  cat:'merch' },
+  { id:'hp06', emoji:'☂️', name:'병원 우산',              price:12000, cat:'merch' },
+  { id:'hp07', emoji:'🧊', name:'병원 보냉백',            price:9000,  cat:'merch' },
+  { id:'hp08', emoji:'📓', name:'병원 수첩 (A5)',         price:5000,  cat:'merch' },
+  { id:'hp09', emoji:'🖊️', name:'병원 볼펜',              price:2000,  cat:'merch' },
+  { id:'hp10', emoji:'🎒', name:'병원 에코백',            price:7000,  cat:'merch' },
+  { id:'hp11', emoji:'🧢', name:'병원 캡모자',            price:14000, cat:'merch' },
+  { id:'hp12', emoji:'🩴', name:'병원 슬리퍼',            price:8000,  cat:'merch' },
+  { id:'hp13', emoji:'🏋️', name:'병원 운동 손목밴드',    price:5000,  cat:'merch' },
+  { id:'hp14', emoji:'💼', name:'병원 파우치',            price:11000, cat:'merch' },
+  { id:'hp15', emoji:'📎', name:'병원 메모패드 세트',     price:4000,  cat:'merch' },
 ];
 
 let _cart = {}; // { productId: quantity }
@@ -3621,26 +3639,37 @@ function renderShop() {
   // 주문 내역 먼저 렌더링
   renderShopOrderHistory();
 
-  list.innerHTML = SHOP_PRODUCTS.map(p => {
-    const qty = _cart[p.id] || 0;
-    return `
-      <div class="shop-item">
-        <span class="shop-item-emoji">${p.emoji}</span>
-        <div class="shop-item-info">
-          <div class="shop-item-name">${p.name}</div>
-          <div class="shop-item-price">${p.price.toLocaleString()}원</div>
-        </div>
-        <div class="shop-item-ctrl">
-          ${qty > 0 ? `
-            <button type="button" class="shop-qty-btn" onclick="removeFromCart('${p.id}')">−</button>
-            <span class="shop-qty-num">${qty}</span>
-            <button type="button" class="shop-qty-btn" onclick="addToCart('${p.id}')">+</button>
-          ` : `
-            <button type="button" class="shop-add-btn" onclick="addToCart('${p.id}')">담기</button>
-          `}
-        </div>
-      </div>`;
-  }).join('');
+  function renderProductList(products) {
+    return products.map(p => {
+      const qty = _cart[p.id] || 0;
+      return `
+        <div class="shop-item">
+          <span class="shop-item-emoji">${p.emoji}</span>
+          <div class="shop-item-info">
+            <div class="shop-item-name">${p.name}</div>
+            <div class="shop-item-price">${p.price.toLocaleString()}원</div>
+          </div>
+          <div class="shop-item-ctrl">
+            ${qty > 0 ? `
+              <button type="button" class="shop-qty-btn" onclick="removeFromCart('${p.id}')">−</button>
+              <span class="shop-qty-num">${qty}</span>
+              <button type="button" class="shop-qty-btn" onclick="addToCart('${p.id}')">+</button>
+            ` : `
+              <button type="button" class="shop-add-btn" onclick="addToCart('${p.id}')">담기</button>
+            `}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  const suppProducts  = SHOP_PRODUCTS.filter(p => p.cat === 'supp');
+  const merchProducts = SHOP_PRODUCTS.filter(p => p.cat === 'merch');
+
+  list.innerHTML =
+    `<div class="shop-section-title"><img src="icons/HI_icon_7.png" class="shop-banner-img" alt="영양제" style="width:22px;height:22px"> 영양제</div>` +
+    renderProductList(suppProducts) +
+    `<div class="shop-section-title" style="margin-top:20px">🏥 병원제작상품</div>` +
+    renderProductList(merchProducts);
 
   const count = cartCount();
   const bar   = document.getElementById('shop-cart-bar');
