@@ -937,6 +937,8 @@
     .os-shipped   { background: #DBEAFE; color: #1E40AF; }
     .os-done      { background: #F3F4F6; color: #374151; }
     .os-cancelled { background: #FEE2E2; color: #991B1B; }
+    .order-cancel-btn { margin-left: auto; padding: 3px 10px; font-size: 11px; font-weight: 700; border-radius: 20px; border: 1.5px solid #EF4444; background: transparent; color: #EF4444; cursor: pointer; }
+    .ch-cancel-reg-btn { margin-top: 8px; background: transparent; border: 1.5px solid #EF4444; color: #EF4444; font-weight: 700; }
     .reward-history { margin: 20px 0 8px; }
     .reward-history-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
     .reward-hist-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--card); border-radius: var(--radius-sm); margin-bottom: 8px; box-shadow: var(--shadow); }
@@ -3667,15 +3669,38 @@ function renderShopOrderHistory() {
       const itemStr = items.map(i => `${i.name} × ${i.qty}`).join(', ') || '-';
       const date = o.orderedAt ? new Date(o.orderedAt).toLocaleDateString('ko-KR') : '';
       const st = o.status || 'pending';
+      const canCancel = st === 'pending';
       return `<div class="order-card">
         <div class="order-card-top">
           <span class="order-card-id">${o.id}</span>
           <span class="order-status-badge ${statusClass[st]||'os-pending'}">${statusLabel[st]||st}</span>
+          ${canCancel ? `<button type="button" class="order-cancel-btn" onclick="cancelOrder('${o.id}')">주문 취소</button>` : ''}
         </div>
         <div class="order-card-items">${itemStr}</div>
         <div class="order-card-total">${(o.total||0).toLocaleString()}원 · ${o.pickup||''} · ${date}</div>
       </div>`;
     }).join('');
+}
+
+function cancelOrder(orderId) {
+  if (!confirm('정말 취소하시겠습니까?')) return;
+  const orders = JSON.parse(localStorage.getItem(SHOP_ORDERS_KEY) || '[]');
+  const o = orders.find(x => x.id === orderId);
+  if (!o) return;
+  o.status = 'cancelled';
+  localStorage.setItem(SHOP_ORDERS_KEY, JSON.stringify(orders));
+  apiSync('updateOrderStatus', null);
+  // Sheets에도 반영
+  if (typeof SCRIPT_URL !== 'undefined' && SCRIPT_URL) {
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'updateOrderStatus', id: orderId, status: 'cancelled' }),
+      mode: 'no-cors',
+    }).catch(() => {});
+  }
+  renderShopOrderHistory();
+  showToast('주문이 취소됐습니다');
 }
 
 let _soPickup = '직접수령';
@@ -3951,6 +3976,26 @@ function getMyReg() {
     .find(r => r.id === S.user.registrationId) || null;
 }
 
+function cancelRegistration(regId) {
+  if (!confirm('정말 취소하시겠습니까?')) return;
+  const regs = JSON.parse(localStorage.getItem(CH_REG_KEY) || '[]');
+  const r = regs.find(x => x.id === regId);
+  if (!r) return;
+  r.status = 'cancelled';
+  localStorage.setItem(CH_REG_KEY, JSON.stringify(regs));
+  // Sheets에도 반영
+  if (typeof SCRIPT_URL !== 'undefined' && SCRIPT_URL) {
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'updateRegistrationStatus', id: regId, status: 'cancelled' }),
+      mode: 'no-cors',
+    }).catch(() => {});
+  }
+  renderChallenge();
+  showToast('신청이 취소됐습니다');
+}
+
 function scrollToExerciseForm() {
   navigate('exercise');
   setTimeout(() => {
@@ -4031,6 +4076,7 @@ function renderChallenge() {
 
   if (myReg) {
     const statusLbl = { pending:'⏳ 검토 중', confirmed:'✅ 선정 완료', cancelled:'❌ 미선정' }[myReg.status];
+    const canCancelReg = myReg.status === 'pending';
     regEl.innerHTML = `
       <div class="ch-reg-card">
         <div class="ch-reg-title">✅ 챌린지 신청 완료</div>
@@ -4041,6 +4087,7 @@ function renderChallenge() {
         <div class="ch-reg-row"><span class="ch-reg-label">가족 참여</span><span class="ch-reg-value">${myReg.familyParticipation ? '예 (' + myReg.familyCount + '명)' : '본인만'}</span></div>
         <div class="ch-reg-row"><span class="ch-reg-label">상태</span><span class="ch-reg-value">${statusLbl}</span></div>
         <button type="button" class="btn btn-primary btn-full ch-workout-btn" onclick="scrollToExerciseForm()">오늘 운동 기록하기</button>
+        ${canCancelReg ? `<button type="button" class="btn btn-full ch-cancel-reg-btn" onclick="cancelRegistration('${myReg.id}')">신청 취소</button>` : ''}
       </div>
     `;
   } else if (phase === 'registration') {
