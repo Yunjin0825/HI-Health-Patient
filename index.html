@@ -685,7 +685,7 @@
     }
     .pts-preview-val { font-size: 28px; font-weight: 900; color: var(--primary); line-height: 1; letter-spacing: -1px; }
     .pts-preview-lbl { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
-    .btn-record { padding: 16px; font-size: 16px; font-weight: 800; border-radius: 16px; letter-spacing: -0.3px; box-shadow: 0 8px 24px rgba(79,70,229,0.3); }
+    .btn-record { margin-top: 10px; }
     .daily-limit-info { font-size: 11px; color: var(--text-secondary); }
     .daily-limit-info.warn { color: var(--accent); font-weight: 600; }
     .daily-limit-info--center { text-align: center; margin-bottom: 8px; }
@@ -1872,8 +1872,8 @@
           </div>
           <button type="button" class="dur-btn" onclick="changeDur(5)">+</button>
         </div>
-        <div id="daily-limit-info" class="daily-limit-info daily-limit-info--center"></div>
-        <button class="btn btn-primary btn-full btn-record" onclick="logExercise()" style="margin-bottom:16px">운동 기록하기</button>
+        <button class="btn btn-primary btn-full btn-record" onclick="logExercise()">운동 기록하기</button>
+        <div id="daily-limit-info" class="daily-limit-info daily-limit-info--center" style="margin-top:6px;margin-bottom:16px"></div>
         <hr style="border:none;border-top:1px solid var(--border);margin:0 0 14px">
         <div class="card-header" style="padding-top:0">
           <div class="card-header-right">
@@ -3615,21 +3615,23 @@ function toggleShareOpt(type) {
 
 function updatePtsPreview() {
   const pts = calcPts(S.selectedEx, S.duration);
-  document.getElementById('pts-prev').textContent = '+' + pts;
+  const ptsEl = document.getElementById('pts-prev');
+  if (ptsEl) ptsEl.textContent = '+' + pts;
   const todayWo  = todayWorkouts();
   const todayPts = todayWo.reduce((s, w) => s + (w.points || 0), 0);
   const remCount = DAILY_WORKOUT_LIMIT - todayWo.length;
   const remPts   = Math.max(0, DAILY_POINTS_LIMIT - todayPts);
   const infoEl   = document.getElementById('daily-limit-info');
+  if (!infoEl) return;
   if (remCount <= 0) {
     infoEl.textContent = `오늘 기록 한도(${DAILY_WORKOUT_LIMIT}회) 도달`;
-    infoEl.className = 'daily-limit-info warn';
+    infoEl.className = 'daily-limit-info daily-limit-info--center warn';
   } else if (remPts <= 0) {
     infoEl.textContent = `오늘 포인트 한도(${DAILY_POINTS_LIMIT}p) 도달`;
-    infoEl.className = 'daily-limit-info warn';
+    infoEl.className = 'daily-limit-info daily-limit-info--center warn';
   } else {
-    infoEl.textContent = `오늘 남은 기록: ${remCount}회 · 남은 포인트 한도: ${remPts}p`;
-    infoEl.className = 'daily-limit-info';
+    infoEl.textContent = `오늘 ${todayWo.length}회 기록 · 남은 횟수: ${remCount}회 · 기록당 +${pts}p`;
+    infoEl.className = 'daily-limit-info daily-limit-info--center';
   }
 }
 function logExercise() {
