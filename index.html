@@ -2042,26 +2042,25 @@
       <!-- 영양제 panel -->
       <div id="today-panel-supp" style="display:none">
         <div class="hc-section" id="hc-supp-sec" style="border-top:none">
+          <div class="hc-sub-chips" style="flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding-bottom:2px; margin-bottom:12px">
+            <button type="button" class="hc-sub-chip hc-supp-preset" data-name="비타민C"    onclick="toggleSuppItem('비타민C')">비타민C</button>
+            <button type="button" class="hc-sub-chip hc-supp-preset" data-name="비타민D"    onclick="toggleSuppItem('비타민D')">비타민D</button>
+            <button type="button" class="hc-sub-chip hc-supp-preset" data-name="오메가3"    onclick="toggleSuppItem('오메가3')">오메가3</button>
+            <button type="button" class="hc-sub-chip hc-supp-preset" data-name="철분"       onclick="toggleSuppItem('철분')">철분</button>
+            <button type="button" class="hc-sub-chip hc-supp-preset" data-name="칼슘"       onclick="toggleSuppItem('칼슘')">칼슘</button>
+            <button type="button" class="hc-sub-chip hc-supp-preset" data-name="마그네슘"   onclick="toggleSuppItem('마그네슘')">마그네슘</button>
+            <button type="button" class="hc-sub-chip hc-supp-preset" data-name="유산균"     onclick="toggleSuppItem('유산균')">유산균</button>
+            <button type="button" class="hc-sub-chip hc-supp-preset" data-name="종합비타민" onclick="toggleSuppItem('종합비타민')">종합비타민</button>
+            <button type="button" class="hc-sub-chip hc-supp-preset" data-name="아르기닌"   onclick="toggleSuppItem('아르기닌')">아르기닌</button>
+            <button type="button" class="hc-sub-chip hc-supp-preset" data-name="코큐텐"     onclick="toggleSuppItem('코큐텐')">코큐텐</button>
+          </div>
           <div class="hc-rate-row" style="justify-content:center">
             <button type="button" class="hc-rate-btn" id="supp-yes" onclick="setSupp(true)">복용했어요</button>
             <button type="button" class="hc-rate-btn" id="supp-no"  onclick="setSupp(false)">안했어요</button>
           </div>
           <div class="hc-supp-detail" id="hc-supp-detail">
-            <div class="hc-sub-label">복용한 영양제</div>
-            <div class="hc-sub-chips">
-              <button type="button" class="hc-sub-chip hc-supp-preset" data-name="비타민C"    onclick="toggleSuppItem('비타민C')">비타민C</button>
-              <button type="button" class="hc-sub-chip hc-supp-preset" data-name="비타민D"    onclick="toggleSuppItem('비타민D')">비타민D</button>
-              <button type="button" class="hc-sub-chip hc-supp-preset" data-name="오메가3"    onclick="toggleSuppItem('오메가3')">오메가3</button>
-              <button type="button" class="hc-sub-chip hc-supp-preset" data-name="철분"       onclick="toggleSuppItem('철분')">철분</button>
-              <button type="button" class="hc-sub-chip hc-supp-preset" data-name="칼슘"       onclick="toggleSuppItem('칼슘')">칼슘</button>
-              <button type="button" class="hc-sub-chip hc-supp-preset" data-name="마그네슘"   onclick="toggleSuppItem('마그네슘')">마그네슘</button>
-              <button type="button" class="hc-sub-chip hc-supp-preset" data-name="유산균"     onclick="toggleSuppItem('유산균')">유산균</button>
-              <button type="button" class="hc-sub-chip hc-supp-preset" data-name="종합비타민" onclick="toggleSuppItem('종합비타민')">종합비타민</button>
-              <button type="button" class="hc-sub-chip hc-supp-preset" data-name="아르기닌"   onclick="toggleSuppItem('아르기닌')">아르기닌</button>
-              <button type="button" class="hc-sub-chip hc-supp-preset" data-name="코큐텐"     onclick="toggleSuppItem('코큐텐')">코큐텐</button>
-            </div>
             <div class="hc-custom-supp">
-              <input type="text" id="supp-custom-input" placeholder="기타 직접 입력" maxlength="20">
+              <input type="text" id="supp-custom-input" placeholder="기타 영양제 직접 입력" maxlength="20">
               <button type="button" onclick="addCustomSupp()">추가</button>
             </div>
             <div class="hc-sub-chips hc-custom-list" id="supp-custom-list"></div>
