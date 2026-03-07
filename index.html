@@ -120,11 +120,10 @@
 
     /* ── 노치 배경 ── */
     #notch-fill {
-      display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 109;
+      display: block; position: fixed; top: 0; left: 0; right: 0; z-index: 109;
       height: max(env(safe-area-inset-top), 44px);
-      background: linear-gradient(135deg, #2E2B8F 0%, #3730A3 100%);
+      background: var(--bg);
     }
-    #notch-fill.visible { display: block; }
 
     /* ── Header ── */
     .app-header {
@@ -144,10 +143,9 @@
       width: 100%; max-width: 480px;
     }
     .app-content.no-top-margin { margin-top: 0; }
-    /* 홈에서 hero-card: 헤더가 흐름에 있으므로 네거티브 마진 불필요 */
+    /* 홈에서 hero-card: app-content 마진 없으므로 네거티브 마진 불필요 */
     .app-content.no-top-margin .hero-card {
       margin-top: 0;
-      padding-top: 28px;
     }
     .app-header.solid {
       background: rgba(255,255,255,0.97);
@@ -2952,12 +2950,14 @@ function navigate(page) {
   const hdr = document.querySelector('.app-header');
   const content = document.querySelector('.app-content');
   const isHome = page === 'home';
-  document.getElementById('notch-fill').classList.toggle('visible', isHome);
   if (hdr) {
     hdr.classList.toggle('solid', !isHome);
     hdr.classList.remove('flow');
   }
-  if (content) content.classList.remove('no-top-margin');
+  if (content) {
+    content.classList.remove('no-top-margin');
+    if (isHome) content.classList.add('no-top-margin');
+  }
   const pg = document.getElementById('page-' + page);
   if (pg) pg.classList.add('active');
   const nb = document.querySelector(`.nav-btn[data-page="${page}"]`);
@@ -5437,9 +5437,11 @@ async function doAppLogin() {
 
   renderHeader();
   renderHome();
-  document.getElementById('notch-fill').classList.add('visible');
+
   const _hdr = document.querySelector('.app-header');
   if (_hdr) _hdr.classList.remove('solid');
+  const _content = document.querySelector('.app-content');
+  if (_content) _content.classList.add('no-top-margin');
   if (!S.user.name) setTimeout(() => openProfileModal(true), 400);
   setTimeout(() => {
     const lv = getLevel(S.user.points);
@@ -5561,7 +5563,7 @@ function init() {
     renderHome();
     requestAnimationFrame(() => { window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; });
     // 초기 홈 페이지: 헤더 투명 + 노치 배경
-    document.getElementById('notch-fill').classList.add('visible');
+  
     const hdr = document.querySelector('.app-header');
     if (hdr) hdr.classList.remove('solid');
     setTimeout(() => {
