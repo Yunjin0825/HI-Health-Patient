@@ -120,10 +120,11 @@
 
     /* ── 노치 배경 ── */
     #notch-fill {
-      display: block; position: fixed; top: 0; left: 0; right: 0; z-index: 109;
+      display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 109;
       height: max(env(safe-area-inset-top), 44px);
-      background: var(--bg);
+      background: linear-gradient(135deg, #2E2B8F 0%, #3730A3 100%);
     }
+    #notch-fill.visible { display: block; }
 
     /* ── Header ── */
     .app-header {
@@ -2950,6 +2951,7 @@ function navigate(page) {
   const hdr = document.querySelector('.app-header');
   const content = document.querySelector('.app-content');
   const isHome = page === 'home';
+  document.getElementById('notch-fill').classList.toggle('visible', isHome);
   if (hdr) {
     hdr.classList.toggle('solid', !isHome);
     hdr.classList.remove('flow');
@@ -5438,6 +5440,7 @@ async function doAppLogin() {
   renderHeader();
   renderHome();
 
+  document.getElementById('notch-fill').classList.add('visible');
   const _hdr = document.querySelector('.app-header');
   if (_hdr) _hdr.classList.remove('solid');
   const _content = document.querySelector('.app-content');
@@ -5563,7 +5566,7 @@ function init() {
     renderHome();
     requestAnimationFrame(() => { window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; });
     // 초기 홈 페이지: 헤더 투명 + 노치 배경
-  
+    document.getElementById('notch-fill').classList.add('visible');
     const hdr = document.querySelector('.app-header');
     if (hdr) hdr.classList.remove('solid');
     setTimeout(() => {
