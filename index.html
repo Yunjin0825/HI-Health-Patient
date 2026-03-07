@@ -295,7 +295,7 @@
       100% { transform: translateY(0)    scale(1.05); }
     }
     .app-nav {
-      position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
+      position: fixed; bottom: calc(max(env(safe-area-inset-bottom), 16px) + 8px); left: 50%; transform: translateX(-50%);
       width: calc(100% - 80px); max-width: 340px; height: 46px;
       background: rgba(255,255,255,0.45);
       border-radius: 999px;
@@ -2940,6 +2940,7 @@ function navigate(page) {
   const hdr = document.querySelector('.app-header');
   const content = document.querySelector('.app-content');
   const isHome = page === 'home';
+  document.body.style.background = isHome ? '#3730A3' : '';
   if (hdr) {
     hdr.classList.toggle('solid', !isHome);
     hdr.classList.remove('flow');
@@ -5424,6 +5425,7 @@ async function doAppLogin() {
 
   renderHeader();
   renderHome();
+  document.body.style.background = '#3730A3';
   const _hdr = document.querySelector('.app-header');
   if (_hdr) _hdr.classList.remove('solid');
   if (!S.user.name) setTimeout(() => openProfileModal(true), 400);
@@ -5546,7 +5548,8 @@ function init() {
     renderHeader();
     renderHome();
     requestAnimationFrame(() => { window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; });
-    // 초기 홈 페이지: 헤더 투명
+    // 초기 홈 페이지: 헤더 투명 + 노치 배경
+    document.body.style.background = '#3730A3';
     const hdr = document.querySelector('.app-header');
     if (hdr) hdr.classList.remove('solid');
     setTimeout(() => {
