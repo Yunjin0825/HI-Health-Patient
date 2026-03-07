@@ -1945,7 +1945,10 @@
     <div class="card today-log-card">
       <div style="padding:14px 18px 0; display:flex; align-items:baseline; justify-content:space-between; gap:8px">
         <p class="card-title" style="margin:0">오늘 하루는 어땠나요?</p>
-        <span style="font-size:11px; color:var(--text-muted); white-space:nowrap; flex-shrink:0">기록은 자정에 초기화돼요</span>
+        <div style="display:flex; align-items:center; gap:8px; flex-shrink:0">
+          <span style="font-size:11px; color:var(--text-muted); white-space:nowrap">기록은 자정에 초기화돼요</span>
+          <button type="button" onclick="resetTodayLogNow()" style="font-size:10px; color:var(--text-muted); background:var(--bg-secondary); border:1px solid var(--border); border-radius:8px; padding:2px 8px; cursor:pointer; white-space:nowrap">지금 초기화</button>
+        </div>
       </div>
       <div class="ex-hero-tabs" style="margin-top:10px; border-bottom:1px solid var(--border)">
         <button class="ex-hero-tab active" id="today-tab-diet"  onclick="setTodayTab('diet')">식사</button>
@@ -3209,6 +3212,26 @@ function loadTodayLog() {
   } catch(e) {}
 }
 
+function resetTodayLogNow() {
+  haptic('medium');
+  S.todayLog = null;
+  _dietRating = null; _mealTypes = []; _sleepHours = null; _sleepCard = null; _suppTaken = null; _suppList = [];
+  resetHealthChecks();
+  clearPhoto(null);
+  // 직접입력 필드 초기화
+  const dietInp = document.getElementById('diet-custom-input');
+  if (dietInp) dietInp.value = '';
+  document.getElementById('diet-custom-wrap')?.classList.remove('show');
+  document.getElementById('diet-custom-btn')?.classList.remove('on');
+  const sleepInp = document.getElementById('sleep-custom-input');
+  if (sleepInp) sleepInp.value = '';
+  document.getElementById('sleep-custom-wrap')?.classList.remove('show');
+  document.getElementById('sleep-custom-btn')?.classList.remove('on');
+  document.getElementById('sleep-val').textContent = '7';
+  save();
+  showToast('오늘 기록이 초기화됐어요');
+}
+
 function scheduleMidnightReset() {
   const now = new Date();
   const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5);
@@ -4245,6 +4268,14 @@ function setDiet(rating) {
     _dietRating = document.getElementById('diet-custom-input').value.trim() || null;
     return;
   }
+  // 이미 선택된 카드 재클릭 → 선택 해제
+  if (_dietRating === rating) {
+    _dietRating = null;
+    document.getElementById({ 'good':'diet-good', 'norm':'diet-norm', 'snack':'diet-snack', 'over':'diet-over', 'bad':'diet-bad' }[rating])?.classList.remove('on');
+    if (_shareOn) updateSharePreview();
+    saveTodayLog();
+    return;
+  }
   _dietRating = rating;
   const map = { 'good':'diet-good', 'norm':'diet-norm', 'snack':'diet-snack', 'over':'diet-over', 'bad':'diet-bad' };
   document.querySelectorAll('#diet-good,#diet-norm,#diet-snack,#diet-over,#diet-bad,#diet-custom-btn').forEach(e => e.classList.remove('on'));
@@ -4265,6 +4296,14 @@ function changeSleep(delta) {
 }
 function setSleepCard(rating) {
   haptic('light');
+  // 이미 선택된 카드 재클릭 → 선택 해제
+  if (_sleepCard === rating) {
+    _sleepCard = null;
+    document.getElementById('sleep-' + rating)?.classList.remove('on');
+    if (_shareOn) updateSharePreview();
+    saveTodayLog();
+    return;
+  }
   _sleepCard = rating;
   document.querySelectorAll('#sleep-great,#sleep-good,#sleep-short,#sleep-bad,#sleep-over,#sleep-custom-btn').forEach(e => e.classList.remove('on'));
   document.getElementById('sleep-custom-wrap')?.classList.remove('show');
@@ -4288,6 +4327,14 @@ function toggleSleepCustom() {
 }
 function setSupp(val) {
   haptic('light');
+  // 이미 선택된 카드 재클릭 → 선택 해제
+  if (_suppTaken === val) {
+    _suppTaken = null;
+    document.getElementById('supp-' + val)?.classList.remove('on');
+    if (_shareOn) updateSharePreview();
+    saveTodayLog();
+    return;
+  }
   _suppTaken = val;
   ['supp-all','supp-partial','supp-forgot','supp-no','supp-empty','supp-custom-card'].forEach(id => {
     document.getElementById(id)?.classList.remove('on');
