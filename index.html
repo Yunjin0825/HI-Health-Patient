@@ -3355,7 +3355,7 @@ function renderHome() {
 /* ── Workout view state ── */
 let _woViewMode = 'recent';
 let _woMonthOffset = 0;
-let _woShowCount = 10;
+let _woShowCount = 5;
 let _woTypeFilter = 'all';
 
 function setRecordTab(tab) {
@@ -3368,7 +3368,7 @@ function setRecordTab(tab) {
 
 function setWoView(mode) {
   _woViewMode = mode;
-  _woShowCount = 10;
+  _woShowCount = 5;
   if (mode === 'monthly') _woMonthOffset = 0;
   document.getElementById('wo-tab-recent').classList.toggle('active', mode === 'recent');
   document.getElementById('wo-tab-monthly').classList.toggle('active', mode === 'monthly');
@@ -3425,7 +3425,7 @@ function renderExerciseHistory() {
     const visible  = reversed.slice(0, _woShowCount);
     const remain   = reversed.length - visible.length;
     wo.innerHTML = visible.map(w => workoutItemHTML(w)).join('')
-      + (remain > 0 ? `<button class="load-more-btn" onclick="_woShowCount+=10;renderExerciseHistory()">더보기 (${remain}개 남음)</button>` : '');
+      + (remain > 0 ? `<button class="load-more-btn" onclick="_woShowCount+=5;renderExerciseHistory()">더보기 (${remain}개 남음)</button>` : '');
     return;
   }
 
@@ -4031,11 +4031,11 @@ function deleteGlucose(id) {
 
 /* ── Glucose view state ── */
 let _glucoseViewMode = 'list';
-let _glShowCount = 10;
+let _glShowCount = 5;
 
 function setGlucoseView(mode) {
   _glucoseViewMode = mode;
-  _glShowCount = 10;
+  _glShowCount = 5;
   document.getElementById('gl-tab-list').classList.toggle('active', mode === 'list');
   document.getElementById('gl-tab-graph').classList.toggle('active', mode === 'graph');
   renderGlucose();
@@ -4151,7 +4151,7 @@ function renderGlucose() {
       <button class="glucose-del" onclick="deleteGlucose(${r.id})">✕</button>
     </div>`;
   }).join('')
-  + (remain > 0 ? `<button class="load-more-btn" onclick="_glShowCount+=10;renderGlucose()">더보기 (${remain}개 남음)</button>` : '');
+  + (remain > 0 ? `<button class="load-more-btn" onclick="_glShowCount+=5;renderGlucose()">더보기 (${remain}개 남음)</button>` : '');
 }
 function triggerPhotoInput() { document.getElementById('photo-input').click(); }
 function handlePhotoInput(input) {
