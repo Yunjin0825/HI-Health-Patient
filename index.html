@@ -669,8 +669,8 @@
     .dur-btn:active { border-color: var(--primary); color: var(--primary); transform: scale(0.92); }
     .dur-display { text-align: center; min-width: 90px; }
     .dur-val {
-      font-size: 54px; font-weight: 900; color: var(--primary); line-height: 1; letter-spacing: -2px;
-      width: 100px; border: none; background: transparent; text-align: center; outline: none;
+      font-size: 42px; font-weight: 700; color: var(--primary); line-height: 1;
+      width: 90px; border: none; background: transparent; text-align: center; outline: none;
       -moz-appearance: textfield; appearance: textfield; caret-color: var(--primary);
     }
     .dur-val::-webkit-outer-spin-button, .dur-val::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -1856,29 +1856,23 @@
 
     <div class="card record-content-card">
       <div id="rec-panel-exercise">
-        <p class="card-title" style="margin-bottom:13px">운동 종류 선택</p>
         <div class="ex-type-grid" id="ex-type-grid"></div>
         <div id="custom-ex-wrap" class="custom-ex-wrap">
           <input type="text" class="ch-form-input" id="custom-ex-name"
                  placeholder="운동 이름을 입력하세요 (예: 줄넘기, 스키...)"
                  maxlength="20" oninput="updatePtsPreview()">
         </div>
-        <hr style="border:none;border-top:1px solid var(--border);margin:14px 0">
-        <div class="duration-wrap">
+        <div class="glucose-input-wrap-sa">
           <button type="button" class="dur-btn" onclick="changeDur(-5)">−</button>
-          <div class="dur-display">
+          <div class="glucose-val-display">
             <input type="number" class="dur-val" id="dur-val" value="30" min="5" max="180"
                    inputmode="numeric"
                    oninput="S.duration=Math.max(5,Math.min(180,parseInt(this.value)||5));updatePtsPreview();updateMemoPlaceholder();if(_shareOn)updateSharePreview()">
-            <div class="dur-unit">분</div>
+            <span class="glucose-val-unit">분</span>
           </div>
           <button type="button" class="dur-btn" onclick="changeDur(5)">+</button>
         </div>
-        <div class="pts-preview">
-          <div class="pts-preview-val" id="pts-prev">+15</div>
-          <div class="pts-preview-lbl">획득 예정 포인트</div>
-          <div id="daily-limit-info" class="daily-limit-info"></div>
-        </div>
+        <div id="daily-limit-info" class="daily-limit-info daily-limit-info--center"></div>
         <button class="btn btn-primary btn-full btn-record" onclick="logExercise()" style="margin-bottom:16px">운동 기록하기</button>
         <hr style="border:none;border-top:1px solid var(--border);margin:0 0 14px">
         <div class="card-header" style="padding-top:0">
