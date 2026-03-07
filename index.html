@@ -739,8 +739,10 @@
     .hc-sub-label { font-size:11px; font-weight:600; color:var(--text-secondary); margin:8px 0 5px; }
     .hc-sub-chips { display:flex; gap:5px; flex-wrap:wrap; }
     .hc-sub-chip {
+      display:flex; align-items:center;
       padding:6px 12px; border-radius:999px; border:1.5px solid var(--border);
-      background:#fff; font-size:13px; cursor:pointer; white-space:nowrap; transition:all 0.18s;
+      background:#fff; font-size:13px; font-family:inherit; cursor:pointer;
+      white-space:nowrap; flex-shrink:0; transition:all 0.18s;
     }
     .hc-sub-chip.on { border-color:var(--primary); background:#EEF2FF; color:var(--primary); }
     .hc-supp-detail { margin-top:10px; padding-top:10px; border-top:1px solid var(--border); display:none; }
