@@ -1856,6 +1856,31 @@
 
     <div class="card record-content-card">
       <div id="rec-panel-exercise">
+        <p class="card-title" style="margin-bottom:13px">운동 종류 선택</p>
+        <div class="ex-type-grid" id="ex-type-grid"></div>
+        <div id="custom-ex-wrap" class="custom-ex-wrap">
+          <input type="text" class="ch-form-input" id="custom-ex-name"
+                 placeholder="운동 이름을 입력하세요 (예: 줄넘기, 스키...)"
+                 maxlength="20" oninput="updatePtsPreview()">
+        </div>
+        <hr style="border:none;border-top:1px solid var(--border);margin:14px 0">
+        <div class="duration-wrap">
+          <button type="button" class="dur-btn" onclick="changeDur(-5)">−</button>
+          <div class="dur-display">
+            <input type="number" class="dur-val" id="dur-val" value="30" min="5" max="180"
+                   inputmode="numeric"
+                   oninput="S.duration=Math.max(5,Math.min(180,parseInt(this.value)||5));updatePtsPreview();updateMemoPlaceholder();if(_shareOn)updateSharePreview()">
+            <div class="dur-unit">분</div>
+          </div>
+          <button type="button" class="dur-btn" onclick="changeDur(5)">+</button>
+        </div>
+        <div class="pts-preview">
+          <div class="pts-preview-val" id="pts-prev">+15</div>
+          <div class="pts-preview-lbl">획득 예정 포인트</div>
+          <div id="daily-limit-info" class="daily-limit-info"></div>
+        </div>
+        <button class="btn btn-primary btn-full btn-record" onclick="logExercise()" style="margin-bottom:16px">운동 기록하기</button>
+        <hr style="border:none;border-top:1px solid var(--border);margin:0 0 14px">
         <div class="card-header" style="padding-top:0">
           <div class="card-header-right">
             <span class="badge badge-success" id="wo-total-badge">총 0회</span>
@@ -1909,33 +1934,6 @@
     </div>
 
     <div class="card">
-      <button class="btn btn-primary btn-full btn-record" onclick="logExercise()">운동 기록하기</button>
-      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0 14px">
-      <p class="card-title" style="margin-bottom:13px">운동 종류 선택</p>
-      <div class="ex-type-grid" id="ex-type-grid"></div>
-      <!-- custom-ex-btn is now rendered inside ex-type-grid scroll row -->
-      <div id="custom-ex-wrap" class="custom-ex-wrap">
-        <input type="text" class="ch-form-input" id="custom-ex-name"
-               placeholder="운동 이름을 입력하세요 (예: 줄넘기, 스키...)"
-               maxlength="20" oninput="updatePtsPreview()">
-      </div>
-      <hr style="border:none;border-top:1px solid var(--border);margin:14px 0">
-      <p class="card-title" style="margin-bottom:5px">운동 시간</p>
-      <div class="duration-wrap">
-        <button type="button" class="dur-btn" onclick="changeDur(-5)">−</button>
-        <div class="dur-display">
-          <input type="number" class="dur-val" id="dur-val" value="30" min="5" max="180"
-                 inputmode="numeric"
-                 oninput="S.duration=Math.max(5,Math.min(180,parseInt(this.value)||5));updatePtsPreview();updateMemoPlaceholder();if(_shareOn)updateSharePreview()">
-          <div class="dur-unit">분</div>
-        </div>
-        <button type="button" class="dur-btn" onclick="changeDur(5)">+</button>
-      </div>
-      <div class="pts-preview">
-        <div class="pts-preview-val" id="pts-prev">+15</div>
-        <div class="pts-preview-lbl">획득 예정 포인트</div>
-        <div id="daily-limit-info" class="daily-limit-info"></div>
-      </div>
       <div style="margin-bottom:13px">
         <label class="form-label">메모 (선택)</label>
         <textarea class="form-textarea" id="ex-memo" rows="2" placeholder="" oninput="updateMemoPlaceholder(); if(_shareOn) updateSharePreview()"></textarea>
