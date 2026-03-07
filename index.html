@@ -3670,14 +3670,27 @@ let _shareMsgAuto = false;
 
 function buildDayMessage() {
   const lines = [];
-  // 운동
-  const ex = EX_TYPES.find(e => e.id === S.selectedEx);
-  if (ex) {
-    const name = S.selectedEx === 'custom'
-      ? (document.getElementById('custom-ex-name')?.value.trim() || '기타 운동')
-      : ex.name;
-    lines.push(ex.icon + ' ' + name + ' ' + S.duration + '분 완료했어요!');
+
+  // 오늘 운동 기록 전체
+  const tw = todayWorkouts();
+  if (tw.length) {
+    const totalMins = tw.reduce((s, w) => s + w.duration, 0);
+    lines.push('💪 오늘 운동 ' + tw.length + '회 · 총 ' + totalMins + '분 완료!');
+    tw.forEach(w => {
+      const ex = EX_TYPES.find(e => e.id === w.exId);
+      const name = w.customName || (ex ? ex.name : '운동');
+      const icon = ex ? ex.icon : '🏃';
+      lines.push('  ' + icon + ' ' + name + ' ' + w.duration + '분');
+    });
   }
+
+  // 오늘 혈당 기록
+  const tg = todayGlucoseRecords();
+  if (tg.length) {
+    lines.push('🩸 혈당 ' + tg.length + '회 기록');
+    tg.forEach(r => lines.push('  · ' + r.timing + ' ' + r.value + ' mg/dL'));
+  }
+
   // 식사
   const dietMap = { good:'매 끼니 잘 챙겨먹었어요', norm:'보통으로 먹었어요', snack:'간식을 많이 먹었네요', over:'과식을 했어요', bad:'한 끼를 거른 것 같아요' };
   if (_dietRating) {
@@ -3689,6 +3702,7 @@ function buildDayMessage() {
       lines.push('🥗 식사: ' + label + meals);
     }
   }
+
   // 수면
   if (_sleepHours !== null && _sleepHours !== undefined) {
     const sleepMap = { great:'푹 잤어요', good:'잘 잤어요', short:'조금 부족해요', bad:'많이 못 잤어요', over:'너무 많이 잤어요' };
@@ -3697,6 +3711,7 @@ function buildDayMessage() {
       : (sleepMap[_sleepHours] || _sleepHours);
     lines.push('😴 수면: ' + sleepLabel);
   }
+
   // 영양제
   if (_suppTaken) {
     const suppMap = { all:'모두 복용했어요', partial:'일부 복용했어요', forgot:'깜빡했어요', no:'안했어요' };
@@ -3706,9 +3721,11 @@ function buildDayMessage() {
     }
     lines.push(suppLine);
   }
+
   // 메모
   const memo = document.getElementById('ex-memo')?.value.trim();
   if (memo) lines.push('📝 ' + memo);
+
   return lines.join('\n');
 }
 
