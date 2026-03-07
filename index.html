@@ -1936,7 +1936,7 @@
 
     <div class="card">
       <div class="card-header">
-        <span class="card-title"><img src="icons/HI_icon_4.png" class="sec-icon" alt="운동"> 운동 기록</span>
+        <span class="card-title">운동 기록</span>
         <div class="card-header-right">
           <span class="badge badge-success" id="wo-total-badge">총 0회</span>
           <div class="wo-view-tabs">
@@ -1956,7 +1956,7 @@
 
     <div class="card">
       <div class="glucose-card-header">
-        <span class="card-title"><img src="icons/HI_icon_16.png" class="sec-icon" alt="혈당"> 혈당 기록</span>
+        <span class="card-title">혈당 기록</span>
         <div class="card-header-right">
           <span class="badge glucose-badge-red" id="glucose-total-badge">총 0회</span>
           <div class="wo-view-tabs">
@@ -3929,10 +3929,23 @@ function logGlucoseStandalone() {
 }
 
 function deleteGlucose(id) {
-  haptic('delete');
-  S.glucoseRecords = S.glucoseRecords.filter(r => r.id !== id);
-  save();
-  renderGlucose();
+  const rec = S.glucoseRecords.find(r => r.id === id);
+  if (!rec) return;
+  showConfirm({
+    icon: '🩸',
+    title: '혈당 기록 삭제',
+    msg: `${rec.value} mg/dL 기록을 삭제할까요?\n포인트 ${rec.points || GLUCOSE_POINTS}p가 차감됩니다.`,
+    okLabel: '삭제',
+    onOk: () => {
+      haptic('delete');
+      S.glucoseRecords = S.glucoseRecords.filter(r => r.id !== id);
+      S.user.points = Math.max(0, S.user.points - (rec.points || GLUCOSE_POINTS));
+      save();
+      renderHeader();
+      renderGlucose();
+      showToast('혈당 기록이 삭제되었습니다');
+    },
+  });
 }
 
 /* ── Glucose view state ── */
