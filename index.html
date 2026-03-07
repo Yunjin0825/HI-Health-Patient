@@ -55,6 +55,7 @@
     input, textarea, select { font-size: max(16px, 1em); }
     body {
       font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 17px;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
@@ -5629,7 +5630,7 @@ async function doAppLogin() {
       ]);
       S.user = { ...S.user,
         name: u.name || S.user.name,
-        avatar: u.avatar || S.user.avatar,
+        avatar: S.user.avatar?.includes('images/') ? S.user.avatar : (u.avatar || S.user.avatar),
         empId: u.empId || ACTIVE_EMPID,
         dept: u.dept || '',
         points: Number(u.points) || 0,
@@ -5822,13 +5823,13 @@ init();
     <div class="form-label">닉네임 <span style="font-size:11px;color:var(--text-secondary);font-weight:400;">(커뮤니티·리그에 표시)</span></div>
     <input type="text" class="ch-form-input" id="pm-nickname" placeholder="닉네임을 입력하세요" maxlength="15">
     <div class="pm-section-hd">
-      <span class="pm-section-title">🎨 아바타 선택</span>
+      <span class="pm-section-title">아바타 선택</span>
     </div>
     <div class="pm-section-body" id="pm-section-avatar">
       <div class="avatar-grid" id="pm-avatar-grid"></div>
     </div>
     <div class="pm-section-hd">
-      <span class="pm-section-title">🏷️ 나의 태그 <span class="pm-sel-count" id="pm-sel-count"></span></span>
+      <span class="pm-section-title">나의 태그 <span class="pm-sel-count" id="pm-sel-count"></span></span>
     </div>
     <div class="pm-section-body" id="pm-section-tag">
       <div id="pm-tag-list"></div>
