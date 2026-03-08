@@ -3386,7 +3386,7 @@ async function shareLevelCard() {
   const runnerPngUrl = imgToPng(runnerImg, 144);
   const avatarPngUrl = imgToPng(avatarImg, 192);
   // 하단 배경 이미지: html2canvas는 object-fit 미지원 → JS로 cover+center top 직접 계산
-  const bgSectionH = 55;
+  const bgSectionH = 70;
   const bgSectionW = 360;
   let bgImgStyle = '';
   if (bgImg && bgImg.naturalWidth) {
@@ -3508,16 +3508,10 @@ async function shareLevelCard() {
         <span style="font-size:10px;font-weight:800;color:#3730A3;white-space:nowrap">${streak}일 연속 운동기록 중!</span>
         <span style="font-size:10px;color:#6D28D9;opacity:0.7;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${streakMsg}</span>
       </div>
-      <!-- URL -->
-      <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px">
-        <div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(124,58,237,0.25))"></div>
-        <span style="font-size:8px;color:#7C3AED;opacity:0.5;font-weight:500;letter-spacing:0.4px">yunjin0825.github.io/HI-Health</span>
-        <div style="flex:1;height:1px;background:linear-gradient(90deg,rgba(124,58,237,0.25),transparent)"></div>
-      </div>
     </div>
 
     <!-- ③ 하단 이미지 -->
-    <div style="flex-shrink:0;height:55px;position:relative;overflow:hidden;margin-top:-16px;background:#fff">
+    <div style="flex:1;position:relative;overflow:hidden;margin-top:4px;background:#fff">
       ${bgPngUrl ? `<img src="${bgPngUrl}" style="${bgImgStyle}">` : ''}
       <!-- 상하 + 좌우 그라디언트 (하단 흐림 축소) -->
       <div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(255,255,255,0.7) 0%,rgba(255,255,255,0) 12%,rgba(255,255,255,0) 88%,rgba(255,255,255,0.7) 100%),linear-gradient(to bottom,rgba(255,255,255,1) 0%,rgba(255,255,255,0) 30%,rgba(255,255,255,0) 85%,rgba(255,255,255,0.2) 100%);pointer-events:none;z-index:1"></div>
