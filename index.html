@@ -1117,18 +1117,20 @@
     .league-tab.active { background: #fff; color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 
     .my-rank-card {
-      background: linear-gradient(135deg, #EBF0FF, #fff);
-      border-radius: var(--radius); padding: 16px 18px;
+      background: #fff;
+      border-radius: var(--radius); padding: 16px 0 12px;
       box-shadow: var(--shadow); margin-bottom: 14px;
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex; align-items: stretch;
     }
-    .my-rank-left .mrl-label { font-size: 12px; color: var(--text-secondary); }
-    .my-rank-left .mrl-rank { font-size: 36px; font-weight: 900; color: var(--primary); line-height: 1; }
-    .my-rank-left .mrl-pct { font-size: 12px; color: var(--text-secondary); }
-    .my-rank-right { text-align: right; }
-    .my-rank-right .mrr-label { font-size: 12px; color: var(--text-secondary); }
-    .my-rank-right .mrr-pts { font-size: 24px; font-weight: 700; color: var(--warning); }
-    .my-rank-right .mrr-change { font-size: 12px; color: var(--secondary); font-weight: 600; }
+    .mrc-stat {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      gap: 4px; padding: 4px 8px;
+    }
+    .mrc-stat + .mrc-stat { border-left: 1px solid var(--border); }
+    .mrc-label { font-size: 11px; color: var(--text-secondary); font-weight: 500; }
+    .mrc-value { font-size: 22px; font-weight: 800; color: var(--primary); line-height: 1.1; }
+    .mrc-value.pts { color: #f59e0b; }
+    .mrc-sub { font-size: 11px; color: var(--text-secondary); }
 
     /* Podium */
     .podium {
@@ -5291,15 +5293,20 @@ function renderLeague() {
       const myRankCh = challengers.find(u => u.isMe)?.rank || '-';
       const myLv = getLevel(S.user.points);
       document.getElementById('my-rank-card').innerHTML = `
-        <div class="my-rank-left">
-          <div class="mrl-label">챌린지 순위</div>
-          <div class="mrl-rank">${myRankCh}위</div>
-          <div class="mrl-pct">참가자 ${challengers.length}명</div>
+        <div class="mrc-stat">
+          <div class="mrc-label">챌린지 순위</div>
+          <div class="mrc-value">${myRankCh}위</div>
+          <div class="mrc-sub">참가자 ${challengers.length}명</div>
         </div>
-        <div class="my-rank-right">
-          <div class="mrr-label">누적 포인트</div>
-          <div class="mrr-pts">⭐ ${S.user.totalPoints || S.user.points}p</div>
-          <div class="mrr-change">내 레벨: ${myLv.icon} ${myLv.name}</div>
+        <div class="mrc-stat">
+          <div class="mrc-label">누적 포인트</div>
+          <div class="mrc-value pts">${S.user.totalPoints || S.user.points}p</div>
+          <div class="mrc-sub">&nbsp;</div>
+        </div>
+        <div class="mrc-stat">
+          <div class="mrc-label">내 레벨</div>
+          <div class="mrc-value" style="font-size:20px">${myLv.icon}</div>
+          <div class="mrc-sub">${myLv.name}</div>
         </div>
       `;
     } else {
@@ -5351,15 +5358,20 @@ function renderLeague() {
   const pct    = Math.round((myRank / total) * 100);
 
   document.getElementById('my-rank-card').innerHTML = `
-    <div class="my-rank-left">
-      <div class="mrl-label">내 순위</div>
-      <div class="mrl-rank">${myRank}위</div>
-      <div class="mrl-pct">상위 ${pct}%</div>
+    <div class="mrc-stat">
+      <div class="mrc-label">내 순위</div>
+      <div class="mrc-value">${myRank}위</div>
+      <div class="mrc-sub">상위 ${pct}%</div>
     </div>
-    <div class="my-rank-right">
-      <div class="mrr-label">${tab === 'weekly' ? '이번주' : tab === 'monthly' ? '이번달' : '전체'} 포인트</div>
-      <div class="mrr-pts">⭐ ${myPts}p</div>
-      <div class="mrr-change">내 레벨: ${myLv.icon} ${myLv.name}</div>
+    <div class="mrc-stat">
+      <div class="mrc-label">${tab === 'weekly' ? '이번주' : tab === 'monthly' ? '이번달' : '누적'} 포인트</div>
+      <div class="mrc-value pts">${myPts}p</div>
+      <div class="mrc-sub">&nbsp;</div>
+    </div>
+    <div class="mrc-stat">
+      <div class="mrc-label">내 레벨</div>
+      <div class="mrc-value" style="font-size:20px">${myLv.icon}</div>
+      <div class="mrc-sub">${myLv.name}</div>
     </div>
   `;
 
