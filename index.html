@@ -1857,7 +1857,7 @@
             <line x1="10" y1="18" x2="10" y2="21"/><line x1="14" y1="18" x2="14" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/>
           </svg>
         </div>
-        <div><div class="qi-title">내 순위</div><div class="qi-sub" id="my-rank-quick">순위 확인</div></div>
+        <div><div class="qi-title">내 순위<span id="rank-quick-label" style="font-size:10px;font-weight:500;color:var(--text-secondary);margin-left:3px"></span></div><div class="qi-sub" id="my-rank-quick">순위 확인</div></div>
       </button>
       <button class="quick-btn" onclick="quickNav(this,()=>navigate('community'))">
         <div class="qi-icon">
@@ -3886,12 +3886,16 @@ function renderHome() {
     : '최고 레벨 달성! 🎉';
 
   // Quick action subtitles
+  const _medals = {1:'🥇',2:'🥈',3:'🥉'};
   if (S.user.registrationId) {
     const chTotal = MOCK_USERS.filter(u => u.isChallenger).length + 1;
     const chRank  = MOCK_USERS.filter(u => u.isChallenger && u.pts > S.user.points).length + 1;
-    document.getElementById('my-rank-quick').textContent = '🏅 ' + chRank + '/' + chTotal + '위';
+    document.getElementById('rank-quick-label').textContent = '(챌린지)';
+    document.getElementById('my-rank-quick').textContent = (_medals[chRank] ? _medals[chRank] + ' ' : '') + chRank + '/' + chTotal + '위';
   } else {
-    document.getElementById('my-rank-quick').textContent = myLeagueRank() + '/' + (MOCK_USERS.length + 1) + '위';
+    const lgRank = myLeagueRank();
+    document.getElementById('rank-quick-label').textContent = '';
+    document.getElementById('my-rank-quick').textContent = (_medals[lgRank] ? _medals[lgRank] + ' ' : '') + lgRank + '/' + (MOCK_USERS.length + 1) + '위';
   }
   const canRedeem = REWARDS_DATA.some(r => !S.redeemedRewards.includes(r.id) && !S.pendingRewards.includes(r.id) && S.user.points >= r.cost);
   document.getElementById('pts-quick').textContent = '보유 ' + S.user.points + 'p' + (canRedeem ? ' · 교환 가능' : '');
