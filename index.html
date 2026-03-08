@@ -3370,6 +3370,7 @@ async function shareLevelCard() {
   const earnedBadges = earnedAchs().slice(0, 5); // 최대 5개
 
   const userTags = (S.user.tags || []).slice(0, 3); // 최대 3개 태그
+  const extraTagCount = Math.max(0, (S.user.tags || []).length - 3);
 
   const [lvIconPng, flameIconPng, runnerImg, logoPng, avatarImg, bgImg, ...badgeImgs] = await Promise.all([
     _svgToPng(lv.icon, 320),
@@ -3434,14 +3435,14 @@ async function shareLevelCard() {
     <div style="flex-shrink:0;background:linear-gradient(to bottom,rgba(0,0,0,0.22) 0%,rgba(0,0,0,0) 80px),linear-gradient(145deg,#1E1A6E 0%,#3730A3 35%,#4F46E5 68%,#6366F1 100%),linear-gradient(to bottom right,rgba(255,255,255,0.07) 0%,transparent 55%);padding:12px 18px 14px;border-radius:0 0 28px 28px;position:relative;overflow:hidden;color:#fff">
       <!-- 광택 오버레이 -->
       <div style="position:absolute;top:0;left:0;right:0;height:100%;background:linear-gradient(180deg,rgba(255,255,255,0.06) 0%,transparent 50%);pointer-events:none"></div>
-      <!-- ::before 상당: 우측 상단, 200px, blur(14px), 상단→하단 페이드 (mask-image 근사) -->
-      <div style="position:absolute;top:-56px;right:-50px;width:200px;height:200px;border-radius:50%;background:linear-gradient(to bottom,transparent 0%,rgba(255,255,255,0.08) 55%);filter:blur(14px);pointer-events:none"></div>
-      <!-- ::after 상당: 우측 하단, 120px, blur(4px) -->
-      <div style="position:absolute;bottom:-40px;right:40px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.06);filter:blur(4px);pointer-events:none"></div>
-      <!-- hc-circle 좌측 대: 150px, blur(8px) — html2canvas에서 경계선 방지 -->
-      <div style="position:absolute;top:-6px;left:-50px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,0.07);filter:blur(8px);pointer-events:none"></div>
-      <!-- hc-circle 좌측 소: 80px, blur(5px) -->
-      <div style="position:absolute;top:74px;left:40px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.05);filter:blur(5px);pointer-events:none"></div>
+      <!-- ::before 상당: 우측 상단, 160px, blur(8px) -->
+      <div style="position:absolute;top:-50px;right:-40px;width:160px;height:160px;border-radius:50%;background:linear-gradient(to bottom,transparent 0%,rgba(255,255,255,0.07) 55%);filter:blur(8px);pointer-events:none"></div>
+      <!-- ::after 상당: 우측 하단, 100px, blur(3px) -->
+      <div style="position:absolute;bottom:-35px;right:40px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.05);filter:blur(3px);pointer-events:none"></div>
+      <!-- hc-circle 좌측 대: 120px, blur(6px) -->
+      <div style="position:absolute;top:-6px;left:-45px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.06);filter:blur(6px);pointer-events:none"></div>
+      <!-- hc-circle 좌측 소: 65px, blur(3px) -->
+      <div style="position:absolute;top:70px;left:36px;width:65px;height:65px;border-radius:50%;background:rgba(255,255,255,0.04);filter:blur(3px);pointer-events:none"></div>
 
       <!-- 헤더: 로고 + 나의 건강 기록 (좌) | 아바타 (우) -->
       <div style="display:flex;align-items:center;justify-content:space-between;position:relative">
@@ -3458,6 +3459,7 @@ async function shareLevelCard() {
       <div style="display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-top:8px;position:relative">
         <span style="font-size:19px;font-weight:900;letter-spacing:-0.5px;line-height:1;flex-shrink:0">${name}님</span>
         ${userTags.map(t => `<span style="font-size:10px;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,0.92);color:#4F46E5;font-weight:700;flex-shrink:0;white-space:nowrap;box-shadow:0 1px 6px rgba(0,0,0,0.12)">${t}</span>`).join('')}
+        ${extraTagCount > 0 ? `<span style="display:inline-flex;align-items:center;gap:3px;flex-shrink:0">${Array.from({length:Math.min(extraTagCount,3)}).map((_,i)=>`<span style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,${0.85-i*0.2});display:inline-block;flex-shrink:0"></span>`).join('')}</span>` : ''}
       </div>
 
       <!-- 통계 3칸 (border 제거 — 원래 hero-stat과 동일) -->
@@ -3508,7 +3510,7 @@ async function shareLevelCard() {
         <span style="font-size:10px;color:#6D28D9;opacity:0.7;font-weight:600;flex:1;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${streakMsg}</span>
       </div>
       <!-- URL -->
-      <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px">
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px">
         <div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(124,58,237,0.25))"></div>
         <span style="font-size:8px;color:#7C3AED;opacity:0.5;font-weight:500;letter-spacing:0.4px">yunjin0825.github.io/HI-Health</span>
         <div style="flex:1;height:1px;background:linear-gradient(90deg,rgba(124,58,237,0.25),transparent)"></div>
@@ -3516,7 +3518,7 @@ async function shareLevelCard() {
     </div>
 
     <!-- ③ 하단 이미지 -->
-    <div style="flex:1;position:relative;overflow:hidden;margin-top:0;background:#fff">
+    <div style="flex:1;position:relative;overflow:hidden;margin-top:-4px;background:#fff">
       ${bgPngUrl ? `<img src="${bgPngUrl}" style="${bgImgStyle}">` : ''}
       <!-- 상하 + 좌우 그라디언트 (하단 흐림 축소) -->
       <div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(255,255,255,0.7) 0%,rgba(255,255,255,0) 12%,rgba(255,255,255,0) 88%,rgba(255,255,255,0.7) 100%),linear-gradient(to bottom,rgba(255,255,255,1) 0%,rgba(255,255,255,0) 30%,rgba(255,255,255,0) 85%,rgba(255,255,255,0.2) 100%);pointer-events:none;z-index:1"></div>
