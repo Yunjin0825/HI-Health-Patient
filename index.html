@@ -5363,7 +5363,11 @@ function renderLeague() {
         </div>`;
     }).join('');
 
-    document.getElementById('lb-list').innerHTML = challengers.slice(3, 20).map(u => {
+    const chSlice = challengers.slice(3, 20);
+    const chMe = challengers.find(u => u.isMe);
+    const showChList = chMe && !chSlice.find(u => u.isMe) && chMe.rank > 3
+      ? [...chSlice, chMe] : chSlice;
+    document.getElementById('lb-list').innerHTML = showChList.map(u => {
       const lv = LEVELS[Math.min(u.lv - 1, LEVELS.length - 1)];
       return `
         <div class="lb-item ${u.isMe ? 'me' : ''}">
@@ -5448,7 +5452,11 @@ function renderLeague() {
       </div>`;
   }).join('');
 
-  document.getElementById('lb-list').innerHTML = list.slice(3, 20).map(u => {
+  const lbSlice = list.slice(3, 20);
+  const meEntry = list.find(u => u.isMe);
+  const showList = meEntry && !lbSlice.find(u => u.isMe) && meEntry.rank > 3
+    ? [...lbSlice, meEntry] : lbSlice;
+  document.getElementById('lb-list').innerHTML = showList.map(u => {
     const lv    = LEVELS[Math.min(u.lv-1, LEVELS.length-1)];
     const chg   = tab==='weekly' ? u.change : 0;
     const chgHtml = chg > 0 ? `<span class="lb-change ch-up">▲${chg}</span>`
