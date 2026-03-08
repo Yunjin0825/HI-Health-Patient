@@ -886,7 +886,7 @@
     .glucose-time-expand { display:none; margin-top:8px; }
     .glucose-time-expand.show { display:block; }
     .glucose-time-input {
-      width:100%; padding:7px 11px; border:1.5px solid var(--border); border-radius:var(--radius-sm);
+      width:140px; padding:7px 11px; border:1.5px solid var(--border); border-radius:var(--radius-sm);
       font-size:13px; font-family:inherit; background:var(--bg); color:var(--text); box-sizing:border-box;
     }
     .glucose-time-input:focus { outline:none; border-color:var(--primary); }
@@ -1368,9 +1368,16 @@
     .shop-item-info  { flex: 1; min-width: 0; }
     .shop-item-name  { font-size: 14px; font-weight: 700; }
     .shop-item-price { font-size: 12px; color: var(--primary); font-weight: 700; margin-top: 3px; }
-    .shop-item-ctrl  { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .shop-item-ctrl  { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+    .shop-item-cart-row { display: flex; align-items: center; gap: 8px; }
+    .shop-detail-btn { font-size: 11px; font-weight: 600; color: var(--text-secondary); background: none; border: 1px solid var(--border); border-radius: 12px; padding: 3px 10px; cursor: pointer; white-space: nowrap; }
+    .shop-detail-btn:active { background: var(--bg); }
     .shop-section-title { font-size: 15px; font-weight: 700; color: var(--text-primary); padding: 16px 0 8px; }
     .shop-item:active { opacity: 0.75; }
+    .shop-item-thumb { width: 52px; height: 52px; flex-shrink: 0; border-radius: 8px; overflow: hidden; background: #f3f4f6; display: flex; align-items: center; justify-content: center; }
+    .shop-item-thumb svg { width: 100%; height: 100%; display: block; }
+    .pd-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .pd-tag { font-size: 11px; font-weight: 600; color: var(--primary); background: var(--primary-light, #f0eeff); border-radius: 20px; padding: 3px 10px; }
     /* ── Product Detail Modal ── */
     .pd-overlay { position: fixed; inset: 0; z-index: 1200; background: rgba(0,0,0,0.5); display: flex; align-items: flex-end; justify-content: center; }
     .pd-overlay.pd-hidden { display: none; }
@@ -1378,7 +1385,7 @@
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     .pd-close { position: sticky; top: 12px; float: right; margin: 12px 14px 0 0; background: var(--card); border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 16px; cursor: pointer; color: var(--text-secondary); box-shadow: var(--shadow); z-index: 1; }
     .pd-img-wrap { width: 100%; background: var(--card); display: flex; align-items: center; justify-content: center; min-height: 200px; overflow: hidden; }
-    .pd-img-wrap img { width: 100%; max-height: 280px; object-fit: cover; display: block; }
+    .pd-img-wrap img { width: 100%; height: 260px; object-fit: contain; display: block; }
     .pd-img-placeholder { width:100%; min-height:200px; background:#f3f4f6; }
     .pd-body { padding: 20px 20px 40px; }
     .pd-category { font-size: 11px; font-weight: 700; color: var(--primary); background: var(--primary-light); display: inline-block; padding: 3px 10px; border-radius: 20px; margin-bottom: 8px; }
@@ -1649,17 +1656,24 @@
     .ch-reg-label { color:var(--text-secondary); }
     .ch-reg-value { font-weight:600; color:#166534; }
 
-    .ch-tl { position:relative; padding-left:30px; }
-    .ch-tl::before { content:''; position:absolute; left:10px; top:8px; bottom:8px; width:2px; background:linear-gradient(180deg,var(--primary),var(--secondary)); border-radius:1px; }
-    .ch-tl-item { position:relative; margin-bottom:18px; }
-    .ch-tl-dot { position:absolute; left:-24px; top:4px; width:14px; height:14px; border-radius:50%; border:2.5px solid; }
-    .ch-tl-dot.done   { background:var(--secondary); border-color:var(--secondary); }
-    .ch-tl-dot.active { background:var(--primary); border-color:var(--primary); animation:pulse 2s infinite; }
-    .ch-tl-dot.future { background:#fff; border-color:var(--border); }
-    .ch-tl-date  { font-size:11px; color:var(--text-secondary); font-weight:600; }
-    .ch-tl-title { font-size:14px; font-weight:600; margin:2px 0; }
-    .ch-tl-desc  { font-size:12px; color:var(--text-secondary); line-height:1.5; }
-    .ch-tl-tag   { display:inline-block; margin-top:5px; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:600; }
+    .ch-tl { display:flex; flex-direction:column; gap:0; position:relative; padding-left:34px; }
+    .ch-tl::before { content:''; position:absolute; left:6px; top:10px; bottom:10px; width:2px; background:var(--border); border-radius:2px; }
+    .ch-tl-item { display:flex; align-items:flex-start; gap:0; padding:12px 0; position:relative; }
+    .ch-tl-item:not(:last-child) { border-bottom:1px solid var(--border-light, #f1f5f9); }
+    .ch-tl-dot {
+      width:14px; height:14px; border-radius:50%; flex-shrink:0;
+      margin-top:3px; position:absolute; left:-21px; z-index:1;
+      border:2.5px solid #fff; box-shadow:0 0 0 1.5px var(--border);
+    }
+    .ch-tl-dot.done   { background:var(--secondary); box-shadow:0 0 0 1.5px var(--secondary); }
+    .ch-tl-dot.active { background:var(--primary); box-shadow:0 0 0 3px rgba(79,70,229,.2); animation:pulse 2s infinite; }
+    .ch-tl-dot.future { background:#fff; box-shadow:0 0 0 1.5px var(--border); }
+    .ch-tl-label { font-size:13px; font-weight:700; color:var(--text); line-height:1.3; }
+    .ch-tl-label.active { color:var(--primary); }
+    .ch-tl-label.done   { color:var(--text-secondary); }
+    .ch-tl-date  { font-size:11px; color:var(--text-secondary); margin-top:2px; }
+    .ch-tl-desc  { font-size:11px; color:var(--text-secondary); margin-top:2px; line-height:1.5; }
+    .ch-tl-tag   { display:inline-block; margin-top:5px; padding:2px 9px; border-radius:20px; font-size:10px; font-weight:700; }
     .ch-tl-tag.pre  { background:var(--primary-light); color:var(--primary); }
     .ch-tl-tag.main { background:var(--accent-light); color:var(--accent); }
 
@@ -1683,6 +1697,48 @@
     .ch-consent-check input { width:16px; height:16px; accent-color:var(--primary); }
     .ch-dup-warn { display:none; padding:10px 13px; background:var(--warning-light); border-radius:var(--radius-sm); font-size:12px; color:#92400E; margin-bottom:12px; }
     .ch-dup-warn.show { display:block; }
+
+    /* ── Challenge Hero ── */
+    #ch-hero-card {
+      background: linear-gradient(150deg, #0f172a 0%, #1e1b4b 55%, #312e81 100%);
+      border-radius: 0 0 28px 28px;
+      margin: -18px -18px 14px;
+      overflow: hidden;
+      position: relative;
+    }
+    #ch-hero-card::before { content:''; position:absolute; top:-60px; right:-50px; width:220px; height:220px; background:radial-gradient(circle, rgba(251,146,60,.22) 0%, transparent 70%); border-radius:50%; pointer-events:none; }
+    #ch-hero-card::after  { content:''; position:absolute; bottom:-50px; left:-40px; width:180px; height:180px; background:radial-gradient(circle, rgba(139,92,246,.18) 0%, transparent 70%); border-radius:50%; pointer-events:none; }
+    .ch-hero { padding: max(env(safe-area-inset-top), 44px) 22px 22px; color:#fff; position:relative; text-align:center; }
+    .ch-hero-eyebrow { font-size:10px; font-weight:600; letter-spacing:2px; color:rgba(255,255,255,.5); text-transform:uppercase; margin-bottom:10px; }
+    .ch-hero-title { font-size:40px; font-weight:900; letter-spacing:-1px; color:#fb923c; line-height:1; margin-bottom:8px; }
+    .ch-hero-date  { font-size:13px; font-weight:700; color:rgba(255,255,255,.9); margin-bottom:3px; }
+    .ch-hero-route { font-size:11px; color:rgba(255,255,255,.45); margin-bottom:18px; letter-spacing:.5px; }
+    .ch-hero-badge { display:inline-block; background:rgba(251,146,60,.18); border:1px solid rgba(251,146,60,.4); border-radius:20px; padding:6px 24px; font-size:15px; font-weight:800; color:#fb923c; letter-spacing:1px; }
+
+    /* ── Challenge Program steps ── */
+    .ch-program { display:flex; flex-direction:column; }
+    .ch-program-step { display:flex; align-items:flex-start; gap:14px; padding:13px 0; border-bottom:1px solid var(--border); }
+    .ch-program-step:last-child { border-bottom:none; }
+    .ch-program-num { width:28px; height:28px; border-radius:50%; background:var(--primary); color:#fff; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+    .ch-program-title { font-size:14px; font-weight:700; margin-bottom:2px; }
+    .ch-program-desc  { font-size:12px; color:var(--text-secondary); line-height:1.5; }
+
+    /* ── Speaker card ── */
+    .ch-speaker { display:flex; align-items:center; gap:14px; padding:14px; background:var(--bg); border-radius:var(--radius-sm); border:1.5px solid var(--border); margin-top:14px; }
+    .ch-speaker-avatar { width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,#f97316,#ea580c); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+    .ch-speaker-role { font-size:10px; font-weight:700; color:var(--primary); letter-spacing:.5px; margin-bottom:2px; }
+    .ch-speaker-name { font-size:14px; font-weight:700; margin-bottom:2px; }
+    .ch-speaker-desc { font-size:11px; color:var(--text-secondary); }
+
+    /* ── Benefits ── */
+    .ch-benefit-list { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .ch-benefit { background:var(--bg); border:1.5px solid var(--border); border-radius:var(--radius); padding:14px 12px; display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
+    .ch-benefit-icon { font-size:24px; line-height:1; }
+    .ch-benefit-title { font-size:12px; font-weight:700; line-height:1.3; }
+    .ch-benefit-desc  { font-size:11px; color:var(--text-secondary); line-height:1.4; }
+
+    /* ── Timeline event tag ── */
+    .ch-tl-tag.event { background:#fff3e0; color:#e65100; }
 
     /* ── Illustration banners ── */
     .illus-banner {
@@ -2142,6 +2198,7 @@
             <button type="button" class="hc-sub-chip hc-supp-preset" data-name="종합비타민" onclick="toggleSuppItem('종합비타민')">종합비타민</button>
             <button type="button" class="hc-sub-chip hc-supp-preset" data-name="아르기닌"   onclick="toggleSuppItem('아르기닌')">아르기닌</button>
             <button type="button" class="hc-sub-chip hc-supp-preset" data-name="코큐텐"     onclick="toggleSuppItem('코큐텐')">코큐텐</button>
+            <button type="button" class="hc-sub-chip hc-supp-preset" data-name="엽산"       onclick="toggleSuppItem('엽산')">엽산</button>
             <button type="button" class="custom-ex-link" id="supp-direct-btn" onclick="toggleSuppDirect()">✏️ 직접 입력</button>
           </div>
           <div class="custom-ex-wrap" id="supp-direct-wrap">
@@ -2149,6 +2206,7 @@
               <input type="text" class="ch-form-input" id="supp-direct-input" placeholder="영양제 이름을 입력하세요" maxlength="20" style="flex:1">
               <button type="button" onclick="addSuppDirect()" style="padding:8px 14px;border-radius:var(--radius-sm);border:none;background:var(--primary);color:#fff;font-size:13px;cursor:pointer;white-space:nowrap">추가</button>
             </div>
+            <div id="supp-custom-list" class="hc-custom-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
           </div>
           <div class="diet-card-grid" style="grid-template-columns:repeat(3,1fr); margin-top:4px">
             <button type="button" class="diet-card" id="supp-all"     onclick="setSupp('all')">
@@ -2330,6 +2388,7 @@
         <div class="pd-price" id="pd-price"></div>
         <div class="pd-divider"></div>
         <div class="pd-desc" id="pd-desc"></div>
+        <div class="pd-tags" id="pd-tags"></div>
         <div class="pd-cart-row" id="pd-cart-row"></div>
       </div>
     </div>
@@ -2487,18 +2546,14 @@
 
   <!-- ████  CHALLENGE  ████ -->
   <section id="page-challenge" class="page">
-
-
-    <div id="ch-phase-card"></div>
-    <div id="ch-reg-status"></div>
-
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title"><img src="icons/HI_icon_15.png" class="sec-icon" alt="챌린지"> 챌린지 일정</span>
-      </div>
-      <div class="ch-tl" id="ch-timeline"></div>
+    <div id="ch-hero-card">
+      <div id="ch-hero"></div>
     </div>
-
+    <div id="ch-phase-card"></div>
+    <div id="ch-timeline-wrap"></div>
+    <div id="ch-benefit-wrap"></div>
+    <div id="ch-event-info"></div>
+    <div id="ch-reg-status"></div>
   </section>
 
 </main>
@@ -2537,7 +2592,8 @@
     </svg>
     <span class="nav-label">보상</span>
   </button>
-  <button class="nav-btn" onclick="navigate('challenge')" data-page="challenge">
+  <button class="nav-btn" onclick="navigate('challenge')" data-page="challenge" style="position:relative">
+    <span style="position:absolute;top:4px;right:6px;background:#EF4444;color:#fff;font-size:8px;font-weight:800;letter-spacing:.3px;border-radius:6px;padding:1px 4px;line-height:1.4">NEW</span>
     <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M6 9H3V5h3M18 9h3V5h-3M6 9c0 3.31 2.69 6 6 6s6-2.69 6-6V5H6v4z"/>
       <line x1="12" y1="15" x2="12" y2="19"/>
@@ -2759,24 +2815,56 @@ const REWARDS_DATA = [
   { id:'r5', name:'아르기닌 1box',   cost:1500, desc:'아르기닌 1박스' },
 ];
 
+const SUPP_SVG = {
+  glutamine: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#FEF5E7"/><rect x="60" y="15" width="180" height="172" rx="5" fill="#F39C12"/><rect x="60" y="15" width="180" height="58" rx="5" fill="#D4870A"/><rect x="60" y="63" width="180" height="10" fill="#F39C12"/><text x="150" y="40" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="14" font-weight="900" fill="white" letter-spacing="2">Dr.PNT</text><text x="150" y="55" text-anchor="middle" font-family="Arial,sans-serif" font-size="6.5" fill="rgba(255,255,255,.85)" letter-spacing="1">GC 녹십자웰빙</text><rect x="70" y="78" width="160" height="96" rx="4" fill="white" opacity=".95"/><rect x="76" y="84" width="148" height="22" rx="3" fill="#3498DB"/><text x="150" y="99" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" font-weight="bold" fill="white">글루타민 프로 5000</text><text x="150" y="121" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="13" font-weight="900" fill="#F39C12">GLU</text><text x="150" y="136" text-anchor="middle" font-family="Arial,sans-serif" font-size="6.5" fill="#555">Glutamine Pro 5000</text><rect x="76" y="143" width="148" height="1" fill="#eee"/><text x="150" y="155" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">L-글루타민 5,000mg / 1포</text><text x="150" y="167" text-anchor="middle" font-family="Arial,sans-serif" font-size="5" fill="#bbb">복숭아맛 · 30포입</text></svg>`,
+  drzinc: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#F0F7F0"/><rect x="60" y="15" width="180" height="172" rx="5" fill="white" stroke="#D0DDD0" stroke-width="1.5"/><rect x="60" y="15" width="180" height="58" rx="5" fill="#2E7D32"/><rect x="60" y="63" width="180" height="10" fill="#4CAF50"/><text x="150" y="35" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="rgba(255,255,255,.85)" letter-spacing="2">Dr.Edition</text><text x="138" y="56" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="22" font-weight="900" fill="white">Dr.</text><rect x="163" y="39" width="24" height="20" rx="3" fill="#81C784"/><text x="175" y="53" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="9" font-weight="900" fill="white">Z</text><text x="150" y="98" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="bold" fill="#2E7D32">닥터징크</text><text x="150" y="112" text-anchor="middle" font-family="Arial,sans-serif" font-size="7.5" fill="#2E7D32">Dr.Zinc (아연)</text><rect x="76" y="120" width="148" height="1" fill="#E8F5E9"/><text x="150" y="133" text-anchor="middle" font-family="Arial,sans-serif" font-size="6" fill="#666">60정 (2개월분)</text><text x="150" y="146" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">면역·피부 건강 아연 보충</text><text x="150" y="160" text-anchor="middle" font-family="Arial,sans-serif" font-size="5" fill="#aaa">에프앤디넷</text></svg>`,
+  dexian: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#EAF2FB"/><rect x="60" y="15" width="180" height="172" rx="5" fill="#1A5276"/><rect x="60" y="15" width="180" height="58" rx="5" fill="#0D3349"/><rect x="60" y="63" width="180" height="10" fill="#1A5276"/><text x="150" y="35" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="#AAC4D8" letter-spacing="2">Dr.Edition</text><text x="138" y="55" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="22" font-weight="900" fill="white">Dr.</text><rect x="162" y="38" width="26" height="20" rx="3" fill="#3498DB"/><text x="175" y="52" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="9" font-weight="900" fill="white">E</text><rect x="70" y="78" width="160" height="96" rx="4" fill="rgba(255,255,255,.08)"/><text x="150" y="102" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="bold" fill="white">덱시안</text><text x="150" y="118" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="bold" fill="#FFD700">Med</text><rect x="80" y="126" width="140" height="1" fill="rgba(255,255,255,.2)"/><text x="150" y="140" text-anchor="middle" font-family="Arial,sans-serif" font-size="6" fill="rgba(255,255,255,.75)">의약품급 기능성 영양제</text><text x="150" y="153" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="rgba(255,255,255,.6)">활성형 비타민 복합</text><text x="150" y="166" text-anchor="middle" font-family="Arial,sans-serif" font-size="5" fill="rgba(255,255,255,.45)">GC 녹십자</text></svg>`,
+  magnesium: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#FEFAE8"/><rect x="72" y="18" width="156" height="168" rx="5" fill="#F5C518"/><rect x="72" y="18" width="156" height="55" rx="5" fill="#D4A510"/><rect x="72" y="63" width="156" height="8" fill="#F5C518"/><text x="150" y="40" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="14" font-weight="900" fill="white" letter-spacing="2">Dr.PNT</text><text x="150" y="55" text-anchor="middle" font-family="Arial,sans-serif" font-size="6.5" fill="rgba(255,255,255,.85)" letter-spacing="1">GC 녹십자웰빙</text><rect x="82" y="78" width="136" height="95" rx="4" fill="white" opacity=".95"/><text x="150" y="100" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="bold" fill="#D4A510">마그네슘</text><text x="150" y="114" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" fill="#888">Magnesium</text><rect x="88" y="121" width="124" height="1" fill="#eee"/><text x="150" y="134" text-anchor="middle" font-family="Arial,sans-serif" font-size="6" fill="#777">체내 에너지 이용 및</text><text x="150" y="146" text-anchor="middle" font-family="Arial,sans-serif" font-size="6" fill="#777">신경 · 근육기능 유지</text><text x="150" y="158" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#999">글루콘산마그네슘 비타민B6</text><text x="150" y="170" text-anchor="middle" font-family="Arial,sans-serif" font-size="5" fill="#bbb">GC 녹십자</text></svg>`,
+  inositol: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#EDF3FB"/><rect x="60" y="15" width="180" height="172" rx="5" fill="white" stroke="#C5D8F0" stroke-width="1.5"/><rect x="60" y="15" width="180" height="65" rx="5" fill="#1A73C8"/><rect x="60" y="63" width="180" height="17" fill="#1A73C8"/><text x="150" y="36" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="rgba(255,255,255,.85)" letter-spacing="2">Dr.Edition</text><text x="130" y="60" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="26" font-weight="900" fill="white">Dr.</text><rect x="157" y="40" width="30" height="26" rx="3" fill="#4A90D9"/><text x="172" y="58" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="12" font-weight="900" fill="white">A</text><text x="150" y="98" text-anchor="middle" font-family="Arial,sans-serif" font-size="7.5" font-weight="bold" fill="#1A73C8">닥터에디션</text><text x="150" y="112" text-anchor="middle" font-family="Arial,sans-serif" font-size="8.5" font-weight="bold" fill="#1A73C8">이노시톨MDi</text><rect x="76" y="120" width="148" height="1" fill="#E3EEF9"/><text x="150" y="133" text-anchor="middle" font-family="Arial,sans-serif" font-size="6" fill="#555">당을 위한 맞춤형 설계</text><text x="150" y="146" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">이노시톨 · 엽산 복합</text><text x="150" y="159" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">30포 · 36,000원</text><text x="150" y="172" text-anchor="middle" font-family="Arial,sans-serif" font-size="5" fill="#aaa">에프앤디넷</text></svg>`,
+  arginine_fnd: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#EDF3FB"/><rect x="60" y="15" width="180" height="172" rx="5" fill="white" stroke="#C5D8F0" stroke-width="1.5"/><rect x="60" y="15" width="180" height="65" rx="5" fill="#1A73C8"/><rect x="60" y="63" width="180" height="17" fill="#1A73C8"/><text x="150" y="36" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="rgba(255,255,255,.85)" letter-spacing="2">Dr.Edition</text><text x="130" y="60" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="26" font-weight="900" fill="white">Dr.</text><rect x="157" y="40" width="30" height="26" rx="3" fill="#4A90D9"/><text x="172" y="58" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="10" font-weight="900" fill="white">A</text><text x="172" y="70" text-anchor="middle" font-family="Arial,sans-serif" font-size="5" fill="rgba(255,255,255,.8)">Adult</text><text x="150" y="98" text-anchor="middle" font-family="Arial,sans-serif" font-size="7.5" font-weight="bold" fill="#1A73C8">닥터에디션</text><text x="150" y="112" text-anchor="middle" font-family="Arial,sans-serif" font-size="8.5" font-weight="bold" fill="#1A73C8">아르기닌</text><rect x="76" y="120" width="148" height="1" fill="#E3EEF9"/><text x="150" y="133" text-anchor="middle" font-family="Arial,sans-serif" font-size="6" fill="#555">성인을 위한 일반형 설계</text><text x="150" y="146" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">L-아르기닌 · 혈행 개선</text><text x="150" y="159" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">30포 · 35,000원</text><text x="150" y="172" text-anchor="middle" font-family="Arial,sans-serif" font-size="5" fill="#aaa">에프앤디넷</text></svg>`,
+  jelly_arg: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#FDF0EC"/><rect x="72" y="18" width="156" height="168" rx="5" fill="#E8705A"/><rect x="72" y="18" width="156" height="55" rx="5" fill="#C94E35"/><rect x="72" y="63" width="156" height="8" fill="#E8705A"/><text x="150" y="40" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="14" font-weight="900" fill="white" letter-spacing="2">Dr.PNT</text><text x="150" y="55" text-anchor="middle" font-family="Arial,sans-serif" font-size="6.5" fill="rgba(255,255,255,.85)" letter-spacing="1">GC 녹십자웰빙</text><rect x="82" y="78" width="136" height="95" rx="4" fill="white" opacity=".96"/><rect x="88" y="84" width="124" height="20" rx="3" fill="#9B59B6"/><text x="150" y="98" text-anchor="middle" font-family="Arial,sans-serif" font-size="7.5" font-weight="bold" fill="white">슈퍼 아르기닌 6000</text><text x="150" y="118" text-anchor="middle" font-family="Arial,sans-serif" font-size="7.5" font-weight="bold" fill="#C94E35">ARG</text><text x="150" y="131" text-anchor="middle" font-family="Arial,sans-serif" font-size="6.5" fill="#555">Super Arginine 6000</text><rect x="88" y="138" width="124" height="1" fill="#eee"/><text x="150" y="150" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">L-아르기닌 20% (6,000mg)</text><text x="150" y="163" text-anchor="middle" font-family="Arial,sans-serif" font-size="5" fill="#bbb">GC 녹십자웰빙</text></svg>`,
+  folicacid: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#EEF6EF"/><rect x="60" y="15" width="180" height="172" rx="5" fill="white" stroke="#C8E6C9" stroke-width="1.5"/><rect x="60" y="15" width="180" height="65" rx="5" fill="#2E7D32"/><rect x="60" y="63" width="180" height="17" fill="#4CAF50"/><text x="150" y="36" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="rgba(255,255,255,.85)" letter-spacing="2">Dr.Edition</text><text x="130" y="60" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="26" font-weight="900" fill="white">Dr.</text><rect x="157" y="40" width="30" height="26" rx="3" fill="#66BB6A"/><text x="172" y="57" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="9" font-weight="900" fill="white">FA</text><text x="150" y="97" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="bold" fill="#2E7D32">닥터 액티브</text><text x="150" y="111" text-anchor="middle" font-family="Arial,sans-serif" font-size="9.5" font-weight="bold" fill="#2E7D32">엽산</text><rect x="76" y="119" width="148" height="1" fill="#E8F5E9"/><text x="150" y="132" text-anchor="middle" font-family="Arial,sans-serif" font-size="6" fill="#555">60정 · 임산부용</text><text x="150" y="145" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">활성형 5-MTHF 엽산</text><text x="150" y="158" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">신경관 결손 예방</text><text x="150" y="171" text-anchor="middle" font-family="Arial,sans-serif" font-size="5" fill="#aaa">에프앤디넷</text></svg>`,
+  elenew1: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#EEF4FB"/><rect x="60" y="15" width="180" height="172" rx="5" fill="white" stroke="#B8D0E8" stroke-width="1.5"/><rect x="60" y="15" width="180" height="60" rx="5" fill="#1E6EA8"/><rect x="60" y="63" width="180" height="12" fill="#2196F3"/><text x="150" y="37" text-anchor="middle" font-family="Georgia,serif" font-size="11" font-weight="bold" fill="white" letter-spacing="2">ELLENEW</text><text x="150" y="56" text-anchor="middle" font-family="Georgia,serif" font-size="14" font-weight="bold" fill="#B3D9FF" letter-spacing="3">I</text><text x="150" y="95" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="bold" fill="#1E6EA8">엘레뉴1</text><text x="150" y="109" text-anchor="middle" font-family="Arial,sans-serif" font-size="6.5" fill="#2196F3">임신 준비 ~ 임신 12주까지</text><rect x="76" y="116" width="148" height="1" fill="#E3EEF9"/><text x="150" y="129" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#666">17종의 비타민과 미네랄</text><text x="150" y="141" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">비타민 D 600IU · 철분 함유</text><text x="150" y="153" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">1일 1회 복용</text><text x="150" y="166" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#1E6EA8">2개월분 · 45,000원</text><text x="150" y="178" text-anchor="middle" font-family="Arial,sans-serif" font-size="5" fill="#aaa">성지약품</text></svg>`,
+  elenew2: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#E8EEF8"/><rect x="60" y="15" width="180" height="172" rx="5" fill="white" stroke="#A8B8D8" stroke-width="1.5"/><rect x="60" y="15" width="180" height="60" rx="5" fill="#1A237E"/><rect x="60" y="63" width="180" height="12" fill="#3949AB"/><text x="150" y="37" text-anchor="middle" font-family="Georgia,serif" font-size="11" font-weight="bold" fill="white" letter-spacing="2">ELLENEW</text><text x="150" y="56" text-anchor="middle" font-family="Georgia,serif" font-size="14" font-weight="bold" fill="#9FA8DA" letter-spacing="3">II</text><text x="150" y="95" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="bold" fill="#1A237E">엘레뉴2</text><text x="150" y="109" text-anchor="middle" font-family="Arial,sans-serif" font-size="6.5" fill="#3949AB">시니어 특화 포뮬러</text><rect x="76" y="116" width="148" height="1" fill="#E8EAF6"/><text x="150" y="129" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#666">루테인 · 아스타잔틴 함유</text><text x="150" y="141" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">항노화 · 관절 건강 지원</text><text x="150" y="153" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">50대 이상 추천</text><text x="150" y="166" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#1A237E">85,000원</text><text x="150" y="178" text-anchor="middle" font-family="Arial,sans-serif" font-size="5" fill="#aaa">성지약품</text></svg>`,
+  elenew1lux: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#F5F0E5"/><rect x="60" y="15" width="180" height="172" rx="5" fill="#1A1A1A"/><rect x="60" y="15" width="180" height="60" rx="5" fill="#111"/><rect x="60" y="65" width="180" height="4" fill="#C9A43A"/><rect x="60" y="179" width="180" height="8" rx="3" fill="#C9A43A"/><rect x="60" y="15" width="5" height="172" fill="#C9A43A" opacity=".7"/><rect x="235" y="15" width="5" height="172" fill="#C9A43A" opacity=".7"/><text x="150" y="38" text-anchor="middle" font-family="Georgia,serif" font-size="8" fill="#C9A43A" letter-spacing="3">ELLENEW</text><text x="150" y="55" text-anchor="middle" font-family="Georgia,serif" font-size="12" font-weight="bold" fill="#E8D080" letter-spacing="2">1</text><text x="205" y="52" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="#C9A43A">LUX</text><rect x="76" y="80" width="148" height="85" rx="3" fill="rgba(255,255,255,.06)"/><text x="150" y="103" text-anchor="middle" font-family="Georgia,serif" font-size="10" fill="#C9A43A" letter-spacing="1">엘레뉴1</text><text x="150" y="118" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" fill="#E8D080">럭스 프리미엄</text><rect x="90" y="125" width="120" height="1" fill="#C9A43A" opacity=".4"/><text x="150" y="138" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="rgba(255,255,255,.65)">고함량 멀티비타민 미네랄</text><text x="150" y="150" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="rgba(255,255,255,.55)">임신 준비 ~ 임신 12주까지</text><text x="150" y="163" text-anchor="middle" font-family="Arial,sans-serif" font-size="5" fill="rgba(201,164,58,.8)">성지약품 · 86,000원</text></svg>`,
+  rtomega: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#EEF4FB"/><rect x="60" y="15" width="180" height="172" rx="5" fill="white" stroke="#C8D8EC" stroke-width="1.5"/><rect x="60" y="15" width="180" height="58" rx="5" fill="#1976D2"/><rect x="60" y="63" width="180" height="10" fill="#42A5F5"/><text x="150" y="35" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="rgba(255,255,255,.85)" letter-spacing="2">Dr.Edition</text><text x="138" y="56" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="22" font-weight="900" fill="white">Dr.</text><rect x="163" y="39" width="24" height="20" rx="3" fill="#64B5F6"/><text x="175" y="53" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="9" font-weight="900" fill="white">Ω</text><text x="150" y="96" text-anchor="middle" font-family="Arial,sans-serif" font-size="7.5" font-weight="bold" fill="#1976D2">닥터에디션 맘스</text><text x="150" y="111" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="bold" fill="#1976D2">오메가3</text><rect x="76" y="119" width="148" height="1" fill="#E3F2FD"/><text x="150" y="132" text-anchor="middle" font-family="Arial,sans-serif" font-size="6" fill="#555">정제 EPA 및 DHA</text><text x="150" y="145" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">rTG형 고순도 오메가3</text><text x="150" y="158" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">소어유 · 캡슐 함유</text><text x="150" y="171" text-anchor="middle" font-family="Arial,sans-serif" font-size="5" fill="#aaa">에프앤디넷</text></svg>`,
+  fertil_w: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#FEF0F5"/><rect x="60" y="15" width="180" height="172" rx="5" fill="white" stroke="#F0C8D8" stroke-width="1.5"/><rect x="60" y="15" width="180" height="58" rx="5" fill="#2E7D32"/><rect x="60" y="63" width="180" height="10" fill="#4CAF50"/><text x="150" y="35" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="rgba(255,255,255,.85)" letter-spacing="2">Dr.Edition</text><text x="138" y="56" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="22" font-weight="900" fill="white">Dr.</text><rect x="163" y="39" width="24" height="20" rx="3" fill="#81C784"/><text x="175" y="53" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="8" font-weight="900" fill="white">P</text><text x="150" y="88" text-anchor="middle" font-family="Arial,sans-serif" font-size="6" fill="#888" letter-spacing="1">Premium Quality</text><text x="150" y="103" text-anchor="middle" font-family="Arial,sans-serif" font-size="8.5" font-weight="bold" fill="#2E7D32">퍼틸리티 우먼</text><text x="150" y="116" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" fill="#555">액티브</text><rect x="76" y="123" width="148" height="1" fill="#FCE4EC"/><text x="150" y="136" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">멀티비타민미네랄 · 코엔자임 Q10</text><text x="150" y="148" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">EPA 및 DHA 함유 유지</text><text x="150" y="160" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#C2185B">30포 · 1개월분 · 90,000원</text><text x="150" y="172" text-anchor="middle" font-family="Arial,sans-serif" font-size="5" fill="#aaa">에프앤디넷</text></svg>`,
+  fertil_m: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#EEF6EF"/><rect x="60" y="15" width="180" height="172" rx="5" fill="white" stroke="#C8E6C9" stroke-width="1.5"/><rect x="60" y="15" width="180" height="58" rx="5" fill="#2E7D32"/><rect x="60" y="63" width="180" height="10" fill="#4CAF50"/><text x="150" y="35" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="rgba(255,255,255,.85)" letter-spacing="2">Dr.Edition</text><text x="138" y="56" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="22" font-weight="900" fill="white">Dr.</text><rect x="163" y="39" width="24" height="20" rx="3" fill="#81C784"/><text x="175" y="53" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="8" font-weight="900" fill="white">P</text><text x="150" y="88" text-anchor="middle" font-family="Arial,sans-serif" font-size="6" fill="#888" letter-spacing="1">Premium Quality</text><text x="150" y="103" text-anchor="middle" font-family="Arial,sans-serif" font-size="8.5" font-weight="bold" fill="#2E7D32">퍼틸리티 맨</text><text x="150" y="116" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" fill="#555">액티브</text><rect x="76" y="123" width="148" height="1" fill="#E8F5E9"/><text x="150" y="136" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">멀티비타민미네랄 · 코엔자임 Q10</text><text x="150" y="148" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">EPA 및 DHA 함유 유지</text><text x="150" y="160" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#1B5E20">30포 · 1개월분 · 95,000원</text><text x="150" y="172" text-anchor="middle" font-family="Arial,sans-serif" font-size="5" fill="#aaa">에프앤디넷</text></svg>`,
+  everyd: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#EBF5FB"/><rect x="72" y="18" width="156" height="168" rx="5" fill="#3498DB"/><rect x="72" y="18" width="156" height="55" rx="5" fill="#1A6FA8"/><rect x="72" y="63" width="156" height="8" fill="#3498DB"/><text x="150" y="40" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="14" font-weight="900" fill="white" letter-spacing="2">Dr.PNT</text><text x="150" y="55" text-anchor="middle" font-family="Arial,sans-serif" font-size="6.5" fill="rgba(255,255,255,.85)" letter-spacing="1">GC 녹십자웰빙</text><rect x="82" y="78" width="136" height="95" rx="4" fill="white" opacity=".96"/><text x="150" y="97" text-anchor="middle" font-family="Arial,sans-serif" font-size="8.5" font-weight="bold" fill="#1A6FA8">에브리D 플러스</text><text x="150" y="111" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" fill="#3498DB">VITAMIN D3 SPRAY</text><rect x="88" y="118" width="124" height="1" fill="#eee"/><text x="150" y="131" text-anchor="middle" font-family="Arial,sans-serif" font-size="6" fill="#777">칼슘과 인의 흡수를 도움</text><text x="150" y="143" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#999">뼈의 형성과 유지에 도움</text><text x="150" y="156" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#999">스프레이 타입 성인용</text><text x="150" y="169" text-anchor="middle" font-family="Arial,sans-serif" font-size="5" fill="#bbb">GC 녹십자</text></svg>`,
+  femipure: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#FEF0F5"/><rect x="60" y="15" width="180" height="172" rx="5" fill="white" stroke="#F0C8D8" stroke-width="1.5"/><rect x="60" y="15" width="180" height="65" rx="5" fill="#AD1457"/><rect x="60" y="63" width="180" height="17" fill="#E91E63"/><text x="150" y="36" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="rgba(255,255,255,.85)" letter-spacing="2">Dr.Edition</text><text x="130" y="60" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="26" font-weight="900" fill="white">Dr.</text><rect x="157" y="40" width="30" height="26" rx="3" fill="#E91E63"/><text x="172" y="57" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="9" font-weight="900" fill="white">FP</text><text x="150" y="97" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="bold" fill="#AD1457">페미퓨어</text><text x="150" y="111" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" fill="#C2185B">FemiPure</text><rect x="76" y="119" width="148" height="1" fill="#FCE4EC"/><text x="150" y="132" text-anchor="middle" font-family="Arial,sans-serif" font-size="6" fill="#555">여성 전용 프로바이오틱스</text><text x="150" y="145" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">질 건강 · 요로 건강</text><text x="150" y="158" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">유익균 균주 복합</text><text x="150" y="171" text-anchor="middle" font-family="Arial,sans-serif" font-size="5" fill="#aaa">에프앤디넷</text></svg>`,
+  theanine: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#EDF5F8"/><rect x="72" y="18" width="156" height="168" rx="5" fill="#5BB8D4"/><rect x="72" y="18" width="156" height="55" rx="5" fill="#2E97B8"/><rect x="72" y="63" width="156" height="8" fill="#5BB8D4"/><text x="150" y="40" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="14" font-weight="900" fill="white" letter-spacing="2">Dr.PNT</text><text x="150" y="55" text-anchor="middle" font-family="Arial,sans-serif" font-size="6.5" fill="rgba(255,255,255,.85)" letter-spacing="1">GC 녹십자웰빙</text><rect x="82" y="78" width="136" height="95" rx="4" fill="white" opacity=".96"/><text x="150" y="100" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="bold" fill="#2E97B8">테아닌</text><text x="150" y="115" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" fill="#666">L-Theanine</text><rect x="88" y="122" width="124" height="1" fill="#eee"/><text x="150" y="136" text-anchor="middle" font-family="Arial,sans-serif" font-size="6" fill="#777">집중력 · 스트레스 완화</text><text x="150" y="149" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#999">녹차 추출 천연 아미노산</text><text x="150" y="163" text-anchor="middle" font-family="Arial,sans-serif" font-size="5" fill="#bbb">GC 녹십자</text></svg>`,
+  catechin: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#EBF3E8"/><rect x="72" y="18" width="156" height="168" rx="5" fill="#388E3C"/><rect x="72" y="18" width="156" height="55" rx="5" fill="#1B5E20"/><rect x="72" y="63" width="156" height="8" fill="#388E3C"/><text x="150" y="40" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="14" font-weight="900" fill="white" letter-spacing="2">Dr.PNT</text><text x="150" y="55" text-anchor="middle" font-family="Arial,sans-serif" font-size="6.5" fill="rgba(255,255,255,.85)" letter-spacing="1">GC 녹십자웰빙</text><rect x="82" y="78" width="136" height="95" rx="4" fill="white" opacity=".96"/><text x="150" y="100" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="bold" fill="#1B5E20">카테킨</text><text x="150" y="115" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" fill="#388E3C">Catechin</text><rect x="88" y="122" width="124" height="1" fill="#eee"/><text x="150" y="135" text-anchor="middle" font-family="Arial,sans-serif" font-size="6" fill="#777">녹차 폴리페놀 고농축</text><text x="150" y="148" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#999">항산화 · 체지방 감소</text><text x="150" y="162" text-anchor="middle" font-family="Arial,sans-serif" font-size="5" fill="#bbb">GC 녹십자</text></svg>`,
+  crinosan: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#EDF5EC"/><rect x="60" y="15" width="180" height="172" rx="5" fill="#2E7D32"/><rect x="60" y="15" width="180" height="60" rx="5" fill="#1B5E20"/><rect x="60" y="63" width="180" height="12" fill="#4CAF50"/><text x="150" y="38" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="rgba(255,255,255,.8)" letter-spacing="2">한국파메드</text><text x="150" y="56" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="13" font-weight="900" fill="white" letter-spacing="1">크리노산</text><rect x="70" y="80" width="160" height="96" rx="4" fill="white" opacity=".95"/><text x="150" y="104" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="bold" fill="#2E7D32">관절 건강 전문</text><rect x="80" y="111" width="140" height="1" fill="#E8F5E9"/><text x="150" y="124" text-anchor="middle" font-family="Arial,sans-serif" font-size="6" fill="#555">글루코사민 · 콘드로이틴</text><text x="150" y="137" text-anchor="middle" font-family="Arial,sans-serif" font-size="6" fill="#555">MSM 트리플 복합</text><text x="150" y="150" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">연골 조직 재생 · 염증 완화</text><text x="150" y="163" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#1B5E20">30,000원</text></svg>`,
+  complete: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#EEF0F8"/><ellipse cx="150" cy="186" rx="62" ry="12" fill="rgba(0,0,0,.1)"/><rect x="108" y="62" width="84" height="108" rx="8" fill="#2D2E6E"/><ellipse cx="150" cy="62" rx="42" ry="12" fill="#3D3E8E"/><ellipse cx="150" cy="62" rx="42" ry="12" fill="url(#capgrad)" opacity=".6"/><defs><linearGradient id="capgrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="white" stop-opacity=".3"/><stop offset="100%" stop-color="black" stop-opacity=".1"/></linearGradient></defs><rect x="120" y="45" width="60" height="28" rx="6" fill="#1A1B4B"/><text x="150" y="64" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="7.5" fill="white" letter-spacing="1">한국파메드</text><rect x="115" y="80" width="70" height="14" rx="3" fill="#4D4EAE"/><text x="150" y="91" text-anchor="middle" font-family="Arial,sans-serif" font-size="6.5" fill="white">프로바이오틱스</text><rect x="112" y="100" width="76" height="56" rx="4" fill="rgba(255,255,255,.1)"/><text x="150" y="116" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="bold" fill="white">컴플리트캡슐</text><text x="150" y="129" text-anchor="middle" font-family="Arial,sans-serif" font-size="6.5" fill="#AAB0E8">Complete Capsule</text><text x="150" y="141" text-anchor="middle" font-family="Arial,sans-serif" font-size="6" fill="#8890D0">성인 · 2개월분</text><text x="150" y="153" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#6870B8">12종 균주 1,000억CFU</text><text x="150" y="163" text-anchor="middle" font-family="Arial,sans-serif" font-size="5" fill="#8890D0">100정</text></svg>`,
+  coq10: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#EDF7EF"/><rect x="72" y="18" width="156" height="168" rx="5" fill="#7DC67E"/><rect x="72" y="18" width="156" height="55" rx="5" fill="#4CAF50"/><rect x="72" y="63" width="156" height="8" fill="#7DC67E"/><text x="150" y="40" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="14" font-weight="900" fill="white" letter-spacing="2">Dr.PNT</text><text x="150" y="55" text-anchor="middle" font-family="Arial,sans-serif" font-size="6.5" fill="rgba(255,255,255,.85)" letter-spacing="1">GC 녹십자웰빙</text><rect x="82" y="78" width="136" height="95" rx="4" fill="white" opacity=".96"/><text x="150" y="97" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="bold" fill="#4CAF50">코큐텐</text><text x="150" y="112" text-anchor="middle" font-family="Arial,sans-serif" font-size="7.5" fill="#4CAF50">CoQ10</text><rect x="88" y="120" width="124" height="1" fill="#eee"/><text x="150" y="133" text-anchor="middle" font-family="Arial,sans-serif" font-size="6" fill="#777">항산화 · 심혈관 건강</text><text x="150" y="146" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#999">코엔자임Q10 활성형 성분</text><text x="150" y="160" text-anchor="middle" font-family="Arial,sans-serif" font-size="5" fill="#bbb">GC 녹십자</text></svg>`,
+  sunnyd: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#FEF0F0"/><rect x="60" y="15" width="180" height="172" rx="5" fill="white" stroke="#F0C8C8" stroke-width="1.5"/><rect x="60" y="15" width="180" height="65" rx="5" fill="#C0392B"/><rect x="60" y="63" width="180" height="17" fill="#E74C3C"/><text x="150" y="36" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" fill="rgba(255,255,255,.85)" letter-spacing="2">Dr.Edition</text><text x="130" y="60" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="26" font-weight="900" fill="white">Dr.</text><rect x="157" y="40" width="30" height="26" rx="3" fill="#E74C3C"/><text x="172" y="56" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="12" font-weight="900" fill="white">E</text><text x="150" y="97" text-anchor="middle" font-family="Arial,sans-serif" font-size="7.5" font-weight="bold" fill="#C0392B">닥터에디션 써니디</text><text x="150" y="111" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="bold" fill="#C0392B">드롭스 1000IU</text><rect x="76" y="119" width="148" height="1" fill="#FDECEA"/><text x="150" y="132" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#666">소아 · 1회 1방울 · 11ml</text><text x="150" y="145" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">비타민 D3 액상 드롭</text><text x="150" y="158" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="#888">에프앤디넷</text></svg>`,
+};
+
 const SHOP_PRODUCTS = [
   // ── 영양제
-  { id:'sp01', name:'글루타민',               price:60000, cat:'supp', img:'', desc:'근육 회복과 면역 강화에 도움을 주는 고순도 글루타민 제품입니다. 운동 후 섭취 시 피로 회복에 효과적이며, 하루 1~2회 공복 또는 운동 전후에 섭취하는 것을 권장합니다.' },
-  { id:'sp02', name:'닥터징크(아연) 2개월',   price:24000, cat:'supp', img:'', desc:'아연은 면역 기능과 세포 재생에 필수적인 미네랄입니다. 2개월 분량으로 꾸준한 섭취를 통해 항산화 효과와 피부 건강 개선을 기대할 수 있습니다.' },
-  { id:'sp03', name:'덱시안',                 price:38000, cat:'supp', img:'', desc:'눈의 피로 완화와 황반 건강에 도움을 주는 루테인·지아잔틴 복합 제제입니다. 장시간 스마트폰·모니터 사용이 많은 분께 권장합니다. 하루 1캡슐 식후 섭취.' },
-  { id:'sp04', name:'마그네슘정 2개월',       price:22000, cat:'supp', img:'', desc:'근육 이완과 스트레스 완화에 효과적인 마그네슘 보충제입니다. 수면의 질 향상에도 도움을 주며, 저녁 식사 후 섭취를 권장합니다. 2개월 분량 제공.' },
-  { id:'sp05', name:'이노시톨',               price:36000, cat:'supp', img:'', desc:'여성 호르몬 균형과 다낭성 난소 증후군(PCOS) 개선에 도움을 주는 성분입니다. 혈당 조절 및 정신 건강 지원 효과도 기대할 수 있습니다. 하루 1~2회 섭취.' },
-  { id:'sp06', name:'아르기닌',               price:35000, cat:'supp', img:'', desc:'혈액순환 개선 및 운동 능력 향상에 도움을 주는 아미노산 제품입니다. 산화질소 생성을 촉진하여 혈관 건강을 지원하며, 운동 30분 전 섭취를 권장합니다.' },
-  { id:'sp07', name:'아르기닌(젤리)',          price:68000, cat:'supp', img:'', desc:'아르기닌 성분을 젤리 형태로 간편하게 섭취할 수 있는 제품입니다. 맛있게 건강을 챙길 수 있으며, 휴대가 간편해 바쁜 일상 속에서도 부담 없이 섭취 가능합니다.' },
-  { id:'sp08', name:'엽산(60정)',              price:45000, cat:'supp', img:'', desc:'임산부 및 가임기 여성에게 필수적인 엽산 보충제입니다. 태아의 신경관 결손 예방에 중요하며, 세포 분열과 DNA 합성에도 관여합니다. 총 60정 제공.' },
-  { id:'sp09', name:'엘레뉴1',                price:45000, cat:'supp', img:'', desc:'여성 건강을 위한 종합 영양 보충제 기본 라인입니다. 비타민, 미네랄, 항산화 성분이 균형 있게 배합되어 일상적인 영양 보충에 적합합니다. 하루 1정 식후 섭취.' },
-  { id:'sp10', name:'엘레뉴2',                price:85000, cat:'supp', img:'', desc:'엘레뉴 시리즈의 강화 버전으로 더 풍부한 영양 성분을 담았습니다. 기초 영양에 더해 콜라겐, 코엔자임Q10 등 추가 성분으로 피부 건강과 활력을 지원합니다.' },
-  { id:'sp11', name:'엘레뉴럭스',             price:86000, cat:'supp', img:'', desc:'프리미엄 여성 건강 보충제로 엘레뉴 시리즈 최고 라인입니다. 고함량 유효 성분과 흡수율을 극대화한 제형으로 최상의 건강 관리를 원하는 분께 추천합니다.' },
-  { id:'sp12', name:'알티지 오메가',           price:55000, cat:'supp', img:'', desc:'rTG(재에스테르화 트리글리세리드) 형태의 고순도 오메가-3 제품으로 일반 오메가-3 대비 흡수율이 뛰어납니다. 혈행 개선과 뇌 건강에 도움을 줍니다.' },
-  { id:'sp13', name:'아스트로(윤활제)',        price:30000, cat:'supp', img:'', desc:'여성 질 건조증 및 갱년기 증상 완화를 위한 윤활 제품입니다. 피부 자극이 없는 순한 성분으로 구성되어 일상적으로 편안하게 사용할 수 있습니다.' },
-  { id:'sp14', name:'에브리D 성인(스프레이)', price:39000, cat:'supp', img:'', desc:'비타민D를 스프레이 형태로 간편하게 섭취할 수 있는 제품입니다. 흡수가 빠른 구강 스프레이 방식으로 뼈 건강·면역력 향상에 도움을 줍니다. 하루 2~3회 분사.' },
-  { id:'sp15', name:'퍼틸우먼 액티브',        price:90000, cat:'supp', img:'', desc:'여성 임신 준비를 위한 종합 영양 보충제입니다. 엽산, 철분, 코엔자임Q10 등 임신 전 필요한 핵심 성분을 한 번에 섭취할 수 있도록 설계되었습니다.' },
-  { id:'sp16', name:'퍼틸맨 액티브',          price:95000, cat:'supp', img:'', desc:'남성 임신 준비를 위한 정자 건강 지원 보충제입니다. 아연, 셀레늄, 코엔자임Q10 등 남성 생식 건강에 중요한 성분들이 최적 함량으로 배합되어 있습니다.' },
+  { id:'sp01', name:'글루타민',               price:60000, cat:'supp', svg:'glutamine',    tags:['장건강','근육회복','L-글루타민','면역강화'],     desc:'체내에서 가장 풍부한 아미노산 L-글루타민을 순도 높게 담아 장 점막 건강과 면역 세포 활성화를 돕습니다. 격렬한 운동 후 근육 회복을 촉진하고 위장관 건강 개선에도 효과적입니다.' },
+  { id:'sp02', name:'닥터징크(아연) 2개월',   price:24000, cat:'supp', svg:'drzinc',       tags:['아연','면역력','피부건강','2개월분'],            desc:'면역 기능의 핵심 미네랄인 아연을 최적 흡수 형태로 공급하는 프리미엄 제품입니다. 2개월 분량으로 경제적이며, 상처 치유·세포 분열·단백질 합성 등 다양한 생리 기능을 지원합니다.' },
+  { id:'sp03', name:'덱시안',                 price:38000, cat:'supp', svg:'dexian',       tags:['의약품급','고흡수율','활성비타민','면역지원'],    desc:'의약품급 품질 기준을 적용한 기능성 영양제로, 고흡수 활성형 비타민을 포함한 복합 영양소 조합으로 면역 기능과 전신 건강을 체계적으로 지원합니다.' },
+  { id:'sp04', name:'마그네슘정 2개월',       price:22000, cat:'supp', svg:'magnesium',    tags:['마그네슘','근육건강','수면개선','스트레스완화'],  desc:'신경과 근육 기능 유지에 필수적인 마그네슘을 흡수율이 높은 글루콘산 마그네슘 형태로 공급합니다. 근육 경련·피로 완화, 수면의 질 개선, 스트레스 관리에 도움을 줍니다.' },
+  { id:'sp05', name:'이노시톨',               price:36000, cat:'supp', svg:'inositol',     tags:['이노시톨','PCOS','호르몬균형','여성건강'],        desc:'인슐린 신호 전달과 호르몬 균형에 중요한 이노시톨을 고함량으로 공급합니다. 다낭성 난소증후군(PCOS) 개선, 생리 주기 정상화, 배란 기능 향상에 도움이 됩니다.' },
+  { id:'sp06', name:'아르기닌',               price:35000, cat:'supp', svg:'arginine_fnd', tags:['혈행개선','운동능력','NO생성','성장호르몬'],       desc:'혈관 건강과 운동 퍼포먼스를 동시에 지원하는 L-아르기닌 고순도 제품입니다. 산화질소(NO)로 전환되어 혈관을 이완시키고 혈류를 개선하며, 성장호르몬 분비 촉진에도 기여합니다.' },
+  { id:'sp07', name:'아르기닌(젤리)',          price:68000, cat:'supp', svg:'jelly_arg',    tags:['혈행개선','운동능력','L-아르기닌','젤리형'],       desc:'맛있는 젤리 형태로 섭취하기 쉬운 L-아르기닌 보충제로, 혈관 확장과 혈류 개선에 도움을 줍니다. 산화질소(NO) 생성을 촉진하여 운동 시 근육 혈액 공급을 원활히 합니다.' },
+  { id:'sp08', name:'엽산(60정)',              price:45000, cat:'supp', svg:'folicacid',    tags:['활성형엽산','60정','임산부','태아건강'],           desc:'임신 전후 필수 영양소인 엽산을 활성형(5-MTHF)으로 제공하는 60정 고함량 제품입니다. MTHFR 유전자 변이가 있는 분도 효과적으로 이용할 수 있어 임산부와 임신 준비 여성 모두에게 적합합니다.' },
+  { id:'sp09', name:'엘레뉴1',                price:45000, cat:'supp', svg:'elenew1',      tags:['멀티비타민','데일리','균형영양','미네랄복합'],    desc:'일상적인 영양 보충을 위한 균형 잡힌 멀티비타민 제품입니다. 17종의 비타민과 미네랄이 하루 필요량에 맞게 설계되어 편식·불균형 식사로 생기는 영양 공백을 채워줍니다.' },
+  { id:'sp10', name:'엘레뉴2',                price:85000, cat:'supp', svg:'elenew2',      tags:['시니어특화','루테인','항노화','관절건강'],         desc:'엘레뉴1의 업그레이드 버전으로 50대 이상을 위해 주요 성분을 강화했습니다. 루테인·아스타잔틴 등 노화 방지 성분과 관절 건강 성분이 추가되어 전반적인 노화 관리를 지원합니다.' },
+  { id:'sp11', name:'엘레뉴럭스',             price:86000, cat:'supp', svg:'elenew1lux',   tags:['프리미엄멀티비타민','고함량','면역강화','항산화'], desc:'성지약품 프리미엄 라인의 럭스 에디션으로, 비타민 A·C·D·E와 B 복합체를 최적 비율로 조합하여 면역력 강화·항산화·에너지 대사를 종합적으로 지원합니다. 고급 원료로 배합한 프리미엄 제품입니다.' },
+  { id:'sp12', name:'알티지 오메가',           price:55000, cat:'supp', svg:'rtomega',      tags:['고순도오메가3','rTG형','심혈관','고흡수율'],       desc:'고순도 rTG 형태의 오메가-3 지방산으로 일반 오메가-3 대비 흡수율이 월등히 높습니다. EPA와 DHA를 균형 있게 함유하여 혈중 중성지방 감소, 뇌 기능 향상, 심혈관 건강에 기여합니다.' },
+  { id:'sp13', name:'아스트로(윤활제)',        price:30000, cat:'supp', svg:'',             tags:['여성건강','질건강','갱년기','보습'],               desc:'여성 질 건조증 및 갱년기 증상 완화를 위한 윤활 제품입니다. 피부 자극이 없는 순한 성분으로 구성되어 일상적으로 편안하게 사용할 수 있습니다.' },
+  { id:'sp14', name:'에브리D 성인(스프레이)', price:39000, cat:'supp', svg:'everyd',       tags:['비타민D','스프레이형','면역력','뼈건강'],          desc:'입안에 뿌리는 스프레이 방식으로 간편하게 섭취하는 비타민 D3 성인용 제품입니다. 구강 점막을 통한 빠른 흡수로 높은 생체이용률을 자랑하며, 뼈 건강·면역력 강화·칼슘 흡수 촉진에 필수적입니다.' },
+  { id:'sp15', name:'퍼틸우먼 액티브',        price:90000, cat:'supp', svg:'fertil_w',     img:'images/fertility_women.png', tags:['임신준비','엽산','코큐텐','가임기여성'],           desc:'임신을 준비하는 여성을 위한 특화 영양 솔루션으로, 엽산·코엔자임Q10·이노시톨·비타민D·철분 등 가임기 여성에게 필수적인 영양소를 균형 있게 담았습니다. 난자의 질 향상에 도움을 줍니다.' },
+  { id:'sp16', name:'퍼틸맨 액티브',          price:95000, cat:'supp', svg:'fertil_m',     tags:['남성임신준비','정자건강','아연','셀레늄'],         desc:'남성 임신 준비를 위한 전문 영양 포뮬러로, 아연·셀레늄·코큐텐·L-카르니틴·비타민E가 정자 DNA 손상 방지와 생성 촉진에 도움을 줍니다. 부부가 함께 준비하는 임신을 지원합니다.' },
+  { id:'sp17', name:'페미퓨어',               price:42000, cat:'supp', svg:'femipure',     tags:['여성건강','프로바이오틱스','질건강','요로건강'],    desc:'여성 질 건강과 요로 건강을 위해 특화된 프로바이오틱스 제품입니다. 여성 전용 유익균 균주를 선별하여 질 내 산성 환경 유지와 유해균 억제에 도움을 주며, 재발성 질염·방광염 예방에 효과적입니다.' },
+  { id:'sp18', name:'테아닌',                 price:40000, cat:'supp', svg:'theanine',     tags:['집중력','스트레스완화','L-테아닌','수면질개선'],   desc:'녹차에서 추출한 천연 아미노산 L-테아닌을 함유하여 정신적 긴장 완화와 집중력 향상에 도움을 줍니다. 자연스러운 이완 상태를 유지하면서 알파파를 증진시켜 맑은 집중 상태를 유도합니다.' },
+  { id:'sp19', name:'카테킨',                 price:35000, cat:'supp', svg:'catechin',     tags:['항산화','체지방감소','녹차추출','피부건강'],       desc:'녹차 폴리페놀의 핵심 성분 카테킨을 고농도로 추출·농축해 강력한 항산화 효능을 제공합니다. 활성산소 제거와 체지방 감소에 도움을 주며, 비타민 C와의 시너지로 흡수율을 극대화했습니다.' },
+  { id:'sp20', name:'크리노산',               price:30000, cat:'supp', svg:'crinosan',     tags:['관절건강','글루코사민','콘드로이틴','MSM'],        desc:'관절 연골과 뼈 건강에 특화된 크리노산은 글루코사민·콘드로이틴·MSM을 복합 배합한 관절 건강 전문 영양제입니다. 연골 조직 재생과 염증 완화에 도움을 주며 중장년층에 특히 적합합니다.' },
+  { id:'sp21', name:'컴플리트캡슐 성인 2개월', price:68000, cat:'supp', svg:'complete',     tags:['유산균','장건강','2개월분','면역강화'],            desc:'성인을 위한 2개월 분량의 프리미엄 유산균 복합 캡슐 제품입니다. 12종 균주 1,000억 CFU를 고밀도로 담아 장내 유익균 환경을 조성하며, 위산과 담즙산에 강한 캡슐 구조로 장까지 살아서 도달합니다.' },
+  { id:'sp22', name:'코큐텐',                 price:35000, cat:'supp', svg:'coq10',        tags:['항산화','심혈관','에너지생성','30대이상'],         desc:'세포 에너지 생성에 핵심적인 코엔자임 Q10을 고함량으로 담아 심혈관 건강과 항산화 작용을 동시에 지원합니다. 30대 이후 감소하는 체내 CoQ10을 보충하여 심장 기능과 혈액순환을 개선합니다.' },
+  { id:'sp23', name:'써니디드롭',             price:50000, cat:'supp', svg:'sunnyd',       tags:['비타민D3','드롭형','전연령','고흡수'],             desc:'드롭 형태로 용량 조절이 쉬운 비타민 D3 액상 제품입니다. 소아부터 성인까지 사용 가능하며, 1회 1방울로 간편하게 비타민 D 결핍을 예방합니다. 높은 생체이용률로 빠른 흡수가 특징입니다.' },
   // ── 병원제작상품
   { id:'hp01', name:'병원 물병 (500ml)',      price:8000,  cat:'merch', img:'', desc:'병원 로고가 새겨진 500ml 용량의 BPA-free 트라이탄 물병입니다. 가볍고 내구성이 뛰어나며 밀폐력이 우수합니다. 건강한 수분 보충 습관을 만들어 보세요.' },
   { id:'hp02', name:'병원 텀블러 (350ml)',    price:15000, cat:'merch', img:'', desc:'병원 로고가 각인된 스테인리스 이중 진공 텀블러입니다. 보온·보냉 기능이 우수하여 뜨거운 음료는 6시간, 차가운 음료는 12시간 온도 유지가 가능합니다.' },
@@ -2859,8 +2947,15 @@ function openProductDetail(id) {
   document.getElementById('pd-price').textContent = p.price.toLocaleString() + '원';
   document.getElementById('pd-desc').textContent = p.desc || '';
 
+  const tagsEl = document.getElementById('pd-tags');
+  if (tagsEl) {
+    tagsEl.innerHTML = (p.tags || []).map(t => `<span class="pd-tag">${t}</span>`).join('');
+  }
+
   const imgWrap = document.getElementById('pd-img-wrap');
-  if (p.img) {
+  if (p.svg && SUPP_SVG[p.svg]) {
+    imgWrap.innerHTML = SUPP_SVG[p.svg];
+  } else if (p.img) {
     imgWrap.innerHTML = `<img src="${p.img}" alt="${p.name}">`;
   } else {
     imgWrap.innerHTML = `<div class="pd-img-placeholder"></div>`;
@@ -3317,7 +3412,21 @@ function loadTodayLog() {
       document.getElementById('supp-custom-card')?.classList.add('on');
     }
   }
-  _suppList.forEach(n => document.querySelector('.hc-supp-preset[data-name="'+n+'"]')?.classList.add('on'));
+  const SUPP_PRESETS = ['종합비타민','아르기닌','코큐텐','엽산'];
+  _suppList.forEach(n => {
+    const preset = document.querySelector('.hc-supp-preset[data-name="'+n+'"]');
+    if (preset) { preset.classList.add('on'); return; }
+    // 직접입력 항목 칩 복원
+    const list = document.getElementById('supp-custom-list');
+    if (!list) return;
+    const chip = document.createElement('button');
+    chip.type = 'button'; chip.className = 'hc-sub-chip on';
+    chip.textContent = n + ' ✕';
+    chip.onclick = () => { _suppList = _suppList.filter(s => s !== n); chip.remove(); saveTodayLog(); };
+    list.appendChild(chip);
+    document.getElementById('supp-direct-wrap')?.classList.add('show');
+    document.getElementById('supp-direct-btn')?.classList.add('selected');
+  });
   // 사진 복원
   try {
     const p = JSON.parse(localStorage.getItem('hi_today_photo_' + (ACTIVE_EMPID||'x')) || 'null');
@@ -3812,18 +3921,23 @@ function navigate(page) {
   const hdr = document.querySelector('.app-header');
   const content = document.querySelector('.app-content');
   const isHome = page === 'home';
-  const isFlow = isHome;
-  // 헤더 DOM 이동: 홈이면 hero-card 안, 다른 탭이면 sentinel 앞
+  const isChallenge = page === 'challenge';
+  const isFlow = isHome || isChallenge;
+  // 헤더 DOM 이동: 홈이면 hero-card-home 안, 챌린지면 ch-hero-card 안, 다른 탭이면 sentinel 앞
   if (hdr) {
     const heroCard = document.getElementById('hero-card-home');
+    const chHeroCard = document.getElementById('ch-hero-card');
     const sentinel = document.getElementById('header-sentinel');
     if (isHome && heroCard && hdr.parentNode !== heroCard) {
       heroCard.insertBefore(hdr, heroCard.firstChild);
-    } else if (!isHome && sentinel && hdr.parentNode !== sentinel.parentNode) {
+    } else if (isChallenge && chHeroCard && hdr.parentNode !== chHeroCard) {
+      chHeroCard.insertBefore(hdr, chHeroCard.firstChild);
+    } else if (!isFlow && sentinel && hdr.parentNode !== sentinel.parentNode) {
       sentinel.parentNode.insertBefore(hdr, sentinel);
     }
-    hdr.classList.toggle('solid', !isHome);
+    hdr.classList.toggle('solid', !isFlow);
     hdr.classList.toggle('flow', isFlow);
+    hdr.style.display = isChallenge ? 'none' : '';
   }
   if (content) {
     content.classList.remove('no-top-margin');
@@ -4347,7 +4461,18 @@ function buildDayMessage() {
   // 혈당
   const tg = todayGlucoseRecords();
   if (tg.length) {
-    const glList = tg.map(r => r.timing + ' ' + r.value + ' mg/dL').join(', ');
+    const glList = tg.map(r => {
+      let label;
+      if (r.timing) {
+        label = r.timing;
+      } else if (r.userTime) {
+        const [h, m] = r.userTime.split(':').map(Number);
+        label = h + '시' + (m > 0 ? ' ' + m + '분' : '') + '에';
+      } else {
+        label = null;
+      }
+      return (label ? label + ' ' : '') + r.value + ' mg/dL';
+    }).join(', ');
     lines.push('오늘 혈당은 ' + glList + ' 기록했어요.');
   }
 
@@ -4864,8 +4989,10 @@ function addSuppDirect() {
   chip.type = 'button';
   chip.className = 'hc-sub-chip on';
   chip.textContent = val + ' ✕';
-  chip.onclick = () => { _suppList = _suppList.filter(s => s !== val); chip.remove(); };
+  chip.onclick = () => { _suppList = _suppList.filter(s => s !== val); chip.remove(); saveTodayLog(); };
   list.appendChild(chip);
+  if (_shareOn) updateSharePreview();
+  saveTodayLog();
 }
 
 /* ── Blood Glucose ── */
@@ -4946,7 +5073,7 @@ function logGlucoseStandalone() {
   } else {
     ts = new Date().toISOString();
   }
-  const rec = { id: Date.now(), value: _glucoseVal, timing: _glucoseTiming, ts, points: GLUCOSE_POINTS };
+  const rec = { id: Date.now(), value: _glucoseVal, timing: _glucoseTiming, userTime: _glucoseTime || null, ts, points: GLUCOSE_POINTS };
   S.glucoseRecords.unshift(rec);
   S.user.points += GLUCOSE_POINTS;
   S.user.totalPoints = (S.user.totalPoints || 0) + GLUCOSE_POINTS;
@@ -6021,20 +6148,27 @@ function renderShop() {
   function renderProductList(products) {
     return products.map(p => {
       const qty = _cart[p.id] || 0;
+      const thumbHtml = (p.svg && SUPP_SVG[p.svg])
+        ? `<div class="shop-item-thumb">${SUPP_SVG[p.svg]}</div>`
+        : '';
       return `
-        <div class="shop-item" onclick="openProductDetail('${p.id}')">
+        <div class="shop-item">
+          ${thumbHtml}
           <div class="shop-item-info">
             <div class="shop-item-name">${p.name}</div>
             <div class="shop-item-price">${p.price.toLocaleString()}원</div>
           </div>
-          <div class="shop-item-ctrl" onclick="event.stopPropagation()">
-            ${qty > 0 ? `
-              <button type="button" class="shop-qty-btn" onclick="removeFromCart('${p.id}')">−</button>
-              <span class="shop-qty-num">${qty}</span>
-              <button type="button" class="shop-qty-btn" onclick="addToCart('${p.id}')">+</button>
-            ` : `
-              <button type="button" class="shop-add-btn" onclick="addToCart('${p.id}')">담기</button>
-            `}
+          <div class="shop-item-ctrl">
+            <button type="button" class="shop-detail-btn" onclick="openProductDetail('${p.id}')">상세보기</button>
+            <div class="shop-item-cart-row">
+              ${qty > 0 ? `
+                <button type="button" class="shop-qty-btn" onclick="removeFromCart('${p.id}')">−</button>
+                <span class="shop-qty-num">${qty}</span>
+                <button type="button" class="shop-qty-btn" onclick="addToCart('${p.id}')">+</button>
+              ` : `
+                <button type="button" class="shop-add-btn" onclick="addToCart('${p.id}')">담기</button>
+              `}
+            </div>
           </div>
         </div>`;
     }).join('');
@@ -6458,13 +6592,14 @@ function submitRewardForm() {
 ════════════════════════════════════════ */
 const CH = {
   announce:  new Date('2026-02-27T00:00:00'),
-  deadline:  new Date('2026-03-18T23:59:59'),
-  confirm:   new Date('2026-03-19T00:00:00'),
+  deadline:  new Date('2026-03-21T23:59:59'),
+  confirm:   new Date('2026-03-22T00:00:00'),
   giftStart: new Date('2026-04-01T00:00:00'),
   preStart:  new Date('2026-03-22T00:00:00'),
   preEnd:    new Date('2026-04-04T23:59:59'),
   mainStart: new Date('2026-04-05T00:00:00'),
   mainEnd:   new Date('2026-04-14T23:59:59'),
+  eventDay:  new Date('2026-04-15T23:59:59'),
 };
 const CH_REG_KEY = 'hi_health_registrations_v2';
 
@@ -6475,6 +6610,7 @@ function getChPhase() {
   if (now < CH.preStart)  return 'preparing';
   if (now <= CH.preEnd)   return 'pre';
   if (now <= CH.mainEnd)  return 'main';
+  if (now <= CH.eventDay) return 'event';
   return 'ended';
 }
 function chDays(a, b) { return Math.ceil((b - a) / 86400000); }
@@ -6507,66 +6643,103 @@ function scrollToExerciseForm() {
 function renderChallenge() {
   const phase = getChPhase();
   const now   = new Date();
+  const eventDayStart = new Date('2026-04-15T00:00:00');
+
+  /* ── Hero ── */
+  const dDayNum = Math.ceil((eventDayStart - now) / 86400000);
+  const dDayStr = phase === 'ended' ? '완료' : phase === 'event' ? 'D-DAY!' : 'D-' + Math.max(0, dDayNum);
+  document.getElementById('ch-hero').innerHTML = `
+    <div class="ch-hero">
+      <div class="ch-hero-eyebrow">HI여성의원 8주년 개원기념</div>
+      <div class="ch-hero-title">HI RUN DAY!</div>
+      <div class="ch-hero-date">2026년 4월 15일 (수)</div>
+      <div class="ch-hero-route">여의도 → 선유도공원</div>
+      <div class="ch-hero-badge">${dDayStr}</div>
+    </div>
+  `;
 
   /* ── Phase card ── */
   const phaseMap = {
     before: {
-      grad: 'linear-gradient(135deg,#8B5CF6,#6D28D9)', badge: '📢 모집 예정',
-      title: '챌린지 모집이 곧 시작됩니다!', desc: '3월 16일(월)부터 신청 접수를 시작합니다',
-      stats: [
-        { v: 'D-' + chDays(now, CH.announce), l: '모집 시작까지' },
-        { v: '2주', l: '프리 챌린지' }, { v: '10일', l: '본 챌린지' }
-      ]
+      grad: 'linear-gradient(135deg,#8B5CF6,#6D28D9)', badge: '모집 예정',
+      title: '챌린지 신청이 곧 시작됩니다', desc: '신청 기간에 이 탭에서 바로 신청하실 수 있어요',
+      stats: []
     },
     registration: {
-      grad: 'linear-gradient(135deg,#F59E0B,#D97706)', badge: '✅ 신청 기간',
-      title: '지금 신청하세요!', desc: '신발 사이즈 및 가족 참여 여부 필수 기재',
+      grad: 'linear-gradient(135deg,#F59E0B,#D97706)', badge: '신청 기간',
+      title: '행사 전에 24일간 운동기록에 도전해보세요!', desc: '신청자와 가족 1인에게 러닝화를 드립니다',
       stats: [
         { v: 'D-' + chDays(now, CH.deadline), l: '마감까지' },
-        { v: '3/18', l: '신청 마감' }, { v: '무료', l: '참가비' }
+        { v: '3/21', l: '신청 마감' },
+        { v: '무료', l: '참가비' },
       ]
     },
     preparing: {
-      grad: 'linear-gradient(135deg,#10B981,#059669)', badge: '🎁 준비 중',
-      title: '챌린지 준비 중!', desc: '선물이 준비되고 있어요. 곧 시작됩니다!',
-      stats: [
-        { v: 'D-' + chDays(now, CH.preStart), l: '프리 시작까지' },
-        { v: '4/1~', l: '선물 지급' }, { v: '3/22', l: '프리 시작' }
-      ]
+      grad: 'linear-gradient(135deg,#10B981,#059669)', badge: '준비 중',
+      title: '챌린지 준비 중!', desc: '러닝화를 주문하고 있어요. 3월 22일 프리 챌린지가 시작됩니다!',
+      stats: []
     },
     pre: {
-      grad: 'linear-gradient(135deg,#0EA5E9,#0284C7)', badge: '🏃 프리 챌린지 진행 중',
-      title: '주 2회 운동 인증 기간!', desc: '혈당 체크 없이 가볍게 운동해요',
+      grad: 'linear-gradient(135deg,#0EA5E9,#0284C7)', badge: '프리 챌린지 진행 중',
+      title: '자율 운동 인증 기간!', desc: '앱으로 운동을 기록하고 공유하세요. 혈당 체크 없이 자유롭게!',
       stats: [
         { v: chDays(now, CH.preEnd) + '일', l: '남은 기간' },
-        { v: '주 2회', l: '운동 목표' },
-        { v: Math.min(100, Math.round(((now - CH.preStart) / (CH.preEnd - CH.preStart)) * 100)) + '%', l: '진행률' }
+        { v: Math.min(100, Math.round(((now - CH.preStart) / (CH.preEnd - CH.preStart)) * 100)) + '%', l: '진행률' },
+        { v: 'D-' + Math.max(0, Math.ceil((eventDayStart - now) / 86400000)), l: 'HI RUN DAY' },
       ]
     },
     main: {
-      grad: 'linear-gradient(135deg,#EF4444,#DC2626)', badge: '💪 본 챌린지 진행 중',
-      title: '주 3회 운동 인증 기간!', desc: '혈당 체크 기기 착용 + 걷기/달리기 인증',
+      grad: 'linear-gradient(135deg,#EF4444,#DC2626)', badge: '본 챌린지 진행 중',
+      title: '덱스콤7 착용 + 매일 운동!', desc: '혈당 체크 기기를 착용하고 매일 운동을 인증하세요',
       stats: [
         { v: chDays(now, CH.mainEnd) + '일', l: '남은 기간' },
-        { v: '주 3회', l: '운동 목표' },
-        { v: Math.min(100, Math.round(((now - CH.mainStart) / (CH.mainEnd - CH.mainStart)) * 100)) + '%', l: '진행률' }
+        { v: Math.min(100, Math.round(((now - CH.mainStart) / (CH.mainEnd - CH.mainStart)) * 100)) + '%', l: '진행률' },
+        { v: 'D-' + Math.max(0, Math.ceil((eventDayStart - now) / 86400000)), l: 'HI RUN DAY' },
       ]
     },
+    event: {
+      grad: 'linear-gradient(135deg,#F97316,#EA580C)', badge: '오늘! D-DAY',
+      title: 'HI RUN DAY! 함께 달려요', desc: '여의도 출발 → 선유도공원 · 신청자 전원 집합!',
+      stats: []
+    },
     ended: {
-      grad: 'linear-gradient(135deg,#6B7280,#4B5563)', badge: '🏁 챌린지 종료',
-      title: '챌린지가 종료되었습니다', desc: '참여해주셔서 감사합니다! 수고 많으셨어요 🎉',
-      stats: [{ v: '완료', l: '챌린지' }, { v: '🎉', l: '수고하셨어요' }, { v: '감사', l: '합니다' }]
+      grad: 'linear-gradient(135deg,#6B7280,#4B5563)', badge: '챌린지 종료',
+      title: '수고 많으셨습니다!', desc: 'HI RUN DAY에 참여해주셔서 감사합니다',
+      stats: []
     },
   };
   const p = phaseMap[phase];
+  const shoesvg = phase === 'registration' ? `
+    <div style="position:absolute;right:-8px;bottom:-12px;pointer-events:none;opacity:0.22">
+      <svg width="160" height="90" viewBox="0 0 160 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Outsole -->
+        <path d="M18,76 Q24,83 140,79 Q150,78 151,72 Q136,67 124,67 L26,67 Q16,67 16,74 Z" fill="white"/>
+        <!-- Midsole -->
+        <path d="M22,67 Q18,58 20,52 L124,52 Q130,57 132,67 Z" fill="white" opacity="0.7"/>
+        <!-- Heel -->
+        <path d="M22,52 L20,36 Q20,24 30,22 L44,22 L40,52 Z" fill="white" opacity="0.8"/>
+        <!-- Upper main body -->
+        <path d="M40,52 L44,22 L104,17 Q126,17 132,30 L128,52 Z" fill="white" opacity="0.7"/>
+        <!-- Toe cap curve -->
+        <path d="M126,42 Q140,48 142,58 L128,58 Z" fill="white" opacity="0.5"/>
+        <!-- Tongue -->
+        <path d="M62,50 L65,20 L80,20 L77,50 Z" fill="white" opacity="0.4"/>
+        <!-- Laces -->
+        <line x1="65" y1="27" x2="108" y2="24" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="64" y1="33" x2="107" y2="30" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="63" y1="39" x2="106" y2="36" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="62" y1="45" x2="105" y2="42" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- Swoosh stripe -->
+        <path d="M36,50 Q60,28 112,21" stroke="white" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.6"/>
+      </svg>
+    </div>` : '';
   document.getElementById('ch-phase-card').innerHTML = `
     <div class="ch-phase-card" style="background:${p.grad}">
+      ${shoesvg}
       <div class="ch-phase-badge">${p.badge}</div>
       <div class="ch-phase-title">${p.title}</div>
       <div class="ch-phase-desc">${p.desc}</div>
-      <div class="ch-phase-stats">
-        ${p.stats.map(s => `<div class="ch-phase-stat"><div class="ch-phase-val">${s.v}</div><div class="ch-phase-lbl">${s.l}</div></div>`).join('')}
-      </div>
+      ${p.stats.length ? `<div class="ch-phase-stats">${p.stats.map(s => `<div class="ch-phase-stat"><div class="ch-phase-val">${s.v}</div><div class="ch-phase-lbl">${s.l}</div></div>`).join('')}</div>` : ''}
     </div>
   `;
 
@@ -6574,19 +6747,23 @@ function renderChallenge() {
   const myReg = getMyReg();
   const regEl = document.getElementById('ch-reg-status');
 
-  if (myReg) {
-    const statusLbl = { pending:'⏳ 검토 중', confirmed:'✅ 선정 완료', cancelled:'❌ 미선정' }[myReg.status];
-    const canCancelReg = myReg.status === 'pending';
+  if (myReg && myReg.status !== 'cancelled') {
+    const statusLbl   = { pending:'검토 중', confirmed:'선정 완료', cancelled:'미선정' }[myReg.status] || myReg.status;
+    const statusColor = myReg.status === 'confirmed' ? '#166534' : myReg.status === 'cancelled' ? '#991b1b' : '#92400e';
+    const canCancelReg = myReg.status === 'pending' && phase === 'registration';
+    const showWorkout  = phase === 'pre' || phase === 'main';
     regEl.innerHTML = `
       <div class="ch-reg-card">
-        <div class="ch-reg-title">✅ 챌린지 신청 완료</div>
+        <div class="ch-reg-title">챌린지 신청 완료</div>
         <div class="ch-reg-row"><span class="ch-reg-label">신청번호</span><span class="ch-reg-value">${myReg.id}</span></div>
         <div class="ch-reg-row"><span class="ch-reg-label">이름</span><span class="ch-reg-value">${myReg.name}</span></div>
         <div class="ch-reg-row"><span class="ch-reg-label">부서</span><span class="ch-reg-value">${myReg.dept}</span></div>
         <div class="ch-reg-row"><span class="ch-reg-label">신발 사이즈</span><span class="ch-reg-value">${myReg.shoeSize}mm</span></div>
-        <div class="ch-reg-row"><span class="ch-reg-label">가족 참여</span><span class="ch-reg-value">${myReg.familyParticipation ? '예 (' + myReg.familyCount + '명)' : '본인만'}</span></div>
-        <div class="ch-reg-row"><span class="ch-reg-label">상태</span><span class="ch-reg-value">${statusLbl}</span></div>
-        <button type="button" class="btn btn-primary btn-full ch-workout-btn" onclick="scrollToExerciseForm()">오늘 운동 기록하기</button>
+        <div class="ch-reg-row"><span class="ch-reg-label">가족 참여</span><span class="ch-reg-value">${myReg.familyParticipation ? '가족 함께 (' + myReg.familyCount + '인)' + (myReg.familyShoeSize ? ' · 신발 ' + myReg.familyShoeSize + 'mm' : '') : '본인만'}</span></div>
+        <div class="ch-reg-row"><span class="ch-reg-label">행사 참여</span><span class="ch-reg-value">${myReg.eventParticipation === false ? '불참' : '참여'}</span></div>
+        <div class="ch-reg-row"><span class="ch-reg-label">크루즈 탑승</span><span class="ch-reg-value">${myReg.cruiseParticipation === false ? '탑승 안 함' : '탑승 희망'}</span></div>
+        <div class="ch-reg-row"><span class="ch-reg-label">상태</span><span class="ch-reg-value" style="color:${statusColor}">${statusLbl}</span></div>
+        ${showWorkout ? `<button type="button" class="btn btn-primary btn-full ch-workout-btn" onclick="scrollToExerciseForm()">오늘 운동 기록하기</button>` : ''}
         ${canCancelReg ? `<button type="button" class="btn btn-full ch-cancel-reg-btn" onclick="cancelRegistration('${myReg.id}')">신청 취소</button>` : ''}
       </div>
     `;
@@ -6594,10 +6771,10 @@ function renderChallenge() {
     regEl.innerHTML = `
       <div class="card">
         <div class="card-header">
-          <span class="card-title">✍️ 챌린지 신청</span>
-          <span class="badge badge-warning">3/18 마감</span>
+          <span class="card-title">챌린지 신청</span>
+          <span class="badge badge-warning">3/21 마감</span>
         </div>
-        <div class="ch-dup-warn" id="ch-dup-warn">⚠️ 이미 신청하신 사번입니다</div>
+        <div class="ch-dup-warn" id="ch-dup-warn">이미 신청하신 사번입니다</div>
         <form id="ch-form" onsubmit="submitChReg(event)" novalidate>
           <div class="ch-form-group">
             <label class="form-label">이름 <span style="color:var(--accent)">*</span></label>
@@ -6606,7 +6783,7 @@ function renderChallenge() {
           <div class="ch-row2">
             <div class="ch-form-group">
               <label class="form-label">사번 <span style="color:var(--accent)">*</span></label>
-              <input type="text" class="ch-form-input" id="ch-empid" placeholder="EMP-001" oninput="checkChDup()">
+              <input type="text" class="ch-form-input" id="ch-empid" placeholder="A1801" oninput="checkChDup()">
             </div>
             <div class="ch-form-group">
               <label class="form-label">부서 <span style="color:var(--accent)">*</span></label>
@@ -6628,72 +6805,283 @@ function renderChallenge() {
               <label class="form-label">신발 사이즈 <span style="color:var(--accent)">*</span></label>
               <select class="ch-form-select" id="ch-shoe">
                 <option value="">사이즈(mm)</option>
-                <option>220</option><option>225</option><option>230</option><option>235</option>
+                <option>215</option><option>220</option><option>225</option><option>230</option><option>235</option>
                 <option>240</option><option>245</option><option>250</option><option>255</option>
                 <option>260</option><option>265</option><option>270</option><option>275</option>
-                <option>280</option><option>285</option><option>290</option><option>295</option>
-                <option>300</option>
+                <option>280</option><option>285</option><option>290</option><option>295</option><option>300</option>
               </select>
             </div>
           </div>
           <div class="ch-form-group">
-            <label class="form-label">가족 참여 여부 <span style="color:var(--accent)">*</span></label>
+            <label class="form-label">가족 참여 여부</label>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <label class="ch-radio-label" style="margin:0"><input type="checkbox" id="ch-fam-check" onchange="toggleChFam(this)"> 가족 함께</label>
+              <select class="ch-form-select" id="ch-fam-shoe" style="display:none;width:auto;min-width:110px">
+                <option value="">신발 사이즈</option>
+                <option value="220">220mm</option>
+                <option value="225">225mm</option>
+                <option value="230">230mm</option>
+                <option value="235">235mm</option>
+                <option value="240">240mm</option>
+                <option value="245">245mm</option>
+                <option value="250">250mm</option>
+                <option value="255">255mm</option>
+                <option value="260">260mm</option>
+                <option value="265">265mm</option>
+                <option value="270">270mm</option>
+                <option value="275">275mm</option>
+                <option value="280">280mm</option>
+                <option value="285">285mm</option>
+                <option value="290">290mm</option>
+              </select>
+            </div>
+            <input type="hidden" id="ch-fam-cnt" value="1">
+          </div>
+          <div class="ch-form-group">
+            <label class="form-label">HI RUN DAY 행사 참여 <span style="color:var(--accent)">*</span></label>
             <div class="ch-radio-group">
-              <label class="ch-radio-label"><input type="radio" name="ch-fam" value="no" checked onchange="toggleChFam(this)"> 본인만</label>
-              <label class="ch-radio-label"><input type="radio" name="ch-fam" value="yes" onchange="toggleChFam(this)"> 가족 함께</label>
+              <label class="ch-radio-label"><input type="radio" name="ch-event" value="yes" checked> 참여</label>
+              <label class="ch-radio-label"><input type="radio" name="ch-event" value="no"> 불참</label>
             </div>
           </div>
-          <div id="ch-fam-detail" style="display:none">
-            <input type="hidden" id="ch-fam-cnt" value="1">
-            <div class="ch-form-group">
-              <label class="form-label">가족 신발 사이즈</label>
-              <input type="text" class="ch-form-input" id="ch-fam-shoe" placeholder="예: 245, 230">
+          <div class="ch-form-group">
+            <label class="form-label">한강 크루즈 탑승 <span style="font-size:11px;font-weight:400;color:var(--text-secondary)">(김포→여의도, 약 90분)</span></label>
+            <div class="ch-radio-group">
+              <label class="ch-radio-label"><input type="radio" name="ch-cruise" value="yes" checked> 탑승 희망</label>
+              <label class="ch-radio-label"><input type="radio" name="ch-cruise" value="no"> 탑승 안 함</label>
             </div>
           </div>
           <div class="ch-consent">
-            <p class="ch-consent-text">수집된 개인정보는 챌린지 운영 및 선물 지급 목적으로만 활용되며, 챌린지 종료 후 즉시 파기됩니다.</p>
+            <p class="ch-consent-text">수집된 개인정보는 챌린지 운영 및 러닝화 지급 목적으로만 활용되며, 챌린지 종료 후 즉시 파기됩니다.</p>
             <label class="ch-consent-check">
               <input type="checkbox" id="ch-consent"> 개인정보 수집·이용에 동의합니다 <span style="color:var(--accent)">*</span>
             </label>
           </div>
-          <button type="submit" class="btn btn-primary btn-full">신청 완료하기</button>
+          <button type="submit" class="btn btn-primary btn-full">신청 완료</button>
         </form>
       </div>
     `;
   } else if (phase === 'before') {
     regEl.innerHTML = `
-      <div class="card" style="text-align:center;padding:28px">
-        <div style="font-size:44px;margin-bottom:12px">📢</div>
-        <div style="font-size:15px;font-weight:700;margin-bottom:6px">3월 16일부터 신청 접수 시작</div>
-        <div style="font-size:13px;color:var(--text-secondary)">모집 기간에 이 탭에서 바로 신청할 수 있어요!</div>
+      <div class="card" style="text-align:center;padding:24px 20px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:4px">신청 기간 오픈 예정</div>
+        <div style="font-size:12px;color:var(--text-secondary)">2월 27일부터 이 화면에서 바로 신청하실 수 있어요</div>
       </div>
     `;
   } else {
     regEl.innerHTML = '';
   }
 
+  /* ── Event Info ── */
+  const infoEl = document.getElementById('ch-event-info');
+  if (phase === 'ended') {
+    infoEl.innerHTML = '';
+  } else {
+    infoEl.innerHTML = `
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">HI RUN DAY 프로그램 · 4월 15일(수)</span>
+        </div>
+        <div class="ch-program">
+          <div class="ch-program-step">
+            <div class="ch-program-num">1</div>
+            <div style="flex:1">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+                <div class="ch-program-title">8주년 개원기념식</div>
+                <div style="font-size:11px;font-weight:700;color:var(--primary);white-space:nowrap">오전 10:00</div>
+              </div>
+              <div class="ch-program-desc">HI여성의원의 소중한 8년을 함께 기념합니다</div>
+            </div>
+          </div>
+          <div class="ch-program-step">
+            <div class="ch-program-num">2</div>
+            <div style="flex:1">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+                <div class="ch-program-title">특별 강연</div>
+                <div style="font-size:11px;font-weight:700;color:var(--primary);white-space:nowrap">오전 10:30</div>
+              </div>
+              <div class="ch-program-desc">마라토너 권은주 선수 초청 강연 · 사인북 증정</div>
+            </div>
+          </div>
+          <div class="ch-program-step">
+            <div class="ch-program-num">3</div>
+            <div style="flex:1">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+                <div class="ch-program-title">호텔 식사</div>
+                <div style="font-size:11px;font-weight:700;color:var(--primary);white-space:nowrap">오전 11:30</div>
+              </div>
+              <div class="ch-program-desc">참가자 전원과 함께하는 기념 만찬</div>
+            </div>
+          </div>
+          <div class="ch-program-step">
+            <div class="ch-program-num">4</div>
+            <div style="flex:1">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+                <div class="ch-program-title">크루즈 탑승 · 김포 → 여의도</div>
+                <div style="font-size:11px;font-weight:700;color:var(--primary);white-space:nowrap">오후 1:00</div>
+              </div>
+              <div class="ch-program-desc">한강 크루즈로 이동 (약 90분) · 선택 참여</div>
+            </div>
+          </div>
+          <div class="ch-program-step">
+            <div class="ch-program-num">5</div>
+            <div style="flex:1">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+                <div class="ch-program-title">함께 달리기</div>
+                <div style="font-size:11px;font-weight:700;color:var(--primary);white-space:nowrap">오후 2:30</div>
+              </div>
+              <div class="ch-program-desc">여의도 출발 → 선유도공원 · 자율 참여 <span style="font-size:10px;color:var(--text-secondary)">(상황에 따라 변경될 수 있음)</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="padding:14px;display:none">
+        <div class="card-header" style="margin-bottom:10px">
+          <span class="card-title">당일 이동 경로</span>
+        </div>
+        <svg viewBox='0 0 340 200' xmlns='http://www.w3.org/2000/svg' style='width:100%;display:block;border-radius:8px'>
+          <defs>
+            <marker id='ma-pur' markerWidth='7' markerHeight='7' refX='5' refY='3.5' orient='auto'><path d='M0,0 L0,7 L6,3.5 Z' fill='#8B5CF6'/></marker>
+            <marker id='ma-blu' markerWidth='7' markerHeight='7' refX='5' refY='3.5' orient='auto'><path d='M0,0 L0,7 L6,3.5 Z' fill='#2563EB'/></marker>
+            <marker id='ma-org' markerWidth='7' markerHeight='7' refX='5' refY='3.5' orient='auto'><path d='M0,0 L0,7 L6,3.5 Z' fill='#F97316'/></marker>
+          </defs>
+          <!-- Background -->
+          <rect width='340' height='200' fill='#EEF6FF' rx='8'/>
+          <!-- North land -->
+          <path d='M0,0 L340,0 L340,90 Q280,85 220,91 Q160,97 100,93 Q60,91 0,98 Z' fill='#D1FAD1'/>
+          <!-- South land -->
+          <path d='M0,148 Q60,144 130,146 Q200,149 280,145 Q315,143 340,140 L340,200 L0,200 Z' fill='#D1FAD1'/>
+          <!-- Han River -->
+          <path d='M0,98 Q60,105 130,109 Q200,113 280,109 Q315,107 340,103 L340,140 Q315,143 280,145 Q200,149 130,146 Q60,144 0,148 Z' fill='#BAE6FD'/>
+          <!-- River ripple -->
+          <path d='M10,116 Q80,112 160,115 Q240,118 325,114' stroke='white' stroke-width='1.5' fill='none' opacity='0.5' stroke-linecap='round'/>
+          <path d='M10,128 Q80,124 160,127 Q240,130 325,126' stroke='white' stroke-width='1' fill='none' opacity='0.35' stroke-linecap='round'/>
+          <!-- Ara Waterway canal -->
+          <path d='M58,0 Q61,28 65,58 Q69,82 74,103' stroke='#60A5FA' stroke-width='13' fill='none' stroke-linecap='round'/>
+          <path d='M58,0 Q61,28 65,58 Q69,82 74,103' stroke='#BAE6FD' stroke-width='5' fill='none' stroke-linecap='round'/>
+          <!-- 아라뱃길 label -->
+          <text transform='translate(38,68) rotate(-78)' font-size='7.5' fill='#1D4ED8' font-family='sans-serif' font-weight='600' opacity='0.85'>아라뱃길</text>
+          <!-- Gimpo land -->
+          <ellipse cx='28' cy='46' rx='26' ry='38' fill='#BBF7D0' opacity='0.55'/>
+          <!-- Islands -->
+          <ellipse cx='186' cy='123' rx='20' ry='11' fill='#86EFAC'/>
+          <ellipse cx='268' cy='119' rx='30' ry='14' fill='#86EFAC'/>
+          <text x='186' y='126' text-anchor='middle' font-size='7' fill='#166534' font-family='sans-serif' font-weight='700'>선유도</text>
+          <text x='268' y='122' text-anchor='middle' font-size='8' fill='#166534' font-family='sans-serif' font-weight='700'>여의도</text>
+          <!-- 한강 label -->
+          <text x='128' y='139' text-anchor='middle' font-size='9' fill='#1E40AF' font-family='sans-serif' opacity='0.5'>한  강</text>
+          <!-- ROUTE 1: 회사→호텔 (purple dashed, car) -->
+          <path d='M132,146 Q95,126 55,80' stroke='#8B5CF6' stroke-width='2.5' fill='none' stroke-dasharray='5,4' stroke-linecap='round' marker-end='url(#ma-pur)'/>
+          <!-- ROUTE 2: 아라뱃길 크루즈→여의도 (blue solid) -->
+          <path d='M74,116 Q120,122 165,124 Q200,125 230,122' stroke='#2563EB' stroke-width='3' fill='none' stroke-linecap='round' marker-end='url(#ma-blu)'/>
+          <!-- ROUTE 3: 여의도→선유도 러닝 (orange dashed) -->
+          <path d='M237,122 Q218,123 206,123' stroke='#F97316' stroke-width='2.5' fill='none' stroke-dasharray='4,3' stroke-linecap='round' marker-end='url(#ma-org)'/>
+          <!-- MARKER: 마리나베이 호텔 -->
+          <rect x='28' y='56' width='24' height='18' rx='2.5' fill='#7C3AED'/>
+          <rect x='31' y='59' width='4' height='4' rx='0.5' fill='white' opacity='0.9'/>
+          <rect x='38' y='59' width='4' height='4' rx='0.5' fill='white' opacity='0.9'/>
+          <rect x='45' y='59' width='4' height='4' rx='0.5' fill='white' opacity='0.9'/>
+          <rect x='31' y='65' width='4' height='4' rx='0.5' fill='white' opacity='0.9'/>
+          <rect x='38' y='65' width='8' height='5' rx='0.5' fill='white' opacity='0.9'/>
+          <rect x='48' y='65' width='4' height='4' rx='0.5' fill='white' opacity='0.9'/>
+          <rect x='0' y='38' width='82' height='15' rx='5' fill='#7C3AED'/>
+          <text x='41' y='49' text-anchor='middle' font-size='8.5' fill='white' font-family='sans-serif' font-weight='700'>마리나베이 호텔</text>
+          <!-- MARKER: 아라뱃길 크루즈 출발 -->
+          <circle cx='74' cy='113' r='8' fill='#1D4ED8'/>
+          <circle cx='74' cy='113' r='5' fill='white'/>
+          <circle cx='74' cy='113' r='2' fill='#1D4ED8'/>
+          <rect x='25' y='95' width='55' height='14' rx='5' fill='#1D4ED8'/>
+          <text x='52' y='105' text-anchor='middle' font-size='8' fill='white' font-family='sans-serif' font-weight='600'>크루즈 출발</text>
+          <!-- MARKER: 양천향교역 (회사) -->
+          <circle cx='132' cy='151' r='9' fill='#8B5CF6'/>
+          <circle cx='132' cy='151' r='5' fill='white'/>
+          <circle cx='132' cy='151' r='2' fill='#8B5CF6'/>
+          <rect x='98' y='163' width='68' height='23' rx='5' fill='#7C3AED'/>
+          <text x='132' y='173' text-anchor='middle' font-size='8.5' fill='white' font-family='sans-serif' font-weight='700'>양천향교역</text>
+          <text x='132' y='182' text-anchor='middle' font-size='7' fill='#DDD6FE' font-family='sans-serif'>회사 출발점</text>
+          <!-- MARKER: 여의도 도착 -->
+          <circle cx='235' cy='116' r='8' fill='#0284C7'/>
+          <circle cx='235' cy='116' r='5' fill='white'/>
+          <circle cx='235' cy='116' r='2' fill='#0284C7'/>
+          <rect x='204' y='99' width='62' height='14' rx='5' fill='#0284C7'/>
+          <text x='235' y='109' text-anchor='middle' font-size='8' fill='white' font-family='sans-serif' font-weight='700'>여의도 도착</text>
+          <!-- MARKER: 선유도공원 러닝 도착 -->
+          <circle cx='203' cy='123' r='7' fill='#F97316'/>
+          <circle cx='203' cy='123' r='4' fill='white'/>
+          <circle cx='203' cy='123' r='2' fill='#F97316'/>
+          <rect x='165' y='137' width='72' height='14' rx='5' fill='#EA580C'/>
+          <text x='201' y='147' text-anchor='middle' font-size='8' fill='white' font-family='sans-serif' font-weight='700'>선유도공원 🌿</text>
+        </svg>
+        <div style='display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;justify-content:center'>
+          <span style='display:flex;align-items:center;gap:5px;font-size:11px;color:#6B7280'>
+            <svg width='20' height='8'><line x1='0' y1='4' x2='20' y2='4' stroke='#8B5CF6' stroke-width='2' stroke-dasharray='5,3'/></svg>차량 이동
+          </span>
+          <span style='display:flex;align-items:center;gap:5px;font-size:11px;color:#6B7280'>
+            <svg width='20' height='8'><line x1='0' y1='4' x2='20' y2='4' stroke='#2563EB' stroke-width='2.5'/></svg>크루즈 (90분)
+          </span>
+          <span style='display:flex;align-items:center;gap:5px;font-size:11px;color:#6B7280'>
+            <svg width='20' height='8'><line x1='0' y1='4' x2='20' y2='4' stroke='#F97316' stroke-width='2' stroke-dasharray='4,3'/></svg>러닝 코스
+          </span>
+        </div>
+      </div>
+    `;
+  }
+
   /* ── Timeline ── */
   const milestones = [
-    { date:'3/16(월)', title:'모집 공지 시작', desc:'신청 접수 시작. 신발 사이즈·가족 정보 필수 기재', tag:null,
-      status: now >= CH.announce ? 'done' : 'future' },
-    { date:'3/18(수)', title:'신청 마감', desc:'이 날 이후 추가 신청 불가', tag:null,
+    { date:'~ 3/21(토)', title:'챌린지 신청', desc:'신청자 + 가족 1인 러닝화 지급 · 무료 참가', tag:null,
       status: now > CH.deadline ? 'done' : now >= CH.announce ? 'active' : 'future' },
-    { date:'3/19(목)~', title:'인원 확정 및 선물 주문', desc:'선물 지급은 4월 1일(수)부터 입고 순서대로', tag:null,
-      status: now > CH.confirm ? 'done' : 'future' },
-    { date:'3/22(일) – 4/4(토)', title:'프리 챌린지 (2주)', desc:'주 2회 운동 인증 · 혈당 체크 없이 자유 참여', tag:'pre',
+    { date:'3/22(일) ~ 4/4(토)', title:'프리 챌린지 (2주)', desc:'자율 운동 + 앱으로 운동 기록·공유 · 혈당 체크 없음', tag:'pre',
       status: now > CH.preEnd ? 'done' : now >= CH.preStart ? 'active' : 'future' },
-    { date:'4/5(일) – 4/14(화)', title:'본 챌린지 (10일)', desc:'주 3회 운동 인증 · 혈당 체크 기기 착용 + 포인트 적립', tag:'main',
+    { date:'4/5(일) ~ 4/14(화)', title:'본 챌린지 (10일)', desc:'덱스콤7 착용 + 매일 운동 인증', tag:'main',
       status: now > CH.mainEnd ? 'done' : now >= CH.mainStart ? 'active' : 'future' },
+    { date:'4/15(수)', title:'HI RUN DAY!', desc:'개원기념식 → 호텔 식사 → 크루즈(김포→여의도) → 권은주 선수 강연 → 함께 달리기', tag:'event',
+      status: now > CH.eventDay ? 'done' : now >= eventDayStart ? 'active' : 'future' },
   ];
-  document.getElementById('ch-timeline').innerHTML = milestones.map(m => `
-    <div class="ch-tl-item">
-      <div class="ch-tl-dot ${m.status}"></div>
-      <div class="ch-tl-date">${m.date}</div>
-      <div class="ch-tl-title">${m.title}</div>
-      <div class="ch-tl-desc">${m.desc}</div>
-      ${m.tag ? `<span class="ch-tl-tag ${m.tag}">${m.tag === 'pre' ? '프리 챌린지' : '본 챌린지'}</span>` : ''}
+  document.getElementById('ch-timeline-wrap').innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">챌린지 일정</span>
+      </div>
+      <div class="ch-tl">
+        ${milestones.map(m => `
+          <div class="ch-tl-item">
+            <div class="ch-tl-dot ${m.status}"></div>
+            <div style="flex:1">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+                <span class="ch-tl-label ${m.status}">${m.title}</span>
+                <span class="ch-tl-date" style="white-space:nowrap">${m.date}</span>
+              </div>
+              <div class="ch-tl-desc">${m.desc}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
     </div>
-  `).join('');
+  `;
+
+  /* ── Benefits ── */
+  document.getElementById('ch-benefit-wrap').innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">참여 혜택</span>
+      </div>
+      <div class="ch-benefit-list">
+        <div class="ch-benefit"><div class="ch-benefit-icon">👟</div><div><div class="ch-benefit-title">러닝화 지급</div><div class="ch-benefit-desc">신청자 본인 + 가족 1인 (최대 2켤레)</div></div></div>
+        <div class="ch-benefit"><div class="ch-benefit-icon">📊</div><div><div class="ch-benefit-title">덱스콤7 (혈당 체크 기기) 제공</div><div class="ch-benefit-desc">본 챌린지 기간 (4/5 ~ 4/14) 착용</div></div></div>
+        <div class="ch-benefit"><div class="ch-benefit-icon">📖</div><div><div class="ch-benefit-title">사인북 증정</div><div class="ch-benefit-desc">권은주 선수 저서 『인생에 달리기가 필요한 순간』 사인 증정</div></div></div>
+        <div class="ch-benefit"><div class="ch-benefit-icon">🚢</div><div><div class="ch-benefit-title">한강 크루즈 탑승 (선택)</div><div class="ch-benefit-desc">김포 → 여의도 약 90분 크루즈 여행</div></div></div>
+        <div class="ch-benefit" style="grid-column:1/-1;flex-direction:row;align-items:center;gap:14px;background:var(--primary-light);border-color:rgba(79,70,229,.2)">
+          <div class="ch-speaker-avatar" style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#f97316,#ea580c);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🏃</div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--primary);letter-spacing:.5px;margin-bottom:2px">특별 게스트</div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:2px">마라토너 권은주 선수</div>
+            <div style="font-size:11px;color:var(--text-secondary)">강연 후 함께 달리는 특별한 시간</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 function checkChDup() {
@@ -6704,7 +7092,8 @@ function checkChDup() {
 }
 
 function toggleChFam(el) {
-  document.getElementById('ch-fam-detail').style.display = el.value === 'yes' ? 'block' : 'none';
+  const shoeEl = document.getElementById('ch-fam-shoe');
+  if (shoeEl) shoeEl.style.display = el.checked ? 'block' : 'none';
 }
 
 function submitChReg(e) {
@@ -6722,13 +7111,17 @@ function submitChReg(e) {
   const regs = JSON.parse(localStorage.getItem(CH_REG_KEY) || '[]');
   if (regs.find(r => r.empId === empId)) { showToast('⚠️ 이미 신청하신 사번입니다'); return; }
 
-  const famVal = document.querySelector('input[name="ch-fam"]:checked').value;
+  const famChecked = document.getElementById('ch-fam-check')?.checked || false;
+  const cruiseVal = document.querySelector('input[name="ch-cruise"]:checked')?.value || 'yes';
+  const eventVal = document.querySelector('input[name="ch-event"]:checked')?.value || 'yes';
   const id = 'HC-' + String(Date.now()).slice(-6);
   regs.push({
     id, name, empId, dept, phone, email:'', shoeSize: shoe,
-    familyParticipation: famVal === 'yes',
-    familyCount: famVal === 'yes' ? parseInt(document.getElementById('ch-fam-cnt').value) : 0,
-    familyShoeSize: famVal === 'yes' ? document.getElementById('ch-fam-shoe').value.trim() : '',
+    familyParticipation: famChecked,
+    familyCount: famChecked ? 1 : 0,
+    familyShoeSize: famChecked ? document.getElementById('ch-fam-shoe').value : '',
+    cruiseParticipation: cruiseVal === 'yes',
+    eventParticipation: eventVal === 'yes',
     note:'', status:'pending', adminNote:'',
     registeredAt: new Date().toISOString(),
   });
@@ -6744,6 +7137,8 @@ function submitChReg(e) {
     shoeSize: lastReg.shoeSize,
     familyParticipation: lastReg.familyParticipation,
     familyCount: lastReg.familyCount,
+    familyShoeSize: lastReg.familyShoeSize,
+    eventParticipation: lastReg.eventParticipation,
     status: lastReg.status,
     registeredAt: lastReg.registeredAt,
   });
