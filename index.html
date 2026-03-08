@@ -1844,7 +1844,7 @@
             <line x1="8.5" y1="12" x2="15.5" y2="12"/>
           </svg>
         </div>
-        <div><div class="qi-title">운동, 혈당 기록</div><div class="qi-sub">오늘을 기록해보세요</div></div>
+        <div><div class="qi-title">운동, 혈당 기록</div><div class="qi-sub" id="rec-quick">오늘을 기록해보세요</div></div>
       </button>
       <button class="quick-btn" onclick="quickNav(this,()=>{navigate('community');setCommunityTab('league')})">
         <div class="qi-icon">
@@ -3903,6 +3903,9 @@ function renderHome() {
   }
   const canRedeem = REWARDS_DATA.some(r => !S.redeemedRewards.includes(r.id) && !S.pendingRewards.includes(r.id) && S.user.points >= r.cost);
   document.getElementById('pts-quick').textContent = '보유 ' + S.user.points + 'p' + (canRedeem ? ' · 교환 가능' : '');
+  const woCnt = (S.workouts || []).length;
+  const glCnt = (S.glucoseRecords || []).length;
+  document.getElementById('rec-quick').textContent = '운동 ' + woCnt + '회 · 혈당 ' + glCnt + '회';
   const myPostCnt    = (S.posts || []).length;
   const myName       = myDisplayName();
   const allPosts     = [...(S.posts || []), ...(S.communityPosts || [])];
