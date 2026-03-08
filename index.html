@@ -3284,9 +3284,17 @@ function _shareStreakMsg() {
     '오늘도 최선을 다한 당신 수고했어요 👏',
     '운동하는 오늘이 내일의 나를 만들어요 🌈',
     '쉬지 않고 달리는 당신 응원해요 🚀',
+    '지금 이 순간이 쌓여 기적이 돼요 🌊',
+    '오늘도 나 자신을 위해 움직였어요 🦋',
+    '건강한 몸이 행복한 삶의 시작이에요 😊',
+    '당신의 의지가 정말 대단해요 👑',
+    '한 걸음씩, 반드시 목표에 닿아요 🎯',
+    '운동이 습관이 된 당신, 최고예요 🥇',
+    '오늘의 땀이 내일의 자신감이에요 💦',
   ];
-  const day = new Date().getDate();
-  return msgs[day % msgs.length];
+  const now = new Date();
+  const idx = (now.getMonth() * 31 + now.getDate()) % msgs.length;
+  return msgs[idx];
 }
 
 // SVG 문자열 → PNG data URL (html2canvas 호환용)
