@@ -3366,13 +3366,15 @@ async function shareLevelCard() {
     <div style="position:absolute;top:-40px;right:-50px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,0.08);filter:blur(14px);pointer-events:none"></div>
     <div style="position:absolute;bottom:-40px;right:40px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.06);filter:blur(4px);pointer-events:none"></div>
 
-    <!-- 헤더: 로고(좌) + 나의건강기록(중) + 아바타(우) -->
+    <!-- 헤더: 로고(좌) + 나의건강기록+아바타(우) -->
     <div style="display:flex;align-items:center;justify-content:space-between;position:relative;flex-shrink:0">
       <img src="${logoPngUrl}" alt="HI Health" style="height:24px;max-width:100px;object-fit:contain">
-      <span style="font-size:11px;font-weight:700;opacity:0.8;letter-spacing:0.3px">나의 건강 기록</span>
-      ${avatarPngUrl
-        ? `<img src="${avatarPngUrl}" style="width:34px;height:34px;border-radius:50%;border:2px solid rgba(255,255,255,0.55);object-fit:cover;flex-shrink:0">`
-        : `<div style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.2)"></div>`}
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;font-weight:700;opacity:0.8;letter-spacing:0.3px">나의 건강 기록</span>
+        ${avatarPngUrl
+          ? `<img src="${avatarPngUrl}" style="width:34px;height:34px;border-radius:50%;border:2px solid rgba(255,255,255,0.55);object-fit:cover">`
+          : `<div style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.2)"></div>`}
+      </div>
     </div>
 
     <!-- 레벨 아이콘 + 이름 + 배지 -->
