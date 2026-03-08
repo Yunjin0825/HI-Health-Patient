@@ -1308,43 +1308,45 @@
        REWARDS
     ══════════════════════════════ */
     .balance-card {
-      background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-      border-radius: var(--radius-lg); padding: 22px;
-      color: #fff; margin-bottom: 18px; text-align: center;
-      position: relative; overflow: hidden;
+      background: var(--card); border-radius: var(--radius-lg); padding: 20px 22px;
+      margin-bottom: 20px; box-shadow: var(--shadow);
+      display: flex; align-items: center; justify-content: space-between;
     }
-    .balance-card::before { content: '✨'; position: absolute; font-size: 90px; top: -15px; right: -15px; opacity: 0.15; }
-    .bal-label { font-size: 13px; opacity: 0.9; }
-    .bal-amt { font-size: 52px; font-weight: 900; line-height: 1.1; }
-    .bal-sub { font-size: 12px; opacity: 0.8; margin-top: 3px; }
+    .bal-left { flex: 1; }
+    .bal-label { font-size: 12px; color: var(--text-secondary); font-weight: 600; margin-bottom: 4px; }
+    .bal-amt { font-size: 36px; font-weight: 900; color: var(--text-primary); line-height: 1; }
+    .bal-unit { font-size: 16px; font-weight: 700; color: var(--text-secondary); margin-left: 2px; }
+    .bal-sub { font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
+    .bal-sub-icon { display: none; }
 
-    .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
+    .section-title { font-size: 15px; font-weight: 700; margin-bottom: 10px; color: var(--text-primary); }
 
-    .reward-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-bottom: 18px; }
+    .reward-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
     .reward-card {
-      background: #fff; border-radius: var(--radius); padding: 14px;
-      box-shadow: var(--shadow); text-align: center; position: relative; overflow: hidden;
-      cursor: pointer; transition: all 0.2s; border: 2px solid transparent;
+      background: var(--card); border-radius: var(--radius-sm);
+      box-shadow: var(--shadow); padding: 14px 16px;
+      display: flex; align-items: center; gap: 12px;
+      cursor: pointer; transition: opacity 0.15s; border: 1.5px solid transparent;
     }
-    .reward-card:active { transform: scale(0.97); }
+    .reward-card:active { opacity: 0.75; }
     .reward-card.can { border-color: var(--secondary); }
-    .reward-card.pending { border-color: #f59e0b; background: #FFFBEB; cursor: default; }
-    .reward-card.done { opacity: 0.6; cursor: default; }
-    .reward-name { font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+    .reward-card.pending { border-color: #f59e0b; cursor: default; }
+    .reward-card.done { opacity: 0.5; cursor: default; }
+    .reward-info { flex: 1; }
+    .reward-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+    .reward-pts  { font-size: 12px; color: var(--warning); font-weight: 600; }
     .reward-cost {
-      display: inline-flex; align-items: center; gap: 3px;
+      display: inline-flex; align-items: center;
       font-size: 11px; font-weight: 700; color: var(--warning);
-      background: var(--warning-light); padding: 3px 9px; border-radius: 20px;
+      background: var(--warning-light); padding: 3px 10px; border-radius: 20px;
     }
     .reward-pending-badge { color: #b45309; background: #FEF3C7; }
     .reward-done-badge    { color: #6b7280; background: #F3F4F6; }
     .reward-confirm-btn {
-      display: block; width: 100%; margin-top: 8px;
-      padding: 6px 0; border-radius: 8px; border: none; cursor: pointer;
-      background: #16a34a; color: #fff; font-size: 11px; font-weight: 700;
+      padding: 7px 12px; border-radius: 20px; border: none; cursor: pointer;
+      background: #16a34a; color: #fff; font-size: 11px; font-weight: 700; white-space: nowrap;
     }
     .reward-confirm-btn:active { background: #15803d; }
-    /* 도장 */
     .reward-stamp {
       position: absolute; top: 50%; left: 50%;
       transform: translate(-50%, -50%) rotate(-18deg);
@@ -1356,25 +1358,18 @@
     }
 
     /* ── Shop ── */
-    .shop-banner {
-      background: linear-gradient(135deg, #3730A3 0%, #4F46E5 100%);
-      border-radius: var(--radius); padding: 18px 16px; margin-bottom: 14px;
-      color: #fff;
-    }
-    .shop-banner-title { font-size: 18px; font-weight: 900; margin-bottom: 4px; }
-    .shop-banner-sub   { font-size: 12px; opacity: 0.85; }
+    .shop-banner { display: none; }
     .shop-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 80px; }
     .shop-item {
       background: var(--card); border-radius: var(--radius-sm);
       box-shadow: var(--shadow); display: flex; align-items: center;
-      padding: 12px 14px; gap: 12px;
+      padding: 14px 16px; gap: 12px; cursor: pointer;
     }
     .shop-item-info  { flex: 1; min-width: 0; }
-    .shop-item-name  { font-size: 13px; font-weight: 700; }
-    .shop-item-price { font-size: 12px; color: var(--primary); font-weight: 700; margin-top: 2px; }
+    .shop-item-name  { font-size: 14px; font-weight: 700; }
+    .shop-item-price { font-size: 12px; color: var(--primary); font-weight: 700; margin-top: 3px; }
     .shop-item-ctrl  { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-    .shop-section-title { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; color: var(--text-primary); padding: 10px 0 6px; border-bottom: 2px solid var(--border); margin-bottom: 4px; }
-    .shop-item { cursor: pointer; }
+    .shop-section-title { font-size: 15px; font-weight: 700; color: var(--text-primary); padding: 16px 0 8px; }
     .shop-item:active { opacity: 0.75; }
     /* ── Product Detail Modal ── */
     .pd-overlay { position: fixed; inset: 0; z-index: 1200; background: rgba(0,0,0,0.5); display: flex; align-items: flex-end; justify-content: center; }
@@ -2434,9 +2429,12 @@
 
     <div id="rew-rewards-panel">
     <div class="balance-card">
-      <p class="bal-label">보유 포인트</p>
-      <p class="bal-amt" id="bal-display">0</p>
-      <p class="bal-sub"><img src="icons/HI_icon_29.png" class="bal-sub-icon" alt="보상"> 포인트로 다양한 혜택을 누리세요!</p>
+      <div class="bal-left">
+        <p class="bal-label">보유 포인트</p>
+        <p class="bal-amt"><span id="bal-display">0</span><span class="bal-unit">p</span></p>
+        <p class="bal-sub">포인트로 다양한 혜택을 누리세요</p>
+      </div>
+      <img src="icons/HI_icon_29.png" style="width:48px;height:48px;object-fit:contain;opacity:0.18" alt="">
     </div>
 
 
@@ -2445,7 +2443,7 @@
     <div class="reward-history" id="reward-history"></div>
 
     <div class="reward-guide-card">
-      <p class="reward-guide-title"><img src="icons/HI_icon_29.png" class="sec-icon" alt="선물"> 선물 수령 안내</p>
+      <p class="reward-guide-title">선물 수령 안내</p>
       <div class="reward-guide-row">
         <span class="reward-guide-icon"><img src="icons/HI_icon_14.png" class="rg-icon" alt="직접수령"></span>
         <div>
@@ -2463,19 +2461,16 @@
       </div>
     </div>
 
-    <p class="section-title"><img src="icons/HI_icon_11.png" class="st-icon" alt="배지"> 달성 배지</p>
+    <p class="section-title">달성 배지</p>
     <div class="ach-list" id="ach-list"></div>
 
     <div style="margin-top:6px"></div>
-    <p class="section-title"><img src="icons/HI_icon_10.png" class="st-icon" alt="레벨"> 레벨 안내</p>
+    <p class="section-title">레벨 안내</p>
     <div class="level-guide" id="level-guide"></div>
     </div><!-- /rew-rewards-panel -->
 
     <div id="rew-shop-panel" style="display:none">
-      <div class="shop-banner">
-        <div class="shop-banner-title"><img src="icons/HI_icon_7.png" class="shop-banner-img" alt="영양제"> 영양제 구매</div>
-        <div class="shop-banner-sub">원하는 제품을 담아 주문 신청하세요</div>
-      </div>
+      <div class="shop-banner"></div>
       <div class="order-history" id="shop-order-history"></div>
       <div class="shop-list" id="shop-list"></div>
       <div class="shop-cart-bar hidden" id="shop-cart-bar">
@@ -6049,9 +6044,9 @@ function renderShop() {
   const merchProducts = SHOP_PRODUCTS.filter(p => p.cat === 'merch');
 
   list.innerHTML =
-    `<div class="shop-section-title"><img src="icons/HI_icon_7.png" class="shop-banner-img" alt="영양제" style="width:22px;height:22px"> 영양제</div>` +
+    `<div class="shop-section-title">영양제</div>` +
     renderProductList(suppProducts) +
-    `<div class="shop-section-title" style="margin-top:20px">🏥 병원제작상품</div>` +
+    `<div class="shop-section-title">병원 제작 상품</div>` +
     renderProductList(merchProducts);
 
   const count = cartCount();
@@ -6294,27 +6289,33 @@ function submitShopOrder() {
 function renderRewards() {
   document.getElementById('bal-display').textContent = S.user.points;
 
-  // Rewards grid
+  // Rewards list
   document.getElementById('reward-grid').innerHTML = REWARDS_DATA.map(r => {
     const done    = S.redeemedRewards.includes(r.id);
     const pending = !done && S.pendingRewards.includes(r.id);
     const can     = !done && !pending && S.user.points >= r.cost;
     let cardClass = 'reward-card';
-    if (done)    cardClass += ' done';
+    if (done)         cardClass += ' done';
     else if (pending) cardClass += ' pending';
     else if (can)     cardClass += ' can';
-    const onclick = done || pending ? '' : `onclick="redeemReward('${r.id}')"`;
+    const onclick = !done && !pending ? `onclick="redeemReward('${r.id}')"` : '';
     return `
       <div class="${cardClass}" ${onclick}>
-        <div class="reward-name">${r.name}</div>
-        ${done
-          ? `<div class="reward-cost reward-done-badge">교환 완료</div>
-             <div class="reward-stamp"><span>교환<br>완료</span></div>`
-          : pending
-          ? `<div class="reward-cost reward-pending-badge">⏳ 요청 중</div>
-             <button class="reward-confirm-btn" onclick="confirmReward('${r.id}')">✓ 직원 확인 완료</button>`
-          : `<div class="reward-cost">${r.cost}p</div>`
-        }
+        <div class="reward-info">
+          <div class="reward-name">${r.name}</div>
+          <div class="reward-pts">${r.cost}p</div>
+        </div>
+        <div>
+          ${done
+            ? `<span class="reward-cost reward-done-badge">교환완료</span>`
+            : pending
+            ? `<span class="reward-cost reward-pending-badge">처리중</span>
+               <button class="reward-confirm-btn" style="margin-left:6px" onclick="event.stopPropagation();confirmReward('${r.id}')">직원 확인</button>`
+            : can
+            ? `<span class="reward-cost">교환 가능</span>`
+            : `<span class="reward-cost" style="background:#f3f4f6;color:#9ca3af">${r.cost}p 필요</span>`
+          }
+        </div>
       </div>
     `;
   }).join('');
@@ -6334,7 +6335,7 @@ function renderRewards() {
       <div class="ach-item ${isEarned ? '' : 'locked'}">
         <div class="ach-badge ${isEarned ? 'earned' : 'pending'}"><img src="${a.img}" alt="${a.name}"></div>
         <div class="ach-info">
-          <div class="ach-name">${a.name} ${isEarned ? '✅' : ''}</div>
+          <div class="ach-name">${a.name}</div>
           <div class="ach-desc">${a.desc}</div>
           ${!isEarned ? `
             <div class="ach-prog-bar">
@@ -6365,10 +6366,10 @@ function renderRewards() {
   if (histEl) {
     const history = S.rewardHistory || [];
     if (!history.length) {
-      histEl.innerHTML = `<div class="reward-history-title">🎁 교환이력</div>
+      histEl.innerHTML = `<div class="reward-history-title">교환 내역</div>
         <div style="text-align:center;padding:20px 0;color:var(--text-muted);font-size:13px">아직 교환한 보상이 없어요</div>`;
     } else {
-      histEl.innerHTML = `<div class="reward-history-title">🎁 교환이력</div>` +
+      histEl.innerHTML = `<div class="reward-history-title">교환 내역</div>` +
         history.map(h => {
           const dateStr = h.ts ? new Date(h.ts).toLocaleDateString('ko-KR', { month:'numeric', day:'numeric' }) : '';
           const doneDateStr = h.doneTs ? new Date(h.doneTs).toLocaleDateString('ko-KR', { month:'numeric', day:'numeric' }) : '';
