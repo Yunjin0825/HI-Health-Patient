@@ -3444,29 +3444,29 @@ async function shareLevelCard() {
           <span style="font-size:10px;font-weight:600;opacity:0.65;letter-spacing:0.4px;white-space:nowrap">나의 건강 기록</span>
         </div>
         ${avatarPngUrl
-          ? `<img src="${avatarPngUrl}" style="width:30px;height:30px;border-radius:50%;border:2px solid rgba(255,255,255,0.45);object-fit:cover;flex-shrink:0">`
-          : `<div style="width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.18);flex-shrink:0"></div>`}
+          ? `<img src="${avatarPngUrl}" style="width:38px;height:38px;border-radius:50%;border:2px solid rgba(255,255,255,0.5);object-fit:cover;flex-shrink:0">`
+          : `<div style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.2);flex-shrink:0"></div>`}
       </div>
 
-      <!-- 닉네임 + 태그 (한 줄) -->
+      <!-- 닉네임 + 태그 (3개 이상은 2줄 허용) -->
       <div style="display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-top:14px;position:relative">
         <span style="font-size:21px;font-weight:900;letter-spacing:-0.5px;line-height:1;flex-shrink:0">${name}님</span>
         ${userTags.map(t => `<span style="font-size:10px;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,0.92);color:#4F46E5;font-weight:700;flex-shrink:0;white-space:nowrap;box-shadow:0 1px 6px rgba(0,0,0,0.12)">${t}</span>`).join('')}
       </div>
 
-      <!-- 통계 3칸 -->
+      <!-- 통계 3칸 (border 제거 — 원래 hero-stat과 동일) -->
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;position:relative">
-        <div style="background:rgba(255,255,255,0.13);border-radius:10px;padding:9px 5px;text-align:center;border:1px solid rgba(255,255,255,0.18)">
+        <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:9px 5px;text-align:center">
           <div style="font-size:20px;font-weight:700;line-height:1">${totalCnt}<span style="font-size:10px;font-weight:600;opacity:0.8">회</span></div>
-          <div style="font-size:9px;opacity:0.75;margin-top:2px;font-weight:600">총 운동횟수</div>
+          <div style="font-size:9px;opacity:0.8;margin-top:2px;font-weight:600">총 운동횟수</div>
         </div>
-        <div style="background:rgba(255,255,255,0.13);border-radius:10px;padding:9px 5px;text-align:center;border:1px solid rgba(255,255,255,0.18)">
+        <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:9px 5px;text-align:center">
           <div style="font-size:${totalMin >= 600 ? '14px' : '20px'};font-weight:700;line-height:1">${timeStr}</div>
-          <div style="font-size:9px;opacity:0.75;margin-top:2px;font-weight:600">총 운동시간</div>
+          <div style="font-size:9px;opacity:0.8;margin-top:2px;font-weight:600">총 운동시간</div>
         </div>
-        <div style="background:rgba(255,255,255,0.13);border-radius:10px;padding:9px 5px;text-align:center;border:1px solid rgba(255,255,255,0.18)">
+        <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:9px 5px;text-align:center">
           <div style="font-size:20px;font-weight:700;line-height:1">${curPts}<span style="font-size:10px;font-weight:600;opacity:0.8">p</span></div>
-          <div style="font-size:9px;opacity:0.75;margin-top:2px;font-weight:600">총 포인트</div>
+          <div style="font-size:9px;opacity:0.8;margin-top:2px;font-weight:600">총 포인트</div>
         </div>
       </div>
     </div>
