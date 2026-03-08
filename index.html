@@ -3315,40 +3315,34 @@ async function shareLevelCard() {
     <path d="M20 20C18.5 22.5 17 25 17 27.5C17 30 18.3 32 20 32C21.7 32 23 30 23 27.5C23 25 21.5 22.5 20 20Z" fill="#FEF3C7"/>
   </svg>`;
 
-  const [lvIconPng, flameIconPng, runnerImg, logoPng] = await Promise.all([
+  const avatarSrc = (S.user.avatar && S.user.avatar.includes('images/')) ? S.user.avatar : (AVATARS[0] || '');
+
+  const loadImg = src => new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+
+  const imgToPng = (img, w, h) => {
+    if (!img) return '';
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h || w;
+    c.getContext('2d').drawImage(img, 0, 0, w, h || w);
+    try { return c.toDataURL('image/png'); } catch(e) { return ''; }
+  };
+
+  const [lvIconPng, flameIconPng, runnerImg, logoPng, avatarImg] = await Promise.all([
     _svgToPng(lv.icon, 80),
     _svgToPng(flameSvg, 48),
-    new Promise(resolve => {
-      const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = () => resolve(null);
-      img.src = 'icons/HI_icon_4.png';
-    }),
-    new Promise(resolve => {
-      const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = () => resolve(null);
-      img.src = 'images/logo-white.png';
-    }),
+    loadImg('icons/HI_icon_4.png'),
+    loadImg('images/logo-white.png'),
+    avatarSrc ? loadImg(avatarSrc) : Promise.resolve(null),
   ]);
 
-  // 로고를 PNG data URL로 변환 (html2canvas 로컬 이미지 대응)
-  let logoPngUrl = 'images/logo-white.png';
-  if (logoPng) {
-    const lc = document.createElement('canvas');
-    lc.width = logoPng.naturalWidth; lc.height = logoPng.naturalHeight;
-    lc.getContext('2d').drawImage(logoPng, 0, 0);
-    try { logoPngUrl = lc.toDataURL('image/png'); } catch(e) {}
-  }
-
-  // 달리기 아이콘 PNG data URL
-  let runnerPngUrl = '';
-  if (runnerImg) {
-    const rc = document.createElement('canvas');
-    rc.width = rc.height = 36;
-    rc.getContext('2d').drawImage(runnerImg, 0, 0, 36, 36);
-    try { runnerPngUrl = rc.toDataURL('image/png'); } catch(e) {}
-  }
+  const logoPngUrl    = imgToPng(logoPng, logoPng ? logoPng.naturalWidth : 240, logoPng ? logoPng.naturalHeight : 60) || 'images/logo-white.png';
+  const runnerPngUrl  = imgToPng(runnerImg, 36);
+  const avatarPngUrl  = imgToPng(avatarImg, 64);
 
   // ── 공유 카드 DOM 생성 ────────────────────────────────────────
   const card = document.createElement('div');
@@ -3366,10 +3360,13 @@ async function shareLevelCard() {
     <div style="position:absolute;top:-60px;right:-60px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,0.08);pointer-events:none"></div>
     <div style="position:absolute;bottom:-80px;left:-40px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,0.05);pointer-events:none"></div>
 
-    <!-- 헤더: 화이트 로고 -->
+    <!-- 헤더: 화이트 로고 + 아바타 -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;position:relative">
-      <img src="${logoPngUrl}" alt="HI Health" style="height:26px;max-width:120px;object-fit:contain">
-      <div style="font-size:11px;background:rgba(255,255,255,0.2);padding:5px 12px;border-radius:20px;font-weight:700;letter-spacing:0.2px">나의 건강 기록</div>
+      <img src="${logoPngUrl}" alt="HI Health" style="height:26px;max-width:110px;object-fit:contain">
+      <div style="display:flex;align-items:center;gap:8px">
+        ${avatarPngUrl ? `<img src="${avatarPngUrl}" style="width:36px;height:36px;border-radius:50%;border:2px solid rgba(255,255,255,0.5);object-fit:cover">` : ''}
+        <div style="font-size:11px;background:rgba(255,255,255,0.2);padding:5px 12px;border-radius:20px;font-weight:700;letter-spacing:0.2px">나의 건강 기록</div>
+      </div>
     </div>
 
     <!-- 레벨 아이콘 + 이름 -->
