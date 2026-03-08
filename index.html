@@ -3295,7 +3295,13 @@ function _svgToPng(svgStr, size) {
     const clean = svgStr
       .replace(/\s+width="[^"]*"/g, ` width="${size}"`)
       .replace(/\s+height="[^"]*"/g, ` height="${size}"`)
-      .replace(/\s+style="vertical-align:[^"]*"/g, '');
+      .replace(/\s+style="vertical-align:[^"]*"/g, '')
+      // ── 애니메이션 제거 → 완성 상태로 고정 ──
+      .replace(/<animate\b[^>]*\/>/g, '')            // <animate .../> 제거
+      .replace(/<animateTransform\b[^>]*\/>/g, '')   // <animateTransform .../> 제거
+      .replace(/\s+stroke-dashoffset="[^"]*"/g, '')  // 줄기 숨김 제거 (기본값 0)
+      .replace(/<g\s+opacity="0">/g, '<g>')           // 투명 그룹 → 표시 (잎, 반짝임)
+      .replace(/(<circle\b[^>]*?)\sr="0"([^>]*?>)/g, '$1 r="3"$2'); // 봉오리 r=0 → r=3
     const blob = new Blob([clean], { type: 'image/svg+xml;charset=utf-8' });
     const url  = URL.createObjectURL(blob);
     const img  = new Image();
@@ -3501,19 +3507,19 @@ async function shareLevelCard() {
         <span style="font-size:11px;font-weight:800;color:#3730A3;white-space:nowrap">${streak}일 연속 운동기록 중!</span>
         <span style="font-size:10px;color:#6D28D9;opacity:0.7;font-weight:600;flex:1;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${streakMsg}</span>
       </div>
+      <!-- URL (연속기록 메시지 아래) -->
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px">
+        <div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(124,58,237,0.25))"></div>
+        <span style="font-size:8px;color:#7C3AED;opacity:0.5;font-weight:500;letter-spacing:0.4px">yunjin0825.github.io/HI-Health</span>
+        <div style="flex:1;height:1px;background:linear-gradient(90deg,rgba(124,58,237,0.25),transparent)"></div>
+      </div>
     </div>
 
-    <!-- ③ 하단 섹션: happy-play 이미지 (홈탭 illus-banner 완전 동일) -->
-    <div style="height:${bgSectionH}px;flex-shrink:0;position:relative;overflow:hidden;margin-top:8px;background:#fff">
+    <!-- ③ 하단 이미지: happy-play 상단 캐릭터 행 표시 -->
+    <div style="flex:1;position:relative;overflow:hidden;margin-top:14px;background:#fff">
       ${bgPngUrl ? `<img src="${bgPngUrl}" style="${bgImgStyle}">` : ''}
-      <!-- 상하 + 좌우 4방향 그라디언트 (illus-banner::before 완전 동일) -->
+      <!-- 상하 + 좌우 4방향 그라디언트 -->
       <div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(255,255,255,0.7) 0%,rgba(255,255,255,0) 12%,rgba(255,255,255,0) 88%,rgba(255,255,255,0.7) 100%),linear-gradient(to bottom,rgba(255,255,255,1) 0%,rgba(255,255,255,0) 30%,rgba(255,255,255,0) 70%,rgba(255,255,255,0.55) 100%);pointer-events:none;z-index:1"></div>
-      <!-- URL -->
-      <div style="position:absolute;bottom:8px;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:8px;z-index:2">
-        <div style="flex:1;max-width:50px;height:1px;background:linear-gradient(90deg,transparent,rgba(124,58,237,0.3))"></div>
-        <span style="font-size:8px;color:#7C3AED;opacity:0.55;font-weight:500;letter-spacing:0.4px">yunjin0825.github.io/HI-Health</span>
-        <div style="flex:1;max-width:50px;height:1px;background:linear-gradient(90deg,rgba(124,58,237,0.3),transparent)"></div>
-      </div>
     </div>
   `;
 
