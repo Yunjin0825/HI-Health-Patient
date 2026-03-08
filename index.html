@@ -222,12 +222,20 @@
     .cart-panel-item-price { font-size: 13px; font-weight: 700; color: var(--primary); }
     .cart-panel-total { display: flex; justify-content: space-between; padding: 10px 0 4px; font-size: 13px; font-weight: 700; }
     .cart-panel-order-btn {
-      width: 100%; margin-top: 10px; padding: 11px;
+      flex: 1; padding: 11px;
       background: var(--primary); color: #fff; border: none;
       border-radius: var(--radius-sm); font-size: 14px; font-weight: 700;
       cursor: pointer; font-family: inherit;
     }
     .cart-panel-order-btn:disabled { background: var(--border); color: var(--text-secondary); cursor: default; }
+    .cart-panel-clear-btn {
+      flex: 1; padding: 11px;
+      background: #fff; color: var(--text-secondary);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm); font-size: 14px; font-weight: 700;
+      cursor: pointer; font-family: inherit;
+    }
+    .cart-panel-clear-btn:disabled { opacity: 0.4; cursor: default; }
     .cart-hist-item { padding: 8px 0; border-bottom: 1px solid var(--border); }
     .cart-hist-item:last-child { border-bottom: none; }
     .cart-hist-id { font-size: 11px; color: var(--text-secondary); }
@@ -1698,7 +1706,10 @@
       <button type="button" class="cart-panel-close" onclick="closeCartPanel()">✕</button>
     </div>
     <div id="cart-panel-items"></div>
-    <button type="button" class="cart-panel-order-btn" id="cart-panel-order-btn" onclick="closeCartPanel(); openShopOrder()">주문서 작성</button>
+    <div style="display:flex; gap:8px; margin-top:10px">
+      <button type="button" class="cart-panel-clear-btn" id="cart-panel-clear-btn" onclick="clearCartFromPanel()">장바구니 비우기</button>
+      <button type="button" class="cart-panel-order-btn" id="cart-panel-order-btn" onclick="closeCartPanel(); openShopOrder()">주문하기</button>
+    </div>
   </div>
   <div class="cart-panel-divider"></div>
   <div class="cart-panel-section">
@@ -2738,6 +2749,13 @@ function clearCart() {
   saveCart();
   renderShop();
 }
+function clearCartFromPanel() {
+  haptic('medium');
+  _cart = {};
+  saveCart();
+  renderShop();
+  renderCartPanel();
+}
 
 function addToCart(id) {
   haptic('light');
@@ -2809,10 +2827,12 @@ function openCartPanel() {
   // 장바구니 아이템
   const itemsEl = document.getElementById('cart-panel-items');
   const orderBtn = document.getElementById('cart-panel-order-btn');
+  const clearBtn = document.getElementById('cart-panel-clear-btn');
   const count = cartCount();
   if (count === 0) {
     itemsEl.innerHTML = '<div class="cart-panel-empty">장바구니가 비어있어요</div>';
     orderBtn.disabled = true;
+    if (clearBtn) clearBtn.disabled = true;
   } else {
     const rows = Object.entries(_cart).map(([id, qty]) => {
       const p = SHOP_PRODUCTS.find(x => x.id === id);
@@ -2824,6 +2844,7 @@ function openCartPanel() {
     }).join('');
     itemsEl.innerHTML = rows + `<div class="cart-panel-total"><span>합계</span><span>${cartTotal().toLocaleString()}원</span></div>`;
     orderBtn.disabled = false;
+    if (clearBtn) clearBtn.disabled = false;
   }
   // 구매내역
   const histEl = document.getElementById('cart-panel-history');
