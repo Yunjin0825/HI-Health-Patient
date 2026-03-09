@@ -1900,7 +1900,10 @@
             </svg>
             <span class="header-cart-badge hidden" id="header-cart-badge">0</span>
           </button>
-          <div class="header-avatar" id="header-avatar" onclick="openProfileModal()" title="프로필 설정"></div>
+          <div style="display:flex;align-items:center;gap:6px;cursor:pointer" onclick="openProfileModal()" title="프로필 설정">
+            <span id="header-profile-label" style="display:none;font-size:11px;font-weight:600;color:rgba(255,255,255,0.75)">프로필변경</span>
+            <div class="header-avatar" id="header-avatar"></div>
+          </div>
         </div>
       </header>
       <div class="hc-body">
@@ -3972,6 +3975,8 @@ function navigate(page) {
     if (hdrCart) hdrCart.style.display = isChallenge ? 'none' : '';
     const hdrRight = hdr.querySelector('.header-right');
     if (hdrRight) hdrRight.style.marginLeft = isChallenge ? 'auto' : '';
+    const hdrProfileLabel = hdr.querySelector('#header-profile-label');
+    if (hdrProfileLabel) hdrProfileLabel.style.display = isChallenge ? 'inline' : 'none';
   }
   if (content) {
     content.classList.remove('no-top-margin');
