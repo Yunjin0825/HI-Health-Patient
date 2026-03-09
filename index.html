@@ -7016,7 +7016,10 @@ function renderChallenge() {
           </div>
           <div class="ch-form-group">
             <label class="form-label">가족 참여 여부</label>
-            <label class="ch-radio-label" style="margin:0 0 8px"><input type="checkbox" id="ch-fam-check" onchange="toggleChFam(this)"> 가족 함께 참여</label>
+            <div class="ch-radio-group">
+              <label class="ch-radio-label"><input type="radio" name="ch-fam" value="no" checked onchange="toggleChFam(this)"> 본인만 신청</label>
+              <label class="ch-radio-label"><input type="radio" name="ch-fam" value="yes" onchange="toggleChFam(this)"> 가족함께 참여</label>
+            </div>
             <div id="ch-fam-detail" style="display:none;background:var(--bg-secondary,#f8fafc);border-radius:10px;padding:12px;margin-top:4px">
               <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:8px">가족 정보 (러닝화 지급용)</div>
               <div class="ch-row2">
@@ -7308,7 +7311,7 @@ function checkChDup() {
 
 function toggleChFam(el) {
   const detail = document.getElementById('ch-fam-detail');
-  if (detail) detail.style.display = el.checked ? 'block' : 'none';
+  if (detail) detail.style.display = el.value === 'yes' ? 'block' : 'none';
 }
 
 function submitChReg(e) {
@@ -7330,7 +7333,7 @@ function submitChReg(e) {
   const regs = JSON.parse(localStorage.getItem(CH_REG_KEY) || '[]');
   if (regs.find(r => r.empId === empId && r.status !== 'cancelled')) { showToast('⚠️ 이미 신청하신 사번입니다'); return; }
 
-  const famChecked = document.getElementById('ch-fam-check')?.checked || false;
+  const famChecked = document.querySelector('input[name="ch-fam"]:checked')?.value === 'yes';
   const cruiseVal = document.querySelector('input[name="ch-cruise"]:checked')?.value || 'yes';
   const eventVal = document.querySelector('input[name="ch-event"]:checked')?.value || 'yes';
   const id = 'HC-' + String(Date.now()).slice(-6);
