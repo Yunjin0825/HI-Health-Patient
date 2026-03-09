@@ -6670,10 +6670,10 @@ function renderChallenge() {
       stats: []
     },
     registration: {
-      grad: 'linear-gradient(135deg,#F59E0B,#D97706)', badge: '신청 기간',
+      grad: 'linear-gradient(135deg,#F59E0B,#D97706)', badge: '챌린지 신청기간',
       title: '행사 전에 24일간 운동기록에 도전해보세요!', desc: '신청자와 가족 1인에게 러닝화를 드립니다',
       stats: [
-        { v: 'D-' + chDays(now, CH.deadline), l: '마감까지' },
+        { v: 'D-' + chDays(now, CH.deadline), l: '신청 마감까지' },
         { v: '3/21', l: '신청 마감' },
         { v: '무료', l: '참가비' },
       ]
@@ -6713,30 +6713,7 @@ function renderChallenge() {
     },
   };
   const p = phaseMap[phase];
-  const shoesvg = phase === 'registration' ? `
-    <div style="position:absolute;right:-8px;bottom:-12px;pointer-events:none;opacity:0.22">
-      <svg width="160" height="90" viewBox="0 0 160 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Outsole -->
-        <path d="M18,76 Q24,83 140,79 Q150,78 151,72 Q136,67 124,67 L26,67 Q16,67 16,74 Z" fill="white"/>
-        <!-- Midsole -->
-        <path d="M22,67 Q18,58 20,52 L124,52 Q130,57 132,67 Z" fill="white" opacity="0.7"/>
-        <!-- Heel -->
-        <path d="M22,52 L20,36 Q20,24 30,22 L44,22 L40,52 Z" fill="white" opacity="0.8"/>
-        <!-- Upper main body -->
-        <path d="M40,52 L44,22 L104,17 Q126,17 132,30 L128,52 Z" fill="white" opacity="0.7"/>
-        <!-- Toe cap curve -->
-        <path d="M126,42 Q140,48 142,58 L128,58 Z" fill="white" opacity="0.5"/>
-        <!-- Tongue -->
-        <path d="M62,50 L65,20 L80,20 L77,50 Z" fill="white" opacity="0.4"/>
-        <!-- Laces -->
-        <line x1="65" y1="27" x2="108" y2="24" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-        <line x1="64" y1="33" x2="107" y2="30" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-        <line x1="63" y1="39" x2="106" y2="36" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-        <line x1="62" y1="45" x2="105" y2="42" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-        <!-- Swoosh stripe -->
-        <path d="M36,50 Q60,28 112,21" stroke="white" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.6"/>
-      </svg>
-    </div>` : '';
+  const shoesvg = '';
   document.getElementById('ch-phase-card').innerHTML = `
     <div class="ch-phase-card" style="background:${p.grad}">
       ${shoesvg}
@@ -6761,7 +6738,7 @@ function renderChallenge() {
         <div class="ch-reg-header">
           <div class="ch-reg-icon">✅</div>
           <div>
-            <div class="ch-reg-title">챌린지 신청 완료</div>
+            <div class="ch-reg-title">나의 신청</div>
             <div class="ch-reg-subtitle">신청번호 ${myReg.id}</div>
           </div>
           <div style="margin-left:auto;background:${statusColor}1a;color:${statusColor};font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid ${statusColor}40">${statusLbl}</div>
