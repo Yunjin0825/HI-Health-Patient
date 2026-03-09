@@ -2689,6 +2689,13 @@ const PROFILE_TAGS = [
   },
 ];
 
+const RUN_AVATARS = [
+  'images/avatars/run1.png','images/avatars/run2.png','images/avatars/run3.png',
+  'images/avatars/run4.png','images/avatars/run5.png','images/avatars/run6.png',
+  'images/avatars/run7.png','images/avatars/run8.png','images/avatars/run9.png',
+  'images/avatars/run10.png',
+];
+
 const CHALLENGE_TAGS = [
   {
     cat: '러닝 목표',
@@ -5367,7 +5374,8 @@ function openProfileModal(onboarding = false) {
   _pmIsChallenge = !!getMyReg();
   const validTags = new Set(activeTags().flatMap(c => c.tags));
   _selTags = (S.user.tags || []).filter(t => validTags.has(t));
-  document.getElementById('pm-avatar-grid').innerHTML = AVATARS.map(a =>
+  const avatarList = _pmIsChallenge ? RUN_AVATARS : AVATARS;
+  document.getElementById('pm-avatar-grid').innerHTML = avatarList.map(a =>
     `<button type="button" class="avatar-opt${a===_selAvatar?' selected':''}" data-av="${a}" onclick="pickAvatar('${a}')">${avHTML(a)}</button>`
   ).join('');
   // 아바타·태그 섹션 타이틀 변경
