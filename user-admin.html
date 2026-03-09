@@ -991,6 +991,19 @@ function onUsersSearch() {
 }
 
 /* ── USERS LIST ── */
+function stripBadName(name) {
+  if (!name) return '';
+  let n = name.trim();
+  // 이미지 경로 제거
+  n = n.replace(/images\/avatars\/\S+/gi, '');
+  n = n.replace(/\S+\.(png|jpg|jpeg|svg|gif|webp)/gi, '');
+  // 이모지 제거 (앞뒤 모두)
+  n = n.replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27FF}\u{FE00}-\u{FEFF}]/gu, '');
+  // 기본 이모지 범위
+  n = n.replace(/[\u00A0-\u00FF\u2000-\u206F]/g, '');
+  return n.trim();
+}
+
 function isBadName(name) {
   if (!name) return false;
   const n = name.trim();
@@ -998,6 +1011,8 @@ function isBadName(name) {
   if (n.length > 30) return true;
   if (/^[\d\s\-\/\.]+$/.test(n)) return true; // 숫자/기호만
   if (/[\/\\@]/.test(n)) return true;           // 경로/이메일 구분자
+  // 이모지로 시작하거나 이모지가 포함된 경우
+  if (/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27FF}]/u.test(n)) return true;
   return false;
 }
 
@@ -1184,14 +1199,14 @@ async function cleanBadNames() {
   const badUsers = (GD.users||[]).filter(u => isBadName(u.name));
   if (!badUsers.length) { toast('이상한 이름이 없습니다'); return; }
   const preview = badUsers.map(u => {
-    const cleaned = (u.name||'').replace(/images\/avatars\/\S+/gi, '').replace(/\S+\.(png|jpg|jpeg|svg|gif)/gi, '').trim();
+    const cleaned = stripBadName(u.name);
     return `• "${u.name}" → "${cleaned||'(삭제됨)'}"`;
   }).join('\n');
-  if (!confirm(`이름에 이미지 경로가 포함된 이용자 ${badUsers.length}명을 정리합니다.\n\n${preview}\n\n계속하시겠습니까?`)) return;
+  if (!confirm(`이름에 이모지/이미지 경로가 포함된 이용자 ${badUsers.length}명을 정리합니다.\n\n${preview}\n\n계속하시겠습니까?`)) return;
   showLoading(true);
   try {
     for (const u of badUsers) {
-      const cleaned = (u.name||'').replace(/images\/avatars\/\S+/gi, '').replace(/\S+\.(png|jpg|jpeg|svg|gif)/gi, '').trim();
+      const cleaned = stripBadName(u.name);
       const { error } = await _adminDb.from('users').update({ name: cleaned }).eq('deviceId', u.deviceId);
       if (!error) {
         const idx = GD.users.findIndex(x => x.deviceId === u.deviceId);
