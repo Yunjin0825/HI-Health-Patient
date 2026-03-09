@@ -3689,7 +3689,7 @@ async function shareLevelCard() {
           <span style="font-size:10px;font-weight:600;opacity:0.65;letter-spacing:0.4px;white-space:nowrap">나의 건강 기록</span>
         </div>
         ${avatarPngUrl
-          ? `<img src="${avatarPngUrl}" style="width:34px;height:34px;border-radius:50%;border:2px solid rgba(255,255,255,0.5);object-fit:cover;flex-shrink:0">`
+          ? `<div style="width:34px;height:34px;border-radius:50%;border:2px solid rgba(255,255,255,0.5);background:#fff;overflow:hidden;flex-shrink:0"><img src="${avatarPngUrl}" style="width:100%;height:100%;object-fit:cover;display:block"></div>`
           : `<div style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.2);flex-shrink:0"></div>`}
       </div>
 
