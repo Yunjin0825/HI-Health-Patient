@@ -3412,6 +3412,8 @@ function save() {
     tags: (S.user.tags || []).join(','),
     registrationId: S.user.registrationId || '',
     lastActiveAt: new Date().toISOString(),
+    pendingRewards:  (S.pendingRewards  || []).join(','),
+    redeemedRewards: (S.redeemedRewards || []).join(','),
   });
 }
 

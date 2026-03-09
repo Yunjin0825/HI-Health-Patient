@@ -250,7 +250,9 @@
       <button class="tab-btn active" onclick="switchTab('users',this)">👥 이용자</button>
       <button class="tab-btn" onclick="switchTab('workouts',this)">🏋️ 운동기록</button>
       <button class="tab-btn" onclick="switchTab('posts',this)">💬 커뮤니티</button>
-      <button class="tab-btn" onclick="switchTab('challenge',this)">🏆 챌린지 신청</button>
+      <button class="tab-btn" onclick="switchTab('challenge',this)">🏆 챌린지</button>
+      <button class="tab-btn" onclick="switchTab('orders',this)">🛒 구매</button>
+      <button class="tab-btn" onclick="switchTab('rewards',this)">🎁 보상</button>
       <button class="tab-btn" onclick="switchTab('content',this)">📢 공지</button>
     </div>
 
@@ -434,6 +436,85 @@
       </div>
     </div>
 
+    <!-- ── PANEL: ORDERS ── -->
+    <div class="panel" id="panel-orders">
+      <div class="ch-status-bar">
+        <div class="ch-s-pill"><div class="ch-s-val" id="ord-total">-</div><div class="ch-s-lbl">전체</div></div>
+        <div class="ch-s-pill"><div class="ch-s-val" id="ord-pend">-</div><div class="ch-s-lbl">대기</div></div>
+        <div class="ch-s-pill"><div class="ch-s-val" id="ord-conf">-</div><div class="ch-s-lbl">확인</div></div>
+        <div class="ch-s-pill"><div class="ch-s-val" id="ord-done">-</div><div class="ch-s-lbl">완료</div></div>
+        <div class="ch-s-pill"><div class="ch-s-val" id="ord-can">-</div><div class="ch-s-lbl">취소</div></div>
+        <div class="ch-s-pill"><div class="ch-s-val" id="ord-amt">-</div><div class="ch-s-lbl">총금액(원)</div></div>
+      </div>
+      <div class="ctrl-bar">
+        <input class="ctrl-inp" id="ord-search" placeholder="이름·연락처·상품 검색" oninput="renderOrders()">
+        <select class="ctrl-sel" id="ord-sfilter" onchange="renderOrders()">
+          <option value="">전체 상태</option>
+          <option value="pending">대기</option>
+          <option value="confirmed">확인</option>
+          <option value="completed">완료</option>
+          <option value="cancelled">취소</option>
+        </select>
+        <select class="ctrl-sel" id="ord-pickup" onchange="renderOrders()">
+          <option value="">전체 수령방법</option>
+          <option value="픽업">픽업</option>
+          <option value="배송">배송</option>
+        </select>
+        <span class="ctrl-count" id="ord-count">0건</span>
+        <button class="cbtn sky" onclick="exportOrdersCsv()">CSV 다운로드</button>
+      </div>
+      <div class="tbl-wrap">
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr>
+              <th>주문번호</th>
+              <th>주문자</th>
+              <th>연락처</th>
+              <th>상품</th>
+              <th>금액</th>
+              <th>수령</th>
+              <th>상태</th>
+              <th>주문일</th>
+              <th>관리</th>
+            </tr></thead>
+            <tbody id="ord-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PANEL: REWARDS ── -->
+    <div class="panel" id="panel-rewards">
+      <div class="ch-status-bar">
+        <div class="ch-s-pill"><div class="ch-s-val" id="rew-pend">-</div><div class="ch-s-lbl">교환 대기</div></div>
+        <div class="ch-s-pill"><div class="ch-s-val" id="rew-done">-</div><div class="ch-s-lbl">교환 완료</div></div>
+      </div>
+      <div class="ctrl-bar">
+        <input class="ctrl-inp" id="rew-search" placeholder="이름·보상명 검색" oninput="renderRewards()">
+        <select class="ctrl-sel" id="rew-sfilter" onchange="renderRewards()">
+          <option value="">전체 상태</option>
+          <option value="pending">대기</option>
+          <option value="done">완료</option>
+        </select>
+        <span class="ctrl-count" id="rew-count">0건</span>
+      </div>
+      <div class="tbl-wrap">
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr>
+              <th>이름</th>
+              <th>사번</th>
+              <th>보상 항목</th>
+              <th>차감 포인트</th>
+              <th>상태</th>
+              <th>관리</th>
+            </tr></thead>
+            <tbody id="rew-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- ── PANEL: CONTENT ── -->
     <div class="panel" id="panel-content">
       <div class="ap-compose">
@@ -489,6 +570,15 @@
   </div>
 </div>
 
+<!-- ORDER DETAIL MODAL -->
+<div class="modal-bg" id="ord-modal">
+  <div class="modal">
+    <div class="modal-title">주문 상세</div>
+    <div id="ord-modal-body"></div>
+    <div class="modal-footer" id="ord-modal-btns"></div>
+  </div>
+</div>
+
 <!-- CHALLENGE DETAIL MODAL -->
 <div class="modal-bg" id="ch-modal">
   <div class="modal">
@@ -539,7 +629,7 @@ const EX_ICON = {
 ══════════════════════════════════════════════ */
 let ADMIN_PW = localStorage.getItem('hi_admin_pw') || '1111';
 let db = null;
-let GD = { users:[], workouts:[], posts:[], glucose:[], registrations:[], adminPosts:[] };
+let GD = { users:[], workouts:[], posts:[], glucose:[], registrations:[], orders:[], adminPosts:[] };
 let selDeviceId = '';
 let uPage = 0, wPage = 0;
 const PAGE = 50;
@@ -567,7 +657,7 @@ function doLogout() {
   document.getElementById('login-screen').style.display = '';
   document.getElementById('admin').style.display = 'none';
   document.getElementById('pw-input').value = '';
-  GD = { users:[], workouts:[], posts:[], glucose:[], registrations:[], adminPosts:[] };
+  GD = { users:[], workouts:[], posts:[], glucose:[], registrations:[], orders:[], adminPosts:[] };
   selDeviceId = '';
   db = null;
 }
@@ -594,7 +684,7 @@ function initSupabase() {
   loadAll();
 
   // 실시간 변경 감지
-  ['users','workouts','posts','glucose','registrations','admin_posts'].forEach(tbl => {
+  ['users','workouts','posts','glucose','registrations','orders','admin_posts'].forEach(tbl => {
     db.channel('adm_' + tbl)
       .on('postgres_changes', { event: '*', schema: 'public', table: tbl }, () => loadAll())
       .subscribe();
@@ -605,12 +695,13 @@ async function loadAll() {
   if (!db) return;
   showLoading(true);
   try {
-    const [u, w, p, g, r, ap] = await Promise.all([
+    const [u, w, p, g, r, o, ap] = await Promise.all([
       db.from('users').select('*'),
       db.from('workouts').select('*'),
       db.from('posts').select('*'),
       db.from('glucose').select('*'),
       db.from('registrations').select('*'),
+      db.from('orders').select('*').order('orderedAt', { ascending: false }),
       db.from('admin_posts').select('*').order('createdAt', { ascending: false }),
     ]);
     GD.users         = u.data  || [];
@@ -618,6 +709,10 @@ async function loadAll() {
     GD.posts         = p.data  || [];
     GD.glucose       = g.data  || [];
     GD.registrations = r.data  || [];
+    GD.orders        = (o.data || []).map(ord => ({
+      ...ord,
+      items: typeof ord.items === 'string' ? (() => { try { return JSON.parse(ord.items); } catch(e) { return []; } })() : (ord.items||[]),
+    }));
     GD.adminPosts    = ap.data || [];
     setStatus(`연결됨 (${GD.users.length}명)`, true);
     renderAll();
@@ -639,6 +734,8 @@ function renderAll() {
   renderWorkouts();
   renderPosts();
   renderChallenge();
+  renderOrders();
+  renderRewards();
   renderAdminPosts();
 }
 
@@ -1225,6 +1322,227 @@ function exportChallengeCsv() {
   a.href = URL.createObjectURL(blob);
   a.download = `챌린지신청_${new Date().toLocaleDateString('ko-KR').replace(/\./g,'').replace(/ /g,'')}.csv`;
   a.click();
+}
+
+/* ══════════════════════════════════════════════
+   ORDERS (구매)
+══════════════════════════════════════════════ */
+const REWARD_LIST = [
+  { id:'r1', name:'HI 로고 보틀',  cost:300  },
+  { id:'r2', name:'HI 스포츠타올', cost:500  },
+  { id:'r3', name:'HI 슈즈백',     cost:800  },
+  { id:'r4', name:'HI 텀블러',     cost:1200 },
+  { id:'r5', name:'아르기닌 1box', cost:1500 },
+];
+
+function renderOrders() {
+  const q   = document.getElementById('ord-search').value.toLowerCase();
+  const sf  = document.getElementById('ord-sfilter').value;
+  const pf  = document.getElementById('ord-pickup').value;
+  const all = GD.orders;
+  const list = all.filter(o => {
+    if (sf && o.status !== sf) return false;
+    if (pf && o.pickup !== pf) return false;
+    const itemStr = (o.items||[]).map(i => i.name||'').join(' ');
+    if (q && ![(o.name||''),(o.phone||''),itemStr,(o.userName||'')].some(s => s.toLowerCase().includes(q))) return false;
+    return true;
+  });
+
+  // 현황
+  document.getElementById('ord-total').textContent = all.length;
+  document.getElementById('ord-pend').textContent  = all.filter(o => o.status === 'pending').length;
+  document.getElementById('ord-conf').textContent  = all.filter(o => o.status === 'confirmed').length;
+  document.getElementById('ord-done').textContent  = all.filter(o => o.status === 'completed').length;
+  document.getElementById('ord-can').textContent   = all.filter(o => o.status === 'cancelled').length;
+  document.getElementById('ord-amt').textContent   = all.filter(o => o.status !== 'cancelled')
+    .reduce((s,o) => s + (Number(o.total)||0), 0).toLocaleString();
+  document.getElementById('ord-count').textContent = list.length + '건';
+
+  const tbody = document.getElementById('ord-tbody');
+  if (!list.length) { tbody.innerHTML = `<tr><td class="empty-cell" colspan="9">주문 내역이 없습니다</td></tr>`; return; }
+
+  tbody.innerHTML = list.map(o => {
+    const itemNames = (o.items||[]).map(i => `${i.name||''}×${i.qty||1}`).join(', ') || '-';
+    const d = o.orderedAt ? new Date(o.orderedAt).toLocaleDateString('ko-KR') : '-';
+    const sBadge = o.status === 'completed' ? '<span class="badge ok">완료</span>'
+      : o.status === 'confirmed'  ? '<span class="badge ch">확인</span>'
+      : o.status === 'cancelled'  ? '<span class="badge can">취소</span>'
+      : '<span class="badge pend">대기</span>';
+    const safeId = (o.id||'').replace(/'/g,'');
+    return `<tr>
+      <td class="td-date">${o.id||'-'}</td>
+      <td class="td-name">${o.name||'-'}${o.userName ? `<br><span style="font-size:11px;color:var(--t3)">${o.userName}</span>` : ''}</td>
+      <td>${o.phone||'-'}</td>
+      <td class="td-memo" title="${itemNames}">${itemNames}</td>
+      <td><strong>${(Number(o.total)||0).toLocaleString()}원</strong></td>
+      <td>${o.pickup||'-'}${o.addr ? `<br><span style="font-size:11px;color:var(--t3)">${o.addr}</span>` : ''}</td>
+      <td>${sBadge}</td>
+      <td class="td-date">${d}</td>
+      <td><button class="abtn det" onclick="showOrderDetail('${safeId}')">상세</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function showOrderDetail(id) {
+  const o = GD.orders.find(x => String(x.id) === String(id));
+  if (!o) return;
+  const itemStr = (o.items||[]).map(i => `${i.name||'?'} × ${i.qty||1} = ${((i.price||0)*(i.qty||1)).toLocaleString()}원`).join('<br>');
+  const rows = [
+    ['주문번호', o.id],
+    ['주문자(앱)', o.userName||'-'],
+    ['수령인', o.name],
+    ['연락처', o.phone],
+    ['수령방법', o.pickup + (o.addr ? ' — ' + o.addr : '')],
+    ['주문 상품', itemStr],
+    ['총금액', (Number(o.total)||0).toLocaleString() + '원'],
+    ['입금자', o.depositor||'-'],
+    ['현금영수증', o.cashReceipt||'-'],
+    ['상태', o.status],
+    ['주문일', o.orderedAt ? new Date(o.orderedAt).toLocaleString('ko-KR') : '-'],
+  ];
+  document.getElementById('ord-modal-body').innerHTML = rows.map(([l,v]) =>
+    `<div class="detail-row"><div class="detail-label">${l}</div><div class="detail-value">${v||'-'}</div></div>`).join('');
+
+  const btns = document.getElementById('ord-modal-btns');
+  btns.innerHTML = '';
+  const statuses = [
+    ['confirmed','확인',  'cbtn grn'],
+    ['completed','완료',  'cbtn pri'],
+    ['cancelled','취소',  'cbtn dan'],
+  ];
+  statuses.forEach(([s, label, cls]) => {
+    if (o.status === s) return;
+    const b = document.createElement('button');
+    b.className = cls; b.textContent = label + ' 처리';
+    b.onclick = () => updateOrderStatus(id, s);
+    btns.appendChild(b);
+  });
+  const close = document.createElement('button');
+  close.className = 'mfbtn close'; close.textContent = '닫기';
+  close.onclick = () => closeModal('ord-modal');
+  btns.appendChild(close);
+
+  document.getElementById('ord-modal').classList.add('open');
+}
+
+async function updateOrderStatus(id, status) {
+  showLoading(true);
+  const { error } = await db.from('orders').update({ status }).eq('id', id);
+  showLoading(false);
+  if (error) { toast('실패: ' + error.message); return; }
+  const o = GD.orders.find(x => String(x.id) === String(id));
+  if (o) o.status = status;
+  closeModal('ord-modal');
+  renderOrders();
+  toast('주문 상태 업데이트 완료 ✓');
+}
+
+function exportOrdersCsv() {
+  const rows = [['주문번호','주문자(앱)','수령인','연락처','상품','금액','수령방법','주소','상태','주문일']];
+  GD.orders.forEach(o => {
+    const items = (o.items||[]).map(i => `${i.name||''}×${i.qty||1}`).join('; ');
+    rows.push([o.id, o.userName||'', o.name||'', o.phone||'', items,
+      Number(o.total)||0, o.pickup||'', o.addr||'', o.status||'',
+      o.orderedAt ? new Date(o.orderedAt).toLocaleDateString('ko-KR') : '']);
+  });
+  const csv = rows.map(r => r.map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `구매내역_${new Date().toLocaleDateString('ko-KR').replace(/\./g,'').replace(/ /g,'')}.csv`;
+  a.click();
+}
+
+/* ══════════════════════════════════════════════
+   REWARDS (보상)
+══════════════════════════════════════════════ */
+function getRewardRows() {
+  const rows = [];
+  GD.users.forEach(u => {
+    // pending: pendingRewards (아직 지급 안됨)
+    const pending = typeof u.pendingRewards === 'string'
+      ? u.pendingRewards.split(',').filter(Boolean)
+      : (u.pendingRewards || []);
+    // done: redeemedRewards (지급 완료)
+    const done = typeof u.redeemedRewards === 'string'
+      ? u.redeemedRewards.split(',').filter(Boolean)
+      : (u.redeemedRewards || []);
+    pending.forEach(rid => {
+      const r = REWARD_LIST.find(x => x.id === rid);
+      rows.push({ deviceId: u.deviceId, userName: u.name||'(이름없음)', empId: u.empId||'-',
+        rewardId: rid, rewardName: r?.name || rid, cost: r?.cost || 0, status: 'pending' });
+    });
+    done.forEach(rid => {
+      const r = REWARD_LIST.find(x => x.id === rid);
+      rows.push({ deviceId: u.deviceId, userName: u.name||'(이름없음)', empId: u.empId||'-',
+        rewardId: rid, rewardName: r?.name || rid, cost: r?.cost || 0, status: 'done' });
+    });
+  });
+  return rows;
+}
+
+function renderRewards() {
+  const q  = document.getElementById('rew-search').value.toLowerCase();
+  const sf = document.getElementById('rew-sfilter').value;
+  const all = getRewardRows();
+  const list = all.filter(r => {
+    if (sf && r.status !== sf) return false;
+    if (q && ![(r.userName||''),(r.rewardName||'')].some(s => s.toLowerCase().includes(q))) return false;
+    return true;
+  });
+
+  document.getElementById('rew-pend').textContent = all.filter(r => r.status === 'pending').length;
+  document.getElementById('rew-done').textContent = all.filter(r => r.status === 'done').length;
+  document.getElementById('rew-count').textContent = list.length + '건';
+
+  const tbody = document.getElementById('rew-tbody');
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td class="empty-cell" colspan="6">보상 교환 내역이 없습니다</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(r => {
+    const sBadge = r.status === 'done'
+      ? '<span class="badge ok">완료</span>'
+      : '<span class="badge pend">대기</span>';
+    const safeDevId = (r.deviceId||'').replace(/'/g,'');
+    const safeRid   = (r.rewardId||'').replace(/'/g,'');
+    return `<tr>
+      <td class="td-name">${r.userName}</td>
+      <td>${r.empId}</td>
+      <td>${r.rewardName}</td>
+      <td><span class="badge pts">-${r.cost}p</span></td>
+      <td>${sBadge}</td>
+      <td>
+        ${r.status === 'pending'
+          ? `<button class="abtn det" onclick="markRewardDone('${safeDevId}','${safeRid}')">지급 완료</button>`
+          : '-'}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function markRewardDone(deviceId, rewardId) {
+  const u = GD.users.find(x => x.deviceId === deviceId);
+  if (!u) return;
+  // pendingRewards에서 제거, redeemedRewards에 추가
+  let pending = typeof u.pendingRewards === 'string'
+    ? u.pendingRewards.split(',').filter(Boolean)
+    : [...(u.pendingRewards || [])];
+  let done = typeof u.redeemedRewards === 'string'
+    ? u.redeemedRewards.split(',').filter(Boolean)
+    : [...(u.redeemedRewards || [])];
+  pending = pending.filter(id => id !== rewardId);
+  if (!done.includes(rewardId)) done.push(rewardId);
+  showLoading(true);
+  const { error } = await db.from('users').update({
+    pendingRewards: pending.join(','),
+    redeemedRewards: done.join(','),
+  }).eq('deviceId', deviceId);
+  showLoading(false);
+  if (error) { toast('실패: ' + error.message); return; }
+  u.pendingRewards = pending.join(',');
+  u.redeemedRewards = done.join(',');
+  renderRewards();
+  toast('보상 지급 완료 처리 ✓');
 }
 
 /* ══════════════════════════════════════════════
