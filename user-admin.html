@@ -1560,15 +1560,6 @@ async function adjustPoints(sign) {
 }
 
 /* ── RESET ── */
-function resetAllData() {
-  if (firebaseMode) { toast('Supabase 모드에서는 지원하지 않습니다'); return; }
-  if (!confirm('모든 데이터(운동 기록, 게시글, 포인트 등)를 초기화합니다.\n이 작업은 되돌릴 수 없습니다. 계속하시겠습니까?')) return;
-  localStorage.removeItem(STORAGE_KEY);
-  D = { user:{ name:'', avatar:'🏃', points:0, streak:0, tags:[] }, workouts:[], posts:[], redeemedRewards:[] };
-  saveData();
-  renderAll();
-  toast('전체 데이터가 초기화됐습니다');
-}
 
 function resetWorkoutsOnly() {
   if (firebaseMode) { toast('Supabase 모드에서는 지원하지 않습니다'); return; }
