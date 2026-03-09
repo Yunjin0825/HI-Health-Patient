@@ -1120,9 +1120,13 @@ function getFilteredSortedUsers() {
     return true;
   });
 
-  // 중복 삭제 버튼 표시
+  // 중복 삭제 버튼 — 중복이 있으면 항상 표시
   const dupBtn = document.getElementById('dup-clean-btn');
-  if (dupBtn) dupBtn.style.display = filterMode === 'dup' && users.length ? '' : 'none';
+  if (dupBtn) {
+    const hasDups = dupEmpIds.size > 0;
+    dupBtn.style.display = hasDups ? '' : 'none';
+    dupBtn.textContent = `중복 삭제 (${dupEmpIds.size}건)`;
+  }
 
   users = [...users].sort((a, b) => {
     if (sort === 'points') return (Number(b.points)||0) - (Number(a.points)||0);
