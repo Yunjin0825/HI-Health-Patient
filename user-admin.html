@@ -878,10 +878,7 @@ function initFirebaseAdmin() {
 async function resetAllData() {
   if (!_adminDb) { toast('먼저 Supabase에 연결해주세요'); return; }
   const count = (GD?.users || []).length;
-  const answer = prompt(
-    `⚠️ 전체 데이터 초기화\n\n현재 이용자 ${count}명과 모든 운동·혈당·게시글·주문·챌린지 신청 데이터가 삭제됩니다.\n\n삭제를 진행하려면 아래 입력란에 "초기화확인" 을 입력하세요:`
-  );
-  if (answer !== '초기화확인') { if (answer !== null) toast('취소되었습니다'); return; }
+  if (!confirm(`⚠️ 전체 데이터 초기화\n\n이용자 ${count}명과 모든 운동·혈당·게시글·주문·챌린지 신청 데이터가 영구 삭제됩니다.\n\n정말 삭제하시겠습니까?`)) return;
   showLoading(true);
   try {
     // 각 테이블의 ID를 먼저 가져와서 in() 으로 삭제 (RLS 우회)
