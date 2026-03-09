@@ -1445,7 +1445,7 @@
     .order-card-deposit { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
     .order-card-img-wrap { margin-top: 8px; border-radius: 8px; overflow: hidden; }
     .order-card-img { width: 100%; max-height: 120px; object-fit: cover; display: block; }
-    .ch-cancel-reg-btn { margin-top: 8px; background: transparent; border: 1.5px solid #EF4444; color: #EF4444; font-weight: 700; }
+    .ch-cancel-reg-btn { padding: 4px 14px; font-size: 12px; font-weight: 700; border-radius: 20px; border: 1.5px solid #EF4444; background: transparent; color: #EF4444; cursor: pointer; }
     .reward-history { margin: 20px 0 8px; }
     .reward-history-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
     .reward-hist-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--card); border-radius: var(--radius-sm); margin-bottom: 8px; box-shadow: var(--shadow); }
@@ -6743,7 +6743,7 @@ function renderChallenge() {
   if (myReg && myReg.status !== 'cancelled') {
     const statusLbl   = { pending:'검토 중', confirmed:'선정 완료', cancelled:'미선정' }[myReg.status] || myReg.status;
     const statusColor = myReg.status === 'confirmed' ? '#166534' : myReg.status === 'cancelled' ? '#991b1b' : '#92400e';
-    const canCancelReg = myReg.status === 'pending' && phase === 'registration';
+    const canCancelReg = myReg.status === 'pending' && now <= CH.deadline;
     const showWorkout  = phase === 'pre' || phase === 'main';
     regEl.innerHTML = `
       <div class="ch-reg-card">
@@ -6763,9 +6763,11 @@ function renderChallenge() {
           <div class="ch-reg-row"><span class="ch-reg-label">크루즈 탑승</span><span class="ch-reg-value">${myReg.cruiseParticipation === false ? '탑승 안 함' : '탑승 희망'}</span></div>
           <div class="ch-reg-row"><span class="ch-reg-label">행사 참여</span><span class="ch-reg-value">${myReg.eventParticipation === false ? '불참' : '참여'}</span></div>
         </div>
-        <button type="button" class="ch-share-btn" onclick="shareChReg('${myReg.id}','${myReg.name}','${myReg.dept}')">📤 신청서 공유하기</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;gap:8px">
+          <button type="button" class="ch-share-btn" style="flex:1;margin-top:0" onclick="shareChReg('${myReg.id}','${myReg.name}','${myReg.dept}')">📤 신청서 공유하기</button>
+          ${canCancelReg ? `<button type="button" class="ch-cancel-reg-btn" onclick="cancelRegistration('${myReg.id}')">신청 취소</button>` : ''}
+        </div>
         ${showWorkout ? `<button type="button" class="btn btn-primary btn-full ch-workout-btn" style="margin-top:8px" onclick="scrollToExerciseForm()">오늘 운동 기록하기</button>` : ''}
-        ${canCancelReg ? `<button type="button" class="btn btn-full ch-cancel-reg-btn" style="margin-top:8px" onclick="cancelRegistration('${myReg.id}')">신청 취소</button>` : ''}
       </div>
     `;
   } else if (phase === 'registration') {
