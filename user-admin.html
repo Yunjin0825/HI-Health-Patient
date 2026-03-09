@@ -760,6 +760,7 @@ async function loadAll() {
       db.from('orders').select('*').order('orderedAt', { ascending: false }),
       db.from('admin_posts').select('*').order('createdAt', { ascending: false }),
     ]);
+    if (u.error) { console.error('[users]', u.error); setStatus('users 오류: ' + u.error.message, false); return; }
     GD.users         = u.data  || [];
     GD.workouts      = w.data  || [];
     GD.posts         = p.data  || [];
