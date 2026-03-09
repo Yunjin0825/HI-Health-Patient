@@ -3394,9 +3394,15 @@ function save() {
     localStorage.setItem('hi_health_tags_' + S.user.empId, JSON.stringify(S.user.tags));
   }
   // 사용자 정보 Supabase 동기화 (tags는 문자열로 저장)
+  // 이름에서 이모지·이미지경로 제거 후 저장
+  const _cleanName = (S.user.name || '')
+    .replace(/images\/avatars\/\S+/gi, '')
+    .replace(/\S+\.(png|jpg|jpeg|svg|gif|webp)/gi, '')
+    .replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27FF}]/gu, '')
+    .trim();
   apiSync('syncUser', {
     deviceId: S.deviceId,
-    name: S.user.name,
+    name: _cleanName,
     avatar: S.user.avatar,
     empId: S.user.empId || '',
     dept: S.user.dept || '',
