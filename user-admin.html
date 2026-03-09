@@ -1133,12 +1133,10 @@ async function deleteUser(deviceId, name) {
   if (!_adminDb) { toast('Supabase 연결 필요'); return; }
   showLoading(true);
   try {
-    await Promise.all([
-      _adminDb.from('users').delete().eq('deviceId', deviceId),
-      _adminDb.from('workouts').delete().eq('deviceId', deviceId),
-      _adminDb.from('glucose').delete().eq('deviceId', deviceId),
-      _adminDb.from('posts').delete().eq('deviceId', deviceId),
-    ]);
+    for (const tbl of ['workouts', 'glucose', 'posts', 'users']) {
+      const { error } = await _adminDb.from(tbl).delete().eq('deviceId', deviceId);
+      if (error) throw new Error(`${tbl} 삭제 실패: ${error.message}`);
+    }
     GD.users = GD.users.filter(u => u.deviceId !== deviceId);
     GD.workouts = GD.workouts.filter(w => w.deviceId !== deviceId);
     GD.glucose = (GD.glucose||[]).filter(g => g.deviceId !== deviceId);
@@ -1146,7 +1144,7 @@ async function deleteUser(deviceId, name) {
     if (selectedDeviceId === deviceId) { selectedDeviceId = ''; document.getElementById('users-detail-section').style.display = 'none'; }
     buildUserFilter(); renderStats(); renderUsers();
     toast(`"${name}" 삭제 완료`);
-  } catch(e) { toast('삭제 실패: ' + e.message); }
+  } catch(e) { toast(e.message); console.error(e); }
   finally { showLoading(false); }
 }
 
