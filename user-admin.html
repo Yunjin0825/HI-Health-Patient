@@ -206,8 +206,6 @@
     .sheets-title { font-size:14px; font-weight:700; }
     .sheets-sub { font-size:12px; color:var(--text-3); margin-top:1px; }
     .sheets-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-    .sheets-url-input { flex:1; min-width:220px; padding:9px 14px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:inherit; font-size:13px; outline:none; }
-    .sheets-url-input:focus { border-color:#34A853; }
     .btn-sheets-load { padding:9px 18px; background:#34A853; color:#fff; border:none; border-radius:var(--radius-sm); font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap; transition:all 0.2s; }
     .btn-sheets-load:hover { background:#2D8A44; }
     .sheets-status { font-size:12px; font-weight:600; padding:5px 12px; border-radius:20px; }
@@ -298,9 +296,6 @@
       </div>
       <div class="sheets-row">
         <button type="button" class="btn-sheets-load" onclick="loadFromFirebase()">새로고침</button>
-        <button type="button" class="btn-sheets-load" style="background:#F59E0B" onclick="migrateLocalToSupabase()">📦 localStorage 마이그레이션</button>
-        <input type="text" id="sheets-migrate-url" class="sheets-url-input" placeholder="Apps Script URL 붙여넣기" style="max-width:300px">
-        <button type="button" class="btn-sheets-load" style="background:#34A853" onclick="migrateFromSheets()">📊 Google Sheets 마이그레이션</button>
         <button type="button" class="btn-sheets-load" style="background:#EF4444" onclick="resetAllData()">🗑️ 전체 데이터 초기화</button>
         <span class="sheets-status hidden" id="sheets-status"></span>
       </div>
@@ -957,127 +952,6 @@ function showLoading(on) {
   document.getElementById('loading-overlay').classList.toggle('show', on);
 }
 
-async function migrateLocalToSupabase() {
-  if (!_adminDb) { toast('먼저 Supabase에 연결해주세요'); return; }
-  if (!confirm('이 기기의 localStorage 데이터를 Supabase로 업로드합니다.\n계속하시겠습니까?')) return;
-  showLoading(true);
-  const counts = { users: 0, workouts: 0, posts: 0, glucose: 0, orders: 0, regs: 0 };
-  try {
-    // 1. hi_health_v2* 키 전체 탐색 (사번별 데이터 포함)
-    const storageKeys = Object.keys(localStorage).filter(k => k.startsWith('hi_health_v2'));
-    for (const key of storageKeys) {
-      const data = JSON.parse(localStorage.getItem(key) || 'null');
-      if (!data) continue;
-      const empIdSuffix = key.replace('hi_health_v2_', '').replace('hi_health_v2', '');
-      const didKey = empIdSuffix ? 'hi_device_id_' + empIdSuffix : 'hi_device_id';
-      const deviceId = localStorage.getItem(didKey);
-      if (!deviceId) continue;
-
-      // 사용자
-      if (data.user && data.user.name) {
-        await _adminDb.from('users').upsert(
-          { deviceId, ...data.user, empId: empIdSuffix || data.user.empId || '' },
-          { onConflict: 'deviceId' }
-        );
-        counts.users++;
-      }
-      // 운동
-      if (data.workouts?.length) {
-        await _adminDb.from('workouts').upsert(data.workouts, { onConflict: 'id' });
-        counts.workouts += data.workouts.length;
-      }
-      // 게시글 (id 있는 것만)
-      const validPosts = (data.posts || []).filter(p => p.id && p.deviceId);
-      if (validPosts.length) {
-        await _adminDb.from('posts').upsert(validPosts, { onConflict: 'id' });
-        counts.posts += validPosts.length;
-      }
-      // 혈당
-      if (data.glucoseRecords?.length) {
-        await _adminDb.from('glucose').upsert(data.glucoseRecords, { onConflict: 'id' });
-        counts.glucose += data.glucoseRecords.length;
-      }
-    }
-
-    // 2. 주문 (depositImg 제외 - base64 이미지는 용량 초과 가능)
-    const orders = JSON.parse(localStorage.getItem('hi_health_shop_orders') || '[]');
-    if (orders.length) {
-      const rows = orders.map(({ depositImg, ...o }) => ({
-        ...o,
-        items: typeof o.items === 'string' ? o.items : JSON.stringify(o.items || []),
-      }));
-      await _adminDb.from('orders').upsert(rows, { onConflict: 'id' });
-      counts.orders = rows.length;
-    }
-
-    // 3. 챌린지 신청
-    const regs = JSON.parse(localStorage.getItem('hi_health_registrations_v2') || '[]');
-    if (regs.length) {
-      await _adminDb.from('registrations').upsert(regs, { onConflict: 'id' });
-      counts.regs = regs.length;
-    }
-
-    toast(`✅ 완료! 사용자 ${counts.users}명, 운동 ${counts.workouts}개, 게시글 ${counts.posts}개, 주문 ${counts.orders}개, 신청 ${counts.regs}개`);
-    await loadFromFirebase();
-  } catch(e) {
-    toast('오류: ' + e.message);
-    console.error(e);
-  } finally {
-    showLoading(false);
-  }
-}
-
-async function migrateFromSheets() {
-  if (!_adminDb) { toast('먼저 Supabase에 연결해주세요'); return; }
-  const scriptUrl = document.getElementById('sheets-migrate-url').value.trim();
-  if (!scriptUrl) { toast('Apps Script URL을 입력해주세요'); return; }
-  showLoading(true);
-  try {
-    const res = await fetch(scriptUrl + '?action=getAll', { credentials: 'omit' });
-    const json = await res.json();
-    if (!json.ok) throw new Error(json.error || '응답 오류');
-    const d = json.data;
-    const counts = { users: 0, workouts: 0, posts: 0, orders: 0, regs: 0, glucose: 0, adminPosts: 0 };
-
-    if (d.users?.length) {
-      await _adminDb.from('users').upsert(d.users, { onConflict: 'deviceId' });
-      counts.users = d.users.length;
-    }
-    if (d.workouts?.length) {
-      await _adminDb.from('workouts').upsert(d.workouts, { onConflict: 'id' });
-      counts.workouts = d.workouts.length;
-    }
-    if (d.posts?.length) {
-      const valid = d.posts.filter(p => p.id && p.deviceId);
-      if (valid.length) { await _adminDb.from('posts').upsert(valid, { onConflict: 'id' }); counts.posts = valid.length; }
-    }
-    if (d.orders?.length) {
-      const rows = d.orders.map(o => ({ ...o, items: typeof o.items === 'string' ? o.items : JSON.stringify(o.items || []) }));
-      await _adminDb.from('orders').upsert(rows, { onConflict: 'id' });
-      counts.orders = rows.length;
-    }
-    if (d.registrations?.length) {
-      await _adminDb.from('registrations').upsert(d.registrations, { onConflict: 'id' });
-      counts.regs = d.registrations.length;
-    }
-    if (d.glucose?.length) {
-      await _adminDb.from('glucose').upsert(d.glucose, { onConflict: 'id' });
-      counts.glucose = d.glucose.length;
-    }
-    if (d.adminPosts?.length) {
-      await _adminDb.from('admin_posts').upsert(d.adminPosts, { onConflict: 'id' });
-      counts.adminPosts = d.adminPosts.length;
-    }
-
-    toast(`✅ Sheets 마이그레이션 완료! 사용자 ${counts.users}명, 운동 ${counts.workouts}개, 주문 ${counts.orders}개, 신청 ${counts.regs}개`);
-    await loadFromFirebase();
-  } catch(e) {
-    toast('오류: ' + e.message);
-    console.error(e);
-  } finally {
-    showLoading(false);
-  }
-}
 
 function filterByUser(arr) {
   if (!selectedDeviceId) return arr;
