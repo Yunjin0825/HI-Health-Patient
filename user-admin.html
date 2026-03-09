@@ -709,11 +709,23 @@ function initSupabase() {
   loadAll();
 
   // 실시간 변경 감지
+  let realtimeOk = false;
   ['users','workouts','posts','glucose','registrations','orders','admin_posts'].forEach(tbl => {
     db.channel('adm_' + tbl)
-      .on('postgres_changes', { event: '*', schema: 'public', table: tbl }, () => loadAll())
-      .subscribe();
+      .on('postgres_changes', { event: '*', schema: 'public', table: tbl }, () => {
+        realtimeOk = true;
+        loadAll();
+      })
+      .subscribe(status => {
+        if (status === 'SUBSCRIBED') realtimeOk = true;
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn('[Realtime]', tbl, status);
+        }
+      });
   });
+
+  // 폴링 백업: 30초마다 갱신 (Realtime 미설정 환경 대비)
+  setInterval(() => loadAll(), 30000);
 }
 
 async function loadAll() {
