@@ -117,6 +117,7 @@
     .app-login-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
     .app-login-loading { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 12px; display: none; }
     .app-login-err { font-size: 13px; color: #fca5a5; margin-top: 10px; display: none; }
+    .app-login-info { font-size: 13px; color: #6ee7b7; margin-top: 10px; display: none; }
     .app-login-input-name { letter-spacing: 0; text-align: left; }
     .app-login-keep {
       display: flex; align-items: center; justify-content: center;
@@ -1838,6 +1839,7 @@
     <button type="button" class="app-login-btn" id="login-btn" onclick="doAppLogin()">시작하기 🏃</button>
     <div class="app-login-loading" id="login-loading">데이터 불러오는 중...</div>
     <div class="app-login-err" id="login-err">사번을 입력해주세요</div>
+    <div class="app-login-info" id="login-info"></div>
   </div>
 </div>
 
@@ -7259,7 +7261,8 @@ async function doAppLogin() {
   const nameInput = document.getElementById('login-name-input');
   const regId = input.value.trim().toUpperCase();
   const inputName = nameInput.value.trim();
-  const errEl = document.getElementById('login-err');
+  const errEl  = document.getElementById('login-err');
+  const infoEl = document.getElementById('login-info');
   const loadEl = document.getElementById('login-loading');
   const btn = document.getElementById('login-btn');
   const keepLogin = document.getElementById('login-keep-checkbox').checked;
@@ -7300,6 +7303,12 @@ async function doAppLogin() {
         errEl.style.display = 'block';
         setTimeout(() => { nameInput.classList.remove('error'); errEl.style.display = 'none'; }, 3000);
         return;
+      }
+      // 이름 일치 → 기존 계정 안내
+      if (infoEl) {
+        infoEl.textContent = '✅ 이미 가입된 사번입니다. 기존 데이터로 로그인합니다.';
+        infoEl.style.display = 'block';
+        setTimeout(() => { infoEl.style.display = 'none'; }, 3000);
       }
     }
   }
