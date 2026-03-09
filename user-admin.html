@@ -860,18 +860,23 @@ function onUserSearch() {
   uSearchTimer = setTimeout(() => { uPage = 0; renderUsers(); }, 200);
 }
 
+function isChallenger(u) {
+  return !!(u.registrationId && u.registrationId.trim());
+}
+
 function filteredUsers() {
   const q = (document.getElementById('u-search')?.value || '').toLowerCase();
   const mode = document.getElementById('u-filter')?.value || 'all';
   const dupIds = getDupEmpIds();
-  const chIds = getChEmpIds();
   return GD.users.filter(u => {
+    // 서브탭 필터 (최우선)
+    if (uTab === 'gen') { if (isChallenger(u)) return false; }
+    if (uTab === 'ch')  { if (!isChallenger(u)) return false; }
+    // 검색
     if (q && ![(u.name||''),(u.empId||''),(u.dept||'')].some(s => s.toLowerCase().includes(q))) return false;
-    if (uTab === 'ch')  return chIds.has((u.empId||'').trim());
-    if (uTab === 'gen') return !chIds.has((u.empId||'').trim());
+    // 드롭다운 필터
     if (mode === 'bad') return isBadName(u.name);
     if (mode === 'dup') return dupIds.has((u.empId||'').trim());
-    if (mode === 'ch')  return chIds.has((u.empId||'').trim());
     return true;
   });
 }
@@ -891,9 +896,15 @@ function sortedUsers(arr) {
 
 function renderUsers() {
   const dupIds = getDupEmpIds();
-  const chIds = getChEmpIds();
   const woCnt = {};
   GD.workouts.forEach(w => woCnt[w.deviceId] = (woCnt[w.deviceId]||0)+1);
+
+  // 서브탭 카운트 업데이트
+  const genCnt = GD.users.filter(u => !isChallenger(u)).length;
+  const chCnt  = GD.users.filter(u =>  isChallenger(u)).length;
+  document.getElementById('utab-all').textContent = `전체 (${GD.users.length})`;
+  document.getElementById('utab-gen').textContent = `일반 (${genCnt})`;
+  document.getElementById('utab-ch').textContent  = `챌린저 (${chCnt})`;
 
   const dupBtn = document.getElementById('dup-btn');
   dupBtn.style.display = dupIds.size ? '' : 'none';
