@@ -1651,18 +1651,28 @@
     .ach-prog-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 2px; }
 
     /* Level guide */
-    .level-guide { display: grid; gap: 8px; }
+    .level-guide { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .lg-row {
-      display: flex; align-items: center; gap: 12px;
-      padding: 11px 13px; background: #fff;
-      border-radius: var(--radius-sm); box-shadow: var(--shadow);
+      display: flex; flex-direction: column; align-items: center;
+      gap: 6px; padding: 16px 10px 12px;
+      background: #fff; border-radius: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+      text-align: center; position: relative;
     }
-    .lg-icon { font-size: 32px; display: flex; align-items: center; }
-    .lg-info { flex: 1; }
-    .lg-name { font-size: 13px; font-weight: 600; }
-    .lg-range { font-size: 11px; color: var(--text-secondary); }
-    .lg-current { font-size: 11px; font-weight: 700; color: var(--primary); }
-    .lg-row.current-level { border: 1.5px solid var(--primary); background: var(--primary-light); }
+    .lg-icon { font-size: 44px; display: flex; align-items: center; justify-content: center; }
+    .lg-name { font-size: 13px; font-weight: 700; }
+    .lg-range { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+    .lg-current {
+      position: absolute; top: 8px; right: 8px;
+      font-size: 10px; font-weight: 700; color: #fff;
+      background: var(--primary); border-radius: 20px;
+      padding: 2px 7px;
+    }
+    .lg-row.current-level {
+      border: 2px solid var(--primary);
+      background: var(--primary-light);
+      box-shadow: 0 4px 16px rgba(124,58,237,0.15);
+    }
 
     /* Divider */
     .divider { height: 1px; background: var(--border); margin: 14px 0; }
@@ -6711,12 +6721,10 @@ function renderRewards() {
   const myLv = getLevel(S.user.points);
   document.getElementById('level-guide').innerHTML = LEVELS.map(l => `
     <div class="lg-row ${l.lv === myLv.lv ? 'current-level' : ''}">
+      ${l.lv === myLv.lv ? `<div class="lg-current">현재</div>` : ''}
       <div class="lg-icon">${l.icon}</div>
-      <div class="lg-info">
-        <div class="lg-name">레벨 ${l.lv} · ${l.name}</div>
-        <div class="lg-range">${l.min}p ~ ${l.max === Infinity ? '∞' : l.max+'p'}</div>
-      </div>
-      ${l.lv === myLv.lv ? `<div class="lg-current">현재 레벨</div>` : ''}
+      <div class="lg-name">Lv.${l.lv} ${l.name}</div>
+      <div class="lg-range">${l.min.toLocaleString()}p ~ ${l.max === Infinity ? '∞' : l.max.toLocaleString()+'p'}</div>
     </div>
   `).join('');
 
