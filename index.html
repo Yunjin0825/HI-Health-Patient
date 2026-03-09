@@ -78,45 +78,54 @@
     /* ── App Login Screen ── */
     .app-login-screen {
       position: fixed; inset: 0; z-index: 2000;
-      background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 100%);
-      display: flex; align-items: center; justify-content: center;
-      padding: 20px;
+      background: linear-gradient(150deg, #0f172a 0%, #1e1b4b 55%, #312e81 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 20px; overflow: hidden;
     }
     .app-login-screen.hidden { display: none; }
+    .app-login-hero { text-align: center; margin-bottom: 32px; position: relative; z-index: 1; }
+    .app-login-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 2.5px; color: rgba(255,255,255,0.45); text-transform: uppercase; margin-bottom: 8px; }
+    .app-login-run { font-size: 48px; font-weight: 900; letter-spacing: -2px; color: #fb923c; line-height: 1; margin-bottom: 6px; }
+    .app-login-date { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.55); margin-bottom: 4px; }
+    .app-login-route { font-size: 12px; color: rgba(255,255,255,0.35); }
     .app-login-card {
-      background: #fff; border-radius: 24px; padding: 44px 32px;
-      width: 100%; max-width: 360px; text-align: center;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      background: rgba(255,255,255,0.06); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.12); border-radius: 24px; padding: 28px 24px;
+      width: 100%; max-width: 360px; text-align: center; position: relative; z-index: 1;
     }
-    .app-login-logo { height: 64px; width: auto; margin-bottom: 18px; }
-    .app-login-title { font-size: 22px; font-weight: 900; color: #111827; margin-bottom: 6px; }
-    .app-login-sub { font-size: 13px; color: #6B7280; margin-bottom: 28px; line-height: 1.5; }
+    .app-login-logo { height: 36px; width: auto; margin-bottom: 14px; filter: brightness(0) invert(1); opacity: 0.85; }
+    .app-login-title { font-size: 15px; font-weight: 700; color: rgba(255,255,255,0.9); margin-bottom: 4px; }
+    .app-login-sub { font-size: 12px; color: rgba(255,255,255,0.45); margin-bottom: 20px; line-height: 1.5; }
     .app-login-input {
-      width: 100%; padding: 14px 16px; margin-bottom: 12px;
-      border: 1.5px solid #E5E7EB; border-radius: 10px;
+      width: 100%; padding: 13px 16px; margin-bottom: 10px;
+      border: 1px solid rgba(255,255,255,0.15); border-radius: 10px;
+      background: rgba(255,255,255,0.08); color: #fff;
       font-family: inherit; font-size: 15px; outline: none;
       text-align: center; letter-spacing: 2px; transition: border-color 0.2s;
     }
-    .app-login-input:focus { border-color: #4F46E5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
-    .app-login-input.error { border-color: #EF4444; background: #FEF2F2; letter-spacing: normal; }
+    .app-login-input::placeholder { color: rgba(255,255,255,0.3); }
+    .app-login-input:focus { border-color: #fb923c; box-shadow: 0 0 0 3px rgba(251,146,60,0.2); }
+    .app-login-input.error { border-color: #EF4444; background: rgba(239,68,68,0.1); letter-spacing: normal; }
     .app-login-btn {
       width: 100%; padding: 14px;
-      background: linear-gradient(135deg, #4F46E5, #3730A3);
+      background: linear-gradient(135deg, #F59E0B, #D97706);
       color: #fff; border: none; border-radius: 10px;
       font-family: inherit; font-size: 15px; font-weight: 700;
-      cursor: pointer; transition: all 0.2s;
+      cursor: pointer; transition: all 0.2s; margin-top: 4px;
     }
-    .app-login-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(79,70,229,0.35); }
+    .app-login-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(245,158,11,0.4); }
     .app-login-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-    .app-login-loading { font-size: 13px; color: #6B7280; margin-top: 12px; display: none; }
-    .app-login-err { font-size: 13px; color: #EF4444; margin-top: 10px; display: none; }
+    .app-login-loading { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 12px; display: none; }
+    .app-login-err { font-size: 13px; color: #fca5a5; margin-top: 10px; display: none; }
     .app-login-input-name { letter-spacing: 0; text-align: left; }
     .app-login-keep {
       display: flex; align-items: center; justify-content: center;
-      gap: 8px; margin: 14px 0 4px; cursor: pointer;
+      gap: 8px; margin: 12px 0 4px; cursor: pointer;
     }
-    .app-login-keep input[type=checkbox] { width: 16px; height: 16px; accent-color: #4F46E5; cursor: pointer; }
-    .app-login-keep span { font-size: 13px; color: #6B7280; }
+    .app-login-keep input[type=checkbox] { width: 16px; height: 16px; accent-color: #F59E0B; cursor: pointer; }
+    .app-login-keep span { font-size: 12px; color: rgba(255,255,255,0.45); }
+    .app-login-bg-circle { position:absolute; border-radius:50%; pointer-events:none; }
+
     /* 헤더 로그아웃 버튼 */
     .header-logout {
       font-size: 11px; color: #9CA3AF; background: none; border: 1px solid #E5E7EB;
@@ -1802,12 +1811,20 @@
 <!-- Header -->
 <!-- 앱 로그인 화면 -->
 <div class="app-login-screen" id="app-login-screen">
+  <div class="app-login-bg-circle" style="width:320px;height:320px;top:-100px;right:-80px;background:radial-gradient(circle,rgba(251,146,60,.18) 0%,transparent 70%)"></div>
+  <div class="app-login-bg-circle" style="width:240px;height:240px;bottom:-80px;left:-60px;background:radial-gradient(circle,rgba(139,92,246,.15) 0%,transparent 70%)"></div>
+  <div class="app-login-hero">
+    <div class="app-login-eyebrow">HI여성의원 8주년 개원기념</div>
+    <div class="app-login-run">HI RUN DAY!</div>
+    <div class="app-login-date">2026년 4월 15일 (수)</div>
+    <div class="app-login-route">여의도 → 선유도공원</div>
+  </div>
   <div class="app-login-card">
     <img src="images/logo.png" alt="HI Health" class="app-login-logo">
     <div class="app-login-title">HI Health</div>
-    <div class="app-login-sub">등록번호와 이름을 입력해 시작하세요</div>
+    <div class="app-login-sub">사번과 이름을 입력해 시작하세요</div>
     <input type="text" class="app-login-input" id="login-empid-input"
-      placeholder="등록번호 입력"
+      placeholder="사번 입력"
       onkeydown="if(event.key==='Enter')document.getElementById('login-name-input').focus()"
       autocomplete="off">
     <input type="text" class="app-login-input app-login-input-name" id="login-name-input"
@@ -1818,9 +1835,9 @@
       <input type="checkbox" id="login-keep-checkbox" checked>
       <span>로그인 유지</span>
     </label>
-    <button type="button" class="app-login-btn" id="login-btn" onclick="doAppLogin()">시작하기</button>
+    <button type="button" class="app-login-btn" id="login-btn" onclick="doAppLogin()">시작하기 🏃</button>
     <div class="app-login-loading" id="login-loading">데이터 불러오는 중...</div>
-    <div class="app-login-err" id="login-err">등록번호를 입력해주세요</div>
+    <div class="app-login-err" id="login-err">사번을 입력해주세요</div>
   </div>
 </div>
 
@@ -7317,12 +7334,8 @@ async function doAppLogin() {
 
   renderHeader();
   renderHome();
+  navigate('challenge');
 
-
-  const _hdr = document.querySelector('.app-header');
-  if (_hdr) { _hdr.classList.remove('solid'); _hdr.classList.add('flow'); }
-  const _content = document.querySelector('.app-content');
-  if (_content) _content.classList.add('no-top-margin');
   if (!S.user.name) setTimeout(() => openProfileModal(true), 400);
   setTimeout(() => {
     const lv = getLevel(S.user.points);
@@ -7445,11 +7458,8 @@ function init() {
   
     renderHeader();
     renderHome();
+    navigate('challenge');
     requestAnimationFrame(() => { window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; });
-    // 초기 홈 페이지: 헤더 투명 + 노치 배경
-  
-    const hdr = document.querySelector('.app-header');
-    if (hdr) { hdr.classList.remove('solid'); hdr.classList.add('flow'); }
     setTimeout(() => {
       const lv = getLevel(S.user.points);
       const nextLv = LEVELS.find(l => l.lv === lv.lv + 1);
