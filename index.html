@@ -5585,7 +5585,7 @@ function logout() {
   document.getElementById('app-login-screen').classList.remove('hidden');
   document.getElementById('login-empid-input').value = '';
   document.getElementById('login-name-input').value = '';
-  document.getElementById('login-keep-checkbox').checked = false;
+  document.getElementById('login-keep-checkbox').checked = true;
   renderHeader();
   renderHome();
 }
@@ -7618,7 +7618,7 @@ function appLogout() {
   document.getElementById('app-login-screen').classList.remove('hidden');
   document.getElementById('login-empid-input').value = '';
   document.getElementById('login-name-input').value = '';
-  document.getElementById('login-keep-checkbox').checked = false;
+  document.getElementById('login-keep-checkbox').checked = true;
   // 화면 초기화 (이전 데이터 DOM에서 제거)
   renderHeader();
   renderHome();
