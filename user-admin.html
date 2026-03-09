@@ -384,23 +384,6 @@
 
     <!-- ── PANEL: POSTS ── -->
     <div class="panel" id="panel-posts">
-      <div class="ap-compose">
-        <div style="font-size:14px;font-weight:700;margin-bottom:10px">관리자 커뮤니티 글 작성</div>
-        <div style="display:flex;gap:8px;margin-bottom:8px">
-          <select class="ctrl-sel" id="pa-extag" style="flex:1">
-            <option value="">운동 태그 (선택)</option>
-            <option value="걷기">걷기</option>
-            <option value="달리기">달리기</option>
-            <option value="자전거">자전거</option>
-            <option value="수영">수영</option>
-            <option value="근력">근력</option>
-            <option value="요가">요가</option>
-            <option value="기타">기타</option>
-          </select>
-        </div>
-        <textarea id="pa-text" placeholder="커뮤니티에 게시할 내용을 입력하세요..."></textarea>
-        <button class="cbtn pri" onclick="postAdminCommunity()">커뮤니티 게시</button>
-      </div>
       <div class="ctrl-bar">
         <input class="ctrl-inp" id="po-search" placeholder="이름·내용 검색" oninput="renderPosts()">
         <span class="ctrl-count" id="po-count">0건</span>
@@ -1289,28 +1272,6 @@ async function deletePost(id) {
   toast('게시글 삭제 완료');
 }
 
-async function postAdminCommunity() {
-  const body = document.getElementById('pa-text').value.trim();
-  const exTag = document.getElementById('pa-extag').value;
-  if (!body) { toast('내용을 입력하세요'); return; }
-  showLoading(true);
-  const payload = {
-    id: 'ADMIN-' + Date.now(),
-    deviceId: 'ADMIN',
-    userName: '관리자',
-    ts: Date.now(),
-    exTag: exTag || null,
-    body,
-  };
-  const { error } = await db.from('posts').insert(payload);
-  showLoading(false);
-  if (error) { toast('게시 실패: ' + error.message); return; }
-  GD.posts.unshift(payload);
-  document.getElementById('pa-text').value = '';
-  document.getElementById('pa-extag').value = '';
-  renderStats(); renderPosts();
-  toast('커뮤니티 게시 완료 ✓');
-}
 
 /* ══════════════════════════════════════════════
    CHALLENGE
