@@ -3428,9 +3428,20 @@ function save() {
     };
     const syncedKey = 'hi_synced_' + S.deviceId;
     if (localStorage.getItem(syncedKey)) {
-      // 기존 유저 — UPDATE만 (삭제된 유저 재생성 방지)
-      _db.from('users').update(payload).eq('deviceId', S.deviceId)
-        .then(({ error }) => { if (error) console.error('[syncUser/update]', error); });
+      // 기존 유저 — UPDATE 시도, 0행이면 upsert로 재등록 (관리자가 삭제 후 재가입 허용)
+      _db.from('users').update(payload).eq('deviceId', S.deviceId).select('deviceId')
+        .then(({ data, error }) => {
+          if (error) { console.error('[syncUser/update]', error); return; }
+          if (!data || data.length === 0) {
+            // Supabase에 행이 없으면 재등록
+            localStorage.removeItem(syncedKey);
+            _db.from('users').upsert(payload, { onConflict: 'deviceId' })
+              .then(({ error: e2 }) => {
+                if (!e2) localStorage.setItem(syncedKey, '1');
+                else console.error('[syncUser/re-upsert]', e2);
+              });
+          }
+        });
     } else {
       // 최초 등록 — upsert
       _db.from('users').upsert(payload, { onConflict: 'deviceId' })
