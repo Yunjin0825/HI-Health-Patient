@@ -4029,7 +4029,7 @@ function earnedAchs() {
 }
 function myLeagueRank() {
   const tab = S.leagueTab;
-  const base = _realLeagueUsers || MOCK_USERS;
+  const base = (_realLeagueUsers && _realLeagueUsers.length) ? _realLeagueUsers : MOCK_USERS;
   if (tab === 'level') {
     const myLv = getLevel(S.user.totalPoints || S.user.points).lv;
     const myPtsVal = S.user.totalPoints || S.user.points;
@@ -4226,7 +4226,7 @@ function renderHome() {
 
   // Quick action subtitles
   const _medals = {1:'🥇',2:'🥈',3:'🥉'};
-  const _base = _realLeagueUsers || MOCK_USERS;
+  const _base = (_realLeagueUsers && _realLeagueUsers.length) ? _realLeagueUsers : MOCK_USERS;
   if (S.user.registrationId) {
     const chTotal = _base.filter(u => u.isChallenger).length + 1;
     const chRank  = _base.filter(u => u.isChallenger && u.pts > (S.user.totalPoints || S.user.points)).length + 1;
@@ -5625,18 +5625,20 @@ async function fetchLeagueData() {
 
     const [{ data: allUsers }, { data: weeklyWo }] = await Promise.all([
       _db.from('users').select('empId,name,avatar,points,tags,registrationId,deviceId'),
-      _db.from('workouts').select('deviceId,points').gte('ts', weekStartTs),
+      _db.from('workouts').select('deviceId,points').gte('ts', String(weekStartTs)),
     ]);
 
-    if (!allUsers) return;
+    if (!allUsers || !allUsers.length) return;
 
     const wPtsByDevice = {};
     (weeklyWo || []).forEach(w => {
       wPtsByDevice[w.deviceId] = (wPtsByDevice[w.deviceId] || 0) + (Number(w.points) || 0);
     });
 
-    _realLeagueUsers = allUsers
-      .filter(u => u.empId !== ACTIVE_EMPID && u.name)
+    const filtered = allUsers.filter(u => u.deviceId !== S.deviceId && u.name);
+    if (!filtered.length) return; // 다른 유저 없으면 mock 유지
+
+    _realLeagueUsers = filtered
       .map(u => ({
         id: u.empId,
         name: u.name,
@@ -5670,7 +5672,7 @@ function renderLeague() {
       wPts: myWeekPts(), change:0, isMe: true, isChallenger: isRegistered,
       tags: S.user.tags || [],
     };
-    const baseUsers = _realLeagueUsers || MOCK_USERS;
+    const baseUsers = (_realLeagueUsers && _realLeagueUsers.length) ? _realLeagueUsers : MOCK_USERS;
     const challengers = [
       ...baseUsers.filter(u => u.isChallenger).map(u => ({ ...u, isMe: false })),
       ...(isRegistered ? [me] : []),
@@ -5782,7 +5784,7 @@ function renderLeague() {
     lv: getLevel(S.user.totalPoints || S.user.points).lv, pts: S.user.totalPoints || S.user.points,
     wPts: myWeekPts(), change:0, isMe: true, tags: S.user.tags || [],
   };
-  const baseUsers = _realLeagueUsers || MOCK_USERS;
+  const baseUsers = (_realLeagueUsers && _realLeagueUsers.length) ? _realLeagueUsers : MOCK_USERS;
   const myLvNum = getLevel(S.user.totalPoints || S.user.points).lv;
   const list = [
     ...baseUsers
