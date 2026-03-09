@@ -3403,7 +3403,8 @@ function save() {
     .trim();
   if (_db && S.deviceId) {
     _db.from('blocked_devices').select('deviceId').eq('deviceId', S.deviceId).maybeSingle()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) { console.warn('[blocked_devices] 체크 실패 — 동기화 중단:', error.message); return; }
         if (data) return; // 관리자에 의해 차단된 기기 — 동기화 생략
         apiSync('syncUser', {
           deviceId: S.deviceId,
