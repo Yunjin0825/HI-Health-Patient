@@ -480,7 +480,7 @@
       background: #1A1F36; color: #fff;
       padding: 11px 24px; border-radius: 30px;
       font-size: 14px; font-weight: 500;
-      z-index: 300; opacity: 0; transition: all 0.3s; pointer-events: none;
+      z-index: 1200; opacity: 0; transition: all 0.3s; pointer-events: none;
       white-space: nowrap; box-shadow: 0 6px 20px rgba(0,0,0,0.25);
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -491,7 +491,7 @@
       background: #1E1B4B; color: #fff;
       padding: 12px 16px 12px 18px; border-radius: 16px;
       font-size: 13px; font-weight: 500; line-height: 1.4;
-      z-index: 300; opacity: 0; transition: all 0.35s; pointer-events: none;
+      z-index: 1200; opacity: 0; transition: all 0.35s; pointer-events: none;
       box-shadow: 0 6px 24px rgba(79,70,229,0.35);
       display: flex; align-items: center; gap: 12px;
       max-width: calc(100vw - 32px);
@@ -4512,7 +4512,7 @@ function changeDur(delta) {
   updateMemoPlaceholder();
   updateSharePreview();
 }
-let _shareOn = false;
+let _shareOn = true;
 let _shareRewrite = false;
 
 function getTodayMyPost() {
@@ -4597,13 +4597,11 @@ function submitShareNow() {
     });
     showToast('커뮤니티에 공유되었어요!');
   }
-  _shareOn = false;
-  _shareRewrite = false;
+  // 공유 완료 후 "오늘 이미 공유" 상태로 전환 (패널 유지)
+  _shareRewrite = true;
   _shareMsgAuto = false;
-  msgEl.value = '';
-  document.getElementById('share-toggle-btn').classList.remove('on');
-  document.getElementById('share-expand').classList.remove('show');
-  document.getElementById('share-toggle-sub').textContent = '오늘 나의 하루를 친구들과 나눠보세요';
+  document.getElementById('share-toggle-sub').textContent = '오늘 이미 공유했어요 · 다시 작성하면 덮어씌워져요';
+  document.getElementById('share-submit-btn').textContent = '수정하기';
   save();
   const commFeed = document.getElementById('posts-feed');
   if (commFeed) renderCommunity();
@@ -4805,81 +4803,13 @@ function logExercise() {
   S.user.points += pts;
   S.user.totalPoints = (S.user.totalPoints || 0) + pts;
   updateStreak();
-  const wasShared = _shareOn;
-  // Community share
-  if (_shareOn) {
-    const ex = EX_TYPES.find(e => e.id === S.selectedEx);
-    const exName = customName || (ex ? ex.name : '운동');
-    const exIcon = ex ? ex.icon : '💪';
-    const shareMsgEl = document.getElementById('share-msg');
-    const shareMsg = shareMsgEl.value.trim()
-      || shareMsgEl.placeholder
-      || '오늘 ' + exName + ' ' + S.duration + '분 완료했어요! 💪';
-    const curLv = getLevel(S.user.points);
-    const hasSleep = document.getElementById('hc-sleep-sec').classList.contains('show');
-    const exTag = exIcon + ' ' + exName + ' ' + S.duration + '분';
-    if (_shareRewrite) {
-      const existing = getTodayMyPost();
-      if (existing) {
-        existing.body = shareMsg;
-        existing.exTag = exTag;
-        existing.time = '방금 전';
-        existing.sharePhoto = _photoData || null;
-        apiSync('addPost', {
-          id: String(existing.id),
-          deviceId: S.deviceId,
-          userName: myDisplayName(),
-          body: shareMsg,
-          exTag,
-          userTags: (S.user.tags || []).join(','),
-          ts: String(existing.id),
-        });
-      }
-    } else {
-      const sharedPostId = Date.now();
-      S.posts.unshift({
-        id: sharedPostId,
-        userId: 0,
-        name: myDisplayName(),
-        avatar: S.user.avatar,
-        lv: curLv.lv,
-        body: shareMsg,
-        exTag,
-        userTags: [...(S.user.tags || [])],
-        sharePhoto:  _photoData || null,
-        shareHealth: _shareHealth ? {
-          diet:      _dietRating,
-          mealTypes: _mealTypes.length ? [..._mealTypes] : null,
-          sleep:     hasSleep ? _sleepHours : null,
-          supp:      _suppTaken,
-          suppList:  _suppList.length ? [..._suppList] : null,
-        } : null,
-        time: '방금 전',
-        stickers: { cheer:0, love:0, congrats:0, cool:0, together:0 },
-        myReactions: [],
-        comments: 0,
-        commentList: [],
-      });
-      apiSync('addPost', {
-        id: String(sharedPostId),
-        deviceId: S.deviceId,
-        userName: myDisplayName(),
-        body: shareMsg,
-        exTag,
-        userTags: (S.user.tags || []).join(','),
-        ts: String(sharedPostId),
-      });
-    }
-    document.getElementById('share-msg').value = '';
-  }
-  // Reset share toggle
-  _shareOn = false;
+  // 운동 기록 완료 후 공유 패널 초기화 (자동 게시 없음 — 수동 "지금 공유하기" 전용)
   _shareRewrite = false;
-  _sharePhoto  = false;
-  _shareHealth = false;
-  _shareMsgAuto = false;
-  document.getElementById('share-toggle-btn').classList.remove('on');
-  document.getElementById('share-expand').classList.remove('show');
+  _sharePhoto   = false;
+  _shareHealth  = false;
+  _shareMsgAuto = true;  // 메시지 자동 재생성
+  _shareOn      = true;  // 패널 열림 유지
+  document.getElementById('share-msg').value = '';
   document.getElementById('share-toggle-sub').textContent = '오늘 나의 하루를 친구들과 나눠보세요';
   const soEl = document.getElementById('share-options');
   if (soEl) soEl.innerHTML = '';
@@ -4907,12 +4837,9 @@ function logExercise() {
   }
   renderHeader();
   haptic('success');
-  if (wasShared) {
-    showToast(`🎉 운동 기록 완료! +${pts}p 획득! 📣 커뮤니티에 공유됐어요!`);
-  } else {
-    showToast(photoBonus ? `🎉 운동 기록 완료! +${pts}p (사진 인증 +5p 포함!)` : `🎉 운동 기록 완료! +${pts}p 획득!`);
-  }
+  showToast(photoBonus ? `🎉 운동 기록 완료! +${pts}p (사진 인증 +5p 포함!)` : `🎉 운동 기록 완료! +${pts}p 획득!`);
   renderExercise();
+  updateSharePreview(); // 새 운동 포함한 메시지 즉시 재생성
 
   // Check new badges
   const newBadges = earnedAchs().filter(a => !prevEarnedIds.has(a.id));
@@ -5766,6 +5693,7 @@ function renderLeague() {
   }
 
   // ── 일반 랭킹 ──
+  const baseUsers = (_realLeagueUsers && _realLeagueUsers.length) ? _realLeagueUsers : MOCK_USERS;
   const myPts  = tab === 'weekly' ? myWeekPts() : (S.user.totalPoints || S.user.points);
   const myLvObj = getLevel(S.user.totalPoints || S.user.points);
   const myRank = myLeagueRank();
@@ -5797,7 +5725,6 @@ function renderLeague() {
     lv: getLevel(S.user.totalPoints || S.user.points).lv, pts: S.user.totalPoints || S.user.points,
     wPts: myWeekPts(), change:0, isMe: true, tags: S.user.tags || [],
   };
-  const baseUsers = (_realLeagueUsers && _realLeagueUsers.length) ? _realLeagueUsers : MOCK_USERS;
   const myLvNum = getLevel(S.user.totalPoints || S.user.points).lv;
   const list = [
     ...baseUsers
@@ -7518,14 +7445,17 @@ async function doAppLogin() {
 
   // Supabase에서 empId로 사용자 조회 → 항상 최신 데이터 복원
   if (_db && ACTIVE_EMPID) {
-    _db.from('users').select('*').or(`empId.eq.${ACTIVE_EMPID},empId.eq.${ACTIVE_EMPID.toLowerCase()}`).limit(1).then(async ({ data: rows }) => {
+    const _loginEmpId = ACTIVE_EMPID; // 클로저로 로그인 시점의 empId 고정
+    _db.from('users').select('*').or(`empId.eq.${_loginEmpId},empId.eq.${_loginEmpId.toLowerCase()}`).limit(1).then(async ({ data: rows }) => {
+      // 콜백 도착 시점에 이미 다른 계정으로 전환됐으면 무시 (race condition 방지)
+      if (ACTIVE_EMPID !== _loginEmpId) return;
       const u = rows?.[0] || null;
       if (!u) return; // Supabase에 없으면 신규 사용자
       // 기존 deviceId로 데이터 조회
       const did = u.deviceId;
       // 현재 기기의 deviceId를 Supabase의 deviceId로 덮어씀 (데이터 연속성 유지)
       S.deviceId = did;
-      const didKey = 'hi_device_id_' + ACTIVE_EMPID;
+      const didKey = 'hi_device_id_' + _loginEmpId;
       localStorage.setItem(didKey, did);
 
       const [w, g] = await Promise.all([
@@ -7645,7 +7575,7 @@ function appLogout() {
   sessionStorage.removeItem('hi_session_empid');
   // 상태 초기화
   S.deviceId = null;
-  S.user = { name:'', avatar:'🏃', points:0, streak:0, stickersReceived:0, registrationId:null, tags:[] };
+  S.user = { name:'', nickname:'', avatar:'🏃', empId:'', dept:'', points:0, totalPoints:0, streak:0, stickersReceived:0, registrationId:null, tags:[] };
   S.workouts = [];
   S.posts = JSON.parse(JSON.stringify(MOCK_POSTS_SEED));
   S.glucoseRecords = [];
@@ -7655,6 +7585,17 @@ function appLogout() {
   S.myReactions = {};
   localStorage.removeItem('hi_keep_login_id');
   localStorage.removeItem('hi_keep_login_name');
+  // 프로필 모달 DOM 초기화 (다음 계정 로그인 시 이전 데이터 잔류 방지)
+  const pmNick = document.getElementById('pm-nickname');
+  if (pmNick) pmNick.value = '';
+  const pmName = document.getElementById('pm-realname');
+  if (pmName) pmName.textContent = '-';
+  const pmEmpid = document.getElementById('pm-empid');
+  if (pmEmpid) pmEmpid.textContent = '-';
+  const pmAvGrid = document.getElementById('pm-avatar-grid');
+  if (pmAvGrid) pmAvGrid.innerHTML = '';
+  const pmChSection = document.getElementById('pm-challenge-section');
+  if (pmChSection) pmChSection.innerHTML = '';
 
   document.getElementById('app-login-screen').classList.remove('hidden');
   document.getElementById('login-empid-input').value = '';

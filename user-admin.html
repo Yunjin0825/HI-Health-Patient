@@ -119,6 +119,12 @@
     .abtn.del{background:var(--rl);color:var(--red);}
     .abtn.det:hover{background:var(--p);color:#fff;}
     .abtn.del:hover{background:var(--red);color:#fff;}
+    .abtn.grn{background:var(--gl);color:var(--green);}
+    .abtn.grn:hover{background:var(--green);color:#fff;}
+    .abtn.pri{background:#EDE9FE;color:#7C3AED;}
+    .abtn.pri:hover{background:#7C3AED;color:#fff;}
+    .abtn.red{background:var(--rl);color:var(--red);}
+    .abtn.red:hover{background:var(--red);color:#fff;}
 
     /* ── PAGINATION ── */
     .pagination{display:flex;align-items:center;gap:4px;padding:12px 16px;border-top:1px solid var(--border);flex-wrap:wrap;}
@@ -707,25 +713,38 @@ function initSupabase() {
   db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   setStatus('연결 중...', false);
   loadAll();
+  setupRealtime();
 
-  // 실시간 변경 감지
-  let realtimeOk = false;
-  ['users','workouts','posts','glucose','registrations','orders','admin_posts'].forEach(tbl => {
-    db.channel('adm_' + tbl)
-      .on('postgres_changes', { event: '*', schema: 'public', table: tbl }, () => {
-        realtimeOk = true;
-        loadAll();
-      })
-      .subscribe(status => {
-        if (status === 'SUBSCRIBED') realtimeOk = true;
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          console.warn('[Realtime]', tbl, status);
-        }
-      });
+  // 폴링 백업: 5초마다 갱신
+  setInterval(() => loadAll(), 5000);
+}
+
+let _rtChannels = [];
+function setupRealtime() {
+  // 기존 채널 정리
+  _rtChannels.forEach(ch => { try { db.removeChannel(ch); } catch(e) {} });
+  _rtChannels = [];
+
+  const tables = ['users','workouts','posts','glucose','registrations','orders','admin_posts'];
+  let subscribedCount = 0;
+
+  // 모든 테이블을 하나의 채널로 통합 (연결 안정성 향상)
+  const ch = db.channel('adm_all');
+  tables.forEach(tbl => {
+    ch.on('postgres_changes', { event: '*', schema: 'public', table: tbl }, () => {
+      loadAll();
+    });
   });
-
-  // 폴링 백업: 30초마다 갱신 (Realtime 미설정 환경 대비)
-  setInterval(() => loadAll(), 30000);
+  ch.subscribe(status => {
+    if (status === 'SUBSCRIBED') {
+      setStatus(`실시간 연결됨 (${GD.users.length}명)`, true);
+    } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+      console.warn('[Realtime] 오류:', status, '— 5초 폴링으로 동작 중');
+      // 30초 후 재연결 시도
+      setTimeout(() => setupRealtime(), 30000);
+    }
+  });
+  _rtChannels.push(ch);
 }
 
 async function loadAll() {
@@ -751,7 +770,8 @@ async function loadAll() {
       items: typeof ord.items === 'string' ? (() => { try { return JSON.parse(ord.items); } catch(e) { return []; } })() : (ord.items||[]),
     }));
     GD.adminPosts    = ap.data || [];
-    setStatus(`연결됨 (${GD.users.length}명)`, true);
+    const _now = new Date().toLocaleTimeString('ko-KR', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    setStatus(`연결됨 ${GD.users.length}명 · ${_now}`, true);
     renderAll();
     buildExTypes();
   } catch(e) {
@@ -1432,7 +1452,13 @@ function renderOrders() {
       : o.status === 'confirmed'  ? '<span class="badge ch">확인</span>'
       : o.status === 'cancelled'  ? '<span class="badge can">취소</span>'
       : '<span class="badge pend">대기</span>';
-    const safeId = (o.id||'').replace(/'/g,'');
+    const safeId = (o.id||'').replace(/'/g,'\\\'');
+    // 인라인 상태 변경 버튼
+    let actionBtns = '';
+    if (o.status === 'pending')   actionBtns += `<button class="abtn grn" onclick="updateOrderStatus('${safeId}','confirmed')">확인</button> `;
+    if (o.status === 'confirmed') actionBtns += `<button class="abtn pri" onclick="updateOrderStatus('${safeId}','completed')">완료</button> `;
+    if (o.status !== 'cancelled') actionBtns += `<button class="abtn red" onclick="updateOrderStatus('${safeId}','cancelled')">취소</button> `;
+    actionBtns += `<button class="abtn det" onclick="showOrderDetail('${safeId}')">상세</button>`;
     return `<tr>
       <td class="td-date">${o.id||'-'}</td>
       <td class="td-name">${o.name||'-'}${o.userName ? `<br><span style="font-size:11px;color:var(--t3)">${o.userName}</span>` : ''}</td>
@@ -1442,7 +1468,7 @@ function renderOrders() {
       <td>${o.pickup||'-'}${o.addr ? `<br><span style="font-size:11px;color:var(--t3)">${o.addr}</span>` : ''}</td>
       <td>${sBadge}</td>
       <td class="td-date">${d}</td>
-      <td><button class="abtn det" onclick="showOrderDetail('${safeId}')">상세</button></td>
+      <td style="white-space:nowrap">${actionBtns}</td>
     </tr>`;
   }).join('');
 }
@@ -1461,7 +1487,7 @@ function showOrderDetail(id) {
     ['총금액', (Number(o.total)||0).toLocaleString() + '원'],
     ['입금자', o.depositor||'-'],
     ['현금영수증', o.cashReceipt||'-'],
-    ['상태', o.status],
+    ['상태', {'pending':'대기','confirmed':'확인','completed':'완료','cancelled':'취소'}[o.status]||o.status],
     ['주문일', o.orderedAt ? new Date(o.orderedAt).toLocaleString('ko-KR') : '-'],
   ];
   document.getElementById('ord-modal-body').innerHTML = rows.map(([l,v]) =>
@@ -1491,14 +1517,19 @@ function showOrderDetail(id) {
 
 async function updateOrderStatus(id, status) {
   showLoading(true);
-  const { error } = await db.from('orders').update({ status }).eq('id', id);
+  const { data, error } = await db.from('orders').update({ status }).eq('id', id).select();
   showLoading(false);
   if (error) { toast('실패: ' + error.message); return; }
+  if (!data || data.length === 0) {
+    toast('⚠️ 업데이트 실패: 주문을 찾을 수 없습니다 (Supabase RLS 또는 id 불일치)');
+    return;
+  }
   const o = GD.orders.find(x => String(x.id) === String(id));
   if (o) o.status = status;
   closeModal('ord-modal');
   renderOrders();
   toast('주문 상태 업데이트 완료 ✓');
+  loadAll(); // Supabase에서 최신 상태 재확인
 }
 
 function exportOrdersCsv() {
@@ -1506,7 +1537,7 @@ function exportOrdersCsv() {
   GD.orders.forEach(o => {
     const items = (o.items||[]).map(i => `${i.name||''}×${i.qty||1}`).join('; ');
     rows.push([o.id, o.userName||'', o.name||'', o.phone||'', items,
-      Number(o.total)||0, o.pickup||'', o.addr||'', o.status||'',
+      Number(o.total)||0, o.pickup||'', o.addr||'', ({'pending':'대기','confirmed':'확인','completed':'완료','cancelled':'취소'}[o.status]||o.status),
       o.orderedAt ? new Date(o.orderedAt).toLocaleDateString('ko-KR') : '']);
   });
   const csv = rows.map(r => r.map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
