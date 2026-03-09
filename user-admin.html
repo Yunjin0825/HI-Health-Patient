@@ -855,7 +855,8 @@ async function deleteDuplicates() {
   try {
     for (const u of toDelete) {
       for (const tbl of ['workouts','glucose','posts','users']) {
-        await db.from(tbl).delete().eq('deviceId', u.deviceId);
+        const { error } = await db.from(tbl).delete().eq('deviceId', u.deviceId);
+        if (error) throw new Error(`${tbl} 삭제 실패: ${error.message}`);
       }
       GD.users    = GD.users.filter(x => x.deviceId !== u.deviceId);
       GD.workouts = GD.workouts.filter(w => w.deviceId !== u.deviceId);
