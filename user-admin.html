@@ -281,11 +281,11 @@
       </div>
 
       <div class="ctrl-bar">
-        <input class="ctrl-inp" id="u-search" placeholder="이름·사번·등록번호·부서 검색" oninput="onUserSearch()">
+        <input class="ctrl-inp" id="u-search" placeholder="이름·등록번호·신청번호·부서 검색" oninput="onUserSearch()">
         <select class="ctrl-sel" id="u-filter" onchange="renderUsers()">
           <option value="all">전체</option>
           <option value="bad">이상한 이름</option>
-          <option value="dup">중복 사번</option>
+          <option value="dup">중복 등록번호</option>
           <option value="ch">챌린지 참여자</option>
         </select>
         <select class="ctrl-sel" id="u-sort" onchange="renderUsers()">
@@ -307,8 +307,8 @@
             <thead><tr>
               <th>#</th>
               <th>이름</th>
-              <th>사번</th>
               <th>등록번호</th>
+              <th>신청번호</th>
               <th>부서</th>
               <th>포인트</th>
               <th>운동</th>
@@ -336,8 +336,8 @@
           <div class="dp-field"><label>아바타</label><input class="dp-inp" id="d-avatar"></div>
           <div class="dp-field"><label>포인트</label><input class="dp-inp" type="number" id="d-points"></div>
           <div class="dp-field"><label>연속 달성일</label><input class="dp-inp" type="number" id="d-streak"></div>
-          <div class="dp-field"><label>사번</label><input class="dp-inp" id="d-empid" readonly style="background:var(--bg)"></div>
-          <div class="dp-field"><label>등록번호</label><input class="dp-inp" id="d-registration-id" readonly style="background:var(--bg)"></div>
+          <div class="dp-field"><label>등록번호</label><input class="dp-inp" id="d-empid" readonly style="background:var(--bg)"></div>
+          <div class="dp-field"><label>신청번호</label><input class="dp-inp" id="d-registration-id" readonly style="background:var(--bg)"></div>
           <div class="dp-field"><label>부서</label><input class="dp-inp" id="d-dept" readonly style="background:var(--bg)"></div>
         </div>
         <div class="dp-pts-adj" style="margin-bottom:14px">
@@ -424,7 +424,7 @@
         <div class="ch-s-pill"><div class="ch-s-val" id="ch-cruise">-</div><div class="ch-s-lbl">크루즈</div></div>
       </div>
       <div class="ctrl-bar">
-        <input class="ctrl-inp" id="ch-search" placeholder="신청번호·이름·사번·부서 검색" oninput="renderChallenge()">
+        <input class="ctrl-inp" id="ch-search" placeholder="신청번호·이름·등록번호·부서 검색" oninput="renderChallenge()">
         <select class="ctrl-sel" id="ch-sfilter" onchange="renderChallenge()">
           <option value="">전체 상태</option>
           <option value="pending">대기</option>
@@ -440,7 +440,7 @@
             <thead><tr>
               <th>신청번호</th>
               <th>이름</th>
-              <th>사번</th>
+              <th>등록번호</th>
               <th>부서</th>
               <th>연락처</th>
               <th>신발</th>
@@ -522,7 +522,7 @@
           <table>
             <thead><tr>
               <th>이름</th>
-              <th>사번</th>
+              <th>등록번호</th>
               <th>보상 항목</th>
               <th>차감 포인트</th>
               <th>상태</th>
@@ -657,6 +657,32 @@ const EX_ICON = {
   strength:'💪', stretching:'🤸', hiking:'🥾', tennis:'🎾',
   'aerial-yoga':'🪂', climbing:'🧗', custom:'✏️'
 };
+const CH_SHOE_LABELS = {
+  nike1:'NIKE 1',
+  nike2:'NIKE 2',
+  nb1:'NB 1',
+  nb2:'NB 2',
+  nb3:'NB 3',
+};
+
+function getRegShoePrefText(r) {
+  const raw = Array.isArray(r?.shoePrefs) ? r.shoePrefs : [];
+  const localText = raw
+    .map((id, idx) => CH_SHOE_LABELS[String(id || '').trim().toLowerCase()] ? `${idx + 1}순위 ${CH_SHOE_LABELS[String(id || '').trim().toLowerCase()]}` : '')
+    .filter(Boolean);
+  if (localText.length) return localText.join(' / ');
+  const note = String(r?.note || '').trim();
+  const match = note.match(/희망모델:\s*(.+)$/m);
+  if (!match) return '';
+  return match[1]
+    .split('|')
+    .map((id, idx) => {
+      const label = CH_SHOE_LABELS[String(id || '').trim().toLowerCase()] || String(id || '').trim();
+      return label ? `${idx + 1}순위 ${label}` : '';
+    })
+    .filter(Boolean)
+    .join(' / ');
+}
 
 /* ══════════════════════════════════════════════
    STATE
@@ -1271,7 +1297,7 @@ function renderUsers() {
     return `<tr class="${rowClass}">
       <td><span class="rank ${rc}">${rank}</span></td>
       <td class="td-name">
-        ${u.avatar ? (u.avatar.startsWith('images/') || u.avatar.startsWith('http') ? `<img src="${u.avatar}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px">` : `<span style="margin-right:3px">${u.avatar}</span>`) : ''}${u.name||'(이름없음)'}
+        ${u.name||'(이름없음)'}
         ${bad ? '<span class="badge bad" style="margin-left:4px">이상</span>' : ''}
         ${dup ? '<span class="badge dup" style="margin-left:4px">중복</span>' : ''}
         ${isCh ? '<span class="badge ch" style="margin-left:4px">챌린지</span>' : ''}
@@ -1435,7 +1461,7 @@ async function deleteDuplicates() {
       .sort((a,b) => (Number(b.points)||0) - (Number(a.points)||0));
     group.slice(1).forEach(u => toDelete.push(u));
   });
-  if (!confirm(`중복 사번 이용자 ${toDelete.length}명 삭제\n(각 사번별 포인트 최고 계정 유지)\n\n${toDelete.map(u => `• ${u.name||'(없음)'} (${u.empId})`).join('\n')}\n\n계속하시겠습니까?`)) return;
+  if (!confirm(`중복 등록번호 이용자 ${toDelete.length}명 삭제\n(각 등록번호별 포인트 최고 계정 유지)\n\n${toDelete.map(u => `• ${u.name||'(없음)'} (${u.empId})`).join('\n')}\n\n계속하시겠습니까?`)) return;
   showLoading(true);
   try {
     for (const u of toDelete) {
@@ -1732,13 +1758,15 @@ function renderChallenge() {
 function showChDetail(id) {
   const r = GD.registrations.find(x => String(x.id) === String(id));
   if (!r) return;
+  const shoePrefText = getRegShoePrefText(r);
   const rows = [
     ['신청번호', r.id],
     ['이름', r.name],
-    ['사번', r.empId],
+    ['등록번호', r.empId],
     ['부서', r.dept],
     ['연락처', r.phone],
     ['신발(본인)', r.shoeSize],
+    ['희망모델', shoePrefText || '-'],
     ['가족참여', r.familyParticipation ? '✓' : '-'],
     ['가족성별', r.familyGender||'-'],
     ['가족나이', r.familyAge||'-'],
@@ -1789,9 +1817,9 @@ async function updateChStatus(id, status) {
 }
 
 function exportChallengeCsv() {
-  const rows = [['신청번호','이름','사번','부서','연락처','신발','가족','가족성별','가족나이','가족신발','크루즈','상태','신청일']];
+  const rows = [['신청번호','이름','등록번호','부서','연락처','신발','희망모델','가족','가족성별','가족나이','가족신발','크루즈','상태','신청일']];
   GD.registrations.forEach(r => rows.push([
-    r.id, r.name, r.empId, r.dept, r.phone, r.shoeSize,
+    r.id, r.name, r.empId, r.dept, r.phone, r.shoeSize, getRegShoePrefText(r),
     r.familyParticipation ? 'Y':'N', r.familyGender||'', r.familyAge||'', r.familyShoeSize||'',
     r.cruiseParticipation ? 'Y':'N', r.status,
     r.registeredAt ? new Date(r.registeredAt).toLocaleDateString('ko-KR') : '',

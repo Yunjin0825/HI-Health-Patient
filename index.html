@@ -1067,6 +1067,14 @@
     }
     .dn-card:hover { transform:translateY(-1px); }
     .dn-card.selected { border-color:var(--primary); box-shadow:0 10px 22px rgba(37,99,235,0.18); }
+    .dn-card-main { flex:1; min-width:0; }
+    .dn-card-head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .dn-card-del {
+      width:28px; height:28px; border-radius:10px; border:1.5px solid #FECACA;
+      background:#FFF5F5; color:#DC2626; display:inline-flex; align-items:center; justify-content:center;
+      flex-shrink:0; cursor:pointer; transition:all 0.18s;
+    }
+    .dn-card-del:hover { background:#FEE2E2; border-color:#FCA5A5; color:#B91C1C; }
     .dn-thumb {
       width:52px; height:52px; border-radius:12px; flex-shrink:0;
       display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -1115,11 +1123,15 @@
     .pm-close-btn { background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-secondary); padding:0 0 0 8px; line-height:1; flex-shrink:0; }
     .pm-close-btn:hover { color:var(--text); }
     .pm-header-right { display:flex; align-items:center; gap:8px; }
-    .pm-logout-btn, .pm-delete-btn { display:block; width:100%; margin-top:10px; background:none; border:none; font-family:inherit; font-size:13px; cursor:pointer; padding:8px 0; text-align:center; }
+    .pm-logout-btn, .pm-delete-btn {
+      display:block; width:100%; margin-top:10px; font-family:inherit; font-size:13px; cursor:pointer;
+      padding:10px 0; text-align:center; border-radius:12px; border:1.5px solid var(--border);
+      background:#fff; transition:all 0.2s;
+    }
     .pm-logout-btn { color:var(--text-secondary); }
-    .pm-logout-btn:hover { color:var(--red); }
-    .pm-delete-btn { color:var(--red); margin-top:4px; font-weight:700; }
-    .pm-delete-btn:hover { color:#B91C1C; }
+    .pm-logout-btn:hover { color:var(--red); border-color:#FCA5A5; background:#FFF5F5; }
+    .pm-delete-btn { color:var(--red); margin-top:8px; font-weight:700; border-color:#FECACA; background:#FFF5F5; }
+    .pm-delete-btn:hover { color:#B91C1C; border-color:#F87171; background:#FEE2E2; }
     .pm-delete-btn:disabled { opacity:0.55; cursor:default; }
     .pm-title { font-size:18px; font-weight:700; text-align:center; flex:1; }
     .pm-sub { font-size:13px; color:var(--text-secondary); text-align:center; margin-bottom:20px; }
@@ -1846,6 +1858,29 @@
     .ch-consent-check input { width:16px; height:16px; accent-color:var(--primary); }
     .ch-dup-warn { display:none; padding:10px 13px; background:var(--warning-light); border-radius:var(--radius-sm); font-size:12px; color:#92400E; margin-bottom:12px; }
     .ch-dup-warn.show { display:block; }
+    .ch-shoe-pref-wrap { display:none; margin:14px 0 12px; padding:14px; border:1px solid rgba(79,70,229,0.14); border-radius:14px; background:linear-gradient(180deg,#faf8ff 0%,#fff 100%); }
+    .ch-shoe-pref-head { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:10px; }
+    .ch-shoe-pref-title { font-size:13px; font-weight:700; color:var(--text); }
+    .ch-shoe-pref-note { font-size:11px; color:var(--text-secondary); line-height:1.55; }
+    .ch-shoe-pref-ranks { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:10px; }
+    .ch-shoe-pref-rank { border:1px dashed var(--border); border-radius:12px; padding:8px 10px; background:#fff; min-height:54px; }
+    .ch-shoe-pref-rank.filled { border-style:solid; border-color:rgba(79,70,229,0.25); background:#f7f4ff; }
+    .ch-shoe-pref-rank-label { font-size:10px; font-weight:700; color:var(--primary); margin-bottom:4px; }
+    .ch-shoe-pref-rank-value { font-size:12px; font-weight:600; color:var(--text); line-height:1.4; }
+    .ch-shoe-pref-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    .ch-shoe-model-card { border:1px solid rgba(79,70,229,0.12); border-radius:14px; overflow:hidden; background:#fff; box-shadow:0 4px 14px rgba(15,23,42,0.04); }
+    .ch-shoe-model-card.selected { border-color:rgba(79,70,229,0.35); box-shadow:0 8px 18px rgba(79,70,229,0.12); }
+    .ch-shoe-model-photo { aspect-ratio:4/3; background:#f8fafc; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+    .ch-shoe-model-photo img { width:100%; height:100%; object-fit:cover; display:block; }
+    .ch-shoe-model-body { padding:10px; }
+    .ch-shoe-model-name { font-size:12px; font-weight:700; color:var(--text); margin-bottom:8px; }
+    .ch-shoe-model-actions { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+    .ch-shoe-rank-btn { border:1px solid var(--border); background:#fff; color:var(--text-secondary); border-radius:10px; padding:7px 0; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.18s; }
+    .ch-shoe-rank-btn.active { border-color:var(--primary); background:var(--primary-light); color:var(--primary); }
+    @media (max-width:420px) {
+      .ch-shoe-pref-ranks { grid-template-columns:1fr; }
+      .ch-shoe-pref-grid { grid-template-columns:1fr; }
+    }
 
     /* ── Challenge Hero ── */
     #ch-hero-card {
@@ -2111,7 +2146,7 @@
         </div>
         <div><div class="qi-title">운동, 혈당 기록</div><div class="qi-sub" id="rec-quick">오늘을 기록해보세요</div></div>
       </button>
-      <button class="quick-btn" onclick="quickNav(this,()=>{navigate('community');setCommunityTab('league');if(S.user.registrationId){S.leagueTab='challenger';const ct=document.getElementById('league-tab-challenger');if(ct){document.querySelectorAll('.league-tab').forEach(t=>t.classList.remove('active'));ct.classList.add('active');renderLeague();}}})">
+      <button class="quick-btn" onclick="quickNav(this,()=>{navigate('community');setCommunityTab('league');if(hasActiveChallengeRegistration()){S.leagueTab='challenger';const ct=document.getElementById('league-tab-challenger');if(ct){document.querySelectorAll('.league-tab').forEach(t=>t.classList.remove('active'));ct.classList.add('active');renderLeague();}}})">
         <div class="qi-icon">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
             <path d="M8 6h8v8a4 4 0 0 1-8 0V6Z"/><path d="M8 9H5a2 2 0 0 0 0 4h3"/><path d="M16 9h3a2 2 0 0 1 0 4h-3"/>
@@ -3485,7 +3520,8 @@ let S = {
 /* ════════════════════════════════════════
    STORAGE
 ════════════════════════════════════════ */
-function save() {
+function save(opts = {}) {
+  const skipRemote = !!opts.skipRemote;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       user: S.user,
@@ -3503,6 +3539,7 @@ function save() {
   if (S.user.empId && S.user.tags?.length) {
     localStorage.setItem('hi_health_tags_' + S.user.empId, JSON.stringify(S.user.tags));
   }
+  if (skipRemote) return;
   // 사용자 정보 Supabase 동기화 (tags는 문자열로 저장)
   // 이름에서 이모지·이미지경로 제거 후 저장
   const _cleanName = (S.user.name || '')
@@ -3796,7 +3833,7 @@ async function shareLevelCard() {
 
   const earnedBadges = earnedAchs().slice(0, 5); // 최대 5개
 
-  const allTags = [...(S.user.registrationId ? ['🏅 챌린지 참여중'] : []), ...(S.user.tags || [])];
+  const allTags = [...(hasActiveChallengeRegistration() ? ['🏅 챌린지 참여중'] : []), ...(S.user.tags || [])];
   const userTags = allTags.slice(0, 3);
   const extraTagCount = Math.max(0, allTags.length - 3);
 
@@ -4313,7 +4350,7 @@ function renderHome() {
   document.getElementById('hero-name').textContent = myDisplayName() + '님';
   const tagsEl = document.getElementById('hero-tags');
   if (tagsEl) {
-    const challengeTag = S.user.registrationId ? `<span class="hero-tag" style="background:var(--purple);color:#fff">🏅 챌린지 참여중</span>` : '';
+    const challengeTag = hasActiveChallengeRegistration() ? `<span class="hero-tag" style="background:var(--purple);color:#fff">🏅 챌린지 참여중</span>` : '';
     tagsEl.innerHTML = challengeTag + (S.user.tags || []).map(t => `<span class="hero-tag">${t}</span>`).join('');
   }
   document.getElementById('today-cnt').textContent = tw.length;
@@ -4351,7 +4388,7 @@ function renderHome() {
   // Quick action subtitles
   const _medals = {1:'🥇',2:'🥈',3:'🥉'};
   const _base = (_realLeagueUsers && _realLeagueUsers.length) ? _realLeagueUsers : MOCK_USERS;
-  if (S.user.registrationId) {
+  if (hasActiveChallengeRegistration()) {
     const chTotal = _base.filter(u => u.isChallenger).length + 1;
     const chRank  = _base.filter(u => u.isChallenger && u.pts > (S.user.totalPoints || S.user.points)).length + 1;
     document.getElementById('rank-quick-label').textContent = '(챌린지)';
@@ -4720,6 +4757,28 @@ function persistDayNotes() {
   try { localStorage.setItem('hi_health_day_notes_' + (ACTIVE_EMPID || ''), JSON.stringify(_dayNotes)); }
   catch(e) {}
 }
+function deleteDayNote(dk) {
+  const key = String(dk || '').trim();
+  if (!key || !_dayNotes[key]) return;
+  showConfirm({
+    icon: _trashSvgLg,
+    title: '저장된 기록 삭제',
+    msg: '이 저장된 기록 카드를 삭제하시겠습니까?',
+    okLabel: '삭제',
+    onOk: () => {
+      delete _dayNotes[key];
+      if (_dnFilterDate === key) _dnFilterDate = null;
+      persistDayNotes();
+      if (key === getLocalDateKey() && S.todayLog) {
+        S.todayLog = { ...S.todayLog, myDayNote: null, myDayNoteTs: null };
+        save({ skipRemote: true });
+      }
+      renderMyDaySave();
+      renderDayNotes();
+      showToast('저장된 기록이 삭제되었어요');
+    },
+  });
+}
 function renderDayNotes() {
   const sec = document.getElementById('day-notes-section');
   if (!sec) return;
@@ -4755,7 +4814,13 @@ function renderDnList() {
     return `
       <div class="dn-card">
         ${thumb}
-        <div>
+        <div class="dn-card-main">
+          <div class="dn-card-head">
+            <div class="dn-card-date">${month}월 ${date}일 (${day})</div>
+            <button type="button" class="dn-card-del" onclick="deleteDayNote('${dk}')" aria-label="저장된 기록 삭제">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+            </button>
+          </div>
           <div class="dn-card-text">${preview}</div>
         </div>
       </div>
@@ -5912,7 +5977,7 @@ function openProfileModal(onboarding = false) {
   // 챌린지 참여 현황
   const chEl = document.getElementById('pm-challenge-section');
   if (chEl) {
-    const isReg = !!S.user.registrationId;
+    const isReg = hasActiveChallengeRegistration();
     const phase = getChPhase();
     const phaseLabel = { before:'모집 예정', registration:'신청 기간', preparing:'준비 중', pre:'프리 챌린지 진행 중', main:'본 챌린지 진행 중', ended:'챌린지 종료' }[phase] || '';
     if (isReg) {
@@ -5930,7 +5995,14 @@ function openProfileModal(onboarding = false) {
     }
   }
 
-  document.getElementById('profile-modal').classList.remove('pm-hidden');
+  const pmOverlay = document.getElementById('profile-modal');
+  pmOverlay.classList.remove('pm-hidden');
+  pmOverlay.scrollTop = 0;
+  const pmCard = pmOverlay.querySelector('.profile-modal');
+  if (pmCard) {
+    pmCard.scrollTop = 0;
+    requestAnimationFrame(() => { pmCard.scrollTop = 0; });
+  }
 }
 
 function togglePmSection(type) {
@@ -5996,27 +6068,92 @@ function saveProfile() {
 
 let _deleteMyDataBusy = false;
 
-function cleanupLocalUserKeys({ empId, deviceId, registrationId, storageKey, ordersKey, cartKey }) {
-  const normEmpId = String(empId || '').trim();
-  const normDeviceId = String(deviceId || '').trim();
-  const normRegId = String(registrationId || '').trim();
-  const curStorageKey = storageKey || STORAGE_KEY;
-  const curOrdersKey = ordersKey || SHOP_ORDERS_KEY;
-  const curCartKey = cartKey || SHOP_CART_KEY;
+function collectDeleteIdentity() {
+  const profileIdentity = getProfileIdentity();
+  const empIds = new Set();
+  const deviceIds = new Set();
+  const registrationIds = new Set();
+  const storageKeys = new Set([STORAGE_KEY, SHOP_ORDERS_KEY, SHOP_CART_KEY].filter(Boolean));
+  const addEmpId = v => {
+    const value = String(v || '').trim().toUpperCase();
+    if (value) empIds.add(value);
+  };
+  const addDeviceId = v => {
+    const value = String(v || '').trim();
+    if (value) deviceIds.add(value);
+  };
+  const addRegistrationId = v => {
+    const value = String(v || '').trim();
+    if (value) registrationIds.add(value);
+  };
+  const addUserScopedKeys = empId => {
+    const value = String(empId || '').trim().toUpperCase();
+    if (!value) return;
+    storageKeys.add('hi_health_v2_' + value);
+    storageKeys.add('hi_health_shop_orders_' + value);
+    storageKeys.add('hi_health_cart_' + value);
+    addDeviceId(localStorage.getItem('hi_device_id_' + value));
+  };
+  const storageEmpId = String(STORAGE_KEY || '').startsWith('hi_health_v2_') ? String(STORAGE_KEY).slice('hi_health_v2_'.length) : '';
 
-  localStorage.removeItem(curStorageKey);
-  localStorage.removeItem(curOrdersKey);
-  localStorage.removeItem(curCartKey);
+  addEmpId(ACTIVE_EMPID);
+  addEmpId(S.user.empId);
+  addEmpId(profileIdentity.empId);
+  addEmpId(sessionStorage.getItem('hi_session_empid'));
+  addEmpId(localStorage.getItem('hi_keep_login_id'));
+  addEmpId(storageEmpId);
 
-  if (normEmpId) {
-    localStorage.removeItem('hi_health_tags_' + normEmpId);
-    localStorage.removeItem('hi_health_day_notes_' + normEmpId);
-    localStorage.removeItem('hi_today_photo_' + normEmpId);
-    localStorage.removeItem('hi_device_id_' + normEmpId);
-  }
-  if (normDeviceId) {
-    localStorage.removeItem('hi_synced_' + normDeviceId);
-  }
+  addDeviceId(S.deviceId);
+  addRegistrationId(S.user.registrationId);
+
+  [...empIds].forEach(addUserScopedKeys);
+
+  try {
+    const regs = getStoredChallengeRegs();
+    let changed = true;
+    while (changed) {
+      changed = false;
+      regs.forEach(r => {
+        const rid = normChallengeId(r?.id);
+        const remp = normChallengeEmpId(r?.empId);
+        const rdev = normChallengeId(r?.deviceId);
+        const matches = (rid && registrationIds.has(rid)) || (remp && empIds.has(remp)) || (rdev && deviceIds.has(rdev));
+        if (!matches) return;
+        const before = empIds.size + deviceIds.size + registrationIds.size;
+        addRegistrationId(rid);
+        addEmpId(remp);
+        addDeviceId(rdev);
+        addUserScopedKeys(remp);
+        if (empIds.size + deviceIds.size + registrationIds.size !== before) changed = true;
+      });
+    }
+  } catch(e) {}
+
+  return {
+    empIds: [...empIds],
+    deviceIds: [...deviceIds],
+    registrationIds: [...registrationIds],
+    storageKeys: [...storageKeys].filter(Boolean),
+  };
+}
+
+function cleanupLocalUserKeys({ empIds = [], deviceIds = [], registrationIds = [], storageKeys = [] }) {
+  const normEmpIds = [...new Set((empIds || []).map(v => String(v || '').trim().toUpperCase()).filter(Boolean))];
+  const normDeviceIds = [...new Set((deviceIds || []).map(v => String(v || '').trim()).filter(Boolean))];
+  const normRegIds = [...new Set((registrationIds || []).map(v => String(v || '').trim()).filter(Boolean))];
+  const allStorageKeys = new Set((storageKeys || []).map(v => String(v || '').trim()).filter(Boolean));
+
+  normEmpIds.forEach(empId => {
+    allStorageKeys.add('hi_health_v2_' + empId);
+    allStorageKeys.add('hi_health_shop_orders_' + empId);
+    allStorageKeys.add('hi_health_cart_' + empId);
+    localStorage.removeItem('hi_health_tags_' + empId);
+    localStorage.removeItem('hi_health_day_notes_' + empId);
+    localStorage.removeItem('hi_today_photo_' + empId);
+    localStorage.removeItem('hi_device_id_' + empId);
+  });
+  allStorageKeys.forEach(key => localStorage.removeItem(key));
+  normDeviceIds.forEach(deviceId => localStorage.removeItem('hi_synced_' + deviceId));
 
   sessionStorage.removeItem('hi_session_empid');
   localStorage.removeItem('hi_keep_login_id');
@@ -6029,9 +6166,9 @@ function cleanupLocalUserKeys({ empId, deviceId, registrationId, storageKey, ord
       const rid = String(r?.id || '').trim();
       const remp = String(r?.empId || '').trim().toUpperCase();
       const rdev = String(r?.deviceId || '').trim();
-      if (normRegId && rid === normRegId) return false;
-      if (normEmpId && remp === normEmpId.toUpperCase()) return false;
-      if (normDeviceId && rdev === normDeviceId) return false;
+      if (rid && normRegIds.includes(rid)) return false;
+      if (remp && normEmpIds.includes(remp)) return false;
+      if (rdev && normDeviceIds.includes(rdev)) return false;
       return true;
     });
     localStorage.setItem(CH_REG_KEY, JSON.stringify(nextRegs));
@@ -6093,16 +6230,18 @@ function setDeleteMyDataBusy(on) {
 
 async function deleteMyDeviceAndServerData() {
   if (_deleteMyDataBusy) return;
-  const empId = String(ACTIVE_EMPID || S.user.empId || '').trim();
-  const savedDeviceId = empId ? localStorage.getItem('hi_device_id_' + empId) : '';
-  const deviceId = String(S.deviceId || savedDeviceId || '').trim();
-  const registrationId = String(S.user.registrationId || '').trim();
-  const storageKey = STORAGE_KEY;
-  const ordersKey = SHOP_ORDERS_KEY;
-  const cartKey = SHOP_CART_KEY;
+  const identity = collectDeleteIdentity();
+  const empIds = [...identity.empIds];
+  const deviceIds = new Set(identity.deviceIds);
+  const registrationIds = new Set(identity.registrationIds);
+  const storageKeys = [...identity.storageKeys];
+  const lowerEmpIds = [...new Set(empIds.map(v => v.toLowerCase()).filter(Boolean))];
 
   if (!_db) { showToast('서버 연결이 준비되지 않았어요. 잠시 후 다시 시도해주세요.'); return; }
-  if (!empId && !deviceId) { showToast('삭제할 사용자 정보를 찾지 못했어요. 다시 로그인 후 시도해주세요.'); return; }
+  if (!empIds.length && !deviceIds.size && !registrationIds.size) {
+    showToast('삭제할 사용자 정보를 찾지 못했어요. 다시 로그인 후 시도해주세요.');
+    return;
+  }
 
   setDeleteMyDataBusy(true);
   try {
@@ -6115,44 +6254,111 @@ async function deleteMyDeviceAndServerData() {
         failures.push(`${label}: ${e.message}`);
       }
     };
+    const runDeleteByIds = async (label, table, key, values) => {
+      const ids = [...new Set((values || []).map(v => String(v || '').trim()).filter(Boolean))];
+      if (!ids.length) return;
+      for (let i = 0; i < ids.length; i += 500) {
+        const chunk = ids.slice(i, i + 500);
+        await runDelete(`${label}${ids.length > 500 ? ` ${i + 1}-${i + chunk.length}` : ''}`, () => _db.from(table).delete().in(key, chunk));
+      }
+    };
 
+    const userFilters = [];
+    const regFilters = [];
+    [...deviceIds].forEach(deviceId => {
+      userFilters.push(`deviceId.eq.${deviceId}`);
+      regFilters.push(`deviceId.eq.${deviceId}`);
+    });
+    [...registrationIds].forEach(registrationId => {
+      userFilters.push(`registrationId.eq.${registrationId}`);
+      regFilters.push(`id.eq.${registrationId}`);
+    });
+    empIds.forEach(empId => {
+      userFilters.push(`empId.eq.${empId}`);
+      regFilters.push(`empId.eq.${empId}`);
+    });
+    lowerEmpIds.forEach(empId => {
+      userFilters.push(`empId.eq.${empId}`);
+      regFilters.push(`empId.eq.${empId}`);
+    });
+
+    const [relatedUsersRes, relatedRegsRes] = await Promise.all([
+      userFilters.length
+        ? _db.from('users').select('deviceId,registrationId,empId').or(userFilters.join(','))
+        : Promise.resolve({ data: [], error: null }),
+      regFilters.length
+        ? _db.from('registrations').select('id,deviceId,empId').or(regFilters.join(','))
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+
+    if (relatedUsersRes?.error) failures.push(`users 조회: ${relatedUsersRes.error.message}`);
+    if (relatedRegsRes?.error) failures.push(`registrations 조회: ${relatedRegsRes.error.message}`);
+
+    (relatedUsersRes?.data || []).forEach(u => {
+      const did = String(u?.deviceId || '').trim();
+      const rid = String(u?.registrationId || '').trim();
+      if (did) deviceIds.add(did);
+      if (rid) registrationIds.add(rid);
+    });
+    (relatedRegsRes?.data || []).forEach(r => {
+      const did = String(r?.deviceId || '').trim();
+      const rid = String(r?.id || '').trim();
+      if (did) deviceIds.add(did);
+      if (rid) registrationIds.add(rid);
+    });
+
+    const deviceIdList = [...deviceIds];
+    const registrationIdList = [...registrationIds];
     const postIds = new Set(
       (S.posts || [])
         .filter(p => Number(p?.userId) === 0)
         .map(p => String(p?.id || ''))
         .filter(Boolean)
     );
-    if (deviceId) {
-      const { data, error } = await _db.from('posts').select('id').eq('deviceId', deviceId);
+
+    if (deviceIdList.length) {
+      const { data, error } = await _db.from('posts').select('id').in('deviceId', deviceIdList);
       if (error) failures.push(`posts 조회: ${error.message}`);
       (data || []).forEach(p => postIds.add(String(p.id || '')));
     }
 
-    for (const postId of postIds) {
-      await runDelete(`reactions(${postId})`, () => _db.from('reactions').delete().eq('postId', postId));
-      await runDelete(`post_comments(${postId})`, () => _db.from('post_comments').delete().eq('postId', postId));
-    }
+    await runDeleteByIds('reactions(postId)', 'reactions', 'postId', [...postIds]);
+    await runDeleteByIds('post_comments(postId)', 'post_comments', 'postId', [...postIds]);
 
-    if (deviceId) {
-      await runDelete('reactions', () => _db.from('reactions').delete().eq('deviceId', deviceId));
-      await runDelete('post_comments', () => _db.from('post_comments').delete().eq('deviceId', deviceId));
-      await runDelete('posts', () => _db.from('posts').delete().eq('deviceId', deviceId));
-      await runDelete('orders', () => _db.from('orders').delete().eq('deviceId', deviceId));
-      await runDelete('workouts', () => _db.from('workouts').delete().eq('deviceId', deviceId));
-      await runDelete('glucose', () => _db.from('glucose').delete().eq('deviceId', deviceId));
-      await runDelete('users', () => _db.from('users').delete().eq('deviceId', deviceId));
-      await runDelete('registrations(deviceId)', () => _db.from('registrations').delete().eq('deviceId', deviceId));
+    if (deviceIdList.length) {
+      await runDeleteByIds('reactions(deviceId)', 'reactions', 'deviceId', deviceIdList);
+      await runDeleteByIds('post_comments(deviceId)', 'post_comments', 'deviceId', deviceIdList);
+      await runDeleteByIds('posts', 'posts', 'deviceId', deviceIdList);
+      await runDeleteByIds('orders', 'orders', 'deviceId', deviceIdList);
+      await runDeleteByIds('workouts', 'workouts', 'deviceId', deviceIdList);
+      await runDeleteByIds('glucose', 'glucose', 'deviceId', deviceIdList);
+      await runDeleteByIds('users(deviceId)', 'users', 'deviceId', deviceIdList);
+      await runDeleteByIds('registrations(deviceId)', 'registrations', 'deviceId', deviceIdList);
     }
-    if (empId) {
-      const lowerEmpId = empId.toLowerCase();
-      await runDelete('registrations(empId)', () => _db.from('registrations').delete().or(`empId.eq.${empId},empId.eq.${lowerEmpId}`));
+    if (registrationIdList.length) {
+      await runDeleteByIds('registrations(id)', 'registrations', 'id', registrationIdList);
+    }
+    if (empIds.length || lowerEmpIds.length) {
+      const empDeleteFilters = [...new Set([
+        ...empIds.map(empId => `empId.eq.${empId}`),
+        ...lowerEmpIds.map(empId => `empId.eq.${empId}`),
+      ])];
+      if (empDeleteFilters.length) {
+        await runDelete('users(empId)', () => _db.from('users').delete().or(empDeleteFilters.join(',')));
+        await runDelete('registrations(empId)', () => _db.from('registrations').delete().or(empDeleteFilters.join(',')));
+      }
     }
 
     if (failures.length) {
       throw new Error(failures.join(' / '));
     }
 
-    cleanupLocalUserKeys({ empId, deviceId, registrationId, storageKey, ordersKey, cartKey });
+    cleanupLocalUserKeys({
+      empIds,
+      deviceIds: deviceIdList,
+      registrationIds: registrationIdList,
+      storageKeys,
+    });
     resetToLoggedOutState();
     haptic('delete');
     showToast('이 기기와 서버 데이터가 삭제되었습니다');
@@ -6201,9 +6407,10 @@ async function fetchLeagueData() {
     weekStart.setHours(0, 0, 0, 0);
     const weekStartTs = weekStart.getTime();
 
-    const [{ data: allUsers }, { data: weeklyWo }] = await Promise.all([
+    const [{ data: allUsers }, { data: weeklyWo }, { data: allRegs }] = await Promise.all([
       _db.from('users').select('empId,name,avatar,points,tags,registrationId,deviceId'),
       _db.from('workouts').select('deviceId,points').gte('ts', String(weekStartTs)),
+      _db.from('registrations').select('id,empId,deviceId,status'),
     ]);
 
     if (!allUsers || !allUsers.length) {
@@ -6222,6 +6429,19 @@ async function fetchLeagueData() {
       return; // 다른 유저 없으면 mock 유지
     }
 
+    const regIds = new Set();
+    const regEmpIds = new Set();
+    const regDeviceIds = new Set();
+    (allRegs || []).forEach(r => {
+      if (!isActiveChallengeReg(r)) return;
+      const rid = normChallengeId(r.id);
+      const remp = normChallengeEmpId(r.empId);
+      const rdev = normChallengeId(r.deviceId);
+      if (rid) regIds.add(rid);
+      if (remp) regEmpIds.add(remp);
+      if (rdev) regDeviceIds.add(rdev);
+    });
+
     _realLeagueUsers = filtered
       .map(u => ({
         id: u.empId,
@@ -6232,7 +6452,7 @@ async function fetchLeagueData() {
         wPts: wPtsByDevice[u.deviceId] || 0,
         change: 0,
         isMe: false,
-        isChallenger: !!u.registrationId,
+        isChallenger: regIds.has(normChallengeId(u.registrationId)) || regEmpIds.has(normChallengeEmpId(u.empId)) || regDeviceIds.has(normChallengeId(u.deviceId)),
         tags: typeof u.tags === 'string' ? u.tags.split(',').filter(Boolean) : (u.tags || []),
       }));
 
@@ -6246,10 +6466,19 @@ async function fetchLeagueData() {
 
 function renderLeague() {
   const tab = S.leagueTab;
+  if (tab === 'challenger' && !hasActiveChallengeRegistration()) {
+    S.leagueTab = 'weekly';
+    const weeklyTab = document.querySelector('.league-tab[data-tab="weekly"]');
+    if (weeklyTab) {
+      document.querySelectorAll('.league-tab').forEach(t => t.classList.remove('active'));
+      weeklyTab.classList.add('active');
+    }
+  }
+  const currentTab = S.leagueTab;
 
   // ── 챌린지 전용 랭킹 ──
-  if (tab === 'challenger') {
-    const isRegistered = !!S.user.registrationId;
+  if (currentTab === 'challenger') {
+    const isRegistered = hasActiveChallengeRegistration();
     const me = {
       id:0, name: myDisplayName() + ' (나)', avatar: S.user.avatar,
       lv: getLevel(S.user.totalPoints || S.user.points).lv, pts: S.user.totalPoints || S.user.points,
@@ -6338,22 +6567,22 @@ function renderLeague() {
 
   // ── 일반 랭킹 ──
   const baseUsers = (_realLeagueUsers && _realLeagueUsers.length) ? _realLeagueUsers : MOCK_USERS;
-  const myPts  = tab === 'weekly' ? myWeekPts() : (S.user.totalPoints || S.user.points);
+  const myPts  = currentTab === 'weekly' ? myWeekPts() : (S.user.totalPoints || S.user.points);
   const myLvObj = getLevel(S.user.totalPoints || S.user.points);
   const myRank = myLeagueRank();
   const myLv   = getLevel(S.user.points);
   const myLvNumCard = getLevel(S.user.totalPoints || S.user.points).lv;
-  const total  = tab === 'level' ? baseUsers.filter(u => u.lv === myLvNumCard).length + 1 : baseUsers.length + 1;
+  const total  = currentTab === 'level' ? baseUsers.filter(u => u.lv === myLvNumCard).length + 1 : baseUsers.length + 1;
   const pct    = Math.round((myRank / total) * 100);
 
   document.getElementById('my-rank-card').innerHTML = `
     <div class="mrc-stat">
       <div class="mrc-label">내 순위</div>
       <div class="mrc-value">${myRank}위</div>
-      <div class="mrc-sub">${tab === 'level' ? '같은 레벨 ' + total + '명' : '상위 ' + pct + '%'}</div>
+      <div class="mrc-sub">${currentTab === 'level' ? '같은 레벨 ' + total + '명' : '상위 ' + pct + '%'}</div>
     </div>
     <div class="mrc-stat">
-      <div class="mrc-label">${tab === 'weekly' ? '주간 획득 포인트' : tab === 'level' ? '레벨별 포인트' : '누적 포인트'}</div>
+      <div class="mrc-label">${currentTab === 'weekly' ? '주간 획득 포인트' : currentTab === 'level' ? '레벨별 포인트' : '누적 포인트'}</div>
       <div class="mrc-value pts">${myPts}p</div>
       <div class="mrc-sub"><span class="lb-change ch-eq">−</span></div>
     </div>
@@ -6372,10 +6601,10 @@ function renderLeague() {
   const myLvNum = getLevel(S.user.totalPoints || S.user.points).lv;
   const list = [
     ...baseUsers
-      .filter(u => tab === 'level' ? u.lv === myLvNum : true)
+      .filter(u => currentTab === 'level' ? u.lv === myLvNum : true)
       .map(u => ({ ...u, isMe: false })),
     me
-  ].sort((a,b) => tab === 'weekly' ? b.wPts - a.wPts : b.pts - a.pts)
+  ].sort((a,b) => currentTab === 'weekly' ? b.wPts - a.wPts : b.pts - a.pts)
    .map((u,i) => ({ ...u, rank: i+1 }));
 
   document.getElementById('podium').className = 'podium';
@@ -6388,7 +6617,7 @@ function renderLeague() {
     if (!u) return `<div class="podium-item"><div class="podium-av-wrap"><div class="podium-avatar"></div></div><div class="podium-stand ${standClass[i]}">${standNum[i]}</div></div>`;
     const lv = LEVELS[Math.min(u.lv - 1, LEVELS.length - 1)];
     const tags = (u.tags || []).slice(0, 2).map(t => `<span class="profile-tag" style="font-size:9px;padding:1px 5px">${t}</span>`).join('');
-    const pts = tab === 'weekly' ? u.wPts : u.pts;
+    const pts = currentTab === 'weekly' ? u.wPts : u.pts;
     const lv2 = LEVELS[Math.min(u.lv - 1, LEVELS.length - 1)];
     return `
       <div class="podium-item">
@@ -6397,7 +6626,7 @@ function renderLeague() {
           <div class="podium-avatar">${avHTML(u.avatar)}</div>
         </div>
         <div class="podium-name">${medals[i]} ${u.name}</div>
-        <div class="podium-pts">${tab === 'level' ? lv2.name : pts + 'p'}</div>
+        <div class="podium-pts">${currentTab === 'level' ? lv2.name : pts + 'p'}</div>
         <div class="podium-stand ${standClass[i]}">${standNum[i]}</div>
       </div>`;
   }).join('');
@@ -6408,7 +6637,7 @@ function renderLeague() {
     ? [...lbSlice, meEntry] : lbSlice;
   document.getElementById('lb-list').innerHTML = showList.map(u => {
     const lv    = LEVELS[Math.min(u.lv-1, LEVELS.length-1)];
-    const chg   = tab==='weekly' ? u.change : 0;
+    const chg   = currentTab === 'weekly' ? u.change : 0;
     const chgHtml = chg > 0 ? `<span class="lb-change ch-up">▲${chg}</span>`
                   : chg < 0 ? `<span class="lb-change ch-dn">▼${Math.abs(chg)}</span>`
                   :           `<span class="lb-change ch-eq">−</span>`;
@@ -6422,7 +6651,7 @@ function renderLeague() {
         </div>
         <div class="lb-right">
           ${chgHtml}
-          <div class="lb-pts">${tab==='level' ? lv.name : tab==='weekly'?u.wPts:u.pts+'p'}</div>
+          <div class="lb-pts">${currentTab === 'level' ? lv.name : currentTab === 'weekly' ? u.wPts : u.pts + 'p'}</div>
         </div>
       </div>
     `;
@@ -6443,7 +6672,16 @@ function setCommunityTab(tab) {
   document.getElementById('comm-tab-league').classList.toggle('active', tab === 'league');
   // 챌린지 신청 완료 시에만 리그의 챌린지 탭 표시
   const challengerTab = document.getElementById('league-tab-challenger');
-  if (challengerTab) challengerTab.style.display = S.user.registrationId ? '' : 'none';
+  const hasChallenge = hasActiveChallengeRegistration();
+  if (challengerTab) challengerTab.style.display = hasChallenge ? '' : 'none';
+  if (!hasChallenge && S.leagueTab === 'challenger') {
+    S.leagueTab = 'weekly';
+    const weeklyTab = document.querySelector('.league-tab[data-tab="weekly"]');
+    if (weeklyTab) {
+      document.querySelectorAll('.league-tab').forEach(t => t.classList.remove('active'));
+      weeklyTab.classList.add('active');
+    }
+  }
   if (tab === 'league') { renderLeague(); fetchLeagueData(); }
 }
 
@@ -6483,13 +6721,14 @@ function buildPostHealthHtml(h) {
 
 function renderCommunity() {
   document.getElementById('compose-av').innerHTML = avHTML(S.user.avatar);
+  if (!hasActiveChallengeRegistration() && _feedFilter === '챌린지') _feedFilter = 'all';
 
   // ── 필터 칩 빌드 ──
   const filterRow = document.getElementById('feed-filter-row');
   const mainFilters = [
     { key:'all',     label:'전체보기' },
     { key:'content', label:'콘텐츠만보기' },
-    ...(S.user.registrationId ? [{ key:'챌린지', label:'챌린지 보기' }] : []),
+    ...(hasActiveChallengeRegistration() ? [{ key:'챌린지', label:'챌린지 보기' }] : []),
   ];
   const filters = [
     ...mainFilters,
@@ -6532,7 +6771,7 @@ function renderCommunity() {
     const sorted = deduped.sort((a, b) => b.id - a.id);
     userItems = sorted.filter(p => {
       if (_feedFilter === 'all') return true;
-      if (_feedFilter === '챌린지') return p.isChallenger || (p.userId === 0 && !!S.user.registrationId);
+      if (_feedFilter === '챌린지') return p.isChallenger || (p.userId === 0 && hasActiveChallengeRegistration());
       return (p.userTags || []).includes(_feedFilter);
     }).map(p => ({ _type:'user', _ts: p.id, ...p }));
   }
@@ -7424,6 +7663,169 @@ const CH = {
   eventDay:  new Date('2026-04-15T23:59:59'),
 };
 const CH_REG_KEY = 'hi_health_registrations_v2';
+const CH_SHOE_MODELS = [
+  { id:'nike1', label:'NIKE 1', image:'images/nike1.png' },
+  { id:'nike2', label:'NIKE 2', image:'images/nike2.png' },
+  { id:'nb1',   label:'NB 1',   image:'images/nb1.png' },
+  { id:'nb2',   label:'NB 2',   image:'images/nb2.png' },
+  { id:'nb3',   label:'NB 3',   image:'images/nb3.png' },
+];
+let _chShoePrefs = ['', '', ''];
+
+function normChShoeModelId(v) {
+  const id = String(v || '').trim().toLowerCase();
+  return CH_SHOE_MODELS.some(m => m.id === id) ? id : '';
+}
+
+function resolveChShoeModelId(v) {
+  const raw = String(v || '').trim().toLowerCase();
+  const compact = raw.replace(/\s+/g, '');
+  const hit = CH_SHOE_MODELS.find(m =>
+    m.id === raw ||
+    m.id === compact ||
+    m.label.toLowerCase().replace(/\s+/g, '') === compact
+  );
+  return hit ? hit.id : '';
+}
+
+function getChShoeModel(id) {
+  return CH_SHOE_MODELS.find(m => m.id === normChShoeModelId(id)) || null;
+}
+
+function getChShoePrefs(reg) {
+  const raw = Array.isArray(reg?.shoePrefs) ? reg.shoePrefs : [];
+  let prefs = raw.map(resolveChShoeModelId).filter(Boolean);
+  if (!prefs.length) {
+    const note = String(reg?.note || '').trim();
+    const match = note.match(/희망모델:\s*(.+)$/m);
+    if (match) {
+      prefs = match[1].split('|').map(resolveChShoeModelId).filter(Boolean);
+    }
+  }
+  return [prefs[0] || '', prefs[1] || '', prefs[2] || ''];
+}
+
+function formatChShoePrefs(reg) {
+  return getChShoePrefs(reg)
+    .map((id, idx) => id ? `${idx + 1}순위 ${getChShoeModel(id)?.label || id}` : '')
+    .filter(Boolean);
+}
+
+function buildChShoePrefNote(reg) {
+  const prefs = getChShoePrefs(reg).filter(Boolean);
+  return prefs.length ? `희망모델: ${prefs.join('|')}` : '';
+}
+
+function renderChShoePrefSection() {
+  const wrap = document.getElementById('ch-shoe-pref-section');
+  const shoeSize = String(document.getElementById('ch-shoe')?.value || '').trim();
+  if (!wrap) return;
+  if (!shoeSize) {
+    wrap.style.display = 'none';
+    _chShoePrefs = ['', '', ''];
+    return;
+  }
+  const rankSummary = _chShoePrefs.map((id, idx) => `
+    <div class="ch-shoe-pref-rank${id ? ' filled' : ''}">
+      <div class="ch-shoe-pref-rank-label">${idx + 1}순위</div>
+      <div class="ch-shoe-pref-rank-value">${getChShoeModel(id)?.label || '선택 전'}</div>
+    </div>
+  `).join('');
+  const cards = CH_SHOE_MODELS.map(model => {
+    const selected = _chShoePrefs.includes(model.id);
+    return `
+      <div class="ch-shoe-model-card${selected ? ' selected' : ''}">
+        <div class="ch-shoe-model-photo"><img src="${model.image}" alt="${model.label}"></div>
+        <div class="ch-shoe-model-body">
+          <div class="ch-shoe-model-name">${model.label}</div>
+          <div class="ch-shoe-model-actions">
+            ${[0,1,2].map(rank => `
+              <button type="button" class="ch-shoe-rank-btn${_chShoePrefs[rank] === model.id ? ' active' : ''}" onclick="pickChShoePref(${rank},'${model.id}')">${rank + 1}순위</button>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+  wrap.style.display = '';
+  wrap.innerHTML = `
+    <div class="ch-shoe-pref-head">
+      <div>
+        <div class="ch-shoe-pref-title">희망 운동화 모델 선택 <span style="color:var(--accent)">*</span></div>
+        <div class="ch-shoe-pref-note">선택하신 사이즈 ${shoeSize}mm 기준으로 재고 현황을 확인한 뒤 1순위, 2순위, 3순위 순서대로 제공합니다.</div>
+      </div>
+    </div>
+    <div class="ch-shoe-pref-ranks">${rankSummary}</div>
+    <div class="ch-shoe-pref-grid">${cards}</div>
+  `;
+}
+
+function pickChShoePref(rank, modelId) {
+  const model = normChShoeModelId(modelId);
+  const idx = Number(rank);
+  if (!model || idx < 0 || idx > 2) return;
+  const sameRank = _chShoePrefs[idx] === model;
+  _chShoePrefs = _chShoePrefs.map(v => v === model ? '' : v);
+  _chShoePrefs[idx] = sameRank ? '' : model;
+  renderChShoePrefSection();
+  updateChSubmitState();
+}
+
+function getStoredChallengeRegs() {
+  try {
+    const rows = JSON.parse(localStorage.getItem(CH_REG_KEY) || '[]');
+    return Array.isArray(rows) ? rows : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function setStoredChallengeRegs(rows) {
+  localStorage.setItem(CH_REG_KEY, JSON.stringify(Array.isArray(rows) ? rows : []));
+}
+
+function normChallengeId(v) {
+  return String(v || '').trim();
+}
+
+function normChallengeEmpId(v) {
+  return normChallengeId(v).toUpperCase();
+}
+
+function challengeRegTs(r) {
+  const raw = r?.registeredAt || r?.createdAt || r?.ts || 0;
+  const num = Number(raw);
+  if (Number.isFinite(num) && num > 0) return num;
+  const parsed = Date.parse(String(raw || ''));
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function isActiveChallengeReg(r) {
+  return !!r && normChallengeId(r.status).toLowerCase() !== 'cancelled';
+}
+
+function getMyChallengeRegMatches(rows) {
+  const regId = normChallengeId(S.user.registrationId);
+  const empId = normChallengeEmpId(S.user.empId || ACTIVE_EMPID);
+  const deviceId = normChallengeId(S.deviceId);
+  return (rows || []).filter(r => {
+    const rid = normChallengeId(r?.id);
+    const remp = normChallengeEmpId(r?.empId);
+    const rdev = normChallengeId(r?.deviceId);
+    return (regId && rid === regId) || (empId && remp === empId) || (deviceId && rdev === deviceId);
+  }).sort((a, b) => {
+    const aScore = (regId && normChallengeId(a?.id) === regId ? 4 : 0)
+      + (empId && normChallengeEmpId(a?.empId) === empId ? 2 : 0)
+      + (deviceId && normChallengeId(a?.deviceId) === deviceId ? 1 : 0);
+    const bScore = (regId && normChallengeId(b?.id) === regId ? 4 : 0)
+      + (empId && normChallengeEmpId(b?.empId) === empId ? 2 : 0)
+      + (deviceId && normChallengeId(b?.deviceId) === deviceId ? 1 : 0);
+    if (aScore !== bScore) return bScore - aScore;
+    const activeDiff = Number(isActiveChallengeReg(b)) - Number(isActiveChallengeReg(a));
+    if (activeDiff) return activeDiff;
+    return challengeRegTs(b) - challengeRegTs(a);
+  });
+}
 
 function getChPhase() {
   const now = new Date();
@@ -7436,10 +7838,62 @@ function getChPhase() {
   return 'ended';
 }
 function chDays(a, b) { return Math.ceil((b - a) / 86400000); }
-function getMyReg() {
-  if (!S.user.registrationId) return null;
-  return (JSON.parse(localStorage.getItem(CH_REG_KEY) || '[]'))
-    .find(r => r.id === S.user.registrationId) || null;
+function getMyReg(opts = {}) {
+  const includeCancelled = !!opts.includeCancelled;
+  const match = getMyChallengeRegMatches(getStoredChallengeRegs())[0] || null;
+  if (!match) return null;
+  return includeCancelled || isActiveChallengeReg(match) ? match : null;
+}
+
+function hasActiveChallengeRegistration() {
+  return !!getMyReg();
+}
+
+async function syncMyChallengeRegistration() {
+  if (!_db) return getMyReg();
+  const regId = normChallengeId(S.user.registrationId);
+  const empId = normChallengeEmpId(S.user.empId || ACTIVE_EMPID);
+  const deviceId = normChallengeId(S.deviceId);
+  const filters = [];
+  if (regId) filters.push(`id.eq.${regId}`);
+  if (empId) {
+    filters.push(`empId.eq.${empId}`);
+    filters.push(`empId.eq.${empId.toLowerCase()}`);
+  }
+  if (deviceId) filters.push(`deviceId.eq.${deviceId}`);
+  if (!filters.length) return getMyReg();
+
+  try {
+    const { data, error } = await _db.from('registrations').select('*').or(filters.join(','));
+    if (error) {
+      console.error('[syncMyChallengeRegistration]', error);
+      return getMyReg();
+    }
+
+    const current = getStoredChallengeRegs();
+    const myMatches = getMyChallengeRegMatches(current);
+    let next = [...current];
+    if (data && data.length) {
+      const byId = new Map(next.map(r => [normChallengeId(r?.id), r]));
+      (data || []).forEach(r => {
+        const id = normChallengeId(r?.id);
+        if (!id) return;
+        byId.set(id, { ...(byId.get(id) || {}), ...r });
+      });
+      next = [...byId.values()];
+    } else if (myMatches.length) {
+      const removeIds = new Set(myMatches.map(r => normChallengeId(r?.id)).filter(Boolean));
+      next = next.filter(r => !removeIds.has(normChallengeId(r?.id)));
+    }
+    setStoredChallengeRegs(next);
+
+    const activeReg = getMyReg();
+    S.user.registrationId = activeReg ? activeReg.id : null;
+    return activeReg;
+  } catch (e) {
+    console.error('[syncMyChallengeRegistration]', e);
+    return getMyReg();
+  }
 }
 
 function shareChReg(id, name, dept) {
@@ -7556,6 +8010,7 @@ function renderChallenge() {
   const myReg = getMyReg();
   const doneEl = document.getElementById('ch-reg-done');
   const formEl = document.getElementById('ch-reg-form');
+  const shoePrefSummary = formatChShoePrefs(myReg);
 
   if (myReg && myReg.status !== 'cancelled') {
     const statusLbl   = { pending:'검토 중', confirmed:'선정 완료', cancelled:'미선정' }[myReg.status] || myReg.status;
@@ -7578,6 +8033,7 @@ function renderChallenge() {
           <div class="ch-reg-row"><span class="ch-reg-label">가족 참여</span><span class="ch-reg-value">${myReg.familyParticipation ? '함께 · ' + [myReg.familyGender, myReg.familyAge, myReg.familyShoeSize ? myReg.familyShoeSize + 'mm' : ''].filter(Boolean).join(' ') || '가족 1인' : '본인만'}</span></div>
           <div class="ch-reg-row"><span class="ch-reg-label">크루즈 탑승</span><span class="ch-reg-value">${myReg.cruiseParticipation === false ? '탑승 안 함' : '탑승 희망'}</span></div>
           <div class="ch-reg-row"><span class="ch-reg-label">행사 참여</span><span class="ch-reg-value">${myReg.eventParticipation === false ? '불참' : '참여'}</span></div>
+          ${shoePrefSummary.length ? `<div class="ch-reg-row ch-reg-row-full"><span class="ch-reg-label">희망 모델</span><span class="ch-reg-value">${shoePrefSummary.join(' / ')}</span></div>` : ''}
         </div>
         <div class="ch-reg-phase">현재 단계: ${{ before:'모집 예정', registration:'신청 기간', preparing:'준비 중', pre:'프리 챌린지 진행 중', main:'본 챌린지 진행 중', ended:'챌린지 종료' }[phase] || phase}</div>
         <div style="display:flex;align-items:center;gap:8px">
@@ -7589,6 +8045,7 @@ function renderChallenge() {
     `;
     formEl.innerHTML = '';
   } else if (phase === 'registration') {
+    _chShoePrefs = ['', '', ''];
     doneEl.innerHTML = '';
     formEl.innerHTML = `
       <div class="card">
@@ -7600,7 +8057,7 @@ function renderChallenge() {
         <form id="ch-form" onsubmit="submitChReg(event)" novalidate>
           <div class="ch-form-group">
             <label class="form-label">이름 <span style="color:var(--accent)">*</span></label>
-            <input type="text" class="ch-form-input" id="ch-name" placeholder="홍길동" value="${S.user.name || ''}">
+            <input type="text" class="ch-form-input" id="ch-name" placeholder="홍길동" value="${S.user.name || ''}" oninput="updateChSubmitState()">
           </div>
           <div class="ch-row2">
             <div class="ch-form-group">
@@ -7609,7 +8066,7 @@ function renderChallenge() {
             </div>
             <div class="ch-form-group">
               <label class="form-label">부서 <span style="color:var(--accent)">*</span></label>
-              <select class="ch-form-select" id="ch-dept">
+              <select class="ch-form-select" id="ch-dept" onchange="updateChSubmitState()">
                 <option value="">선택</option>
                 <option>의료진</option><option>외래</option><option>상담실</option>
                 <option>주사실</option><option>검사실</option><option>수술실</option>
@@ -7621,11 +8078,11 @@ function renderChallenge() {
           <div class="ch-row2">
             <div class="ch-form-group">
               <label class="form-label">연락처 <span style="color:var(--accent)">*</span></label>
-              <input type="tel" class="ch-form-input" id="ch-phone" placeholder="010-0000-0000">
+              <input type="tel" class="ch-form-input" id="ch-phone" placeholder="010-0000-0000" oninput="updateChSubmitState()">
             </div>
             <div class="ch-form-group">
               <label class="form-label">신발 사이즈 <span style="color:var(--accent)">*</span></label>
-              <select class="ch-form-select" id="ch-shoe">
+              <select class="ch-form-select" id="ch-shoe" onchange="renderChShoePrefSection();updateChSubmitState()">
                 <option value="">사이즈(mm)</option>
                 <option>215</option><option>220</option><option>225</option><option>230</option><option>235</option>
                 <option>240</option><option>245</option><option>250</option><option>255</option>
@@ -7634,26 +8091,27 @@ function renderChallenge() {
               </select>
             </div>
           </div>
+          <div id="ch-shoe-pref-section" class="ch-shoe-pref-wrap"></div>
           <div class="ch-form-group">
-            <label class="form-label">가족 참여 여부</label>
+            <label class="form-label">가족 참여 여부 <span style="color:var(--accent)">*</span></label>
             <div class="ch-radio-group">
-              <label class="ch-radio-label"><input type="radio" name="ch-fam" value="no" checked onchange="toggleChFam(this)"> 본인만 신청</label>
+              <label class="ch-radio-label"><input type="radio" name="ch-fam" value="no" onchange="toggleChFam(this)"> 본인만 신청</label>
               <label class="ch-radio-label"><input type="radio" name="ch-fam" value="yes" onchange="toggleChFam(this)"> 가족함께 참여</label>
             </div>
             <div id="ch-fam-detail" style="display:none;background:var(--bg-secondary,#f8fafc);border-radius:10px;padding:12px;margin-top:4px">
               <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:8px">가족 정보 (러닝화 지급용)</div>
               <div class="ch-row2">
                 <div class="ch-form-group" style="margin-bottom:0">
-                  <label class="form-label">성별</label>
-                  <select class="ch-form-select" id="ch-fam-gender">
+                  <label class="form-label">성별 <span style="color:var(--accent)">*</span></label>
+                  <select class="ch-form-select" id="ch-fam-gender" onchange="updateChSubmitState()">
                     <option value="">선택</option>
                     <option value="남">남</option>
                     <option value="여">여</option>
                   </select>
                 </div>
                 <div class="ch-form-group" style="margin-bottom:0">
-                  <label class="form-label">나이</label>
-                  <select class="ch-form-select" id="ch-fam-age">
+                  <label class="form-label">나이 <span style="color:var(--accent)">*</span></label>
+                  <select class="ch-form-select" id="ch-fam-age" onchange="updateChSubmitState()">
                     <option value="">선택</option>
                     <option>10대</option><option>20대</option><option>30대</option>
                     <option>40대</option><option>50대</option><option>60대 이상</option>
@@ -7661,8 +8119,8 @@ function renderChallenge() {
                 </div>
               </div>
               <div class="ch-form-group" style="margin-top:8px;margin-bottom:0">
-                <label class="form-label">신발 사이즈</label>
-                <select class="ch-form-select" id="ch-fam-shoe">
+                <label class="form-label">신발 사이즈 <span style="color:var(--accent)">*</span></label>
+                <select class="ch-form-select" id="ch-fam-shoe" onchange="updateChSubmitState()">
                   <option value="">사이즈(mm)</option>
                   <option>215</option><option>220</option><option>225</option><option>230</option><option>235</option>
                   <option>240</option><option>245</option><option>250</option><option>255</option>
@@ -7674,29 +8132,31 @@ function renderChallenge() {
             <input type="hidden" id="ch-fam-cnt" value="1">
           </div>
           <div class="ch-form-group">
-            <label class="form-label">한강 크루즈 탑승 <span style="font-size:11px;font-weight:400;color:var(--text-secondary)">(김포→여의도, 약 90분)</span></label>
+            <label class="form-label">한강 크루즈 탑승 <span style="font-size:11px;font-weight:400;color:var(--text-secondary)">(김포→여의도, 약 90분)</span> <span style="color:var(--accent)">*</span></label>
             <div class="ch-radio-group">
-              <label class="ch-radio-label"><input type="radio" name="ch-cruise" value="yes" checked> 탑승 희망</label>
-              <label class="ch-radio-label"><input type="radio" name="ch-cruise" value="no"> 탑승 안 함</label>
+              <label class="ch-radio-label"><input type="radio" name="ch-cruise" value="yes" onchange="updateChSubmitState()"> 탑승 희망</label>
+              <label class="ch-radio-label"><input type="radio" name="ch-cruise" value="no" onchange="updateChSubmitState()"> 탑승 안 함</label>
             </div>
           </div>
           <div class="ch-form-group">
             <label class="form-label">HI RUN DAY 행사 참여 <span style="font-size:11px;font-weight:400;color:var(--text-secondary)">(함께달리기 · 여의도→선유도)</span> <span style="color:var(--accent)">*</span></label>
             <div class="ch-radio-group">
-              <label class="ch-radio-label"><input type="radio" name="ch-event" value="yes" checked> 참여</label>
-              <label class="ch-radio-label"><input type="radio" name="ch-event" value="no"> 불참</label>
+              <label class="ch-radio-label"><input type="radio" name="ch-event" value="yes" onchange="updateChSubmitState()"> 참여</label>
+              <label class="ch-radio-label"><input type="radio" name="ch-event" value="no" onchange="updateChSubmitState()"> 불참</label>
             </div>
           </div>
           <div class="ch-consent">
             <p class="ch-consent-text">수집된 개인정보는 챌린지 운영 및 러닝화 지급 목적으로만 활용되며, 챌린지 종료 후 즉시 파기됩니다.</p>
             <label class="ch-consent-check">
-              <input type="checkbox" id="ch-consent"> 개인정보 수집·이용에 동의합니다 <span style="color:var(--accent)">*</span>
+              <input type="checkbox" id="ch-consent" onchange="updateChSubmitState()"> 개인정보 수집·이용에 동의합니다 <span style="color:var(--accent)">*</span>
             </label>
           </div>
-          <button type="submit" class="btn btn-primary btn-full">신청 완료</button>
+          <button type="submit" class="btn btn-primary btn-full btn-inactive" id="ch-submit-btn" disabled>신청 완료</button>
         </form>
       </div>
     `;
+    renderChShoePrefSection();
+    updateChSubmitState();
   } else if (phase === 'before') {
     doneEl.innerHTML = `
       <div class="card" style="text-align:center;padding:24px 20px">
@@ -7923,15 +8383,51 @@ function renderChallenge() {
 }
 
 function checkChDup() {
-  const empId = document.getElementById('ch-empid').value.trim().toUpperCase();
-  if (!empId) { document.getElementById('ch-dup-warn').classList.remove('show'); return; }
-  const dup = JSON.parse(localStorage.getItem(CH_REG_KEY) || '[]').find(r => r.empId.toUpperCase() === empId && r.status !== 'cancelled');
-  document.getElementById('ch-dup-warn').classList.toggle('show', !!dup);
+  return updateChSubmitState().dup;
+}
+
+function hasDuplicateChallengeReg(empId) {
+  const normEmpId = String(empId || '').trim().toUpperCase();
+  if (!normEmpId) return false;
+  return JSON.parse(localStorage.getItem(CH_REG_KEY) || '[]').some(r =>
+    String(r?.empId || '').trim().toUpperCase() === normEmpId &&
+    String(r?.status || '').trim().toLowerCase() !== 'cancelled'
+  );
+}
+
+function updateChSubmitState() {
+  const warnEl = document.getElementById('ch-dup-warn');
+  const submitBtn = document.getElementById('ch-submit-btn');
+  const name = String(document.getElementById('ch-name')?.value || '').trim();
+  const empId = String(document.getElementById('ch-empid')?.value || '').trim().toUpperCase();
+  const dept = String(document.getElementById('ch-dept')?.value || '').trim();
+  const phone = String(document.getElementById('ch-phone')?.value || '').trim();
+  const shoe = String(document.getElementById('ch-shoe')?.value || '').trim();
+  const famChoice = document.querySelector('input[name="ch-fam"]:checked')?.value || '';
+  const cruiseChoice = document.querySelector('input[name="ch-cruise"]:checked')?.value || '';
+  const eventChoice = document.querySelector('input[name="ch-event"]:checked')?.value || '';
+  const consent = !!document.getElementById('ch-consent')?.checked;
+  const famGender = String(document.getElementById('ch-fam-gender')?.value || '').trim();
+  const famAge = String(document.getElementById('ch-fam-age')?.value || '').trim();
+  const famShoe = String(document.getElementById('ch-fam-shoe')?.value || '').trim();
+  const needsFamilyInfo = famChoice === 'yes';
+  const familyInfoReady = !needsFamilyInfo || (famGender && famAge && famShoe);
+  const shoePrefsReady = _chShoePrefs.filter(Boolean).length === 3;
+  const dup = hasDuplicateChallengeReg(empId);
+  const ready = !!(name && empId && dept && phone && shoe && famChoice && cruiseChoice && eventChoice && consent && familyInfoReady && shoePrefsReady && !dup);
+
+  if (warnEl) warnEl.classList.toggle('show', !!empId && dup);
+  if (submitBtn) {
+    submitBtn.disabled = !ready;
+    submitBtn.classList.toggle('btn-inactive', !ready);
+  }
+  return { ready, dup, famChoice, cruiseChoice, eventChoice, familyInfoReady, shoePrefsReady };
 }
 
 function toggleChFam(el) {
   const detail = document.getElementById('ch-fam-detail');
   if (detail) detail.style.display = el.value === 'yes' ? 'block' : 'none';
+  updateChSubmitState();
 }
 
 function submitChReg(e) {
@@ -7941,32 +8437,46 @@ function submitChReg(e) {
   const dept  = document.getElementById('ch-dept').value;
   const phone = (document.getElementById('ch-phone').value || '').trim();
   const shoe  = document.getElementById('ch-shoe').value;
+  const famVal = document.querySelector('input[name="ch-fam"]:checked')?.value || '';
+  const cruiseVal = document.querySelector('input[name="ch-cruise"]:checked')?.value || '';
+  const eventVal = document.querySelector('input[name="ch-event"]:checked')?.value || '';
   const ok    = document.getElementById('ch-consent').checked;
+  const famGender = document.getElementById('ch-fam-gender')?.value || '';
+  const famAge = document.getElementById('ch-fam-age')?.value || '';
+  const famShoe = document.getElementById('ch-fam-shoe')?.value || '';
+  const shoePrefNote = buildChShoePrefNote({ shoePrefs: _chShoePrefs });
 
   if (!name)  { showToast('⚠️ 이름을 입력해주세요'); return; }
   if (!empId) { showToast('⚠️ 사번을 입력해주세요'); return; }
   if (!dept)  { showToast('⚠️ 부서를 선택해주세요'); return; }
   if (!phone) { showToast('⚠️ 연락처를 입력해주세요'); return; }
   if (!shoe)  { showToast('⚠️ 신발 사이즈를 선택해주세요'); return; }
+  if (_chShoePrefs.filter(Boolean).length !== 3) { showToast('⚠️ 희망 운동화 1~3순위를 모두 선택해주세요'); return; }
+  if (!famVal) { showToast('⚠️ 가족 참여 여부를 선택해주세요'); return; }
+  if (!cruiseVal) { showToast('⚠️ 크루즈 탑승 여부를 선택해주세요'); return; }
+  if (!eventVal) { showToast('⚠️ 행사 참여 여부를 선택해주세요'); return; }
+  if (famVal === 'yes' && (!famGender || !famAge || !famShoe)) {
+    showToast('⚠️ 가족 정보를 모두 입력해주세요');
+    return;
+  }
   if (!ok) { showToast('⚠️ 개인정보 동의가 필요합니다'); return; }
 
   const regs = JSON.parse(localStorage.getItem(CH_REG_KEY) || '[]');
-  if (regs.find(r => r.empId === empId && r.status !== 'cancelled')) { showToast('⚠️ 이미 신청하신 사번입니다'); return; }
+  if (hasDuplicateChallengeReg(empId)) { showToast('⚠️ 이미 신청하신 사번입니다'); return; }
 
-  const famChecked = document.querySelector('input[name="ch-fam"]:checked')?.value === 'yes';
-  const cruiseVal = document.querySelector('input[name="ch-cruise"]:checked')?.value || 'yes';
-  const eventVal = document.querySelector('input[name="ch-event"]:checked')?.value || 'yes';
+  const famChecked = famVal === 'yes';
   const id = 'HC-' + String(Date.now()).slice(-6);
   regs.push({
     id, name, empId, dept, phone, email:'', shoeSize: shoe,
+    shoePrefs: [..._chShoePrefs],
     familyParticipation: famChecked,
     familyCount: famChecked ? 1 : 0,
-    familyShoeSize: famChecked ? document.getElementById('ch-fam-shoe').value : '',
-    familyGender: famChecked ? document.getElementById('ch-fam-gender').value : '',
-    familyAge: famChecked ? document.getElementById('ch-fam-age').value : '',
+    familyShoeSize: famChecked ? famShoe : '',
+    familyGender: famChecked ? famGender : '',
+    familyAge: famChecked ? famAge : '',
     cruiseParticipation: cruiseVal === 'yes',
     eventParticipation: eventVal === 'yes',
-    note:'', status:'pending', adminNote:'',
+    note: shoePrefNote, status:'pending', adminNote:'',
     registeredAt: new Date().toISOString(),
   });
   localStorage.setItem(CH_REG_KEY, JSON.stringify(regs));
@@ -7984,6 +8494,10 @@ function submitChReg(e) {
     status: lastReg.status,
     registeredAt: lastReg.registeredAt,
   });
+  if (_db && shoePrefNote) {
+    _db.from('registrations').update({ note: shoePrefNote }).eq('id', lastReg.id)
+      .then(({ error }) => { if (error) console.warn('[registration.note]', error.message); });
+  }
 
   S.user.registrationId = id;
   S.user.name = name;
@@ -8087,7 +8601,7 @@ async function doAppLogin() {
 
   S.user.empId = S.user.empId || ACTIVE_EMPID;
   if (!S.user.name) S.user.name = inputName;
-  save();
+  save({ skipRemote: true });
   sessionStorage.setItem('hi_session_empid', ACTIVE_EMPID);
   // IS_RUN_MODE(챌린지 직원)는 항상 localStorage에 저장 (카카오톡 인앱브라우저 세션 유실 방지)
   if (keepLogin || IS_RUN_MODE) {
@@ -8110,7 +8624,13 @@ async function doAppLogin() {
       // 콜백 도착 시점에 이미 다른 계정으로 전환됐으면 무시 (race condition 방지)
       if (ACTIVE_EMPID !== _loginEmpId) return;
       const u = rows?.[0] || null;
-      if (!u) return; // Supabase에 없으면 신규 사용자
+      if (!u) {
+        await syncMyChallengeRegistration();
+        save();
+        renderHeader();
+        renderHome();
+        return; // Supabase에 없으면 신규 사용자
+      }
       // 기존 deviceId로 데이터 조회
       const did = u.deviceId;
       // 현재 기기의 deviceId를 Supabase의 deviceId로 덮어씀 (데이터 연속성 유지)
@@ -8146,6 +8666,7 @@ async function doAppLogin() {
           points: Number(x.points) || 0, ts: x.ts,
         }));
       }
+      await syncMyChallengeRegistration();
       save();
       renderHeader();
       renderHome();
@@ -8292,7 +8813,13 @@ function init() {
     if (_db && savedEmpId) {
       _db.from('users').select('*').or(`empId.eq.${savedEmpId},empId.eq.${savedEmpId.toLowerCase()}`).limit(1).then(async ({ data: rows }) => {
         const u = rows?.[0] || null;
-        if (!u) return;
+        if (!u) {
+          await syncMyChallengeRegistration();
+          save();
+          renderHeader();
+          renderHome();
+          return;
+        }
         const did = u.deviceId;
         S.deviceId = did;
         localStorage.setItem('hi_device_id_' + savedEmpId, did);
@@ -8324,6 +8851,7 @@ function init() {
             points: Number(x.points) || 0, ts: x.ts,
           }));
         }
+        await syncMyChallengeRegistration();
         save();
         renderHeader();
         renderHome();
@@ -8446,13 +8974,19 @@ init();
     // (init()이 _db보다 먼저 실행되므로 여기서 재sync 필요)
     setTimeout(() => {
       if (S.deviceId && ACTIVE_EMPID) {
-        save(); // 사용자 정보 Supabase 저장
+        save({ skipRemote: true }); // 기존 대표 deviceId 확인 전에는 재등록 방지
         // Supabase에서 최신 데이터 복원 (자동 로그인 경우)
         const _empId = ACTIVE_EMPID;
         _db.from('users').select('*').or(`empId.eq.${_empId},empId.eq.${_empId.toLowerCase()}`).limit(1).then(async ({ data: rows }) => {
           if (ACTIVE_EMPID !== _empId) return;
           const u = rows?.[0] || null;
-          if (!u) return;
+          if (!u) {
+            await syncMyChallengeRegistration();
+            save();
+            renderHeader();
+            renderHome();
+            return;
+          }
           S.deviceId = u.deviceId;
           localStorage.setItem('hi_device_id_' + _empId, u.deviceId);
           const [w, g] = await Promise.all([
@@ -8471,6 +9005,7 @@ init();
           };
           if (w.data?.length) S.workouts = w.data.map(x => ({ id: Number(x.id)||x.id, exId: x.exId, customName: x.exName||null, duration: Number(x.duration)||0, points: Number(x.points)||0, memo: x.memo||'', ts: Number(x.ts)||0 }));
           if (g.data?.length) S.glucoseRecords = g.data.map(x => ({ id: Number(x.id)||x.id, value: Number(x.value), timing: x.timing, points: Number(x.points)||0, ts: x.ts }));
+          await syncMyChallengeRegistration();
           save();
           renderHeader();
           renderHome();
