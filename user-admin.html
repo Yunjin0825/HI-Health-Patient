@@ -659,11 +659,12 @@ const EX_ICON = {
   'aerial-yoga':'🪂', climbing:'🧗', custom:'✏️'
 };
 const CH_SHOE_LABELS = {
-  nike1:'NIKE 1',
-  nike2:'NIKE 2',
-  nb1:'NB 1',
-  nb2:'NB 2',
-  nb3:'NB 3',
+  nike1:'Nike Vomero Plus (화이트)',
+  nike2:'Nike Vomero Plus (베이지)',
+  nike3:'Nike Vomero Plus (그레이)',
+  nb1:'New Balance 860 V15 (화이트)',
+  nb2:'New Balance 860 V15 (그레이)',
+  nb3:'New Balance 1080 V15',
 };
 
 function getRegShoePrefText(r) {
@@ -683,6 +684,14 @@ function getRegShoePrefText(r) {
     })
     .filter(Boolean)
     .join(' / ');
+}
+
+function getRegShoeRequestText(r) {
+  const direct = String(r?.shoeRequestNote || '').trim();
+  if (direct) return direct;
+  const note = String(r?.note || '').trim();
+  const match = note.match(/운동화요청:\s*(.+)$/m);
+  return match ? String(match[1] || '').trim() : '';
 }
 
 /* ══════════════════════════════════════════════
@@ -1760,6 +1769,7 @@ function showChDetail(id) {
   const r = GD.registrations.find(x => String(x.id) === String(id));
   if (!r) return;
   const shoePrefText = getRegShoePrefText(r);
+  const shoeRequestText = getRegShoeRequestText(r);
   const rows = [
     ['신청번호', r.id],
     ['이름', r.name],
@@ -1768,6 +1778,7 @@ function showChDetail(id) {
     ['연락처', r.phone],
     ['신발(본인)', r.shoeSize],
     ['희망모델', shoePrefText || '-'],
+    ['운동화요청', shoeRequestText || '-'],
     ['가족참여', r.familyParticipation ? '✓' : '-'],
     ['가족성별', r.familyGender||'-'],
     ['가족나이', r.familyAge||'-'],
@@ -1818,9 +1829,9 @@ async function updateChStatus(id, status) {
 }
 
 function exportChallengeCsv() {
-  const rows = [['신청번호','이름','등록번호','부서','연락처','신발','희망모델','가족','가족성별','가족나이','가족신발','크루즈','상태','신청일']];
+  const rows = [['신청번호','이름','등록번호','부서','연락처','신발','희망모델','운동화요청','가족','가족성별','가족나이','가족신발','크루즈','상태','신청일']];
   GD.registrations.forEach(r => rows.push([
-    r.id, r.name, r.empId, r.dept, r.phone, r.shoeSize, getRegShoePrefText(r),
+    r.id, r.name, r.empId, r.dept, r.phone, r.shoeSize, getRegShoePrefText(r), getRegShoeRequestText(r),
     r.familyParticipation ? 'Y':'N', r.familyGender||'', r.familyAge||'', r.familyShoeSize||'',
     r.cruiseParticipation ? 'Y':'N', r.status,
     r.registeredAt ? new Date(r.registeredAt).toLocaleDateString('ko-KR') : '',

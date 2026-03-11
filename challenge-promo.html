@@ -190,27 +190,44 @@
     }
     .form-textarea { resize:vertical; min-height:82px; }
     .form-hint { font-size:11px; color:var(--text-3); margin-top:5px; }
-    .shoe-pref-box { display:none; margin-top:16px; padding:16px; border:1.5px solid rgba(123,70,229,0.16); border-radius:18px; background:linear-gradient(180deg,#faf7ff 0%,#fff 100%); }
+    .shoe-pref-box { display:block; margin-top:16px; padding:16px; border:1.5px solid rgba(123,70,229,0.16); border-radius:18px; background:linear-gradient(180deg,#faf7ff 0%,#fff 100%); }
     .shoe-pref-box.error { border-color:var(--red); background:#fff7f7; }
-    .shoe-pref-head { margin-bottom:12px; }
+    .shoe-pref-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px; }
     .shoe-pref-title { font-size:14px; font-weight:700; margin-bottom:5px; }
     .shoe-pref-desc { font-size:12px; color:var(--text-3); line-height:1.6; }
+    .shoe-pref-size { width:118px; flex-shrink:0; }
+    .shoe-pref-size .form-label { margin-bottom:4px; font-size:11px; }
+    .shoe-pref-size .form-select { padding:8px 34px 8px 11px; font-size:12px; }
     .shoe-pref-ranks { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:12px; }
     .shoe-pref-rank { border:1px dashed var(--border); border-radius:12px; padding:10px 12px; min-height:58px; background:#fff; }
     .shoe-pref-rank.active { border-style:solid; border-color:rgba(123,70,229,0.28); background:#f7f3ff; }
     .shoe-pref-rank-label { font-size:10px; font-weight:700; color:var(--primary); margin-bottom:4px; }
     .shoe-pref-rank-value { font-size:12px; font-weight:600; color:var(--text); line-height:1.4; }
-    .shoe-pref-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .shoe-pref-rank-value.placeholder { font-weight:400; color:var(--text-3); }
+    .shoe-pref-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
     .shoe-card { border:1px solid rgba(17,24,39,0.08); border-radius:16px; overflow:hidden; background:#fff; box-shadow:0 6px 18px rgba(0,0,0,0.05); }
     .shoe-card.selected { border-color:rgba(123,70,229,0.3); box-shadow:0 10px 24px rgba(123,70,229,0.12); }
-    .shoe-card-photo { aspect-ratio:5/4; background:#f8fafc; overflow:hidden; }
-    .shoe-card-photo img { width:100%; height:100%; object-fit:cover; display:block; transform-origin:center; }
+    .shoe-card-photo { position:relative; aspect-ratio:5/4; background:#f8fafc; overflow:hidden; }
+    .shoe-card-photo img { width:100%; height:100%; object-fit:cover; display:block; transform-origin:center; cursor:zoom-in; }
+    .shoe-gender-tag { position:absolute; top:8px; right:8px; z-index:1; display:inline-flex; align-items:center; justify-content:center; padding:2px 6px; border-radius:6px; border:1px solid transparent; font-size:8px; font-weight:800; letter-spacing:.1px; line-height:1.4; box-shadow:0 3px 8px rgba(15,23,42,.08); }
+    .shoe-gender-tag[data-gender="여성"] { background:#fbcfe8; color:#9d174d; border-color:#f9a8d4; }
+    .shoe-gender-tag[data-gender="남성"] { background:#bfdbfe; color:#1d4ed8; border-color:#93c5fd; }
+    .shoe-gender-tag[data-gender="남여공용"] { background:#ddd6fe; color:#6d28d9; border-color:#c4b5fd; }
+    .photo-lightbox { position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:1200; display:flex; align-items:center; justify-content:center; padding:20px; cursor:pointer; }
+    .photo-lightbox img { max-width:100%; max-height:80vh; border-radius:12px; }
     .shoe-card-body { padding:12px; }
     .shoe-card-name { font-size:13px; font-weight:700; margin-bottom:10px; }
     .shoe-card-actions { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
     .shoe-rank-btn { padding:8px 0; border-radius:10px; border:1px solid var(--border); background:#fff; color:var(--text-3); font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s; }
     .shoe-rank-btn.active { border-color:var(--primary); background:var(--primary-light); color:var(--primary); }
+    .shoe-note-card { display:flex; flex-direction:column; justify-content:space-between; grid-column:1/-1; min-height:100%; padding:14px; border:1px dashed rgba(123,70,229,0.24); border-radius:16px; background:#fcfbff; }
+    .shoe-note-label { font-size:13px; font-weight:700; margin-bottom:6px; }
+    .shoe-note-desc { font-size:12px; color:var(--text-3); line-height:1.6; margin-bottom:10px; }
+    .shoe-note-input { width:100%; min-height:112px; resize:vertical; border:1.5px solid var(--border); border-radius:12px; padding:11px 12px; font-family:inherit; font-size:13px; background:#fff; outline:none; }
+    .shoe-note-input:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(79,70,229,0.08); }
     @media(max-width:600px){
+      .shoe-pref-head { flex-direction:column; }
+      .shoe-pref-size { width:100%; }
       .shoe-pref-ranks { grid-template-columns:1fr; }
       .shoe-pref-grid { grid-template-columns:1fr; }
     }
@@ -488,26 +505,13 @@
         </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">이메일</label>
-          <input type="email" class="form-input" id="f-email" placeholder="선택 입력" autocomplete="email">
-        </div>
-        <div class="form-group">
-          <label class="form-label">신발 사이즈 <span class="req">*</span></label>
-          <select class="form-select" id="f-shoe" onchange="renderShoeModelSection()">
-            <option value="">사이즈 선택 (mm)</option>
-            <option>220</option><option>225</option><option>230</option><option>235</option>
-            <option>240</option><option>245</option><option>250</option><option>255</option>
-            <option>260</option><option>265</option><option>270</option><option>275</option>
-            <option>280</option><option>285</option><option>290</option><option>295</option>
-            <option>300</option>
-          </select>
-          <div class="form-error" id="err-shoe">신발 사이즈를 선택해주세요</div>
-        </div>
+      <div class="form-group">
+        <label class="form-label">이메일</label>
+        <input type="email" class="form-input" id="f-email" placeholder="선택 입력" autocomplete="email">
       </div>
       <div class="shoe-pref-box" id="shoe-pref-box"></div>
-      <div class="form-error" id="err-shoe-models">희망 운동화 모델 1, 2, 3순위를 모두 선택해주세요</div>
+      <div class="form-error" id="err-shoe">신발 사이즈를 선택해주세요</div>
+      <div class="form-error" id="err-shoe-models">희망 운동화 1순위는 선택해주세요</div>
 
       <div class="form-section-label">👨‍👩‍👧 가족 참여</div>
       <div class="form-group">
@@ -590,13 +594,16 @@
 <script>
 const REG_KEY = 'hi_health_registrations_v2';
 const SHOE_MODELS = [
-  { id:'nike1', label:'NIKE 1', image:'images/nike1.png', position:'18% 54%', zoom:1.08 },
-  { id:'nike2', label:'NIKE 2', image:'images/nike2.png', position:'18% 54%', zoom:1.08 },
-  { id:'nb1',   label:'NB 1',   image:'images/nb1.png',   position:'20% 54%', zoom:1.06 },
-  { id:'nb2',   label:'NB 2',   image:'images/nb2.png',   position:'20% 54%', zoom:1.06 },
-  { id:'nb3',   label:'NB 3',   image:'images/nb3.png',   position:'20% 54%', zoom:1.06 },
+  { id:'nike1', label:'Nike Vomero Plus (화이트)', image:'images/nike1.png', genderLabel:'여성' },
+  { id:'nike2', label:'Nike Vomero Plus (베이지)', image:'images/nike2.png', genderLabel:'여성' },
+  { id:'nike3', label:'Nike Vomero Plus (그레이)', image:'images/nike3.png', genderLabel:'남성' },
+  { id:'nb1',   label:'New Balance 860 V15 (화이트)', image:'images/nb1.png', genderLabel:'여성' },
+  { id:'nb2',   label:'New Balance 860 V15 (그레이)', image:'images/nb2.png', genderLabel:'남성' },
+  { id:'nb3',   label:'New Balance 1080 V15', image:'images/nb3.png', genderLabel:'여성' },
 ];
+const SHOE_SIZES = ['220','225','230','235','240','245','250','255','260','265','270','275','280','285','290','295','300'];
 let _shoePrefs = ['', '', ''];
+let _shoeRequestNote = '';
 
 function normShoeModelId(v) {
   const id = String(v || '').trim().toLowerCase();
@@ -607,41 +614,65 @@ function getShoeModel(id) {
   return SHOE_MODELS.find(m => m.id === normShoeModelId(id)) || null;
 }
 
+function getShoeDisplayLabel(v) {
+  const model = typeof v === 'string' ? getShoeModel(v) : v;
+  if (!model) return '';
+  return model.label;
+}
+
 function shoePrefsReady() {
-  return _shoePrefs.filter(Boolean).length === 3;
+  return _shoePrefs.filter(Boolean).length >= 1;
+}
+
+function buildShoePrefNote() {
+  const prefs = _shoePrefs.filter(Boolean);
+  return prefs.length ? `희망모델: ${prefs.join('|')}` : '';
+}
+
+function buildRegistrationNote() {
+  const parts = [];
+  const shoePrefNote = buildShoePrefNote();
+  const shoeRequestNote = String(_shoeRequestNote || '').trim();
+  const generalNote = String(document.getElementById('f-note')?.value || '').trim();
+  if (shoePrefNote) parts.push(shoePrefNote);
+  if (shoeRequestNote) parts.push(`운동화요청: ${shoeRequestNote}`);
+  if (generalNote) parts.push(`기타사항: ${generalNote}`);
+  return parts.join('\n');
 }
 
 function renderShoeModelSection() {
   const wrap = document.getElementById('shoe-pref-box');
   const size = String(document.getElementById('f-shoe')?.value || '').trim();
   if (!wrap) return;
-  if (!size) {
-    _shoePrefs = ['', '', ''];
-    wrap.style.display = 'none';
-    wrap.classList.remove('error');
-    document.getElementById('err-shoe-models')?.classList.remove('show');
-    return;
-  }
+  const sizeOptions = ['<option value="">사이즈 선택 (mm)</option>']
+    .concat(SHOE_SIZES.map(v => `<option value="${v}"${size === v ? ' selected' : ''}>${v}</option>`))
+    .join('');
   wrap.style.display = 'block';
   wrap.innerHTML = `
     <div class="shoe-pref-head">
-      <div class="shoe-pref-title">희망 운동화 모델 선택 <span class="req">*</span></div>
-      <div class="shoe-pref-desc">선택하신 사이즈 ${size}mm 기준으로 재고 현황을 확인한 뒤 1순위, 2순위, 3순위 순서대로 제공합니다.</div>
+      <div style="flex:1">
+        <div class="shoe-pref-title">희망 운동화 모델 선택 <span class="req">*</span></div>
+        <div class="shoe-pref-desc">원하는 모델을 순서대로 선택해주세요. 제품이 품절되거나 사이즈를 구할수 없는 경우에 연락드리겠습니다.</div>
+      </div>
+      <div class="shoe-pref-size">
+        <label class="form-label">신발 사이즈 <span class="req">*</span></label>
+        <select class="form-select" id="f-shoe" onchange="renderShoeModelSection()">${sizeOptions}</select>
+      </div>
     </div>
     <div class="shoe-pref-ranks">
       ${_shoePrefs.map((id, idx) => `
         <div class="shoe-pref-rank${id ? ' active' : ''}">
           <div class="shoe-pref-rank-label">${idx + 1}순위</div>
-          <div class="shoe-pref-rank-value">${getShoeModel(id)?.label || '선택 전'}</div>
+          <div class="shoe-pref-rank-value${id ? '' : ' placeholder'}">${getShoeDisplayLabel(id) || '선택 전'}</div>
         </div>
       `).join('')}
     </div>
     <div class="shoe-pref-grid">
       ${SHOE_MODELS.map(model => `
         <div class="shoe-card${_shoePrefs.includes(model.id) ? ' selected' : ''}">
-          <div class="shoe-card-photo"><img src="${model.image}" alt="${model.label}" style="object-position:${model.position || '50% 50%'};transform-origin:left center;transform:scale(${model.zoom || 1})"></div>
+          <div class="shoe-card-photo"><span class="shoe-gender-tag" data-gender="${model.genderLabel || '남여공용'}">${model.genderLabel || '남여공용'}</span><img src="${model.image}" alt="${model.label}" onclick="openShoeLightbox('${model.image}','${model.label}')" style="object-position:${model.position || 'center center'};transform:scale(${model.zoom || 1.08})"></div>
           <div class="shoe-card-body">
-            <div class="shoe-card-name">${model.label}</div>
+            <div class="shoe-card-name">${getShoeDisplayLabel(model)}</div>
             <div class="shoe-card-actions">
               ${[0,1,2].map(rank => `
                 <button type="button" class="shoe-rank-btn${_shoePrefs[rank] === model.id ? ' active' : ''}" onclick="pickShoePref(${rank},'${model.id}')">${rank + 1}순위</button>
@@ -650,6 +681,13 @@ function renderShoeModelSection() {
           </div>
         </div>
       `).join('')}
+      <div class="shoe-note-card">
+        <div>
+          <div class="shoe-note-label">요청사항</div>
+          <div class="shoe-note-desc">발볼, 착화감, 재고 문의 등을 적어주세요.</div>
+        </div>
+        <textarea class="shoe-note-input" placeholder="예: 발볼이 넓은 편입니다" oninput="setShoeRequestNote(this.value)">${String(_shoeRequestNote || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}</textarea>
+      </div>
     </div>
   `;
 }
@@ -662,6 +700,22 @@ function pickShoePref(rank, modelId) {
   _shoePrefs = _shoePrefs.map(v => v === model ? '' : v);
   _shoePrefs[idx] = sameRank ? '' : model;
   renderShoeModelSection();
+}
+
+function setShoeRequestNote(v) {
+  _shoeRequestNote = String(v || '');
+}
+
+function openShoeLightbox(src, alt) {
+  if (!src) return;
+  const box = document.createElement('div');
+  box.className = 'photo-lightbox';
+  box.onclick = () => box.remove();
+  const img = document.createElement('img');
+  img.src = src;
+  img.alt = alt || '운동화 이미지';
+  box.appendChild(img);
+  document.body.appendChild(box);
 }
 
 /* ── Countdown ── */
@@ -697,6 +751,10 @@ function checkDuplicate() {
 function toggleFamily(el) {
   const show = el.value === 'yes';
   document.getElementById('family-detail').style.display = show ? 'block' : 'none';
+  if (!show) {
+    document.getElementById('f-family-cnt').value = '1';
+    document.getElementById('f-family-shoe').value = '';
+  }
 }
 
 /* ── Validate ── */
@@ -761,7 +819,8 @@ function submitForm(e) {
     familyParticipation: familyVal === 'yes',
     familyCount: familyVal === 'yes' ? parseInt(document.getElementById('f-family-cnt').value) : 0,
     familyShoeSize: familyVal === 'yes' ? document.getElementById('f-family-shoe').value.trim() : '',
-    note:    document.getElementById('f-note').value.trim(),
+    shoeRequestNote: String(_shoeRequestNote || '').trim(),
+    note:    buildRegistrationNote(),
     status:  'pending',
     adminNote: '',
     registeredAt: new Date().toISOString(),
@@ -780,6 +839,7 @@ function submitForm(e) {
 }
 
 /* ── Scroll animations ── */
+renderShoeModelSection();
 const obs = new IntersectionObserver(entries => {
   entries.forEach(en => { if (en.isIntersecting) en.target.classList.add('vis'); });
 }, { threshold: 0.1 });

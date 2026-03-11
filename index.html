@@ -1845,9 +1845,11 @@
       outline:none; background:var(--bg); transition:all 0.2s; appearance:none;
     }
     .ch-form-input:focus, .ch-form-select:focus { border-color:var(--primary); background:#fff; }
+    .ch-form-input[readonly] { background:#f8fafc; color:var(--text-secondary); cursor:default; pointer-events:none; user-select:none; }
     .ch-form-select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; background-size:16px; padding-right:34px; }
     .ch-form-group { margin-bottom:13px; }
     .ch-row2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .ch-row3 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
     .ch-radio-group { display:flex; gap:8px; }
     .ch-radio-label { display:flex; align-items:center; justify-content:center; gap:6px; padding:9px 12px; border-radius:var(--radius-sm); border:1.5px solid var(--border); cursor:pointer; font-size:13px; transition:all 0.2s; background:var(--bg); user-select:none; flex:1; }
     .ch-radio-label:has(input:checked) { border-color:var(--primary); background:var(--primary-light); color:var(--primary); font-weight:700; }
@@ -1858,26 +1860,41 @@
     .ch-consent-check input { width:16px; height:16px; accent-color:var(--primary); }
     .ch-dup-warn { display:none; padding:10px 13px; background:var(--warning-light); border-radius:var(--radius-sm); font-size:12px; color:#92400E; margin-bottom:12px; }
     .ch-dup-warn.show { display:block; }
-    .ch-shoe-pref-wrap { display:none; margin:14px 0 12px; padding:14px; border:1px solid rgba(79,70,229,0.14); border-radius:14px; background:linear-gradient(180deg,#faf8ff 0%,#fff 100%); }
-    .ch-shoe-pref-head { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:10px; }
+    .ch-shoe-pref-wrap { display:block; margin:14px 0 12px; padding:14px; border:1px solid rgba(79,70,229,0.14); border-radius:14px; background:linear-gradient(180deg,#faf8ff 0%,#fff 100%); }
+    .ch-shoe-pref-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:10px; }
     .ch-shoe-pref-title { font-size:13px; font-weight:700; color:var(--text); }
     .ch-shoe-pref-note { font-size:11px; color:var(--text-secondary); line-height:1.55; }
+    .ch-shoe-pref-size { width:118px; flex-shrink:0; }
+    .ch-shoe-pref-size .form-label { margin-bottom:4px; font-size:11px; }
+    .ch-shoe-pref-size .ch-form-select { background:#fff; padding:7px 30px 7px 10px; font-size:12px; }
     .ch-shoe-pref-ranks { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:10px; }
     .ch-shoe-pref-rank { border:1px dashed var(--border); border-radius:12px; padding:8px 10px; background:#fff; min-height:54px; }
     .ch-shoe-pref-rank.filled { border-style:solid; border-color:rgba(79,70,229,0.25); background:#f7f4ff; }
     .ch-shoe-pref-rank-label { font-size:10px; font-weight:700; color:var(--primary); margin-bottom:4px; }
     .ch-shoe-pref-rank-value { font-size:12px; font-weight:600; color:var(--text); line-height:1.4; }
-    .ch-shoe-pref-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    .ch-shoe-pref-rank-value.placeholder { font-weight:400; color:var(--text-secondary); }
+    .ch-shoe-pref-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
     .ch-shoe-model-card { border:1px solid rgba(79,70,229,0.12); border-radius:14px; overflow:hidden; background:#fff; box-shadow:0 4px 14px rgba(15,23,42,0.04); }
     .ch-shoe-model-card.selected { border-color:rgba(79,70,229,0.35); box-shadow:0 8px 18px rgba(79,70,229,0.12); }
-    .ch-shoe-model-photo { aspect-ratio:5/4; background:#f8fafc; display:flex; align-items:center; justify-content:center; overflow:hidden; }
-    .ch-shoe-model-photo img { width:100%; height:100%; object-fit:cover; display:block; transform-origin:center; }
+    .ch-shoe-model-photo { position:relative; aspect-ratio:5/4; background:#f8fafc; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+    .ch-shoe-model-photo img { width:100%; height:100%; object-fit:cover; display:block; transform-origin:center; cursor:zoom-in; }
+    .ch-shoe-gender-tag { position:absolute; top:8px; right:8px; z-index:1; display:inline-flex; align-items:center; justify-content:center; padding:2px 6px; border-radius:6px; border:1px solid transparent; font-size:8px; font-weight:800; letter-spacing:.1px; line-height:1.4; box-shadow:0 3px 8px rgba(15,23,42,.08); }
+    .ch-shoe-gender-tag[data-gender="여성"] { background:#fbcfe8; color:#9d174d; border-color:#f9a8d4; }
+    .ch-shoe-gender-tag[data-gender="남성"] { background:#bfdbfe; color:#1d4ed8; border-color:#93c5fd; }
+    .ch-shoe-gender-tag[data-gender="남여공용"] { background:#ddd6fe; color:#6d28d9; border-color:#c4b5fd; }
     .ch-shoe-model-body { padding:10px; }
     .ch-shoe-model-name { font-size:12px; font-weight:700; color:var(--text); margin-bottom:8px; }
     .ch-shoe-model-actions { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
     .ch-shoe-rank-btn { border:1px solid var(--border); background:#fff; color:var(--text-secondary); border-radius:10px; padding:7px 0; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.18s; }
     .ch-shoe-rank-btn.active { border-color:var(--primary); background:var(--primary-light); color:var(--primary); }
+    .ch-shoe-note-card { display:flex; flex-direction:column; justify-content:space-between; grid-column:1/-1; padding:12px; border:1px dashed rgba(79,70,229,0.22); border-radius:14px; background:#fcfbff; min-height:100%; }
+    .ch-shoe-note-label { font-size:12px; font-weight:700; color:var(--text); margin-bottom:6px; }
+    .ch-shoe-note-desc { font-size:11px; color:var(--text-secondary); line-height:1.5; margin-bottom:10px; }
+    .ch-shoe-note-input { width:100%; min-height:108px; resize:vertical; border:1.5px solid var(--border); border-radius:12px; padding:10px 12px; background:#fff; font-family:inherit; font-size:12px; color:var(--text); outline:none; }
+    .ch-shoe-note-input:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(79,70,229,0.08); }
     @media (max-width:420px) {
+      .ch-shoe-pref-head { flex-direction:column; }
+      .ch-shoe-pref-size { width:100%; }
       .ch-shoe-pref-ranks { grid-template-columns:1fr; }
       .ch-shoe-pref-grid { grid-template-columns:1fr; }
     }
@@ -7665,13 +7682,16 @@ const CH = {
 };
 const CH_REG_KEY = 'hi_health_registrations_v2';
 const CH_SHOE_MODELS = [
-  { id:'nike1', label:'NIKE 1', image:'images/nike1.png', position:'18% 54%', zoom:1.08 },
-  { id:'nike2', label:'NIKE 2', image:'images/nike2.png', position:'18% 54%', zoom:1.08 },
-  { id:'nb1',   label:'NB 1',   image:'images/nb1.png',   position:'20% 54%', zoom:1.06 },
-  { id:'nb2',   label:'NB 2',   image:'images/nb2.png',   position:'20% 54%', zoom:1.06 },
-  { id:'nb3',   label:'NB 3',   image:'images/nb3.png',   position:'20% 54%', zoom:1.06 },
+  { id:'nike1', label:'Nike Vomero Plus (화이트)', image:'images/nike1.png', genderLabel:'여성' },
+  { id:'nike2', label:'Nike Vomero Plus (베이지)', image:'images/nike2.png', genderLabel:'여성' },
+  { id:'nike3', label:'Nike Vomero Plus (그레이)', image:'images/nike3.png', genderLabel:'남성' },
+  { id:'nb1',   label:'New Balance 860 V15 (화이트)', image:'images/nb1.png', genderLabel:'여성' },
+  { id:'nb2',   label:'New Balance 860 V15 (그레이)', image:'images/nb2.png', genderLabel:'남성' },
+  { id:'nb3',   label:'New Balance 1080 V15', image:'images/nb3.png', genderLabel:'여성' },
 ];
+const CH_SHOE_SIZES = ['215','220','225','230','235','240','245','250','255','260','265','270','275','280','285','290','295','300'];
 let _chShoePrefs = ['', '', ''];
+let _chShoeRequestNote = '';
 
 function normChShoeModelId(v) {
   const id = String(v || '').trim().toLowerCase();
@@ -7693,6 +7713,12 @@ function getChShoeModel(id) {
   return CH_SHOE_MODELS.find(m => m.id === normChShoeModelId(id)) || null;
 }
 
+function getChShoeDisplayLabel(v) {
+  const model = typeof v === 'string' ? getChShoeModel(v) : v;
+  if (!model) return '';
+  return model.label;
+}
+
 function getChShoePrefs(reg) {
   const raw = Array.isArray(reg?.shoePrefs) ? reg.shoePrefs : [];
   let prefs = raw.map(resolveChShoeModelId).filter(Boolean);
@@ -7708,7 +7734,7 @@ function getChShoePrefs(reg) {
 
 function formatChShoePrefs(reg) {
   return getChShoePrefs(reg)
-    .map((id, idx) => id ? `${idx + 1}순위 ${getChShoeModel(id)?.label || id}` : '')
+    .map((id, idx) => id ? `${idx + 1}순위 ${getChShoeDisplayLabel(id) || id}` : '')
     .filter(Boolean);
 }
 
@@ -7717,29 +7743,53 @@ function buildChShoePrefNote(reg) {
   return prefs.length ? `희망모델: ${prefs.join('|')}` : '';
 }
 
+function getChFamilyMemo(reg) {
+  const direct = String(reg?.familyMemo || '').trim();
+  if (direct) return direct;
+  const note = String(reg?.note || '').trim();
+  const match = note.match(/가족메모:\s*(.+)$/m);
+  return match ? String(match[1] || '').trim() : '';
+}
+
+function getChShoeRequestNote(reg) {
+  const direct = String(reg?.shoeRequestNote || '').trim();
+  if (direct) return direct;
+  const note = String(reg?.note || '').trim();
+  const match = note.match(/운동화요청:\s*(.+)$/m);
+  return match ? String(match[1] || '').trim() : '';
+}
+
+function buildChRegistrationNote(reg) {
+  const parts = [];
+  const shoePrefNote = buildChShoePrefNote(reg);
+  const shoeRequestNote = String(reg?.shoeRequestNote || '').trim();
+  const familyMemo = String(reg?.familyMemo || '').trim();
+  if (shoePrefNote) parts.push(shoePrefNote);
+  if (shoeRequestNote) parts.push(`운동화요청: ${shoeRequestNote}`);
+  if (familyMemo) parts.push(`가족메모: ${familyMemo}`);
+  return parts.join('\n');
+}
+
 function renderChShoePrefSection() {
   const wrap = document.getElementById('ch-shoe-pref-section');
   const shoeSize = String(document.getElementById('ch-shoe')?.value || '').trim();
   if (!wrap) return;
-  if (!shoeSize) {
-    wrap.style.display = 'none';
-    wrap.innerHTML = '';
-    _chShoePrefs = ['', '', ''];
-    return;
-  }
+  const sizeOptions = ['<option value="">사이즈(mm)</option>']
+    .concat(CH_SHOE_SIZES.map(size => `<option value="${size}"${shoeSize === size ? ' selected' : ''}>${size}</option>`))
+    .join('');
   const rankSummary = _chShoePrefs.map((id, idx) => `
     <div class="ch-shoe-pref-rank${id ? ' filled' : ''}">
       <div class="ch-shoe-pref-rank-label">${idx + 1}순위</div>
-      <div class="ch-shoe-pref-rank-value">${getChShoeModel(id)?.label || '선택 전'}</div>
+      <div class="ch-shoe-pref-rank-value${id ? '' : ' placeholder'}">${getChShoeDisplayLabel(id) || '선택 전'}</div>
     </div>
   `).join('');
   const cards = CH_SHOE_MODELS.map(model => {
     const selected = _chShoePrefs.includes(model.id);
     return `
       <div class="ch-shoe-model-card${selected ? ' selected' : ''}">
-        <div class="ch-shoe-model-photo"><img src="${model.image}" alt="${model.label}" style="object-position:${model.position || '50% 50%'};transform-origin:left center;transform:scale(${model.zoom || 1})"></div>
+        <div class="ch-shoe-model-photo"><span class="ch-shoe-gender-tag" data-gender="${model.genderLabel || '남여공용'}">${model.genderLabel || '남여공용'}</span><img src="${model.image}" alt="${model.label}" onclick="openShoeLightbox('${model.image}','${model.label}')" style="object-position:${model.position || 'center center'};transform:scale(${model.zoom || 1.08})"></div>
         <div class="ch-shoe-model-body">
-          <div class="ch-shoe-model-name">${model.label}</div>
+          <div class="ch-shoe-model-name">${getChShoeDisplayLabel(model)}</div>
           <div class="ch-shoe-model-actions">
             ${[0,1,2].map(rank => `
               <button type="button" class="ch-shoe-rank-btn${_chShoePrefs[rank] === model.id ? ' active' : ''}" onclick="pickChShoePref(${rank},'${model.id}')">${rank + 1}순위</button>
@@ -7748,13 +7798,25 @@ function renderChShoePrefSection() {
         </div>
       </div>
     `;
-  }).join('');
+  }).join('') + `
+    <div class="ch-shoe-note-card">
+      <div>
+        <div class="ch-shoe-note-label">요청사항</div>
+        <div class="ch-shoe-note-desc">발볼, 착화감, 재고 문의 등을 적어주세요.</div>
+      </div>
+      <textarea class="ch-shoe-note-input" placeholder="예: 발볼이 넓은 편입니다" oninput="setChShoeRequestNote(this.value)">${escHtmlComm(_chShoeRequestNote)}</textarea>
+    </div>
+  `;
   wrap.style.display = 'block';
   wrap.innerHTML = `
     <div class="ch-shoe-pref-head">
-      <div>
+      <div style="flex:1">
         <div class="ch-shoe-pref-title">희망 운동화 모델 선택 <span style="color:var(--accent)">*</span></div>
-        <div class="ch-shoe-pref-note">선택하신 사이즈 ${shoeSize}mm 기준으로 재고 현황을 확인한 뒤 1순위, 2순위, 3순위 순서대로 제공합니다.</div>
+        <div class="ch-shoe-pref-note">원하는 모델을 순서대로 선택해주세요. 제품이 품절되거나 사이즈를 구할수 없는 경우에 연락드리겠습니다.</div>
+      </div>
+      <div class="ch-shoe-pref-size">
+        <label class="form-label" style="margin-bottom:6px">사이즈 <span style="color:var(--accent)">*</span></label>
+        <select class="ch-form-select" id="ch-shoe" onchange="renderChShoePrefSection();updateChSubmitState()">${sizeOptions}</select>
       </div>
     </div>
     <div class="ch-shoe-pref-ranks">${rankSummary}</div>
@@ -7771,6 +7833,22 @@ function pickChShoePref(rank, modelId) {
   _chShoePrefs[idx] = sameRank ? '' : model;
   renderChShoePrefSection();
   updateChSubmitState();
+}
+
+function setChShoeRequestNote(v) {
+  _chShoeRequestNote = String(v || '');
+}
+
+function openShoeLightbox(src, alt) {
+  if (!src) return;
+  const box = document.createElement('div');
+  box.className = 'photo-lightbox';
+  box.onclick = () => box.remove();
+  const img = document.createElement('img');
+  img.src = src;
+  img.alt = alt || '운동화 이미지';
+  box.appendChild(img);
+  document.body.appendChild(box);
 }
 
 function getStoredChallengeRegs() {
@@ -8013,6 +8091,8 @@ function renderChallenge() {
   const doneEl = document.getElementById('ch-reg-done');
   const formEl = document.getElementById('ch-reg-form');
   const shoePrefSummary = formatChShoePrefs(myReg);
+  const shoeRequestNote = getChShoeRequestNote(myReg);
+  const familyMemo = getChFamilyMemo(myReg);
 
   if (myReg && myReg.status !== 'cancelled') {
     const statusLbl   = { pending:'검토 중', confirmed:'선정 완료', cancelled:'미선정' }[myReg.status] || myReg.status;
@@ -8033,6 +8113,8 @@ function renderChallenge() {
         <div class="ch-reg-rows">
           <div class="ch-reg-row"><span class="ch-reg-label">신발 사이즈</span><span class="ch-reg-value">${myReg.shoeSize}mm</span></div>
           <div class="ch-reg-row"><span class="ch-reg-label">가족 참여</span><span class="ch-reg-value">${myReg.familyParticipation ? '함께 · ' + [myReg.familyGender, myReg.familyAge, myReg.familyShoeSize ? myReg.familyShoeSize + 'mm' : ''].filter(Boolean).join(' ') || '가족 1인' : '본인만'}</span></div>
+          ${shoeRequestNote ? `<div class="ch-reg-row ch-reg-row-full"><span class="ch-reg-label">운동화 요청</span><span class="ch-reg-value">${escHtmlComm(shoeRequestNote)}</span></div>` : ''}
+          ${myReg.familyParticipation && familyMemo ? `<div class="ch-reg-row ch-reg-row-full"><span class="ch-reg-label">가족 메모</span><span class="ch-reg-value">${escHtmlComm(familyMemo)}</span></div>` : ''}
           <div class="ch-reg-row"><span class="ch-reg-label">크루즈 탑승</span><span class="ch-reg-value">${myReg.cruiseParticipation === false ? '탑승 안 함' : '탑승 희망'}</span></div>
           <div class="ch-reg-row"><span class="ch-reg-label">행사 참여</span><span class="ch-reg-value">${myReg.eventParticipation === false ? '불참' : '참여'}</span></div>
           ${shoePrefSummary.length ? `<div class="ch-reg-row ch-reg-row-full"><span class="ch-reg-label">희망 모델</span><span class="ch-reg-value">${shoePrefSummary.join(' / ')}</span></div>` : ''}
@@ -8048,6 +8130,7 @@ function renderChallenge() {
     formEl.innerHTML = '';
   } else if (phase === 'registration') {
     _chShoePrefs = ['', '', ''];
+    _chShoeRequestNote = '';
     doneEl.innerHTML = '';
     formEl.innerHTML = `
       <div class="card">
@@ -8057,17 +8140,19 @@ function renderChallenge() {
         </div>
         <div class="ch-dup-warn" id="ch-dup-warn">이미 신청하신 사번입니다</div>
         <form id="ch-form" onsubmit="submitChReg(event)" novalidate>
-          <div class="ch-form-group">
-            <label class="form-label">이름 <span style="color:var(--accent)">*</span></label>
-            <input type="text" class="ch-form-input" id="ch-name" placeholder="홍길동" value="${S.user.name || ''}" oninput="updateChSubmitState()">
+          <div class="ch-row2">
+            <div class="ch-form-group">
+              <label class="form-label">이름</label>
+              <input type="text" class="ch-form-input" id="ch-name" placeholder="홍길동" value="${S.user.name || ''}" readonly tabindex="-1">
+            </div>
+            <div class="ch-form-group">
+              <label class="form-label">사번</label>
+              <input type="text" class="ch-form-input" id="ch-empid" placeholder="A1801" value="${S.user.empId || ACTIVE_EMPID || ''}" readonly tabindex="-1">
+            </div>
           </div>
           <div class="ch-row2">
             <div class="ch-form-group">
-              <label class="form-label">사번 <span style="color:var(--accent)">*</span></label>
-              <input type="text" class="ch-form-input" id="ch-empid" placeholder="A1801" value="${S.user.empId || ACTIVE_EMPID || ''}" oninput="checkChDup()">
-            </div>
-            <div class="ch-form-group">
-              <label class="form-label">부서 <span style="color:var(--accent)">*</span></label>
+              <label class="form-label">부서</label>
               <select class="ch-form-select" id="ch-dept" onchange="updateChSubmitState()">
                 <option value="">선택</option>
                 <option>의료진</option><option>외래</option><option>상담실</option>
@@ -8076,35 +8161,23 @@ function renderChallenge() {
                 <option>경영지원부</option>
               </select>
             </div>
-          </div>
-          <div class="ch-row2">
             <div class="ch-form-group">
-              <label class="form-label">연락처 <span style="color:var(--accent)">*</span></label>
+              <label class="form-label">연락처</label>
               <input type="tel" class="ch-form-input" id="ch-phone" placeholder="010-0000-0000" oninput="updateChSubmitState()">
-            </div>
-            <div class="ch-form-group">
-              <label class="form-label">신발 사이즈 <span style="color:var(--accent)">*</span></label>
-              <select class="ch-form-select" id="ch-shoe" onchange="renderChShoePrefSection();updateChSubmitState()">
-                <option value="">사이즈(mm)</option>
-                <option>215</option><option>220</option><option>225</option><option>230</option><option>235</option>
-                <option>240</option><option>245</option><option>250</option><option>255</option>
-                <option>260</option><option>265</option><option>270</option><option>275</option>
-                <option>280</option><option>285</option><option>290</option><option>295</option><option>300</option>
-              </select>
             </div>
           </div>
           <div id="ch-shoe-pref-section" class="ch-shoe-pref-wrap"></div>
           <div class="ch-form-group">
-            <label class="form-label">가족 참여 여부 <span style="color:var(--accent)">*</span></label>
+            <label class="form-label">가족 참여 여부 <span style="font-size:11px;font-weight:400;color:var(--text-secondary)">(챌린지만 참여 가능, 러닝화 지급-가족1인)</span> <span style="color:var(--accent)">*</span></label>
             <div class="ch-radio-group">
               <label class="ch-radio-label"><input type="radio" name="ch-fam" value="no" onchange="toggleChFam(this)"> 본인만 신청</label>
               <label class="ch-radio-label"><input type="radio" name="ch-fam" value="yes" onchange="toggleChFam(this)"> 가족함께 참여</label>
             </div>
             <div id="ch-fam-detail" style="display:none;background:var(--bg-secondary,#f8fafc);border-radius:10px;padding:12px;margin-top:4px">
               <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:8px">가족 정보 (러닝화 지급용)</div>
-              <div class="ch-row2">
+              <div class="ch-row3">
                 <div class="ch-form-group" style="margin-bottom:0">
-                  <label class="form-label">성별 <span style="color:var(--accent)">*</span></label>
+                  <label class="form-label">성별</label>
                   <select class="ch-form-select" id="ch-fam-gender" onchange="updateChSubmitState()">
                     <option value="">선택</option>
                     <option value="남">남</option>
@@ -8112,36 +8185,44 @@ function renderChallenge() {
                   </select>
                 </div>
                 <div class="ch-form-group" style="margin-bottom:0">
-                  <label class="form-label">나이 <span style="color:var(--accent)">*</span></label>
+                  <label class="form-label">나이</label>
                   <select class="ch-form-select" id="ch-fam-age" onchange="updateChSubmitState()">
                     <option value="">선택</option>
-                    <option>10대</option><option>20대</option><option>30대</option>
+                    <option>영유아</option><option>10대</option><option>20대</option><option>30대</option>
                     <option>40대</option><option>50대</option><option>60대 이상</option>
+                  </select>
+                </div>
+                <div class="ch-form-group" style="margin-bottom:0">
+                  <label class="form-label">신발 사이즈</label>
+                  <select class="ch-form-select" id="ch-fam-shoe" onchange="updateChSubmitState()">
+                    <option value="">사이즈(mm)</option>
+                    <option>120</option><option>125</option><option>130</option><option>135</option><option>140</option>
+                    <option>145</option><option>150</option><option>155</option><option>160</option><option>165</option>
+                    <option>170</option><option>175</option><option>180</option><option>185</option><option>190</option>
+                    <option>195</option><option>200</option><option>205</option><option>210</option><option>215</option>
+                    <option>220</option><option>225</option><option>230</option><option>235</option>
+                    <option>240</option><option>245</option><option>250</option><option>255</option>
+                    <option>260</option><option>265</option><option>270</option><option>275</option>
+                    <option>280</option><option>285</option><option>290</option>
                   </select>
                 </div>
               </div>
               <div class="ch-form-group" style="margin-top:8px;margin-bottom:0">
-                <label class="form-label">신발 사이즈 <span style="color:var(--accent)">*</span></label>
-                <select class="ch-form-select" id="ch-fam-shoe" onchange="updateChSubmitState()">
-                  <option value="">사이즈(mm)</option>
-                  <option>215</option><option>220</option><option>225</option><option>230</option><option>235</option>
-                  <option>240</option><option>245</option><option>250</option><option>255</option>
-                  <option>260</option><option>265</option><option>270</option><option>275</option>
-                  <option>280</option><option>285</option><option>290</option>
-                </select>
+                <label class="form-label">기타 메모</label>
+                <input type="text" class="ch-form-input" id="ch-fam-note" placeholder="직접 입력" oninput="updateChSubmitState()">
               </div>
             </div>
             <input type="hidden" id="ch-fam-cnt" value="1">
           </div>
           <div class="ch-form-group">
-            <label class="form-label">한강 크루즈 탑승 <span style="font-size:11px;font-weight:400;color:var(--text-secondary)">(김포→여의도, 약 90분)</span> <span style="color:var(--accent)">*</span></label>
+            <label class="form-label">한강 크루즈 탑승 <span style="font-size:11px;font-weight:400;color:var(--text-secondary)">(김포→여의도, 약 90분 · 직원만 참여 가능)</span> <span style="color:var(--accent)">*</span></label>
             <div class="ch-radio-group">
               <label class="ch-radio-label"><input type="radio" name="ch-cruise" value="yes" onchange="updateChSubmitState()"> 탑승 희망</label>
               <label class="ch-radio-label"><input type="radio" name="ch-cruise" value="no" onchange="updateChSubmitState()"> 탑승 안 함</label>
             </div>
           </div>
           <div class="ch-form-group">
-            <label class="form-label">HI RUN DAY 행사 참여 <span style="font-size:11px;font-weight:400;color:var(--text-secondary)">(함께달리기 · 여의도→선유도)</span> <span style="color:var(--accent)">*</span></label>
+            <label class="form-label">HI RUN DAY 행사 참여 <span style="font-size:11px;font-weight:400;color:var(--text-secondary)">(함께달리기 · 여의도→선유도 · 직원만 참여 가능)</span> <span style="color:var(--accent)">*</span></label>
             <div class="ch-radio-group">
               <label class="ch-radio-label"><input type="radio" name="ch-event" value="yes" onchange="updateChSubmitState()"> 참여</label>
               <label class="ch-radio-label"><input type="radio" name="ch-event" value="no" onchange="updateChSubmitState()"> 불참</label>
@@ -8414,11 +8495,10 @@ function updateChSubmitState() {
   const famGender = String(document.getElementById('ch-fam-gender')?.value || '').trim();
   const famAge = String(document.getElementById('ch-fam-age')?.value || '').trim();
   const famShoe = String(document.getElementById('ch-fam-shoe')?.value || '').trim();
-  const needsFamilyInfo = famChoice === 'yes';
-  const familyInfoReady = !needsFamilyInfo || (famGender && famAge && famShoe);
-  const shoePrefsReady = _chShoePrefs.filter(Boolean).length === 3;
+  const familyInfoReady = true;
+  const shoePrefsReady = _chShoePrefs.filter(Boolean).length >= 1;
   const dup = hasDuplicateChallengeReg(empId);
-  const ready = !!(name && empId && dept && phone && shoe && famChoice && cruiseChoice && eventChoice && consent && familyInfoReady && shoePrefsReady && !dup);
+  const ready = !!(name && empId && phone && shoe && famChoice && cruiseChoice && eventChoice && consent && familyInfoReady && shoePrefsReady && !dup);
 
   if (warnEl) warnEl.classList.toggle('show', !!empId && dup);
   if (submitBtn) {
@@ -8436,9 +8516,11 @@ function toggleChFam(el) {
     const famGender = document.getElementById('ch-fam-gender');
     const famAge = document.getElementById('ch-fam-age');
     const famShoe = document.getElementById('ch-fam-shoe');
+    const famNote = document.getElementById('ch-fam-note');
     if (famGender) famGender.value = '';
     if (famAge) famAge.value = '';
     if (famShoe) famShoe.value = '';
+    if (famNote) famNote.value = '';
   }
   updateChSubmitState();
 }
@@ -8457,39 +8539,39 @@ function submitChReg(e) {
   const famGender = document.getElementById('ch-fam-gender')?.value || '';
   const famAge = document.getElementById('ch-fam-age')?.value || '';
   const famShoe = document.getElementById('ch-fam-shoe')?.value || '';
-  const shoePrefNote = buildChShoePrefNote({ shoePrefs: _chShoePrefs });
+  const famNote = (document.getElementById('ch-fam-note')?.value || '').trim();
 
   if (!name)  { showToast('⚠️ 이름을 입력해주세요'); return; }
   if (!empId) { showToast('⚠️ 사번을 입력해주세요'); return; }
-  if (!dept)  { showToast('⚠️ 부서를 선택해주세요'); return; }
   if (!phone) { showToast('⚠️ 연락처를 입력해주세요'); return; }
   if (!shoe)  { showToast('⚠️ 신발 사이즈를 선택해주세요'); return; }
-  if (_chShoePrefs.filter(Boolean).length !== 3) { showToast('⚠️ 희망 운동화 1~3순위를 모두 선택해주세요'); return; }
+  if (_chShoePrefs.filter(Boolean).length < 1) { showToast('⚠️ 희망 운동화 1순위는 선택해주세요'); return; }
   if (!famVal) { showToast('⚠️ 가족 참여 여부를 선택해주세요'); return; }
   if (!cruiseVal) { showToast('⚠️ 크루즈 탑승 여부를 선택해주세요'); return; }
   if (!eventVal) { showToast('⚠️ 행사 참여 여부를 선택해주세요'); return; }
-  if (famVal === 'yes' && (!famGender || !famAge || !famShoe)) {
-    showToast('⚠️ 가족 정보를 모두 입력해주세요');
-    return;
-  }
   if (!ok) { showToast('⚠️ 개인정보 동의가 필요합니다'); return; }
 
   const regs = JSON.parse(localStorage.getItem(CH_REG_KEY) || '[]');
   if (hasDuplicateChallengeReg(empId)) { showToast('⚠️ 이미 신청하신 사번입니다'); return; }
 
   const famChecked = famVal === 'yes';
+  const familyMemo = famChecked ? famNote : '';
+  const shoeRequestNote = String(_chShoeRequestNote || '').trim();
+  const regNote = buildChRegistrationNote({ shoePrefs: _chShoePrefs, shoeRequestNote, familyMemo });
   const id = 'HC-' + String(Date.now()).slice(-6);
   regs.push({
     id, name, empId, dept, phone, email:'', shoeSize: shoe,
     shoePrefs: [..._chShoePrefs],
+    shoeRequestNote,
     familyParticipation: famChecked,
     familyCount: famChecked ? 1 : 0,
     familyShoeSize: famChecked ? famShoe : '',
     familyGender: famChecked ? famGender : '',
     familyAge: famChecked ? famAge : '',
+    familyMemo,
     cruiseParticipation: cruiseVal === 'yes',
     eventParticipation: eventVal === 'yes',
-    note: shoePrefNote, status:'pending', adminNote:'',
+    note: regNote, status:'pending', adminNote:'',
     registeredAt: new Date().toISOString(),
   });
   localStorage.setItem(CH_REG_KEY, JSON.stringify(regs));
@@ -8507,8 +8589,8 @@ function submitChReg(e) {
     status: lastReg.status,
     registeredAt: lastReg.registeredAt,
   });
-  if (_db && shoePrefNote) {
-    _db.from('registrations').update({ note: shoePrefNote }).eq('id', lastReg.id)
+  if (_db && regNote) {
+    _db.from('registrations').update({ note: regNote }).eq('id', lastReg.id)
       .then(({ error }) => { if (error) console.warn('[registration.note]', error.message); });
   }
 
