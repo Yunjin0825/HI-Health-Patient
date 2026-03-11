@@ -5434,6 +5434,18 @@ function setSupp(val) {
   updateSharePreview();
   saveTodayLog();
   renderTodayTabDots();
+  if (val === 'empty') {
+    showConfirm({
+      icon: '<div style="font-size:36px;line-height:1">💊</div>',
+      title: '영양제가 떨어졌어요',
+      msg: '영양제 구매 페이지로 이동할까요?',
+      okLabel: '구매 탭으로 이동',
+      onOk: () => {
+        navigate('rewards');
+        setRewardsTab('shop');
+      }
+    });
+  }
 }
 function resetHealthChecks() {
   document.querySelectorAll('[id^="diet-"]').forEach(e => e.classList.remove('on'));
@@ -8431,7 +8443,7 @@ function renderChallenge() {
       status: now > CH.preEnd ? 'done' : now >= CH.preStart ? 'active' : 'future' },
     { date:'4/5(일) ~ 4/14(화)', title:'본 챌린지 (10일)', desc:'덱스콤7 착용 + 매일 운동 인증', tag:'main',
       status: now > CH.mainEnd ? 'done' : now >= CH.mainStart ? 'active' : 'future' },
-    { date:'4/15(수)', title:'HI RUN DAY!', desc:'개원기념식 → 호텔 식사 → 크루즈(김포→여의도) → 권은주 선수 강연 → 함께 달리기', tag:'event',
+    { date:'4/15(수)', title:'HI RUN DAY!', desc:'개원기념식 → 권은주 선수 강연 → 호텔 식사 → 크루즈(김포→여의도) → 함께 달리기', tag:'event',
       status: now > CH.eventDay ? 'done' : now >= eventDayStart ? 'active' : 'future' },
   ];
   document.getElementById('ch-timeline-wrap').innerHTML = `
