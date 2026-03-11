@@ -7763,9 +7763,24 @@ function buildChRegistrationNote(reg) {
   const parts = [];
   const shoePrefNote = buildChShoePrefNote(reg);
   const shoeRequestNote = String(reg?.shoeRequestNote || '').trim();
+  const familyParticipation = !!reg?.familyParticipation;
+  const familyGender = String(reg?.familyGender || '').trim();
+  const familyAge = String(reg?.familyAge || '').trim();
+  const familyShoeRaw = String(reg?.familyShoeSize || '').trim();
+  const familyShoe = familyShoeRaw ? (/mm$/i.test(familyShoeRaw) ? familyShoeRaw : `${familyShoeRaw}mm`) : '';
   const familyMemo = String(reg?.familyMemo || '').trim();
+  const cruiseParticipation = reg?.cruiseParticipation === false ? false : !!reg?.cruiseParticipation;
+  const eventParticipation = reg?.eventParticipation === false ? false : !!reg?.eventParticipation;
   if (shoePrefNote) parts.push(shoePrefNote);
   if (shoeRequestNote) parts.push(`운동화요청: ${shoeRequestNote}`);
+  parts.push(`가족참여: ${familyParticipation ? '가족함께 참여' : '본인만'}`);
+  if (familyParticipation) {
+    if (familyGender) parts.push(`가족성별: ${familyGender}`);
+    if (familyAge) parts.push(`가족나이: ${familyAge}`);
+    if (familyShoe) parts.push(`가족신발: ${familyShoe}`);
+  }
+  parts.push(`크루즈: ${cruiseParticipation ? '탑승 희망' : '탑승 안 함'}`);
+  parts.push(`행사: ${eventParticipation ? '참여' : '불참'}`);
   if (familyMemo) parts.push(`가족메모: ${familyMemo}`);
   return parts.join('\n');
 }
@@ -8557,7 +8572,17 @@ function submitChReg(e) {
   const famChecked = famVal === 'yes';
   const familyMemo = famChecked ? famNote : '';
   const shoeRequestNote = String(_chShoeRequestNote || '').trim();
-  const regNote = buildChRegistrationNote({ shoePrefs: _chShoePrefs, shoeRequestNote, familyMemo });
+  const regNote = buildChRegistrationNote({
+    shoePrefs: _chShoePrefs,
+    shoeRequestNote,
+    familyParticipation: famChecked,
+    familyGender: famChecked ? famGender : '',
+    familyAge: famChecked ? famAge : '',
+    familyShoeSize: famChecked ? famShoe : '',
+    familyMemo,
+    cruiseParticipation: cruiseVal === 'yes',
+    eventParticipation: eventVal === 'yes',
+  });
   const id = 'HC-' + String(Date.now()).slice(-6);
   regs.push({
     id, name, empId, dept, phone, email:'', shoeSize: shoe,

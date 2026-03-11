@@ -422,9 +422,10 @@
         <div class="ch-s-pill"><div class="ch-s-val" id="ch-can">-</div><div class="ch-s-lbl">취소</div></div>
         <div class="ch-s-pill"><div class="ch-s-val" id="ch-fam">-</div><div class="ch-s-lbl">가족참여</div></div>
         <div class="ch-s-pill"><div class="ch-s-val" id="ch-cruise">-</div><div class="ch-s-lbl">크루즈</div></div>
+        <div class="ch-s-pill"><div class="ch-s-val" id="ch-event">-</div><div class="ch-s-lbl">행사참여</div></div>
       </div>
       <div class="ctrl-bar">
-        <input class="ctrl-inp" id="ch-search" placeholder="신청번호·이름·등록번호·부서 검색" oninput="renderChallenge()">
+        <input class="ctrl-inp" id="ch-search" placeholder="신청번호·이름·등록번호·희망모델·요청사항 검색" oninput="renderChallenge()">
         <select class="ctrl-sel" id="ch-sfilter" onchange="renderChallenge()">
           <option value="">전체 상태</option>
           <option value="pending">대기</option>
@@ -441,11 +442,11 @@
               <th>신청번호</th>
               <th>이름</th>
               <th>등록번호</th>
-              <th>부서</th>
-              <th>연락처</th>
-              <th>신발</th>
-              <th>가족</th>
-              <th>크루즈</th>
+              <th>본인신발</th>
+              <th>희망모델</th>
+              <th>가족 정보</th>
+              <th>참여 옵션</th>
+              <th>요청사항</th>
               <th>상태</th>
               <th>관리</th>
             </tr></thead>
@@ -692,6 +693,101 @@ function getRegShoeRequestText(r) {
   const note = String(r?.note || '').trim();
   const match = note.match(/운동화요청:\s*(.+)$/m);
   return match ? String(match[1] || '').trim() : '';
+}
+
+function escHtml(v) {
+  return String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function escapeRegNoteKey(key) {
+  return String(key || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function getRegNoteLine(r, key) {
+  const note = String(r?.note || '').trim();
+  if (!note) return '';
+  const match = note.match(new RegExp(`^${escapeRegNoteKey(key)}:\\s*(.+)$`, 'm'));
+  return match ? String(match[1] || '').trim() : '';
+}
+
+function parseRegBool(v) {
+  if (typeof v === 'boolean') return v;
+  const raw = String(v ?? '').trim().toLowerCase();
+  if (!raw) return null;
+  if (['true', '1', 'y', 'yes'].includes(raw)) return true;
+  if (['false', '0', 'n', 'no'].includes(raw)) return false;
+  return null;
+}
+
+function withMm(v) {
+  const raw = String(v || '').trim();
+  if (!raw) return '';
+  return /mm$/i.test(raw) ? raw : `${raw}mm`;
+}
+
+function getRegFamilyParticipation(r) {
+  const direct = parseRegBool(r?.familyParticipation);
+  if (direct !== null) return direct;
+  const noteVal = getRegNoteLine(r, '가족참여');
+  if (!noteVal) return false;
+  if (/본인만|없음|미참여/i.test(noteVal)) return false;
+  return /가족|함께|참여/i.test(noteVal);
+}
+
+function getRegFamilyGenderText(r) {
+  return String(r?.familyGender || getRegNoteLine(r, '가족성별') || '').trim();
+}
+
+function getRegFamilyAgeText(r) {
+  return String(r?.familyAge || getRegNoteLine(r, '가족나이') || '').trim();
+}
+
+function getRegFamilyShoeText(r) {
+  return withMm(r?.familyShoeSize || getRegNoteLine(r, '가족신발') || '');
+}
+
+function getRegFamilyMemoText(r) {
+  return String(r?.familyMemo || getRegNoteLine(r, '가족메모') || '').trim();
+}
+
+function getRegCruiseParticipation(r) {
+  const direct = parseRegBool(r?.cruiseParticipation);
+  if (direct !== null) return direct;
+  const noteVal = getRegNoteLine(r, '크루즈');
+  if (!noteVal) return false;
+  if (/안 함|미탑승|불참|없음/i.test(noteVal)) return false;
+  return /탑승|희망|참여/i.test(noteVal);
+}
+
+function getRegEventParticipation(r) {
+  const direct = parseRegBool(r?.eventParticipation);
+  if (direct !== null) return direct;
+  const noteVal = getRegNoteLine(r, '행사');
+  if (!noteVal) return false;
+  if (/불참|안 함|미참여|없음/i.test(noteVal)) return false;
+  return /참여|희망/i.test(noteVal);
+}
+
+function getRegFamilySummaryText(r) {
+  if (!getRegFamilyParticipation(r)) return '본인만';
+  const bits = [getRegFamilyGenderText(r), getRegFamilyAgeText(r), getRegFamilyShoeText(r)].filter(Boolean);
+  return bits.length ? `가족 1인 · ${bits.join(' / ')}` : '가족 1인';
+}
+
+function getRegOptionSummaryText(r) {
+  return [
+    `크루즈 ${getRegCruiseParticipation(r) ? '희망' : '안 함'}`,
+    `행사 ${getRegEventParticipation(r) ? '참여' : '불참'}`,
+  ].join(' / ');
+}
+
+function getRegRequestSummaryText(r) {
+  return [getRegShoeRequestText(r), getRegFamilyMemoText(r)].filter(Boolean).join(' / ');
 }
 
 /* ══════════════════════════════════════════════
@@ -1725,7 +1821,17 @@ function renderChallenge() {
   const sf = document.getElementById('ch-sfilter').value;
   const list = GD.registrations.filter(r => {
     if (sf && r.status !== sf) return false;
-    if (q && ![(r.id||''),(r.name||''),(r.empId||''),(r.dept||'')].some(s => s.toLowerCase().includes(q))) return false;
+    const hay = [
+      r.id || '',
+      r.name || '',
+      r.empId || '',
+      r.dept || '',
+      getRegShoePrefText(r),
+      getRegRequestSummaryText(r),
+      getRegFamilySummaryText(r),
+      getRegOptionSummaryText(r),
+    ];
+    if (q && !hay.some(s => String(s || '').toLowerCase().includes(q))) return false;
     return true;
   }).sort((a,b) => new Date(b.registeredAt||0) - new Date(a.registeredAt||0));
 
@@ -1734,8 +1840,9 @@ function renderChallenge() {
   document.getElementById('ch-pend').textContent    = all.filter(r => r.status === 'pending').length;
   document.getElementById('ch-ok').textContent      = all.filter(r => r.status === 'confirmed').length;
   document.getElementById('ch-can').textContent     = all.filter(r => r.status === 'cancelled').length;
-  document.getElementById('ch-fam').textContent     = all.filter(r => r.familyParticipation).length;
-  document.getElementById('ch-cruise').textContent  = all.filter(r => r.cruiseParticipation).length;
+  document.getElementById('ch-fam').textContent     = all.filter(getRegFamilyParticipation).length;
+  document.getElementById('ch-cruise').textContent  = all.filter(getRegCruiseParticipation).length;
+  document.getElementById('ch-event').textContent   = all.filter(getRegEventParticipation).length;
   document.getElementById('ch-count').textContent   = list.length + '건';
 
   const tbody = document.getElementById('ch-tbody');
@@ -1748,15 +1855,27 @@ function renderChallenge() {
       : r.status === 'cancelled' ? '<span class="badge can">취소</span>'
       : '<span class="badge pend">대기</span>';
     const safeId = (r.id||'').replace(/'/g,'');
+    const ownShoe = withMm(r.shoeSize) || '-';
+    const shoePrefText = getRegShoePrefText(r) || '-';
+    const familySummary = getRegFamilySummaryText(r);
+    const optionSummary = getRegOptionSummaryText(r);
+    const requestParts = [];
+    const shoeReq = getRegShoeRequestText(r);
+    const familyMemo = getRegFamilyMemoText(r);
+    if (shoeReq) requestParts.push(`운동화: ${shoeReq}`);
+    if (familyMemo) requestParts.push(`가족메모: ${familyMemo}`);
+    const requestHtml = requestParts.length
+      ? requestParts.map(v => `<div>${escHtml(v)}</div>`).join('')
+      : '-';
     return `<tr>
       <td class="td-date">${r.id||'-'}</td>
-      <td class="td-name">${r.name||'-'}</td>
-      <td>${r.empId||'-'}</td>
-      <td>${r.dept||'-'}</td>
-      <td>${r.phone||'-'}</td>
-      <td>${r.shoeSize||'-'}</td>
-      <td>${r.familyParticipation ? '✓' : '-'}</td>
-      <td>${r.cruiseParticipation ? '✓' : '-'}</td>
+      <td class="td-name">${escHtml(r.name||'-')}</td>
+      <td>${escHtml(r.empId||'-')}</td>
+      <td>${escHtml(ownShoe)}</td>
+      <td class="td-memo">${escHtml(shoePrefText)}</td>
+      <td class="td-memo">${escHtml(familySummary)}</td>
+      <td class="td-memo">${escHtml(optionSummary)}</td>
+      <td class="td-memo">${requestHtml}</td>
       <td>${sBadge}</td>
       <td>
         <button class="abtn det" onclick="showChDetail('${safeId}')">상세</button>
@@ -1770,26 +1889,35 @@ function showChDetail(id) {
   if (!r) return;
   const shoePrefText = getRegShoePrefText(r);
   const shoeRequestText = getRegShoeRequestText(r);
+  const familyParticipation = getRegFamilyParticipation(r);
+  const familyGender = getRegFamilyGenderText(r);
+  const familyAge = getRegFamilyAgeText(r);
+  const familyShoe = getRegFamilyShoeText(r);
+  const familyMemo = getRegFamilyMemoText(r);
+  const cruiseParticipation = getRegCruiseParticipation(r);
+  const eventParticipation = getRegEventParticipation(r);
   const rows = [
     ['신청번호', r.id],
     ['이름', r.name],
     ['등록번호', r.empId],
     ['부서', r.dept],
     ['연락처', r.phone],
-    ['신발(본인)', r.shoeSize],
+    ['신발(본인)', withMm(r.shoeSize) || '-'],
     ['희망모델', shoePrefText || '-'],
     ['운동화요청', shoeRequestText || '-'],
-    ['가족참여', r.familyParticipation ? '✓' : '-'],
-    ['가족성별', r.familyGender||'-'],
-    ['가족나이', r.familyAge||'-'],
-    ['가족신발', r.familyShoeSize||'-'],
-    ['크루즈', r.cruiseParticipation ? '✓ 탑승' : '미탑승'],
+    ['가족참여', familyParticipation ? '가족함께 참여' : '본인만'],
+    ['가족성별', familyGender || '-'],
+    ['가족나이', familyAge || '-'],
+    ['가족신발', familyShoe || '-'],
+    ['가족메모', familyMemo || '-'],
+    ['크루즈', cruiseParticipation ? '탑승 희망' : '탑승 안 함'],
+    ['행사', eventParticipation ? '참여' : '불참'],
     ['상태', r.status],
     ['신청일', r.registeredAt ? new Date(r.registeredAt).toLocaleString('ko-KR') : '-'],
     ['비고', r.adminNote||'-'],
   ];
   document.getElementById('ch-modal-body').innerHTML = rows.map(([l,v]) =>
-    `<div class="detail-row"><div class="detail-label">${l}</div><div class="detail-value">${v||'-'}</div></div>`).join('');
+    `<div class="detail-row"><div class="detail-label">${escHtml(l)}</div><div class="detail-value">${escHtml(v || '-')}</div></div>`).join('');
 
   document.getElementById('ch-confirm-btn').onclick = () => updateChStatus(id, 'confirmed');
   document.getElementById('ch-cancel-btn').onclick  = () => updateChStatus(id, 'cancelled');
@@ -1811,6 +1939,7 @@ async function updateChStatus(id, status) {
       shoeSize: cur.shoeSize || '',
       familyParticipation: !!cur.familyParticipation,
       familyCount: Number(cur.familyCount) || 0,
+      note: cur.note || '',
       status,
       registeredAt: cur.registeredAt || new Date().toISOString(),
     }, { onConflict: 'id' });
@@ -1829,11 +1958,11 @@ async function updateChStatus(id, status) {
 }
 
 function exportChallengeCsv() {
-  const rows = [['신청번호','이름','등록번호','부서','연락처','신발','희망모델','운동화요청','가족','가족성별','가족나이','가족신발','크루즈','상태','신청일']];
+  const rows = [['신청번호','이름','등록번호','부서','연락처','본인신발','희망모델','운동화요청','가족참여','가족성별','가족나이','가족신발','가족메모','크루즈','행사','상태','신청일']];
   GD.registrations.forEach(r => rows.push([
-    r.id, r.name, r.empId, r.dept, r.phone, r.shoeSize, getRegShoePrefText(r), getRegShoeRequestText(r),
-    r.familyParticipation ? 'Y':'N', r.familyGender||'', r.familyAge||'', r.familyShoeSize||'',
-    r.cruiseParticipation ? 'Y':'N', r.status,
+    r.id, r.name, r.empId, r.dept, r.phone, withMm(r.shoeSize), getRegShoePrefText(r), getRegShoeRequestText(r),
+    getRegFamilyParticipation(r) ? 'Y':'N', getRegFamilyGenderText(r), getRegFamilyAgeText(r), getRegFamilyShoeText(r), getRegFamilyMemoText(r),
+    getRegCruiseParticipation(r) ? 'Y':'N', getRegEventParticipation(r) ? 'Y' : 'N', r.status,
     r.registeredAt ? new Date(r.registeredAt).toLocaleDateString('ko-KR') : '',
   ]));
   const csv = rows.map(r => r.map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
