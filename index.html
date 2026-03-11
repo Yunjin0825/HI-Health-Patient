@@ -1870,8 +1870,8 @@
     .ch-shoe-pref-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
     .ch-shoe-model-card { border:1px solid rgba(79,70,229,0.12); border-radius:14px; overflow:hidden; background:#fff; box-shadow:0 4px 14px rgba(15,23,42,0.04); }
     .ch-shoe-model-card.selected { border-color:rgba(79,70,229,0.35); box-shadow:0 8px 18px rgba(79,70,229,0.12); }
-    .ch-shoe-model-photo { aspect-ratio:4/3; background:#f8fafc; display:flex; align-items:center; justify-content:center; overflow:hidden; }
-    .ch-shoe-model-photo img { width:100%; height:100%; object-fit:cover; display:block; }
+    .ch-shoe-model-photo { aspect-ratio:5/4; background:#f8fafc; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+    .ch-shoe-model-photo img { width:100%; height:100%; object-fit:cover; display:block; transform-origin:center; }
     .ch-shoe-model-body { padding:10px; }
     .ch-shoe-model-name { font-size:12px; font-weight:700; color:var(--text); margin-bottom:8px; }
     .ch-shoe-model-actions { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
@@ -1909,7 +1909,8 @@
 
     /* ── Speaker card ── */
     .ch-speaker { display:flex; align-items:center; gap:14px; padding:14px; background:var(--bg); border-radius:var(--radius-sm); border:1.5px solid var(--border); margin-top:14px; }
-    .ch-speaker-avatar { width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,#f97316,#ea580c); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+    .ch-speaker-avatar { width:48px; height:48px; border-radius:50%; overflow:hidden; background:#fff; border:2px solid rgba(79,70,229,.14); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .ch-speaker-avatar img { width:100%; height:100%; object-fit:cover; display:block; }
     .ch-speaker-role { font-size:10px; font-weight:700; color:var(--primary); letter-spacing:.5px; margin-bottom:2px; }
     .ch-speaker-name { font-size:14px; font-weight:700; margin-bottom:2px; }
     .ch-speaker-desc { font-size:11px; color:var(--text-secondary); }
@@ -7664,11 +7665,11 @@ const CH = {
 };
 const CH_REG_KEY = 'hi_health_registrations_v2';
 const CH_SHOE_MODELS = [
-  { id:'nike1', label:'NIKE 1', image:'images/nike1.png' },
-  { id:'nike2', label:'NIKE 2', image:'images/nike2.png' },
-  { id:'nb1',   label:'NB 1',   image:'images/nb1.png' },
-  { id:'nb2',   label:'NB 2',   image:'images/nb2.png' },
-  { id:'nb3',   label:'NB 3',   image:'images/nb3.png' },
+  { id:'nike1', label:'NIKE 1', image:'images/nike1.png', position:'18% 54%', zoom:1.08 },
+  { id:'nike2', label:'NIKE 2', image:'images/nike2.png', position:'18% 54%', zoom:1.08 },
+  { id:'nb1',   label:'NB 1',   image:'images/nb1.png',   position:'20% 54%', zoom:1.06 },
+  { id:'nb2',   label:'NB 2',   image:'images/nb2.png',   position:'20% 54%', zoom:1.06 },
+  { id:'nb3',   label:'NB 3',   image:'images/nb3.png',   position:'20% 54%', zoom:1.06 },
 ];
 let _chShoePrefs = ['', '', ''];
 
@@ -7722,6 +7723,7 @@ function renderChShoePrefSection() {
   if (!wrap) return;
   if (!shoeSize) {
     wrap.style.display = 'none';
+    wrap.innerHTML = '';
     _chShoePrefs = ['', '', ''];
     return;
   }
@@ -7735,7 +7737,7 @@ function renderChShoePrefSection() {
     const selected = _chShoePrefs.includes(model.id);
     return `
       <div class="ch-shoe-model-card${selected ? ' selected' : ''}">
-        <div class="ch-shoe-model-photo"><img src="${model.image}" alt="${model.label}"></div>
+        <div class="ch-shoe-model-photo"><img src="${model.image}" alt="${model.label}" style="object-position:${model.position || '50% 50%'};transform-origin:left center;transform:scale(${model.zoom || 1})"></div>
         <div class="ch-shoe-model-body">
           <div class="ch-shoe-model-name">${model.label}</div>
           <div class="ch-shoe-model-actions">
@@ -7747,7 +7749,7 @@ function renderChShoePrefSection() {
       </div>
     `;
   }).join('');
-  wrap.style.display = '';
+  wrap.style.display = 'block';
   wrap.innerHTML = `
     <div class="ch-shoe-pref-head">
       <div>
@@ -8370,11 +8372,13 @@ function renderChallenge() {
         <div class="ch-benefit"><div class="ch-benefit-icon">📖</div><div><div class="ch-benefit-title">사인북 증정</div><div class="ch-benefit-desc">권은주 선수 저서 『인생에 달리기가 필요한 순간』 사인 증정</div></div></div>
         <div class="ch-benefit"><div class="ch-benefit-icon">🚢</div><div><div class="ch-benefit-title">한강 크루즈 탑승 (선택)</div><div class="ch-benefit-desc">김포 → 여의도 약 90분 크루즈 여행</div></div></div>
         <div class="ch-benefit" style="grid-column:1/-1;flex-direction:row;align-items:center;gap:14px;background:var(--primary-light);border-color:rgba(79,70,229,.2)">
-          <div class="ch-speaker-avatar" style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#f97316,#ea580c);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🏃</div>
+          <div class="ch-speaker-avatar" style="width:44px;height:44px">
+            <img src="images/Eun-joo.png" alt="권은주 선수">
+          </div>
           <div>
             <div style="font-size:10px;font-weight:700;color:var(--primary);letter-spacing:.5px;margin-bottom:2px">특별 게스트</div>
             <div style="font-size:13px;font-weight:700;margin-bottom:2px">마라토너 권은주 선수</div>
-            <div style="font-size:11px;color:var(--text-secondary)">강연 후 함께 달리는 특별한 시간</div>
+            <div style="font-size:11px;color:var(--text-secondary)">대한민국을 대표했던 마라토너로, 달리기의 힘과 꾸준함의 가치를 전합니다.</div>
           </div>
         </div>
       </div>
@@ -8426,7 +8430,16 @@ function updateChSubmitState() {
 
 function toggleChFam(el) {
   const detail = document.getElementById('ch-fam-detail');
-  if (detail) detail.style.display = el.value === 'yes' ? 'block' : 'none';
+  const isFamily = el.value === 'yes';
+  if (detail) detail.style.display = isFamily ? 'block' : 'none';
+  if (!isFamily) {
+    const famGender = document.getElementById('ch-fam-gender');
+    const famAge = document.getElementById('ch-fam-age');
+    const famShoe = document.getElementById('ch-fam-shoe');
+    if (famGender) famGender.value = '';
+    if (famAge) famAge.value = '';
+    if (famShoe) famShoe.value = '';
+  }
   updateChSubmitState();
 }
 

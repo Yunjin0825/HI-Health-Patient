@@ -564,6 +564,7 @@
               <th>분류</th>
               <th>제목</th>
               <th>내용</th>
+              <th>링크 게시물</th>
               <th>관리</th>
             </tr></thead>
             <tbody id="ap-tbody"></tbody>
@@ -2103,21 +2104,51 @@ async function postAdminNotice() {
 }
 
 const CAT_LABEL = { notice:'공지', column:'칼럼', tip:'팁', video:'영상' };
+function getAdminLinkedPostId(p) {
+  return String(
+    p?.linkedPostId ??
+    p?.linkedpostid ??
+    p?.linkPostId ??
+    p?.linkpostid ??
+    p?.postId ??
+    p?.postid ??
+    ''
+  ).trim();
+}
+
+function getAdminLinkedPostPreview(p) {
+  const postId = getAdminLinkedPostId(p);
+  if (!postId) return '-';
+  const linked = GD.posts.find(x => String(x.id) === postId);
+  if (!linked) return `#${postId}`;
+  const preview = String(linked.body || '').replace(/\s+/g, ' ').trim();
+  const body = preview ? preview.slice(0, 32) + (preview.length > 32 ? '…' : '') : '내용 없음';
+  return `#${postId} · ${linked.userName || '-'} · ${body}`;
+}
+
 function renderAdminPosts() {
   const tbody = document.getElementById('ap-tbody');
   if (!GD.adminPosts.length) {
-    tbody.innerHTML = `<tr><td class="empty-cell" colspan="5">공지가 없습니다</td></tr>`;
+    tbody.innerHTML = `<tr><td class="empty-cell" colspan="6">공지가 없습니다</td></tr>`;
     return;
   }
   tbody.innerHTML = GD.adminPosts.map(p => {
     const d = p.createdAt ? new Date(p.createdAt).toLocaleDateString('ko-KR') : '-';
     const safeId = String(p.id||'').replace(/'/g,'');
     const cat = CAT_LABEL[p.category] || p.category || '-';
+    const linkedPostId = getAdminLinkedPostId(p);
+    const safeLinkedPostId = linkedPostId.replace(/'/g,'');
+    const linkedPreview = getAdminLinkedPostPreview(p);
+    const hasLinkedPost = !!GD.posts.find(x => String(x.id) === linkedPostId);
     return `<tr>
       <td class="td-date">${d}</td>
       <td><span class="badge ex">${cat}</span></td>
       <td class="td-name">${p.title||'-'}</td>
       <td class="td-memo">${(p.body||'').substring(0,50)}</td>
+      <td class="td-memo">
+        ${linkedPreview}
+        ${hasLinkedPost ? `<div style="margin-top:4px"><button class="abtn det" onclick="showPostDetail('${safeLinkedPostId}')">보기</button></div>` : ''}
+      </td>
       <td>
         <div style="display:flex;gap:4px">
           <button class="abtn det" onclick="editAdminPost('${safeId}')">수정</button>

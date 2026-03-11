@@ -203,8 +203,8 @@
     .shoe-pref-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
     .shoe-card { border:1px solid rgba(17,24,39,0.08); border-radius:16px; overflow:hidden; background:#fff; box-shadow:0 6px 18px rgba(0,0,0,0.05); }
     .shoe-card.selected { border-color:rgba(123,70,229,0.3); box-shadow:0 10px 24px rgba(123,70,229,0.12); }
-    .shoe-card-photo { aspect-ratio:4/3; background:#f8fafc; overflow:hidden; }
-    .shoe-card-photo img { width:100%; height:100%; object-fit:cover; display:block; }
+    .shoe-card-photo { aspect-ratio:5/4; background:#f8fafc; overflow:hidden; }
+    .shoe-card-photo img { width:100%; height:100%; object-fit:cover; display:block; transform-origin:center; }
     .shoe-card-body { padding:12px; }
     .shoe-card-name { font-size:13px; font-weight:700; margin-bottom:10px; }
     .shoe-card-actions { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
@@ -590,11 +590,11 @@
 <script>
 const REG_KEY = 'hi_health_registrations_v2';
 const SHOE_MODELS = [
-  { id:'nike1', label:'NIKE 1', image:'images/nike1.png' },
-  { id:'nike2', label:'NIKE 2', image:'images/nike2.png' },
-  { id:'nb1',   label:'NB 1',   image:'images/nb1.png' },
-  { id:'nb2',   label:'NB 2',   image:'images/nb2.png' },
-  { id:'nb3',   label:'NB 3',   image:'images/nb3.png' },
+  { id:'nike1', label:'NIKE 1', image:'images/nike1.png', position:'18% 54%', zoom:1.08 },
+  { id:'nike2', label:'NIKE 2', image:'images/nike2.png', position:'18% 54%', zoom:1.08 },
+  { id:'nb1',   label:'NB 1',   image:'images/nb1.png',   position:'20% 54%', zoom:1.06 },
+  { id:'nb2',   label:'NB 2',   image:'images/nb2.png',   position:'20% 54%', zoom:1.06 },
+  { id:'nb3',   label:'NB 3',   image:'images/nb3.png',   position:'20% 54%', zoom:1.06 },
 ];
 let _shoePrefs = ['', '', ''];
 
@@ -639,7 +639,7 @@ function renderShoeModelSection() {
     <div class="shoe-pref-grid">
       ${SHOE_MODELS.map(model => `
         <div class="shoe-card${_shoePrefs.includes(model.id) ? ' selected' : ''}">
-          <div class="shoe-card-photo"><img src="${model.image}" alt="${model.label}"></div>
+          <div class="shoe-card-photo"><img src="${model.image}" alt="${model.label}" style="object-position:${model.position || '50% 50%'};transform-origin:left center;transform:scale(${model.zoom || 1})"></div>
           <div class="shoe-card-body">
             <div class="shoe-card-name">${model.label}</div>
             <div class="shoe-card-actions">
