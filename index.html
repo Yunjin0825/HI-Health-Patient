@@ -552,7 +552,7 @@
         linear-gradient(to bottom, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0) 90px),
         linear-gradient(135deg, #3730A3 0%, #4F46E5 100%);
       border-radius: 0 0 28px 28px;
-      padding: 0 0 22px;
+      padding: 0 0 30px;
       color: #fff;
       position: fixed; top: 0; left: 50%; transform: translateX(-50%);
       width: 100%; max-width: 480px;
@@ -670,31 +670,25 @@
       font-size: 9px; color: #64748B; margin-top: 8px; font-weight: 700;
     }
     .level-share-btn {
-      display: flex; align-items: center; justify-content: space-between; gap: 10px;
-      margin-top: 12px; padding: 10px 12px;
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      margin-top: 14px; padding: 11px 16px;
       width: 100%;
-      border: 1px solid rgba(79,70,229,0.14);
-      border-radius: 14px;
+      border: none;
+      border-radius: 16px;
       cursor: pointer;
-      color: var(--primary);
+      color: #fff;
       font-family: inherit;
-      background: var(--primary-light);
-      box-shadow: none;
-      transition: transform 0.14s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+      box-shadow: 0 4px 14px rgba(79,70,229,0.28);
+      transition: transform 0.14s ease, box-shadow 0.18s ease, opacity 0.18s ease;
     }
-    .level-share-btn:active { transform: scale(0.985); }
-    .level-share-btn:disabled { cursor: default; opacity: 0.82; }
-    .level-share-label,
-    .level-share-arrow {
+    .level-share-btn:active { transform: scale(0.975); box-shadow: 0 2px 8px rgba(79,70,229,0.18); }
+    .level-share-btn:disabled { cursor: default; opacity: 0.7; }
+    .level-share-label {
       display: inline-flex; align-items: center;
-      flex-shrink: 0;
+      font-size: 12px; font-weight: 800; letter-spacing: -0.1px;
     }
-    .level-share-label { font-size: 11px; font-weight: 800; letter-spacing: -0.1px; }
-    .level-share-arrow {
-      width: 22px; height: 22px; border-radius: 999px;
-      background: #fff;
-      color: var(--primary);
-    }
+    .level-share-arrow { display: none; }
     .level-share-btn svg { flex-shrink: 0; }
 
     .quick-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-bottom: 14px; }
@@ -2345,12 +2339,11 @@
         <span id="lv-next-pts">다음 레벨까지 200p</span>
       </div>
       <button type="button" class="level-share-btn" onclick="shareLevelCard()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+        </svg>
         <span class="level-share-label">레벨 카드 공유</span>
-        <span class="level-share-arrow">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M7 17L17 7"/><path d="M9 7h8v8"/>
-          </svg>
-        </span>
       </button>
     </div>
 
@@ -4644,7 +4637,7 @@ function renderHome() {
     // 히어로카드 고정 높이만큼 스페이서 설정
     const hc = document.getElementById('hero-card-home');
     const sp = document.getElementById('hero-spacer');
-    if (hc && sp) sp.style.height = (hc.offsetHeight + 24) + 'px';
+    if (hc && sp) sp.style.height = (hc.offsetHeight + 14) + 'px';
   });
 }
 
