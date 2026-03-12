@@ -1533,22 +1533,23 @@
     .pm-avatar-panel { padding:0; border:none; background:transparent; }
     .pm-avatar-hint { margin:0; font-size:11px; color:#64748B; line-height:1.5; text-align:left; }
     .pm-hidden { display:none !important; }
-    .pm-actions { display:flex; flex-direction:row; gap:8px; margin-top:14px; }
+    .pm-actions { display:flex; flex-direction:column; gap:8px; margin-top:14px; }
     .pm-logout-btn,
     .pm-delete-btn {
-      flex:1; font-family:inherit; font-size:13px; cursor:pointer;
-      transition:all 0.2s; padding:11px 8px; text-align:center;
-      border-radius:14px; font-weight:700;
+      display:block; width:100%; font-family:inherit; font-size:13px; cursor:pointer;
+      transition:all 0.2s;
     }
     .pm-logout-btn {
-      border:1.5px solid var(--border); background:#fff; color:#475569;
+      padding:12px 14px; text-align:center; border-radius:14px;
+      border:1.5px solid var(--border); background:#fff;
+      color:#475569; font-weight:700;
     }
     .pm-logout-btn:hover { color:#0F172A; border-color:#CBD5E1; background:#F8FAFC; }
     .pm-delete-btn {
-      border:1.5px solid rgba(239,68,68,0.25); background:rgba(239,68,68,0.05);
-      color:#EF4444;
+      margin-top:8px; padding:2px 0 0;
+      border:none; background:none; color:#EF4444; font-weight:700;
     }
-    .pm-delete-btn:hover { background:rgba(239,68,68,0.1); border-color:#EF4444; }
+    .pm-delete-btn:hover { color:#B91C1C; }
     .pm-delete-btn:disabled { opacity:0.55; cursor:default; }
     .pm-section-body { overflow:hidden; transition:all 0.2s; }
     .pm-section-body.collapsed { display:none; }
@@ -6507,10 +6508,12 @@ function openProfileModal(onboarding = false) {
   if (onboarding) {
     document.getElementById('pm-title').textContent = 'HI Health 시작하기';
     document.getElementById('pm-sub').textContent   = '닉네임과 아바타를 설정하고 바로 시작하세요';
+    document.getElementById('pm-save-btn').textContent = '시작하기!';
     document.getElementById('pm-close-btn').style.display = 'none';
   } else {
     document.getElementById('pm-title').textContent = '프로필 설정';
     document.getElementById('pm-sub').textContent   = '닉네임, 아바타, 태그를 간단히 정리해보세요';
+    document.getElementById('pm-save-btn').textContent = '저장하기';
     document.getElementById('pm-close-btn').style.display = '';
   }
 
@@ -9663,9 +9666,10 @@ init();
       </div>
     </div>
     <div class="pm-actions">
+      <button type="button" class="btn btn-primary btn-full" id="pm-save-btn" onclick="saveProfile()">저장하기</button>
       <button type="button" class="pm-logout-btn" id="pm-logout-btn" onclick="appLogout()">로그아웃</button>
-      <button type="button" class="pm-delete-btn" id="pm-delete-data-btn" onclick="requestDeleteMyDeviceAndServerData()">모든 기록 초기화</button>
     </div>
+    <button type="button" class="pm-delete-btn" id="pm-delete-data-btn" onclick="requestDeleteMyDeviceAndServerData()">모든 데이터 삭제 초기화</button>
   </div>
 </div>
 
