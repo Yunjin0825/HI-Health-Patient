@@ -80,7 +80,7 @@
       position: fixed; inset: 0; z-index: 2000;
       background: linear-gradient(150deg, #f5f3ff 0%, #ede9fe 55%, #ddd6fe 100%);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 20px; overflow: hidden;
+      padding: 20px; overflow-y: auto; overflow-x: hidden;
     }
     .app-login-screen.hidden { display: none; }
     /* 챌린지(runday) 전용 다크 스타일 */
@@ -118,7 +118,56 @@
       text-align: left; letter-spacing: 0; transition: border-color 0.2s;
     }
     .app-login-input::placeholder { color: rgba(109,40,217,0.35); }
+    .app-login-input.login-placeholder-val { color: transparent; letter-spacing: 0; }
+    .login-input-container { position: relative; margin-bottom: 10px; }
+    .login-input-container .app-login-input { margin-bottom: 0; }
+    .login-input-overlay {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      left: 16px; right: 16px;
+      display: flex; align-items: center; gap: 5px;
+      pointer-events: none;
+    }
+    .login-hint-main { font-size: 14px; font-weight: 700; color: rgba(109,40,217,0.5); white-space: nowrap; }
+    .login-hint-sub  { font-size: 12px; font-weight: 400; color: rgba(109,40,217,0.35); white-space: nowrap; }
+    .app-login-screen.runday .login-hint-main { color: rgba(255,255,255,0.4); }
+    .app-login-screen.runday .login-hint-sub  { color: rgba(255,255,255,0.25); }
     .app-login-input:focus { border-color: #7C3AED; box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
+    .login-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+    .login-field-label {
+      font-size: 11px; font-weight: 700; color: #6D28D9; letter-spacing: 0.3px;
+      padding-left: 2px; opacity: 0.75;
+    }
+    .app-login-screen.runday .login-field-label { color: rgba(255,255,255,0.5); }
+    .login-field .login-id-wrapper,
+    .login-field .app-login-input { margin-bottom: 0; }
+    .login-id-wrapper {
+      display: flex; align-items: center;
+      width: 100%; margin-bottom: 10px;
+      border: 1px solid rgba(109,40,217,0.2); border-radius: 10px;
+      background: #fff; transition: border-color 0.2s, box-shadow 0.2s;
+      padding: 0 16px;
+    }
+    .login-id-wrapper:focus-within {
+      border-color: #7C3AED; box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
+    }
+    .login-id-wrapper.error { border-color: #EF4444; background: rgba(239,68,68,0.07); }
+    .login-id-prefix {
+      font-size: 15px; font-weight: 700; color: #7C3AED;
+      white-space: nowrap; display: none; user-select: none;
+    }
+    .login-id-wrapper .app-login-input {
+      border: none !important; box-shadow: none !important;
+      margin-bottom: 0; padding-left: 2px; background: transparent;
+      flex: 1; width: auto;
+    }
+    .app-login-screen.runday .login-id-wrapper {
+      border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.08);
+    }
+    .app-login-screen.runday .login-id-wrapper:focus-within {
+      border-color: #fb923c; box-shadow: 0 0 0 3px rgba(251,146,60,0.2);
+    }
+    .app-login-screen.runday .login-id-prefix { color: #fb923c; }
+    .app-login-screen.runday .login-id-wrapper .app-login-input { color: #fff; }
     .app-login-screen.runday .app-login-input {
       border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.08); color: #fff;
     }
@@ -155,6 +204,149 @@
     .app-login-screen.runday .app-login-keep input[type=checkbox] { accent-color: #F59E0B; }
     .app-login-screen.runday .app-login-keep span { color: rgba(255,255,255,0.45); opacity: 1; }
     .app-login-bg-circle { position:absolute; border-radius:50%; pointer-events:none; }
+    .login-divider {
+      display: flex; align-items: center; gap: 10px; margin: 16px 0 14px;
+    }
+    .login-divider::before, .login-divider::after {
+      content: ''; flex: 1; height: 1px; background: rgba(109,40,217,0.12);
+    }
+    .login-divider span { font-size: 11px; color: rgba(109,40,217,0.35); white-space: nowrap; }
+    .app-login-screen.runday .login-divider::before,
+    .app-login-screen.runday .login-divider::after { background: rgba(255,255,255,0.1); }
+    .app-login-screen.runday .login-divider span { color: rgba(255,255,255,0.25); }
+    .app-login-guest-btn {
+      width: 100%; padding: 11px; margin-top: 0;
+      background: none; border: 1px solid rgba(109,40,217,0.2);
+      border-radius: 14px; cursor: pointer; font-family: inherit;
+      font-size: 13px; font-weight: 500; color: rgba(109,40,217,0.55);
+      transition: all 0.18s;
+    }
+    .app-login-guest-btn:hover { background: rgba(109,40,217,0.05); color: #7C3AED; }
+    .app-login-screen.runday .app-login-guest-btn {
+      border-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.4);
+    }
+    .guest-banner {
+      display: none;
+      align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.12);
+      border: 1.5px solid rgba(255,255,255,0.3);
+      border-radius: 999px;
+      padding: 4px 4px 4px 12px;
+      white-space: nowrap;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .guest-banner-text {
+      font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.85);
+    }
+    .guest-banner button {
+      background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+      border: 1.5px solid rgba(255,255,255,0.6);
+      color: #fff;
+      font-size: 10px; font-weight: 700; padding: 4px 12px;
+      border-radius: 999px; cursor: pointer; font-family: inherit;
+      box-shadow: 0 2px 6px rgba(79,70,229,0.4);
+    }
+    .app-header.solid .guest-banner {
+      background: rgba(79,70,229,0.07);
+      border-color: rgba(79,70,229,0.25);
+    }
+    .app-header.solid .guest-banner-text {
+      color: #4F46E5;
+    }
+    .app-header.solid .guest-banner button {
+      border-color: rgba(79,70,229,0.3);
+    }
+    @keyframes guestFlash {
+      0%,100% { opacity: 1; }
+      20%      { opacity: 0.15; }
+      40%      { opacity: 1; }
+      60%      { opacity: 0.15; }
+      80%      { opacity: 1; }
+    }
+    .guest-banner.flash { animation: guestFlash 0.7s ease; }
+
+    /* ── App Intro Popup ── */
+    .app-intro {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(15,23,42,0.45);
+      backdrop-filter: blur(4px);
+      display: flex; align-items: flex-end; justify-content: center;
+      padding-bottom: max(env(safe-area-inset-bottom), 16px);
+      animation: introFadeIn 0.22s ease;
+    }
+    @keyframes introFadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    .app-intro.hidden { display: none; }
+    .app-intro-card {
+      width: calc(100% - 32px); max-width: 420px;
+      background: #fff;
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.18);
+      display: flex; flex-direction: column;
+      animation: introSlideUp 0.34s cubic-bezier(0.22,1,0.36,1);
+    }
+    @keyframes introSlideUp {
+      from { transform: translateY(60px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    .app-intro-slides {
+      display: flex; transition: transform 0.38s cubic-bezier(0.4,0,0.2,1);
+      will-change: transform;
+    }
+    .app-intro-slide {
+      min-width: 100%; display: flex; flex-direction: column;
+      align-items: center;
+      padding: 36px 28px 20px; text-align: center;
+      box-sizing: border-box;
+    }
+    .app-intro-icon {
+      width: 96px; height: 96px; border-radius: 28px;
+      background: linear-gradient(135deg, #EEF2FF 0%, #F5F3FF 100%);
+      box-shadow: 0 4px 20px rgba(109,40,217,0.1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 48px; margin-bottom: 24px;
+      border: 1px solid rgba(109,40,217,0.08);
+    }
+    .app-intro-title {
+      font-size: 20px; font-weight: 900; color: #1E1B4B;
+      letter-spacing: -0.5px; margin-bottom: 10px; line-height: 1.3;
+    }
+    .app-intro-desc {
+      font-size: 13px; color: #64748B;
+      line-height: 1.7; max-width: 260px;
+    }
+    .app-intro-bottom {
+      padding: 16px 24px 24px;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+    .app-intro-dots {
+      display: flex; gap: 7px; align-items: center;
+    }
+    .app-intro-dot {
+      width: 6px; height: 6px; border-radius: 999px;
+      background: #E2E8F0; transition: all 0.28s ease;
+    }
+    .app-intro-dot.active {
+      width: 20px; background: #7C3AED;
+    }
+    .app-intro-next {
+      width: 100%; padding: 13px;
+      background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+      border: none; border-radius: 14px; cursor: pointer;
+      color: #fff; font-family: inherit; font-size: 14px; font-weight: 700;
+      box-shadow: 0 4px 14px rgba(79,70,229,0.28);
+      transition: transform 0.14s ease;
+    }
+    .app-intro-next:active { transform: scale(0.975); }
+    .app-intro-skip {
+      background: none; border: none; cursor: pointer;
+      font-family: inherit; font-size: 12px;
+      color: #94A3B8; font-weight: 500; padding: 2px 8px;
+    }
 
     /* 헤더 로그아웃 버튼 */
     .header-logout {
@@ -2190,6 +2382,50 @@
 <div id="snackbar" class="snackbar"></div>
 
 <!-- Header -->
+<!-- 앱 인트로 팝업 -->
+<div class="app-intro hidden" id="app-intro" onclick="introSkip()">
+  <div class="app-intro-card" onclick="event.stopPropagation()">
+    <div class="app-intro-slides" id="app-intro-slides">
+      <div class="app-intro-slide">
+        <div class="app-intro-icon">🏃</div>
+        <div class="app-intro-title">매일의 운동을<br>간편하게 기록해요</div>
+        <div class="app-intro-desc">걷기, 달리기, 요가 등 다양한 운동을 기록하고 포인트를 모아보세요</div>
+      </div>
+      <div class="app-intro-slide">
+        <div class="app-intro-icon">⭐</div>
+        <div class="app-intro-title">운동할수록<br>레벨이 올라가요</div>
+        <div class="app-intro-desc">꾸준히 기록하면 새싹에서 레전드까지! 나만의 성장을 확인하세요</div>
+      </div>
+      <div class="app-intro-slide">
+        <div class="app-intro-icon">💬</div>
+        <div class="app-intro-title">함께하면<br>더 즐거워요</div>
+        <div class="app-intro-desc">같은 목표를 가진 멤버들과 응원을 나누고 건강한 습관을 만들어요</div>
+      </div>
+      <div class="app-intro-slide">
+        <div class="app-intro-icon">🏆</div>
+        <div class="app-intro-title">챌린지로<br>함께 도전해요</div>
+        <div class="app-intro-desc">팀원들과 함께하는 건강 챌린지! 목표를 달성하고 특별한 보상을 받아보세요</div>
+      </div>
+      <div class="app-intro-slide">
+        <div class="app-intro-icon">🎁</div>
+        <div class="app-intro-title">포인트로<br>다양한 혜택을</div>
+        <div class="app-intro-desc">모은 포인트로 건강 용품을 구매하고 특별한 리워드를 받아보세요</div>
+      </div>
+    </div>
+    <div class="app-intro-bottom">
+      <div class="app-intro-dots" id="app-intro-dots">
+        <div class="app-intro-dot active"></div>
+        <div class="app-intro-dot"></div>
+        <div class="app-intro-dot"></div>
+        <div class="app-intro-dot"></div>
+        <div class="app-intro-dot"></div>
+      </div>
+      <button class="app-intro-next" id="app-intro-next-btn" onclick="introNext()">다음</button>
+      <button class="app-intro-skip" onclick="introSkip()">건너뛰기</button>
+    </div>
+  </div>
+</div>
+
 <!-- 앱 로그인 화면 -->
 <div class="app-login-screen" id="app-login-screen">
   <div class="app-login-bg-circle" style="width:320px;height:320px;top:-100px;right:-80px;background:radial-gradient(circle,rgba(251,146,60,.18) 0%,transparent 70%)"></div>
@@ -2201,17 +2437,34 @@
     <div class="app-login-route">여의도 → 선유도공원, 함께 달려요~!</div>
   </div>
   <div class="app-login-card">
-    <img src="images/Hi_health_home.png" alt="HI Health" class="app-login-logo">
+    <img src="images/avatars/av1.png" alt="HI Health" class="app-login-logo">
     <div class="app-login-title">HI Health</div>
-    <div class="app-login-sub">사번과 이름을 입력해 시작하세요</div>
-    <input type="text" class="app-login-input" id="login-empid-input"
-      placeholder="사번 입력"
-      onkeydown="if(event.key==='Enter')document.getElementById('login-name-input').focus()"
-      autocomplete="off">
-    <input type="text" class="app-login-input app-login-input-name" id="login-name-input"
-      placeholder="이름 입력"
-      onkeydown="if(event.key==='Enter')doAppLogin()"
-      autocomplete="off">
+    <div class="app-login-sub">등록번호와 이름을 입력해 시작하세요</div>
+    <div class="login-id-wrapper" id="login-id-wrapper" style="position:relative">
+      <span class="login-id-prefix" id="login-id-prefix">HI-</span>
+      <div class="login-input-overlay" id="login-empid-overlay">
+        <span class="login-hint-main">등록번호 입력</span>
+        <span class="login-hint-sub">(예: HI-123456)</span>
+      </div>
+      <input type="text" class="app-login-input login-placeholder-val" id="login-empid-input"
+        value=""
+        onfocus="document.getElementById('login-empid-overlay').style.display='none';document.getElementById('login-id-prefix').style.display='inline';this.classList.remove('login-placeholder-val');"
+        onblur="if(!this.value){document.getElementById('login-empid-overlay').style.display='flex';document.getElementById('login-id-prefix').style.display='none';this.classList.add('login-placeholder-val');}"
+        onkeydown="if(event.key==='Enter')document.getElementById('login-name-input').focus()"
+        autocomplete="off">
+    </div>
+    <div class="login-input-container">
+      <div class="login-input-overlay" id="login-name-overlay">
+        <span class="login-hint-main">이름 입력</span>
+        <span class="login-hint-sub">(예: 김다정)</span>
+      </div>
+      <input type="text" class="app-login-input app-login-input-name login-placeholder-val" id="login-name-input"
+        value=""
+        onfocus="document.getElementById('login-name-overlay').style.display='none';this.classList.remove('login-placeholder-val');"
+        onblur="if(!this.value){document.getElementById('login-name-overlay').style.display='flex';this.classList.add('login-placeholder-val');}"
+        onkeydown="if(event.key==='Enter')doAppLogin()"
+        autocomplete="off">
+    </div>
     <label class="app-login-keep">
       <input type="checkbox" id="login-keep-checkbox" checked>
       <span>로그인 유지</span>
@@ -2221,8 +2474,10 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-left:6px"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
     </button>
     <div class="app-login-loading" id="login-loading">데이터 불러오는 중...</div>
-    <div class="app-login-err" id="login-err">사번을 입력해주세요</div>
+    <div class="app-login-err" id="login-err">등록번호를 입력해주세요</div>
     <div class="app-login-info" id="login-info"></div>
+    <div class="login-divider"><span>또는</span></div>
+    <button type="button" class="app-login-guest-btn" onclick="doGuestLogin()">비회원으로 둘러보기</button>
   </div>
 </div>
 
@@ -2276,6 +2531,10 @@
           <img src="images/logo-white.png" alt="HI Health" class="logo-img-white">
         </div>
         <div class="header-right">
+          <div class="guest-banner" id="guest-banner">
+            <span class="guest-banner-text">둘러보기 모드</span>
+            <button onclick="doGuestLogout()">로그인하기</button>
+          </div>
           <div class="header-points" id="header-pts" onclick="navigate('rewards')">
             <span id="hpts-val">0</span>p
           </div>
@@ -3057,6 +3316,7 @@ function haptic(type) {
    CONSTANTS
 ════════════════════════════════════════ */
 const IS_RUN_MODE = location.hash.includes('runday');
+let IS_GUEST = false;
 
 const AVATARS = [
   'images/avatars/av1.png',
@@ -3383,6 +3643,7 @@ function clearCartFromPanel() {
 }
 
 function addToCart(id) {
+  if (IS_GUEST) { flashGuestBanner(); return; }
   haptic('light');
   _cart[id] = (_cart[id] || 0) + 1;
   saveCart();
@@ -3732,6 +3993,7 @@ let S = {
    STORAGE
 ════════════════════════════════════════ */
 function save(opts = {}) {
+  if (IS_GUEST) return;
   const skipRemote = !!opts.skipRemote;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -4462,6 +4724,18 @@ function navigate(page) {
     if (hdrRight) hdrRight.style.marginLeft = isChallenge ? 'auto' : '';
     const hdrProfileLabel = hdr.querySelector('#header-profile-label');
     if (hdrProfileLabel) hdrProfileLabel.style.display = isChallenge ? 'inline' : 'none';
+    const guestBanner = hdr.querySelector('#guest-banner');
+    if (guestBanner) {
+      if (isChallenge) {
+        guestBanner.style.position = 'absolute';
+        guestBanner.style.left = '50%';
+        guestBanner.style.transform = 'translateX(-50%)';
+      } else {
+        guestBanner.style.position = '';
+        guestBanner.style.left = '';
+        guestBanner.style.transform = '';
+      }
+    }
   }
   if (content) {
     content.classList.remove('no-top-margin');
@@ -5329,6 +5603,7 @@ function updatePtsPreview() {
   }
 }
 function logExercise() {
+  if (IS_GUEST) { flashGuestBanner(); return; }
   if (!S.selectedEx || !S.durationTouched) {
     haptic('error');
     const hint = document.getElementById('log-exercise-hint');
@@ -6310,6 +6585,8 @@ function togglePmTag(ci, ti) {
   const tag = activeTags()[ci].tags[ti];
   const idx = _selTags.indexOf(tag);
   if (idx === -1) _selTags.push(tag); else _selTags.splice(idx, 1);
+  S.user.tags = [..._selTags];
+  save();
   renderPmTags();
 }
 function pickAvatar(a) {
@@ -7432,6 +7709,7 @@ function deletePost(id) {
 }
 
 function submitPost() {
+  if (IS_GUEST) { flashGuestBanner(); return; }
   const input = document.getElementById('post-input');
   const body  = input.value.trim();
   if (!body) { haptic('error'); showToast('내용을 입력해주세요 ✏️'); return; }
@@ -8886,11 +9164,92 @@ function submitChReg(e) {
 /* ════════════════════════════════════════
    LOGIN / LOGOUT
 ════════════════════════════════════════ */
+/* ── App Intro ── */
+let _introIdx = 0;
+const INTRO_TOTAL = 5;
+
+function showIntroIfNeeded() {
+  if (IS_RUN_MODE) return;
+  if (localStorage.getItem('hi_intro_seen')) return;
+  showIntro();
+}
+
+function showIntro() {
+  if (IS_RUN_MODE) return;
+  _introIdx = 0;
+  document.getElementById('app-intro').classList.remove('hidden');
+  updateIntroUI();
+  initIntroSwipe();
+}
+
+function updateIntroUI() {
+  document.getElementById('app-intro-slides').style.transform = `translateX(-${_introIdx * 100}%)`;
+  document.querySelectorAll('.app-intro-dot').forEach((d, i) => d.classList.toggle('active', i === _introIdx));
+  document.getElementById('app-intro-next-btn').textContent = _introIdx === INTRO_TOTAL - 1 ? '시작하기' : '다음';
+}
+
+function introNext() {
+  if (_introIdx < INTRO_TOTAL - 1) {
+    _introIdx++;
+    updateIntroUI();
+  } else {
+    introSkip();
+  }
+}
+
+function introSkip() {
+  localStorage.setItem('hi_intro_seen', '1');
+  document.getElementById('app-intro').classList.add('hidden');
+}
+
+function initIntroSwipe() {
+  const el = document.getElementById('app-intro');
+  let startX = 0;
+  el.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+  el.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - startX;
+    if (dx < -50 && _introIdx < INTRO_TOTAL - 1) { _introIdx++; updateIntroUI(); }
+    else if (dx > 50 && _introIdx > 0) { _introIdx--; updateIntroUI(); }
+  }, { passive: true });
+}
+
+function flashGuestBanner() {
+  haptic('light');
+  const banner = document.getElementById('guest-banner');
+  if (!banner) return;
+  banner.classList.remove('flash');
+  requestAnimationFrame(() => requestAnimationFrame(() => banner.classList.add('flash')));
+  banner.addEventListener('animationend', () => banner.classList.remove('flash'), { once: true });
+}
+
+function doGuestLogin() {
+  IS_GUEST = true;
+  S.user.name = '게스트';
+  S.user.avatar = 'images/avatars/av20.png';
+  S.user.points = 0;
+  S.user.totalPoints = 0;
+  S.user.streak = 0;
+  document.getElementById('app-login-screen').classList.add('hidden');
+  const banner = document.getElementById('guest-banner');
+  if (banner) banner.style.display = 'flex';
+  navigate('home');
+  renderHeader();
+  renderHome();
+  setTimeout(() => showIntro(), 400);
+}
+
+function doGuestLogout() {
+  IS_GUEST = false;
+  const banner = document.getElementById('guest-banner');
+  if (banner) banner.style.display = 'none';
+  document.getElementById('app-login-screen').classList.remove('hidden');
+}
+
 async function doAppLogin() {
   const input = document.getElementById('login-empid-input');
   const nameInput = document.getElementById('login-name-input');
-  const regId = input.value.trim().toUpperCase();
-  const inputName = nameInput.value.trim();
+  const regId = input.classList.contains('login-placeholder-val') ? '' : input.value.trim().toUpperCase();
+  const inputName = nameInput.classList.contains('login-placeholder-val') ? '' : nameInput.value.trim();
   const errEl  = document.getElementById('login-err');
   const infoEl = document.getElementById('login-info');
   const loadEl = document.getElementById('login-loading');
@@ -8898,10 +9257,15 @@ async function doAppLogin() {
   const keepLogin = document.getElementById('login-keep-checkbox').checked;
 
   if (!regId) {
-    input.classList.add('error');
+    const wrapper = document.getElementById('login-id-wrapper');
+    if (wrapper) wrapper.classList.add('error'); else input.classList.add('error');
     errEl.textContent = IS_RUN_MODE ? '사번을 입력해주세요' : '등록번호를 입력해주세요';
     errEl.style.display = 'block';
-    setTimeout(() => { input.classList.remove('error'); errEl.style.display = 'none'; }, 2000);
+    setTimeout(() => {
+      const w = document.getElementById('login-id-wrapper');
+      if (w) w.classList.remove('error'); else input.classList.remove('error');
+      errEl.style.display = 'none';
+    }, 2000);
     return;
   }
   if (!inputName) {
@@ -8937,7 +9301,7 @@ async function doAppLogin() {
       }
       // 이름 일치 → 기존 계정 안내
       if (infoEl) {
-        infoEl.textContent = '✅ 이미 가입된 사번입니다. 기존 데이터로 로그인합니다.';
+        infoEl.textContent = IS_RUN_MODE ? '✅ 이미 가입된 사번입니다. 기존 데이터로 로그인합니다.' : '✅ 이미 가입된 등록번호입니다. 기존 데이터로 로그인합니다.';
         infoEl.style.display = 'block';
         setTimeout(() => { infoEl.style.display = 'none'; }, 3000);
       }
@@ -8986,6 +9350,7 @@ async function doAppLogin() {
 
   document.getElementById('app-login-screen').classList.add('hidden');
   loadCart();
+  setTimeout(() => showIntroIfNeeded(), 400);
 
   btn.disabled = false;
 
@@ -9140,12 +9505,12 @@ function init() {
   const runHero = document.getElementById('login-run-hero');
   if (runHero) runHero.style.display = IS_RUN_MODE ? '' : 'none';
   const loginLogo = document.querySelector('.app-login-logo');
-  if (loginLogo) loginLogo.src = IS_RUN_MODE ? 'images/avatars/run1.png' : 'images/Hi_health_home.png';
+  if (loginLogo) loginLogo.src = IS_RUN_MODE ? 'images/avatars/run1.png' : 'images/avatars/av1.png';
   const loginSub = document.querySelector('.app-login-sub');
   const loginEmpInput = document.getElementById('login-empid-input');
   if (!IS_RUN_MODE) {
     if (loginSub) loginSub.textContent = '등록번호와 이름을 입력해 시작하세요';
-    if (loginEmpInput) { loginEmpInput.placeholder = '등록번호'; loginEmpInput.style.letterSpacing = '2px'; }
+    if (loginEmpInput) { loginEmpInput.style.letterSpacing = '0'; }
   } else {
     if (loginEmpInput) { loginEmpInput.placeholder = '사번 (예: A1801)'; loginEmpInput.style.letterSpacing = '0'; }
     // IS_RUN_MODE: 로그인 유지 체크박스 숨김 (항상 자동 저장)
