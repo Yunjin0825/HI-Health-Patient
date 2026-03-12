@@ -313,7 +313,10 @@
     }
     .app-intro-desc {
       font-size: 13px; color: #64748B;
-      line-height: 1.7; max-width: 260px;
+      line-height: 1.7; max-width: 290px;
+      word-break: keep-all;
+      overflow-wrap: normal;
+      text-wrap: pretty;
     }
     .app-intro-bottom {
       padding: 16px 24px 24px;
@@ -1264,7 +1267,8 @@
       padding:7px 11px; border:1.5px dashed var(--border); border-radius:var(--radius-sm);
       font-size:13px; font-family:inherit; background:var(--bg); color:var(--text); box-sizing:border-box;
     }
-    #sa-glucose-time-wrap { width:100%; min-width:0; overflow:hidden; }
+    #rec-panel-glucose { min-width:0; overflow-x:hidden; }
+    #sa-glucose-time-wrap { width:100%; max-width:100%; min-width:0; overflow:hidden; box-sizing:border-box; }
     .glucose-time-input:focus { outline:none; border-color:var(--primary); border-style:dashed; }
     .glucose-log-btn { margin-top:10px; }
     .load-more-btn {
@@ -1276,7 +1280,7 @@
     .glucose-history-list { margin-top:12px; }
     .wo-empty { text-align:center; font-size:13px; color:var(--text-secondary); padding:20px 0 8px; }
     .glucose-item {
-      display:flex; align-items:center; gap:8px;
+      display:flex; align-items:flex-start; gap:8px;
       padding:7px 0; border-bottom:1px solid var(--border);
     }
     .glucose-item:last-child { border-bottom:none; }
@@ -1286,9 +1290,10 @@
     }
     .glucose-badge-val  { font-size:13px; font-weight:700; line-height:1; }
     .glucose-badge-unit { font-size:8px; opacity:0.8; }
-    .glucose-info { flex:1; }
+    .glucose-info { flex:1; min-width:0; display:flex; flex-direction:column; }
     .glucose-timing-lbl { font-size:11px; font-weight:600; }
     .glucose-time       { font-size:10px; color:var(--text-secondary); margin-top:1px; }
+    .glucose-memo { font-size:11px; color:var(--text-secondary); line-height:1.35; margin-top:4px; white-space:normal; }
     .glucose-status-tag  { font-size:9px; font-weight:700; padding:1px 6px; border-radius:8px; margin-top:2px; display:inline-block; }
     .glucose-status-low  { background:#DBEAFE; color:#1D4ED8; }
     .glucose-status-ok   { background:#D1FAE5; color:#065F46; }
@@ -1326,7 +1331,28 @@
     .today-log-card #hc-diet-sec,
     .today-log-card #hc-sleep-sec,
     .today-log-card #hc-supp-sec { padding-bottom:24px; }
-    .today-log-card #ex-memo { margin-left:18px; margin-right:18px; width:calc(100% - 36px); }
+    .exercise-memo-inline, .glucose-memo-inline, .diet-memo-inline, .sleep-memo-inline, .supp-memo-inline { margin-top:10px; }
+    .exercise-memo-inline #ex-memo {
+      width:100%; min-height:44px; padding:10px 12px;
+      border-radius:12px; box-sizing:border-box; background:#fff;
+      font-size:12px;
+    }
+    .glucose-memo-inline #glucose-memo {
+      width:100%; min-height:44px; padding:10px 12px;
+      border-radius:12px; box-sizing:border-box; background:#fff;
+      font-size:12px;
+    }
+    .diet-memo-inline #diet-memo-input {
+      width:100%; min-height:44px; padding:10px 12px;
+      border-radius:12px; box-sizing:border-box; background:#fff;
+      font-size:12px;
+    }
+    .sleep-memo-inline #sleep-memo-input,
+    .supp-memo-inline #supp-memo-input {
+      width:100%; min-height:44px; padding:10px 12px;
+      border-radius:12px; box-sizing:border-box; background:#fff;
+      font-size:12px;
+    }
 
     /* ── View Tabs (월별/목록/그래프) ── */
     .card-header-right { display:flex; align-items:center; gap:8px; }
@@ -1350,23 +1376,30 @@
     .wo-month-btn { background:none; border:none; font-size:22px; cursor:pointer; color:var(--text-secondary); padding:0 6px; line-height:1; transition:color 0.2s; }
     .wo-month-btn:hover { color:var(--primary); }
     .wo-month-btn:disabled { opacity:0.3; cursor:default; }
+    #dn-scroll {
+      scroll-snap-type:x mandatory;
+      scroll-behavior:smooth;
+      scrollbar-width:none;
+    }
+    #dn-scroll::-webkit-scrollbar { display:none; }
     .dn-card {
       flex-shrink:0; width:calc(100% - 10px); max-width:100%; background:var(--card);
       border-radius:14px; padding:10px; cursor:default;
       border:1.5px solid var(--border); transition:all 0.15s;
       display:flex; align-items:center; gap:10px;
       box-shadow:0 6px 18px rgba(15,23,42,0.06);
+      scroll-snap-align:start;
     }
     .dn-card:hover { transform:translateY(-1px); }
     .dn-card.selected { border-color:var(--primary); box-shadow:0 10px 22px rgba(37,99,235,0.18); }
     .dn-card-main { flex:1; min-width:0; }
     .dn-card-head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
     .dn-card-del {
-      width:28px; height:28px; border-radius:10px; border:1.5px solid #FECACA;
-      background:#FFF5F5; color:#DC2626; display:inline-flex; align-items:center; justify-content:center;
+      width:28px; height:28px; border-radius:10px; border:none;
+      background:transparent; color:#DC2626; display:inline-flex; align-items:center; justify-content:center;
       flex-shrink:0; cursor:pointer; transition:all 0.18s;
     }
-    .dn-card-del:hover { background:#FEE2E2; border-color:#FCA5A5; color:#B91C1C; }
+    .dn-card-del:hover { background:rgba(254,226,226,0.8); color:#B91C1C; }
     .dn-thumb {
       width:52px; height:52px; border-radius:12px; flex-shrink:0;
       display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -1384,6 +1417,22 @@
     .dn-thumb-day { font-size:10px; opacity:0.7; margin-top:3px; }
     .dn-card-date { font-size:11px; font-weight:700; color:var(--text); }
     .dn-card-text { font-size:11px; color:var(--text-secondary); margin-top:4px; line-height:1.35; white-space:normal; }
+    .dn-slider-nav { display:flex; align-items:center; justify-content:center; gap:10px; margin-top:10px; }
+    .dn-slider-arrow {
+      width:30px; height:30px; border-radius:999px; border:1.5px solid var(--border);
+      background:#fff; color:var(--text-secondary); display:inline-flex; align-items:center; justify-content:center;
+      box-shadow:0 4px 12px rgba(15,23,42,0.06); cursor:pointer; transition:all 0.18s;
+      flex-shrink:0;
+    }
+    .dn-slider-arrow:hover:not(:disabled) { border-color:var(--primary); color:var(--primary); transform:translateY(-1px); }
+    .dn-slider-arrow:disabled { opacity:0.38; cursor:default; box-shadow:none; }
+    .dn-slider-dots { display:flex; align-items:center; justify-content:center; gap:6px; min-height:30px; }
+    .dn-slider-dot {
+      width:7px; height:7px; border:none; border-radius:999px; padding:0;
+      background:#CBD5E1; cursor:pointer; transition:all 0.18s;
+    }
+    .dn-slider-dot:hover:not(.active) { background:#94A3B8; }
+    .dn-slider-dot.active { width:18px; background:var(--primary); }
     .dn-cal-header { font-size:11px; color:var(--text-muted); font-weight:600; padding:3px 0; text-align:center; }
     .dn-cal-day {
       font-size:12px; padding:6px 2px; border-radius:6px; text-align:center; line-height:1;
@@ -1732,7 +1781,12 @@
     .lb-rank.top3 { color: var(--warning); }
     .lb-avatar { width:36px; height:36px; border-radius:50%; overflow:hidden; flex-shrink:0; background:var(--bg); }
     .lb-info { flex: 1; }
-    .lb-name { font-size: 14px; font-weight: 600; }
+    .lb-name { font-size: 14px; font-weight: 600; display:flex; align-items:center; gap:6px; line-height:1.2; }
+    .lb-level-icon {
+      width:22px; height:22px; flex-shrink:0;
+      display:inline-flex; align-items:center; justify-content:center;
+    }
+    .lb-level-icon svg { width:100%; height:100%; display:block; }
     .lb-level { font-size: 11px; color: var(--text-secondary); display: flex; align-items: center; gap: 3px; }
     .lb-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
     .lb-pts { font-size: 15px; font-weight: 700; color: var(--warning); }
@@ -2699,18 +2753,18 @@
 
     <div class="card">
       <div class="card-header">
-        <span class="card-title">획득한 배지</span>
-        <span class="badge badge-warning" id="ach-count-badge">0개</span>
-      </div>
-      <div class="ach-strip" id="ach-strip-home"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
         <span class="card-title">이번 주 활동</span>
         <span class="badge badge-primary" id="week-total-badge">0분</span>
       </div>
       <div class="week-grid" id="week-grid"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">획득한 배지</span>
+        <span class="badge badge-warning" id="ach-count-badge">0개</span>
+      </div>
+      <div class="ach-strip" id="ach-strip-home"></div>
     </div>
 
     <div class="illus-banner">
@@ -2734,7 +2788,7 @@
           <div style="display:flex;gap:6px">
             <input type="text" class="ch-form-input dashed" id="custom-ex-name"
                    placeholder="운동 이름을 입력하세요 (예: 줄넘기, 스키...)"
-                   maxlength="20" oninput="updatePtsPreview()"
+                   maxlength="20" oninput="updatePtsPreview();updateMemoPlaceholder();updateSharePreview()"
                    onkeydown="if(event.key==='Enter')addCustomExType()">
             <button type="button" onclick="addCustomExType()" style="padding:8px 14px;border-radius:var(--radius-sm);border:none;background:var(--primary);color:#fff;font-size:13px;cursor:pointer;white-space:nowrap">추가</button>
           </div>
@@ -2750,6 +2804,9 @@
           <button type="button" class="dur-btn" onclick="changeDur(5)">+</button>
         </div>
         <p id="dur-hint" style="text-align:center;font-size:12px;color:#B0B4BC;margin:0 0 6px">버튼을 눌러 운동시간을 기록해주세요</p>
+        <div class="exercise-memo-inline">
+          <textarea class="form-textarea" id="ex-memo" rows="1" maxlength="40" placeholder="운동 메모를 남겨보세요(예: 퇴근 후 5km 러닝)" oninput="updateMemoPlaceholder(); updateSharePreview()"></textarea>
+        </div>
         <button class="btn btn-primary btn-full btn-record btn-inactive" id="log-exercise-btn" onclick="logExercise()">운동 기록하기</button>
         <div id="log-exercise-hint" style="display:none;text-align:center;font-size:12px;color:var(--primary);margin-top:6px;animation:fadeIn 0.15s ease"></div>
         <div id="daily-limit-info" class="daily-limit-info daily-limit-info--center" style="margin-top:6px;margin-bottom:16px"></div>
@@ -2793,6 +2850,9 @@
           <button type="button" class="dur-btn" onclick="changeGlucoseVal(5)">+</button>
         </div>
         <p id="glucose-hint" style="text-align:center;font-size:12px;color:#B0B4BC;margin:0 0 6px">버튼을 눌러 혈당수치를 기록해주세요</p>
+        <div class="glucose-memo-inline">
+          <textarea class="form-textarea" id="glucose-memo" rows="1" maxlength="40" placeholder="혈당 메모를 남겨보세요(예: 아침 공복 측정)"></textarea>
+        </div>
         <button class="btn btn-primary btn-full glucose-log-btn btn-inactive" id="log-glucose-btn" onclick="logGlucoseStandalone()">혈당 기록하기</button>
         <div id="log-glucose-hint" style="display:none;text-align:center;font-size:12px;color:var(--primary);margin-top:6px;animation:fadeIn 0.15s ease"></div>
         <div id="glucose-daily-info" class="daily-limit-info daily-limit-info--center" style="margin-top:6px;margin-bottom:16px"></div>
@@ -2866,9 +2926,10 @@
                 oninput="onDietCustomInline(this)">
             </div>
           </div>
-          <textarea id="diet-memo-input" rows="2" placeholder="오늘 먹은 것을 자유롭게 적어보세요 예: 닭가슴살, 샐러드..." maxlength="100"
-            style="width:100%;margin-top:10px;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;color:var(--text);background:var(--bg);resize:none;line-height:1.5;box-sizing:border-box"
-            oninput="_dietMemo=this.value.trim();updateSharePreview();saveTodayLog()"></textarea>
+          <div class="diet-memo-inline">
+            <textarea class="form-textarea" id="diet-memo-input" rows="1" placeholder="식단 메모를 남겨보세요(예: 닭가슴살, 샐러드)" maxlength="40"
+              oninput="_dietMemo=this.value.trim();updateSharePreview();saveTodayLog()"></textarea>
+          </div>
         </div>
       </div>
 
@@ -2915,6 +2976,10 @@
                 oninput="onSleepCustomInline(this)">
             </div>
           </div>
+          <div class="sleep-memo-inline">
+            <textarea class="form-textarea" id="sleep-memo-input" rows="1" maxlength="40" placeholder="수면 메모를 남겨보세요(예: 새벽에 한 번 깼어요)"
+              oninput="_sleepNote=this.value.trim();updateSharePreview();saveTodayLog();renderTodayTabDots()"></textarea>
+          </div>
         </div>
       </div>
 
@@ -2960,6 +3025,10 @@
                 oninput="onSuppCustomInline(this)">
             </div>
           </div>
+          <div class="supp-memo-inline">
+            <textarea class="form-textarea" id="supp-memo-input" rows="1" maxlength="40" placeholder="영양제 메모를 남겨보세요(예: 저녁 식후 복용)"
+              oninput="_suppMemo=this.value.trim();updateSharePreview();saveTodayLog();renderTodayTabDots()"></textarea>
+          </div>
         </div>
       </div>
 
@@ -2983,9 +3052,6 @@
         </div>
         <input type="file" id="photo-input" accept="image/*" onchange="handlePhotoInput(this)">
       </div>
-      <textarea class="form-textarea" id="ex-memo" rows="2" placeholder="메모를 남겨보세요" style="display:none" oninput="updateMemoPlaceholder(); updateSharePreview()"></textarea>
-
-
     </div>
 
     <!-- 내 하루 저장 / 공유 -->
@@ -3016,6 +3082,15 @@
             </div>
             <div id="dn-list-view">
               <div id="dn-scroll" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
+              <div id="dn-list-controls" class="dn-slider-nav" style="display:none">
+                <button type="button" class="dn-slider-arrow" id="dn-prev-btn" onclick="moveDnSlide(-1)" aria-label="이전 저장 기록">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <div id="dn-dots" class="dn-slider-dots" aria-label="저장된 기록 위치"></div>
+                <button type="button" class="dn-slider-arrow" id="dn-next-btn" onclick="moveDnSlide(1)" aria-label="다음 저장 기록">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+              </div>
             </div>
             <div id="dn-cal-view" style="display:none">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
@@ -4031,7 +4106,7 @@ let S = {
   duration: 30,
   leagueTab: 'weekly',
   myReactions: {},   // postId -> [stickerId,...]
-  glucoseRecords: [], // { id, value, timing, ts }
+  glucoseRecords: [], // { id, value, timing, userTime?, memo?, ts }
   adminPosts: [],    // admin-written column content
   communityPosts: [], // other users' posts from Supabase
   todayLog: null,    // { date, dietRating, mealTypes, sleepHours, sleepCard, suppTaken, suppList }
@@ -4126,6 +4201,24 @@ function apiSync(action, payload) {
   _db.from(m.table).upsert(payload, { onConflict: m.conflict })
     .then(({ error }) => { if (error) console.error('[apiSync]', action, error); });
 }
+function normalizeGlucoseRecord(record, fallback = {}) {
+  return {
+    id: Number(record.id) || record.id,
+    value: Number(record.value) || fallback.value || 0,
+    timing: record.timing || fallback.timing || null,
+    userTime: record.userTime || record.usertime || fallback.userTime || null,
+    memo: record.memo || fallback.memo || '',
+    points: Number(record.points) || fallback.points || 0,
+    ts: record.ts || fallback.ts || 0,
+  };
+}
+function mapGlucoseRecords(records, prevRecords = []) {
+  const prevMap = new Map((prevRecords || []).map(r => [String(r.id), r]));
+  return (records || []).map(record => {
+    const normalizedId = String(Number(record.id) || record.id);
+    return normalizeGlucoseRecord(record, prevMap.get(normalizedId) || prevMap.get(String(record.id)) || {});
+  });
+}
 function load() {
   try {
     // deviceId: 사번+기기 조합 (사번 로그인 후 설정됨)
@@ -4155,7 +4248,7 @@ function load() {
       ].filter(Boolean);
     }
     S.myReactions = d.myReactions || {};
-    S.glucoseRecords = d.glucoseRecords || [];
+    S.glucoseRecords = mapGlucoseRecords(d.glucoseRecords || [], []);
     S.todayLog = d.todayLog || null;
   } catch(e) {}
 }
@@ -4170,8 +4263,10 @@ function saveTodayLog() {
     sleepHours: _sleepHours,
     sleepCard: _sleepCard,
     sleepMemo: _sleepMemo,
+    sleepNote: _sleepNote,
     suppTaken: _suppTaken,
     suppList: [..._suppList],
+    suppMemo: _suppMemo,
     myDayNote: S.todayLog?.myDayNote || null,
     myDayNoteTs: S.todayLog?.myDayNoteTs || null,
   };
@@ -4179,14 +4274,38 @@ function saveTodayLog() {
 }
 
 function loadTodayLog() {
-  renderMealChips();
-  renderSuppChips();
   const today = new Date().toDateString();
   if (!S.todayLog || S.todayLog.date !== today) {
     S.todayLog = null;
+    _dietRating = null;
+    _dietMemo = '';
+    _mealTypes = [];
+    _sleepHours = null;
+    _sleepCard = null;
+    _sleepMemo = '';
+    _sleepNote = '';
+    _suppTaken = null;
+    _suppList = [];
+    _suppMemo = '';
+    renderMealChips();
+    renderSuppChips();
+    document.querySelectorAll('#diet-good,#diet-norm,#diet-snack,#diet-over,#diet-bad,#diet-custom-btn,#sleep-great,#sleep-good,#sleep-short,#sleep-bad,#sleep-over,#sleep-custom-btn,#supp-all,#supp-partial,#supp-forgot,#supp-no,#supp-empty,#supp-custom-card').forEach(e => e.classList.remove('on'));
+    const dietMemoEl = document.getElementById('diet-memo-input');
+    if (dietMemoEl) dietMemoEl.value = '';
+    const sleepCustomEl = document.getElementById('sleep-custom-inline');
+    if (sleepCustomEl) sleepCustomEl.value = '';
+    const sleepNoteEl = document.getElementById('sleep-memo-input');
+    if (sleepNoteEl) sleepNoteEl.value = '';
+    const suppCustomEl = document.getElementById('supp-custom-inline');
+    if (suppCustomEl) suppCustomEl.value = '';
+    const suppMemoEl = document.getElementById('supp-memo-input');
+    if (suppMemoEl) suppMemoEl.value = '';
+    renderTodayTabDots();
     syncSleepHint();
     return;
   }
+  renderMealChips();
+  renderSuppChips();
   const d = S.todayLog;
   _dietRating = d.dietRating || null;
   _dietMemo   = d.dietMemo   || '';
@@ -4194,8 +4313,10 @@ function loadTodayLog() {
   _sleepHours = d.sleepHours ?? null;
   _sleepCard  = d.sleepCard  || null;
   _sleepMemo  = d.sleepMemo  || '';
+  _sleepNote  = d.sleepNote  || '';
   _suppTaken  = d.suppTaken  || null;
   _suppList   = d.suppList   || [];
+  _suppMemo   = d.suppMemo   || '';
   // UI 복원
   const presetDietKeys = ['good', 'norm', 'snack', 'over', 'bad'];
   const dietMap = { good:'diet-good', norm:'diet-norm', snack:'diet-snack', over:'diet-over', bad:'diet-bad' };
@@ -4219,6 +4340,8 @@ function loadTodayLog() {
     if (sleepMemoEl) sleepMemoEl.value = _sleepMemo;
     document.getElementById('sleep-custom-btn')?.classList.add('on');
   }
+  const sleepNoteEl = document.getElementById('sleep-memo-input');
+  if (sleepNoteEl) sleepNoteEl.value = _sleepNote;
   const presetSuppKeys = ['all', 'partial', 'forgot', 'no', 'empty'];
   const suppCardMap = { all:'supp-all', partial:'supp-partial', forgot:'supp-forgot', no:'supp-no', empty:'supp-empty' };
   if (_suppTaken) {
@@ -4232,6 +4355,8 @@ function loadTodayLog() {
     }
   }
   renderSuppChips();
+  const suppMemoEl = document.getElementById('supp-memo-input');
+  if (suppMemoEl) suppMemoEl.value = _suppMemo;
   // 사진 복원
   try {
     const p = JSON.parse(localStorage.getItem('hi_today_photo_' + (ACTIVE_EMPID||'x')) || 'null');
@@ -4541,7 +4666,7 @@ function resetTodayLogNow() {
   if (!confirm('오늘 기록된 식사, 수면, 영양제 기록이 모두 사라집니다.\n초기화할까요?')) return;
   haptic('medium');
   S.todayLog = null;
-  _dietRating = null; _dietMemo = ''; _mealTypes = []; _sleepHours = null; _sleepCard = null; _sleepMemo = ''; _suppTaken = null; _suppList = [];
+  _dietRating = null; _dietMemo = ''; _mealTypes = []; _sleepHours = null; _sleepCard = null; _sleepMemo = ''; _sleepNote = ''; _suppTaken = null; _suppList = []; _suppMemo = '';
   const _dmEl = document.getElementById('diet-memo-input'); if (_dmEl) _dmEl.value = '';
   resetHealthChecks();
   clearPhoto(null);
@@ -4559,9 +4684,11 @@ function scheduleMidnightReset() {
   const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5);
   setTimeout(() => {
     S.todayLog = null;
-    _dietRating = null; _dietMemo = ''; _mealTypes = []; _sleepHours = null; _sleepCard = null; _sleepMemo = ''; _suppTaken = null; _suppList = [];
-  const _dmEl = document.getElementById('diet-memo-input'); if (_dmEl) _dmEl.value = '';
-  const _smEl = document.getElementById('sleep-custom-input'); if (_smEl) _smEl.value = '';
+    _dietRating = null; _dietMemo = ''; _mealTypes = []; _sleepHours = null; _sleepCard = null; _sleepMemo = ''; _sleepNote = ''; _suppTaken = null; _suppList = []; _suppMemo = '';
+    const _dmEl = document.getElementById('diet-memo-input'); if (_dmEl) _dmEl.value = '';
+    const _smEl = document.getElementById('sleep-custom-inline'); if (_smEl) _smEl.value = '';
+    const _snEl = document.getElementById('sleep-memo-input'); if (_snEl) _snEl.value = '';
+    const _spmEl = document.getElementById('supp-memo-input'); if (_spmEl) _spmEl.value = '';
     resetHealthChecks();
     clearPhoto(null);
     _shareRewrite = false;
@@ -5048,9 +5175,9 @@ function renderTodayTabDots() {
   const d = document.getElementById('dot-diet');
   const s = document.getElementById('dot-sleep');
   const sp = document.getElementById('dot-supp');
-  if (d)  d.style.display  = (_dietRating || _mealTypes.length > 0) ? 'inline-block' : 'none';
-  if (s)  s.style.display  = (_sleepCard || _sleepHours !== null) ? 'inline-block' : 'none';
-  if (sp) sp.style.display = _suppTaken   ? 'inline-block' : 'none';
+  if (d)  d.style.display  = (_dietRating || _mealTypes.length > 0 || _dietMemo) ? 'inline-block' : 'none';
+  if (s)  s.style.display  = (_sleepCard || _sleepHours !== null || _sleepMemo || _sleepNote) ? 'inline-block' : 'none';
+  if (sp) sp.style.display = (_suppTaken || _suppList.length > 0 || _suppMemo) ? 'inline-block' : 'none';
 }
 
 function setWoView(mode) {
@@ -5228,13 +5355,9 @@ function renderExercise() {
 }
 
 function updateMemoPlaceholder() {
-  const ex = EX_TYPES.find(e => e.id === S.selectedEx);
-  const name = S.selectedEx === 'custom'
-    ? (document.getElementById('custom-ex-name')?.value.trim() || '운동')
-    : (ex ? ex.name : '운동');
-  const icon = ex ? ex.icon : '💪';
-  const memo = document.getElementById('ex-memo')?.value.trim();
-  const base = `오늘 ${name} ${S.duration}분 완료했어요! ${icon}`;
+  const memoEl = document.getElementById('ex-memo');
+  if (!memoEl) return;
+  memoEl.placeholder = '운동 메모를 남겨보세요(예: 퇴근 후 5km 러닝)';
 }
 function updateRecordBtnStates() {
   const canLogExercise = !!S.selectedEx && !!S.durationTouched;
@@ -5273,6 +5396,9 @@ let _dnView = 'list';
 let _dnCalYear = new Date().getFullYear();
 let _dnCalMonth = new Date().getMonth();
 let _dnFilterDate = null;
+let _dnSlideIndex = 0;
+let _dnScrollTicking = false;
+let _dnSliderResizeBound = false;
 
 function getLocalDateKey(d = new Date()) {
   const y = d.getFullYear();
@@ -5286,6 +5412,7 @@ function loadDayNotes() {
   catch(e) { _dayNotes = {}; }
   _dnFilterDate = null;
   _dnView = 'list';
+  _dnSlideIndex = 0;
 }
 function persistDayNotes() {
   try { localStorage.setItem('hi_health_day_notes_' + (ACTIVE_EMPID || ''), JSON.stringify(_dayNotes)); }
@@ -5329,7 +5456,10 @@ function renderDnList() {
     .filter(([dk]) => !_dnFilterDate || dk === _dnFilterDate)
     .sort((a, b) => b[0].localeCompare(a[0]));
   if (!entries.length) {
+    _dnSlideIndex = 0;
+    el.scrollLeft = 0;
     el.innerHTML = '<div style="font-size:12px;color:var(--text-secondary);padding:8px 2px">저장된 기록이 없어요.</div>';
+    updateDnSliderNav(0);
     return;
   }
   const dayNames = ['일','월','화','수','목','금','토'];
@@ -5360,6 +5490,98 @@ function renderDnList() {
       </div>
     `;
   }).join('');
+  bindDnSlider();
+  _dnSlideIndex = Math.max(0, Math.min(_dnSlideIndex, entries.length - 1));
+  requestAnimationFrame(() => scrollDnToIndex(_dnSlideIndex, false));
+}
+function bindDnSlider() {
+  const el = document.getElementById('dn-scroll');
+  if (!el || el.dataset.sliderBound === '1') return;
+  el.dataset.sliderBound = '1';
+  el.addEventListener('scroll', () => {
+    if (_dnView !== 'list') return;
+    if (_dnScrollTicking) return;
+    _dnScrollTicking = true;
+    requestAnimationFrame(() => {
+      _dnScrollTicking = false;
+      syncDnSlideIndex();
+    });
+  }, { passive: true });
+  if (_dnSliderResizeBound) return;
+  _dnSliderResizeBound = true;
+  window.addEventListener('resize', () => {
+    if (_dnView !== 'list') return;
+    scrollDnToIndex(_dnSlideIndex, false);
+  });
+}
+function updateDnSliderNav(total) {
+  const nav = document.getElementById('dn-list-controls');
+  const dots = document.getElementById('dn-dots');
+  const prev = document.getElementById('dn-prev-btn');
+  const next = document.getElementById('dn-next-btn');
+  if (!nav || !dots || !prev || !next) return;
+  const count = typeof total === 'number' ? total : document.querySelectorAll('#dn-scroll .dn-card').length;
+  const show = _dnView === 'list' && count > 1;
+  nav.style.display = show ? '' : 'none';
+  if (!show) {
+    dots.innerHTML = '';
+    prev.disabled = true;
+    next.disabled = true;
+    return;
+  }
+  _dnSlideIndex = Math.max(0, Math.min(_dnSlideIndex, count - 1));
+  dots.innerHTML = Array.from({ length: count }, (_, idx) => `
+    <button
+      type="button"
+      class="dn-slider-dot${idx === _dnSlideIndex ? ' active' : ''}"
+      onclick="goDnSlide(${idx})"
+      aria-label="저장 기록 ${idx + 1}번으로 이동"
+      ${idx === _dnSlideIndex ? 'aria-current="true"' : ''}
+    ></button>
+  `).join('');
+  prev.disabled = _dnSlideIndex <= 0;
+  next.disabled = _dnSlideIndex >= count - 1;
+}
+function syncDnSlideIndex() {
+  const el = document.getElementById('dn-scroll');
+  if (!el) return;
+  const cards = Array.from(el.querySelectorAll('.dn-card'));
+  if (!cards.length) {
+    _dnSlideIndex = 0;
+    updateDnSliderNav(0);
+    return;
+  }
+  const center = el.scrollLeft + (el.clientWidth / 2);
+  let nextIdx = 0;
+  let nextGap = Infinity;
+  cards.forEach((card, idx) => {
+    const gap = Math.abs((card.offsetLeft + (card.offsetWidth / 2)) - center);
+    if (gap < nextGap) {
+      nextGap = gap;
+      nextIdx = idx;
+    }
+  });
+  if (nextIdx !== _dnSlideIndex) _dnSlideIndex = nextIdx;
+  updateDnSliderNav(cards.length);
+}
+function scrollDnToIndex(idx, smooth = true) {
+  const el = document.getElementById('dn-scroll');
+  if (!el) return;
+  const cards = Array.from(el.querySelectorAll('.dn-card'));
+  if (!cards.length) {
+    _dnSlideIndex = 0;
+    updateDnSliderNav(0);
+    return;
+  }
+  _dnSlideIndex = Math.max(0, Math.min(idx, cards.length - 1));
+  el.scrollTo({ left: cards[_dnSlideIndex].offsetLeft, behavior: smooth ? 'smooth' : 'auto' });
+  updateDnSliderNav(cards.length);
+}
+function moveDnSlide(delta) {
+  scrollDnToIndex(_dnSlideIndex + delta);
+}
+function goDnSlide(idx) {
+  scrollDnToIndex(idx);
 }
 function renderDnCalendar() {
   const grid = document.getElementById('dn-cal-grid');
@@ -5382,11 +5604,13 @@ function renderDnCalendar() {
 }
 function setDnFilter(dk) {
   _dnFilterDate = (_dnFilterDate === dk) ? null : dk;
+  _dnSlideIndex = 0;
   setDayNotesView('list');
   renderDnCalendar();
 }
 function clearDnFilter() {
   _dnFilterDate = null;
+  _dnSlideIndex = 0;
   setDayNotesView('list');
   renderDnCalendar();
 }
@@ -5402,7 +5626,11 @@ function setDayNotesView(v) {
   document.getElementById('dn-tab-all')?.classList.toggle('active', v === 'list' && !_dnFilterDate);
   document.getElementById('dn-list-view').style.display = v === 'list' ? '' : 'none';
   document.getElementById('dn-cal-view').style.display = v === 'cal' ? '' : 'none';
-  if (v === 'list') renderDnList(); else renderDnCalendar();
+  if (v === 'list') renderDnList();
+  else {
+    updateDnSliderNav(0);
+    renderDnCalendar();
+  }
 }
 
 function getTodayMyPost() {
@@ -5492,7 +5720,7 @@ function buildDayMessage() {
       const ex = EX_TYPES.find(e => e.id === w.exId);
       const name = w.customName || (ex ? ex.name : '운동');
       const icon = ex ? ex.icon : '🏃';
-      return icon + ' ' + name + ' ' + w.duration + '분';
+      return icon + ' ' + name + ' ' + w.duration + '분' + (w.memo ? ' · ' + w.memo : '');
     }).join(', ');
     lines.push(woList + ' 완료했어요!');
   }
@@ -5510,50 +5738,58 @@ function buildDayMessage() {
       } else {
         label = null;
       }
-      return (label ? label + ' ' : '') + r.value + ' mg/dL';
+      return (label ? label + ' ' : '') + r.value + ' mg/dL' + (r.memo ? ' · ' + r.memo : '');
     }).join(', ');
     lines.push('오늘 혈당은 ' + glList + ' 기록했어요.');
   }
 
   // 식사
   const dietMap = { good:'매 끼니 잘 챙겨먹었어요', norm:'보통으로 먹었어요', snack:'간식을 많이 먹었네요', over:'과식을 했어요', bad:'한 끼를 거른 것 같아요' };
+  let dietLine = '';
   if (_dietRating) {
     const label = dietMap[_dietRating] || _dietRating;
     if (label) {
       const meals = _mealTypes.length ? ' (' + _mealTypes.join(', ') + ')' : '';
-      lines.push('식사는 ' + label + meals + '.');
+      dietLine = '식사는 ' + label + meals + '.';
     }
   }
-  if (_dietMemo) lines.push('식단: ' + _dietMemo);
+  if (_dietMemo) dietLine = dietLine ? dietLine + ' ' + _dietMemo : _dietMemo;
+  if (dietLine) lines.push(dietLine);
 
   // 수면
+  let sleepLine = '';
   if (_sleepHours !== null || _sleepCard !== null) {
     const sleepTextMap = { great:'푹 잤어요', good:'잘 잤어요', short:'조금 부족했어요', bad:'많이 못 잤어요', over:'너무 많이 잤어요' };
-    let sleepLabel;
     if (_sleepCard && _sleepHours !== null) {
-      sleepLabel = '잠은 ' + (sleepTextMap[_sleepCard] || _sleepCard) + ' (' + _sleepHours + '시간).';
+      sleepLine = '잠은 ' + (sleepTextMap[_sleepCard] || _sleepCard) + ' (' + _sleepHours + '시간).';
     } else if (_sleepCard) {
-      sleepLabel = '잠은 ' + (sleepTextMap[_sleepCard] || _sleepCard) + '.';
+      sleepLine = '잠은 ' + (sleepTextMap[_sleepCard] || _sleepCard) + '.';
     } else {
-      sleepLabel = '잠은 ' + _sleepHours + '시간 잤어요.';
+      sleepLine = '잠은 ' + _sleepHours + '시간 잤어요.';
     }
-    lines.push(sleepLabel);
   }
-  if (_sleepMemo) lines.push('수면 메모: ' + _sleepMemo);
+  if (_sleepMemo) sleepLine = sleepLine ? sleepLine + ' ' + _sleepMemo : _sleepMemo;
+  if (_sleepNote) sleepLine = sleepLine ? sleepLine + ' ' + _sleepNote : _sleepNote;
+  if (sleepLine) lines.push(sleepLine);
 
   // 영양제
+  let suppLine = '';
   if (_suppTaken) {
     const suppMap = { all:'영양제 모두 챙겨 먹었어요', partial:'영양제 일부만 챙겼어요', forgot:'영양제 깜빡했어요', no:'오늘은 영양제를 안 먹었어요', empty:'영양제가 떨어졌어요' };
-    let suppLine = suppMap[_suppTaken] || _suppTaken;
+    suppLine = suppMap[_suppTaken] || _suppTaken;
     if (_suppList.length) {
       suppLine += ' (' + _suppList.join(', ') + ')';
     }
-    lines.push(suppLine + '.');
   }
+  if (suppLine) suppLine += '.';
+  if (_suppMemo) suppLine = suppLine ? suppLine + ' ' + _suppMemo : _suppMemo;
+  if (suppLine) lines.push(suppLine);
 
   // 메모
   const memo = document.getElementById('ex-memo')?.value.trim();
   if (memo) lines.push(memo);
+  const glucoseMemo = document.getElementById('glucose-memo')?.value.trim();
+  if (glucoseMemo) lines.push(glucoseMemo);
 
   return lines.join('\n');
 }
@@ -5617,8 +5853,7 @@ function renderShareOptions() {
   const el = document.getElementById('share-options');
   if (!el) return;
   const hasPhoto  = !!_photoData;
-  const hasSleep  = document.getElementById('hc-sleep-sec')?.classList.contains('show');
-  const hasHealth = !!(_dietRating || _mealTypes.length || hasSleep || _suppTaken);
+  const hasHealth = !!(_dietRating || _dietMemo || _mealTypes.length || _sleepHours !== null || _sleepCard || _sleepMemo || _sleepNote || _suppTaken || _suppList.length || _suppMemo);
   if (!hasPhoto && !hasHealth) { el.innerHTML = ''; return; }
   let html = '<div class="share-opts-label">함께 공유할 항목</div><div class="share-opts-row">';
   if (hasPhoto)  html += `<button type="button" class="share-opt-chip${_sharePhoto  ? ' on' : ''}" onclick="toggleShareOpt('photo')">사진</button>`;
@@ -5814,8 +6049,10 @@ let _mealTypes  = [];
 let _sleepHours = null;
 let _sleepCard  = null;
 let _sleepMemo  = '';
+let _sleepNote  = '';
 let _suppTaken  = null;
 let _suppList   = [];
+let _suppMemo   = '';
 
 function toggleHC(type) {
   haptic('light');
@@ -5826,7 +6063,7 @@ function toggleHC(type) {
   btn.classList.toggle('active', opening);
   if (!opening) {
     if (type === 'diet')  { _dietRating = null; _mealTypes = []; document.querySelectorAll('[id^="diet-"]').forEach(e => e.classList.remove('on')); document.getElementById('meal-direct-wrap')?.classList.remove('show'); renderMealChips(); }
-    if (type === 'sleep') { _sleepHours = null; _sleepCard = null; _sleepMemo = ''; document.querySelectorAll('#sleep-great,#sleep-good,#sleep-short,#sleep-bad,#sleep-over,#sleep-custom-btn').forEach(e => e.classList.remove('on')); const _smi = document.getElementById('sleep-custom-inline'); if(_smi) _smi.value=''; syncSleepHint(); }
+    if (type === 'sleep') { _sleepHours = null; _sleepCard = null; _sleepMemo = ''; _sleepNote = ''; document.querySelectorAll('#sleep-great,#sleep-good,#sleep-short,#sleep-bad,#sleep-over,#sleep-custom-btn').forEach(e => e.classList.remove('on')); const _sci = document.getElementById('sleep-custom-inline'); if(_sci) _sci.value=''; const _sni = document.getElementById('sleep-memo-input'); if(_sni) _sni.value=''; syncSleepHint(); }
     if (type === 'supp')  { clearSuppSection(); }
   }
 }
@@ -5847,6 +6084,7 @@ function onSleepCustomInline(el) {
   document.getElementById('sleep-custom-btn').classList.toggle('on', !!_sleepMemo || document.activeElement === el);
   updateSharePreview();
   saveTodayLog();
+  renderTodayTabDots();
 }
 function onSuppCustomFocus() {
   ['supp-all','supp-partial','supp-forgot','supp-no','supp-empty'].forEach(id => document.getElementById(id)?.classList.remove('on'));
@@ -5897,6 +6135,7 @@ function changeSleep(delta) {
   syncSleepHint();
   updateSharePreview();
   saveTodayLog();
+  renderTodayTabDots();
 }
 function setSleepCard(rating) {
   haptic('light');
@@ -5954,18 +6193,20 @@ function resetHealthChecks() {
   const _dci = document.getElementById('diet-custom-inline'); if (_dci) _dci.value = '';
   document.getElementById('meal-direct-wrap')?.classList.remove('show');
   renderMealChips();
-  _sleepHours = null; _sleepCard = null; _sleepMemo = '';
+  _sleepHours = null; _sleepCard = null; _sleepMemo = ''; _sleepNote = '';
   document.querySelectorAll('#sleep-great,#sleep-good,#sleep-short,#sleep-bad,#sleep-over,#sleep-custom-btn').forEach(e => e.classList.remove('on'));
   const _sci = document.getElementById('sleep-custom-inline'); if (_sci) _sci.value = '';
+  const _sni = document.getElementById('sleep-memo-input'); if (_sni) _sni.value = '';
   syncSleepHint();
   clearSuppSection();
 }
 function clearSuppSection() {
-  _suppTaken = null; _suppList = [];
+  _suppTaken = null; _suppList = []; _suppMemo = '';
   ['supp-all','supp-partial','supp-forgot','supp-no','supp-empty','supp-custom-card'].forEach(id => {
     document.getElementById(id)?.classList.remove('on');
   });
   const _suCI = document.getElementById('supp-custom-inline'); if (_suCI) _suCI.value = '';
+  const _suMI = document.getElementById('supp-memo-input'); if (_suMI) _suMI.value = '';
   document.getElementById('supp-direct-wrap')?.classList.remove('show');
   document.getElementById('supp-direct-input') && (document.getElementById('supp-direct-input').value = '');
   renderSuppChips();
@@ -6212,7 +6453,8 @@ function logGlucoseStandalone() {
   } else {
     ts = new Date().toISOString();
   }
-  const rec = { id: Date.now(), value: _glucoseVal, timing: _glucoseTiming, userTime: _glucoseTime || null, ts, points: GLUCOSE_POINTS };
+  const glucoseMemo = document.getElementById('glucose-memo')?.value.trim() || '';
+  const rec = { id: Date.now(), value: _glucoseVal, timing: _glucoseTiming, userTime: _glucoseTime || null, memo: glucoseMemo, ts, points: GLUCOSE_POINTS };
   S.glucoseRecords.unshift(rec);
   S.user.points += GLUCOSE_POINTS;
   S.user.totalPoints = (S.user.totalPoints || 0) + GLUCOSE_POINTS;
@@ -6229,6 +6471,8 @@ function logGlucoseStandalone() {
   _glucoseVal = 100; _glucoseTiming = null; _glucoseTime = ''; _glucoseValTouched = false;
   const timeEl = document.getElementById('sa-glucose-time');
   if (timeEl) timeEl.value = '';
+  const memoEl = document.getElementById('glucose-memo');
+  if (memoEl) memoEl.value = '';
   document.getElementById('sa-glucose-time-wrap')?.classList.remove('show');
   document.getElementById('sa-gt-time')?.classList.remove('selected');
   const gh = document.getElementById('glucose-hint');
@@ -6385,6 +6629,7 @@ function renderGlucose() {
       <div class="glucose-info">
         ${r.timing ? `<span class="glucose-timing-lbl">${r.timing}</span>` : ''}
         <span class="glucose-time">${timeStr}</span>
+        ${r.memo ? `<div class="glucose-memo">${escHtmlComm(r.memo)}</div>` : ''}
       </div>
       <span class="glucose-status-tag ${st.cls}">${st.label}</span>
       <button class="glucose-del" onclick="deleteGlucose(${r.id})">✕</button>
@@ -6777,6 +7022,7 @@ function resetToLoggedOutState() {
   S.deviceId = null;
   S.user = { name:'', nickname:'', avatar:AVATARS[0], empId:'', dept:'', points:0, totalPoints:0, streak:0, stickersReceived:0, levelCardShares:0, registrationId:null, tags:[] };
   _dayNotes = {};
+  _dnSlideIndex = 0;
   S.workouts = [];
   S.posts = JSON.parse(JSON.stringify(MOCK_POSTS_SEED));
   S.glucoseRecords = [];
@@ -6787,6 +7033,14 @@ function resetToLoggedOutState() {
   S.communityPosts = [];
   S.adminPosts = [];
   S.todayLog = null;
+  const exMemo = document.getElementById('ex-memo');
+  if (exMemo) exMemo.value = '';
+  const glMemo = document.getElementById('glucose-memo');
+  if (glMemo) glMemo.value = '';
+  const sleepNoteEl = document.getElementById('sleep-memo-input');
+  if (sleepNoteEl) sleepNoteEl.value = '';
+  const suppMemoEl = document.getElementById('supp-memo-input');
+  if (suppMemoEl) suppMemoEl.value = '';
 
   const pmNick = document.getElementById('pm-nickname');
   if (pmNick) pmNick.value = '';
@@ -7150,7 +7404,7 @@ function renderLeague() {
           <div class="lb-rank ${u.rank <= 3 ? 'top3' : ''}">${u.rank}</div>
           <div class="lb-avatar">${avHTML(u.avatar)}</div>
           <div class="lb-info">
-            <div class="lb-name">${lv.icon} ${u.name}</div>
+            <div class="lb-name"><span class="lb-level-icon">${lv.icon}</span><span>${u.name}</span></div>
             ${(u.tags || []).length ? `<div class="lb-tags">${u.tags.slice(0,2).map(t => `<span class="profile-tag">${t}</span>`).join('')}${u.tags.length > 2 ? `<span class="profile-tag" style="letter-spacing:1px">···</span>` : ''}</div>` : ''}
           </div>
           <div class="lb-right">
@@ -7245,7 +7499,7 @@ function renderLeague() {
         <div class="lb-rank ${u.rank<=3?'top3':''}">${u.rank}</div>
         <div class="lb-avatar">${avHTML(u.avatar)}</div>
         <div class="lb-info">
-          <div class="lb-name">${lv.icon} ${u.name}</div>
+          <div class="lb-name"><span class="lb-level-icon">${lv.icon}</span><span>${u.name}</span></div>
           ${(u.tags || []).length ? `<div class="lb-tags">${u.tags.slice(0,2).map(t => `<span class="profile-tag">${t}</span>`).join('')}${u.tags.length > 2 ? `<span class="profile-tag" style="letter-spacing:1px">···</span>` : ''}</div>` : ''}
         </div>
         <div class="lb-right">
@@ -9332,12 +9586,12 @@ function guestSampleDate(daysAgo, hour, minute) {
 
 function buildGuestSampleState() {
   const workoutDefs = [
-    { daysAgo: 3, hour: 7,  minute: 15, exId: 'walking',  duration: 40, memo: '출근 전 공원 한 바퀴' },
+    { daysAgo: 3, hour: 7,  minute: 15, exId: 'walking',  duration: 40, memo: '출근 전 공원 산책' },
     { daysAgo: 2, hour: 19, minute: 10, exId: 'strength', duration: 45, memo: '하체 루틴 위주로 진행' },
-    { daysAgo: 1, hour: 7,  minute: 30, exId: 'yoga',     duration: 35, memo: '아침 스트레칭과 호흡' },
+    { daysAgo: 1, hour: 7,  minute: 30, exId: 'yoga',     duration: 35, memo: '아침 스트레칭으로 몸 풀기' },
     { daysAgo: 1, hour: 18, minute: 20, exId: 'running',  duration: 30, memo: '퇴근 후 5km 러닝' },
-    { daysAgo: 0, hour: 6,  minute: 50, exId: 'cycling',  duration: 50, memo: '한강 라이딩으로 시작' },
-    { daysAgo: 0, hour: 19, minute: 20, exId: 'hiking',   duration: 60, memo: '저녁 산책 겸 가벼운 오르막' },
+    { daysAgo: 0, hour: 6,  minute: 50, exId: 'cycling',  duration: 50, memo: '한강 코스 라이딩' },
+    { daysAgo: 0, hour: 19, minute: 20, exId: 'hiking',   duration: 60, memo: '저녁에 가볍게 오르막 걷기' },
   ];
   const workouts = workoutDefs
     .map((item, idx) => {
@@ -9348,7 +9602,7 @@ function buildGuestSampleState() {
         customName: null,
         duration: item.duration,
         points: calcPts(item.exId, item.duration),
-        memo: item.memo,
+        memo: item.memo || '',
         photo: null,
         diet: null,
         mealTypes: null,
@@ -9361,10 +9615,10 @@ function buildGuestSampleState() {
     .sort((a, b) => a.ts - b.ts);
 
   const glucoseDefs = [
-    { daysAgo: 0, hour: 18, minute: 10, value: 118, timing: '식후2h' },
-    { daysAgo: 0, hour: 7,  minute: 35, value: 97,  timing: '공복' },
-    { daysAgo: 1, hour: 22, minute: 10, value: 112, timing: '취침전' },
-    { daysAgo: 2, hour: 12, minute: 40, value: 132, timing: '식후' },
+    { daysAgo: 0, hour: 18, minute: 10, value: 118, timing: '식후2h', memo: '점심 식후 두 시간 뒤 측정' },
+    { daysAgo: 0, hour: 7,  minute: 35, value: 97,  timing: '공복',   memo: '기상 직후 공복 체크' },
+    { daysAgo: 1, hour: 22, minute: 10, value: 112, timing: '취침전', memo: '간식 없이 취침 전 측정' },
+    { daysAgo: 2, hour: 12, minute: 40, value: 132, timing: '식후',   memo: '점심 식후 한 시간쯤 확인' },
   ];
   const glucoseRecords = glucoseDefs
     .map((item, idx) => {
@@ -9374,6 +9628,7 @@ function buildGuestSampleState() {
         value: item.value,
         timing: item.timing,
         userTime: null,
+        memo: item.memo || '',
         ts: ts.toISOString(),
         points: GLUCOSE_POINTS,
       };
@@ -9468,6 +9723,7 @@ function applyGuestSampleState() {
   _dnView = 'list';
   _dnCalYear = new Date().getFullYear();
   _dnCalMonth = new Date().getMonth();
+  _dnSlideIndex = 0;
   _shareOn = true;
   _shareRewrite = false;
   _sharePhoto = false;
@@ -9477,6 +9733,14 @@ function applyGuestSampleState() {
   _glucoseValTouched = false;
   _glucoseTiming = null;
   _glucoseTime = '';
+  const exMemo = document.getElementById('ex-memo');
+  if (exMemo) exMemo.value = '';
+  const glMemo = document.getElementById('glucose-memo');
+  if (glMemo) glMemo.value = '';
+  const sleepNoteEl = document.getElementById('sleep-memo-input');
+  if (sleepNoteEl) sleepNoteEl.value = '';
+  const suppMemoEl = document.getElementById('supp-memo-input');
+  if (suppMemoEl) suppMemoEl.value = '';
   updateStreak();
   loadTodayLog();
 }
@@ -9650,10 +9914,7 @@ async function doAppLogin() {
         }));
       }
       if (g.data?.length) {
-        S.glucoseRecords = g.data.map(x => ({
-          id: Number(x.id) || x.id, value: Number(x.value), timing: x.timing,
-          points: Number(x.points) || 0, ts: x.ts,
-        }));
+        S.glucoseRecords = mapGlucoseRecords(g.data, S.glucoseRecords);
       }
       await syncMyChallengeRegistration();
       save();
@@ -9697,10 +9958,7 @@ function loadSheetsUserData(data) {
     duration: Number(w.duration) || 0, points: Number(w.points) || 0,
     memo: w.memo || '', ts: Number(w.ts) || 0,
   }));
-  S.glucoseRecords = (data.glucose || []).map(g => ({
-    id: Number(g.id), value: Number(g.value) || 0,
-    timing: g.timing, ts: g.ts, points: Number(g.points) || 0,
-  }));
+  S.glucoseRecords = mapGlucoseRecords(data.glucose || [], S.glucoseRecords);
   const myPosts = (data.posts || []).map(p => ({
     id: Number(p.id), userId: 0,
     name: p.userName, avatar: normalizeAvatar(S.user.avatar),
@@ -9835,10 +10093,7 @@ function init() {
           }));
         }
         if (g.data?.length) {
-          S.glucoseRecords = g.data.map(x => ({
-            id: Number(x.id) || x.id, value: Number(x.value), timing: x.timing,
-            points: Number(x.points) || 0, ts: x.ts,
-          }));
+          S.glucoseRecords = mapGlucoseRecords(g.data, S.glucoseRecords);
         }
         await syncMyChallengeRegistration();
         save();
@@ -10020,7 +10275,7 @@ init();
             registrationId: u.registrationId || null,
           };
           if (w.data?.length) S.workouts = w.data.map(x => ({ id: Number(x.id)||x.id, exId: x.exId, customName: x.exName||null, duration: Number(x.duration)||0, points: Number(x.points)||0, memo: x.memo||'', ts: Number(x.ts)||0 }));
-          if (g.data?.length) S.glucoseRecords = g.data.map(x => ({ id: Number(x.id)||x.id, value: Number(x.value), timing: x.timing, points: Number(x.points)||0, ts: x.ts }));
+          if (g.data?.length) S.glucoseRecords = mapGlucoseRecords(g.data, S.glucoseRecords);
           await syncMyChallengeRegistration();
           save();
           renderHeader();
