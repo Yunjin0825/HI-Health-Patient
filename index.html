@@ -104,7 +104,7 @@
       background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
       box-shadow: none;
     }
-    .app-login-logo { height: 72px; width: auto; margin-bottom: 14px; }
+    .app-login-logo { height: 116px; width: auto; margin-bottom: 4px; }
     .app-login-screen.runday .app-login-logo { height: 120px; margin-bottom: 4px; }
     .app-login-title { font-size: 15px; font-weight: 700; color: #3730A3; margin-bottom: 4px; }
     .app-login-screen.runday .app-login-title { color: rgba(255,255,255,0.9); }
@@ -265,7 +265,7 @@
     /* ── App Intro Popup ── */
     .app-intro {
       position: fixed; inset: 0; z-index: 500;
-      background: rgba(15,23,42,0.14);
+      background: rgba(15,23,42,0.68);
       backdrop-filter: blur(2px);
       display: flex; align-items: flex-end; justify-content: center;
       padding-bottom: max(env(safe-area-inset-bottom), 16px);
@@ -376,7 +376,7 @@
       -webkit-backdrop-filter: blur(12px);
       backdrop-filter: blur(12px);
     }
-    .header-logo { display: flex; align-items: center; }
+    .header-logo { display: flex; align-items: center; min-height: 38px; }
     .logo-img       { height: 40px; width: auto; display: block; }
     .logo-img-white { height: 28px; width: auto; display: none; }
     .app-header:not(.solid) .logo-img       { display: none; }
@@ -2485,7 +2485,7 @@
     <div class="app-login-route">여의도 → 선유도공원, 함께 달려요~!</div>
   </div>
   <div class="app-login-card">
-    <img src="images/avatars/av1.png" alt="HI Health" class="app-login-logo">
+    <img src="images/avatars/av2.png" alt="HI Health" class="app-login-logo">
     <div class="app-login-title">HI Health</div>
     <div class="app-login-sub">등록번호와 이름을 입력해 시작하세요</div>
     <div class="login-id-wrapper" id="login-id-wrapper" style="position:relative">
@@ -2504,7 +2504,7 @@
     <div class="login-input-container">
       <div class="login-input-overlay" id="login-name-overlay">
         <span class="login-hint-main">이름 입력</span>
-        <span class="login-hint-sub">(예: 김다정)</span>
+        <span class="login-hint-sub">(예: 김하이)</span>
       </div>
       <input type="text" class="app-login-input app-login-input-name login-placeholder-val" id="login-name-input"
         value=""
@@ -2525,7 +2525,7 @@
     <div class="app-login-err" id="login-err">등록번호를 입력해주세요</div>
     <div class="app-login-info" id="login-info"></div>
     <div class="login-divider"><span>또는</span></div>
-    <button type="button" class="app-login-guest-btn" onclick="doGuestLogin()">비회원으로 둘러보기</button>
+    <button type="button" class="app-login-guest-btn" onclick="doGuestLogin()">게스트로 앱 둘러보기</button>
   </div>
 </div>
 
@@ -2700,18 +2700,18 @@
 
     <div class="card">
       <div class="card-header">
-        <span class="card-title">이번 주 활동</span>
-        <span class="badge badge-primary" id="week-total-badge">0분</span>
-      </div>
-      <div class="week-grid" id="week-grid"></div>
-    </div>
-
-    <div class="card" style="margin-bottom:6px">
-      <div class="card-header">
         <span class="card-title">획득한 배지</span>
         <span class="badge badge-warning" id="ach-count-badge">0개</span>
       </div>
       <div class="ach-strip" id="ach-strip-home"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">이번 주 활동</span>
+        <span class="badge badge-primary" id="week-total-badge">0분</span>
+      </div>
+      <div class="week-grid" id="week-grid"></div>
     </div>
 
     <div class="illus-banner">
@@ -6562,10 +6562,8 @@ function openProfileModal(onboarding = false) {
 
   if (onboarding) {
     document.getElementById('pm-title').textContent = 'HI Health 시작하기';
-    document.getElementById('pm-sub').textContent   = '닉네임과 아바타를 설정하고 바로 시작하세요';
   } else {
     document.getElementById('pm-title').textContent = '프로필 설정';
-    document.getElementById('pm-sub').textContent   = '닉네임, 아바타, 태그를 간단히 정리해보세요';
   }
 
   // 챌린지 참여 현황
@@ -9410,7 +9408,7 @@ function buildGuestSampleState() {
     user: {
       name: '게스트',
       nickname: '둘러보기 게스트',
-      avatar: 'images/avatars/av20.png',
+      avatar: 'images/avatars/av14.png',
       empId: '',
       dept: '',
       points: totalPoints,
@@ -9760,7 +9758,7 @@ function init() {
   const runHero = document.getElementById('login-run-hero');
   if (runHero) runHero.style.display = IS_RUN_MODE ? '' : 'none';
   const loginLogo = document.querySelector('.app-login-logo');
-  if (loginLogo) loginLogo.src = IS_RUN_MODE ? 'images/avatars/run1.png' : 'images/Hi_health_home.png';
+  if (loginLogo) loginLogo.src = IS_RUN_MODE ? 'images/avatars/run1.png' : 'images/avatars/av2.png';
   const loginEmpInput = document.getElementById('login-empid-input');
   configureLoginFields();
   syncLoginFieldOverlays();
@@ -9862,7 +9860,7 @@ init();
     <div class="pm-header">
       <div>
         <div class="pm-title" id="pm-title">프로필 설정</div>
-        <div class="pm-sub" id="pm-sub">닉네임, 아바타, 태그를 간단히 정리해보세요</div>
+        <div class="pm-sub" id="pm-sub">닉네임, 아바타, 태그를 설정해보세요</div>
       </div>
       <button type="button" class="pm-close-btn" id="pm-close-btn" onclick="closeProfileModal()">✕</button>
     </div>
