@@ -840,7 +840,7 @@
     <div class="fcard">
       <div class="fcard-label">운동화 신청</div>
       <div class="fg">
-        <label class="lbl" for="f-shoe">발 사이즈 <span class="req">*</span></label>
+        <label class="lbl" for="f-shoe">발 사이즈 <span style="font-weight:400;color:#d1d5db">선택</span></label>
         <select class="fs" id="f-shoe" title="발 사이즈" onchange="updateChips()">
           <option value="">사이즈(mm) 선택</option>
           <option>215</option><option>220</option><option>225</option><option>230</option>
@@ -851,7 +851,7 @@
         </select>
       </div>
       <div class="fg">
-        <label class="lbl">희망 모델 <span class="req">*</span> <span style="font-weight:400;color:#d1d5db">순서대로 선택</span></label>
+        <label class="lbl">희망 모델 <span style="font-weight:400;color:#d1d5db">순서대로 선택 (선택)</span></label>
         <div class="rank-row">
           <div class="rank-chip" id="chip0"><div class="rn">1순위</div><div class="rv">미선택</div></div>
           <div class="rank-chip" id="chip1"><div class="rn">2순위</div><div class="rv">미선택</div></div>
@@ -1039,8 +1039,6 @@
     const famN   = (document.getElementById('f-fam-n')?.value || '').trim();
     const shoeN  = (document.getElementById('f-shoe-note')?.value || '').trim();
 
-    if (!shoe)   return toast('신발 사이즈를 선택해주세요');
-    if (!P.filter(Boolean).length) return toast('희망 운동화 1순위를 선택해주세요');
     if (!famVal) return toast('가족 참여 여부를 선택해주세요');
     if (!cruise) return toast('크루즈 탑승 여부를 선택해주세요');
     if (!eventV) return toast('행사 참여 여부를 선택해주세요');
