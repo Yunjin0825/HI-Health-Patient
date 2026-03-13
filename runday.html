@@ -339,17 +339,43 @@
     .av-stack-wrap { padding: 14px 20px 20px; }
 
     /* ─── FORM ──────────────────────────────── */
-    .form-wrap { padding: 28px 16px 48px; }
-    .form-header { margin-bottom: 16px; }
-    .form-header-kicker {
-      font-size: 11px; font-weight: 700; color: var(--o);
-      letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px;
+    .form-wrap { padding: 0 0 48px; }
+    .form-hero {
+      background:
+        linear-gradient(to bottom, rgba(0,0,0,0.22) 0%, rgba(0,0,0,0) 80px),
+        linear-gradient(135deg, #3730a3 0%, #4f46e5 100%);
+      border-radius: 0 0 28px 28px;
+      padding: 28px 24px 28px;
+      position: relative; overflow: hidden;
+      margin-bottom: 20px; color: #fff;
     }
-    .form-header-title {
-      font-size: 22px; font-weight: 900;
-      letter-spacing: -0.8px; color: #1e1047; margin-bottom: 6px;
+    .form-hero::before {
+      content: ''; position: absolute;
+      top: -40px; right: -40px; width: 160px; height: 160px;
+      background: rgba(255,255,255,0.08); border-radius: 50%; filter: blur(14px);
     }
-    .form-header-sub { font-size: 13px; color: var(--sub); line-height: 1.6; }
+    .form-hero::after {
+      content: ''; position: absolute;
+      bottom: -30px; left: -20px; width: 120px; height: 120px;
+      background: rgba(255,255,255,0.06); border-radius: 50%; filter: blur(8px);
+    }
+    .form-hero-kicker {
+      font-size: 10px; font-weight: 800; letter-spacing: 2px;
+      text-transform: uppercase; color: rgba(255,255,255,0.55); margin-bottom: 8px;
+    }
+    .form-hero-title {
+      font-size: 26px; font-weight: 900;
+      letter-spacing: -1px; color: #fff; margin-bottom: 8px; line-height: 1.1;
+    }
+    .form-hero-sub { font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.65; }
+    .form-hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 20px; padding: 5px 14px;
+      font-size: 12px; font-weight: 700; color: #fff; margin-top: 14px;
+    }
+    .form-fields { padding: 0 16px; }
+    .form-header { display: none; }
 
     .fcard {
       background: var(--white); border-radius: 14px;
@@ -812,11 +838,16 @@
 
   <!-- 신청 폼 -->
   <div id="form-screen">
-    <div class="form-header">
-      <div class="form-header-title">챌린지 신청하기</div>
-      <div class="form-header-sub">신청 후 운동화가 지급됩니다. 행사 전까지 언제든 신청 가능해요.</div>
+
+    <!-- 히어로 배너 -->
+    <div class="form-hero">
+      <div class="form-hero-kicker">HI Health Challenge</div>
+      <div class="form-hero-title">챌린지 신청하기</div>
+      <div class="form-hero-sub">신청 후 운동화가 지급됩니다.<br>행사 전까지 언제든 신청 가능해요.</div>
+      <div class="form-hero-badge">🏃 Apr 15 · HI RUN DAY</div>
     </div>
 
+    <div class="form-fields">
     <div class="fcard">
       <div class="fcard-label">기본 정보</div>
       <div class="fg row2">
@@ -948,6 +979,7 @@
     </div>
 
     <button type="button" class="btn-submit" id="btn-submit" onclick="submitReg()">신청 완료하기</button>
+    </div><!-- /form-fields -->
   </div>
 
 </div>
