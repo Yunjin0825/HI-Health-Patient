@@ -625,7 +625,7 @@
       <img src="images/avatars/av8.png" alt="건강 루틴" class="why-img warmup">
       <div class="why-body">
         <div class="why-card-title">건강한 루틴 만들기</div>
-        <div class="why-card-desc">워밍업부터 주 2회 운동 인증, 집중기간엔 혈당 기록까지 — 내 몸의 변화를 직접 확인하세요.</div>
+        <div class="why-card-desc">운동 인증으로 루틴을 만들고, 혈당 기록으로 내 몸의 변화를 직접 느껴보세요.</div>
       </div>
     </div>
     <div class="why-card">
@@ -821,17 +821,17 @@
       <div class="fcard-label">기본 정보</div>
       <div class="fg row2">
         <div>
-          <label class="lbl" for="f-name">이름 <span class="req">*</span></label>
+          <label class="lbl" for="f-name">이름</label>
           <input type="text" class="fi" id="f-name" placeholder="홍길동" autocomplete="name">
         </div>
         <div>
-          <label class="lbl" for="f-empid">사번 <span class="req">*</span></label>
+          <label class="lbl" for="f-empid">사번</label>
           <input type="text" class="fi" id="f-empid" placeholder="A1801" autocomplete="off" style="text-transform:uppercase">
         </div>
       </div>
       <div class="fg row2">
         <div>
-          <label class="lbl" for="f-dept">부서 <span class="req">*</span></label>
+          <label class="lbl" for="f-dept">부서</label>
           <select class="fs" id="f-dept" title="부서">
             <option value="">선택</option>
             <option>의료진</option><option>외래</option><option>상담실</option>
@@ -841,7 +841,7 @@
           </select>
         </div>
         <div>
-          <label class="lbl" for="f-phone">연락처 <span class="req">*</span></label>
+          <label class="lbl" for="f-phone">연락처</label>
           <input type="tel" class="fi" id="f-phone" placeholder="010-0000-0000" autocomplete="tel">
         </div>
       </div>
@@ -1048,10 +1048,6 @@
     const famN   = (document.getElementById('f-fam-n')?.value || '').trim();
     const shoeN  = (document.getElementById('f-shoe-note')?.value || '').trim();
 
-    if (!name)   return toast('이름을 입력해주세요');
-    if (!empId)  return toast('사번을 입력해주세요');
-    if (!dept)   return toast('부서를 선택해주세요');
-    if (!phone)  return toast('연락처를 입력해주세요');
     if (!shoe)   return toast('신발 사이즈를 선택해주세요');
     if (!P.filter(Boolean).length) return toast('희망 운동화 1순위를 선택해주세요');
     if (!famVal) return toast('가족 참여 여부를 선택해주세요');
