@@ -280,7 +280,7 @@
       width: calc(100% - 32px); max-width: 420px;
       background: #fff;
       border-radius: 28px;
-      overflow: hidden;
+      overflow: visible;
       box-shadow: 0 24px 60px rgba(0,0,0,0.18);
       display: flex; flex-direction: column;
       animation: introSlideUp 0.34s cubic-bezier(0.22,1,0.36,1);
@@ -436,7 +436,7 @@
       padding: var(--avatar-pad, 0px);
       border-radius: inherit;
       background: #fff;
-      overflow: hidden;
+      overflow: visible;
     }
     .av-img {
       width: 100%;
@@ -576,13 +576,26 @@
     .app-nav {
       position: fixed; bottom: calc(max(env(safe-area-inset-bottom), 16px) + 4px); left: 50%; transform: translateX(-50%);
       width: calc(100% - 48px); max-width: 390px; height: 68px;
-      background: rgba(255,255,255,0.45);
+      background: linear-gradient(180deg, rgba(255,255,255,0.52) 0%, rgba(255,255,255,0.30) 100%);
+      border: 1px solid rgba(255,255,255,0.40);
       border-radius: 999px;
       display: flex; align-items: stretch;
       z-index: 100;
+      overflow: visible;
+      isolation: isolate;
       -webkit-backdrop-filter: blur(20px) saturate(180%);
       backdrop-filter: blur(20px) saturate(180%);
-      box-shadow: 0 4px 24px rgba(0,0,0,0.11), 0 1px 4px rgba(0,0,0,0.06);
+      box-shadow: 0 10px 28px rgba(15,23,42,0.12), 0 1px 4px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.38);
+    }
+    .app-nav::before {
+      content: '';
+      position: absolute;
+      left: 1px; right: 1px; top: 1px;
+      height: 48%;
+      border-radius: inherit;
+      background: linear-gradient(180deg, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0.06) 100%);
+      pointer-events: none;
+      z-index: 0;
     }
     .nav-btn {
       position: relative;
@@ -590,6 +603,7 @@
       flex: 1; padding: 0; border: none; background: none; cursor: pointer;
       color: #555; font-family: inherit;
       transition: color 0.15s;
+      z-index: 1;
     }
     .nav-btn::before {
       content: '';
@@ -618,6 +632,75 @@
     .nav-btn.active { color: #5F0080; }
     .nav-btn.active .nav-label { font-weight: 500; }
     .nav-btn.active svg { stroke-width: 2.2; }
+    @keyframes navChipFloat {
+      0%, 100% { transform: translate(-50%, 0) scale(1); }
+      50% { transform: translate(-50%, -2px) scale(1.03); }
+    }
+    @keyframes navChipGlow {
+      0%, 100% { box-shadow: 0 5px 14px rgba(14,165,233,0.18); }
+      50% { box-shadow: 0 9px 18px rgba(14,165,233,0.28); }
+    }
+    .nav-top-chip {
+      position: absolute;
+      top: -2px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3px 8px 4px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #06B6D4 0%, #2563EB 100%);
+      border: 1px solid rgba(255,255,255,0.22);
+      color: #fff;
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 0.15px;
+      line-height: 1.15;
+      white-space: nowrap;
+      pointer-events: none;
+      animation: navChipFloat 1.9s ease-in-out infinite, navChipGlow 1.9s ease-in-out infinite;
+    }
+    .nav-top-chip::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      bottom: -4px;
+      transform: translateX(-50%);
+      width: 8px;
+      height: 4px;
+      background: #2563EB;
+      clip-path: polygon(50% 100%, 0 0, 100% 0);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .nav-top-chip { animation: none; }
+    }
+    @media (max-width: 390px), (max-height: 760px) {
+      :root { --nav-height: 74px; }
+      .app-nav {
+        bottom: 0;
+        width: 100%;
+        height: calc(68px + env(safe-area-inset-bottom));
+        padding-bottom: env(safe-area-inset-bottom);
+        border-radius: 22px 22px 0 0;
+        background: linear-gradient(180deg, rgba(255,255,255,0.58) 0%, rgba(255,255,255,0.36) 100%);
+        border: 1px solid rgba(255,255,255,0.34);
+        box-shadow: 0 -6px 20px rgba(15,23,42,0.08), 0 -1px 4px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.34);
+      }
+      .nav-btn::before {
+        height: calc(100% - env(safe-area-inset-bottom) - 8px);
+      }
+      .nav-top-chip {
+        top: -1px;
+        padding: 3px 7px 4px;
+        font-size: 7px;
+      }
+      .nav-top-chip::after {
+        bottom: -3px;
+        width: 7px;
+        height: 3px;
+      }
+    }
     .nav-icon-img { width: 30px; height: 30px; object-fit: contain; display: block; }
     .nav-btn:not(.active) .nav-icon-img { filter: grayscale(1) opacity(0.45); }
     .qi-img { width: 30px; height: 30px; object-fit: contain; display: block; }
@@ -904,7 +987,7 @@
       opacity: 0; border-radius: var(--radius);
     }
     .quick-btn:active { transform: scale(0.96); }
-    .quick-btn:hover, .quick-btn.clicked { box-shadow: 0 6px 24px rgba(79,70,229,0.16), 0 1px 4px rgba(0,0,0,0.06); }
+    .quick-btn.clicked { box-shadow: 0 6px 24px rgba(79,70,229,0.16), 0 1px 4px rgba(0,0,0,0.06); }
     .qi-icon {
       width: 44px; height: 44px; border-radius: 12px;
       display: flex; align-items: center; justify-content: center;
@@ -915,12 +998,25 @@
       transition: color 0.2s, background 0.2s;
     }
     .qi-icon svg { width: 24px !important; height: 24px !important; }
+    .qi-copy { position: relative; z-index: 1; min-width: 0; flex: 1; }
+    .qi-head { display: flex; align-items: center; gap: 6px; min-width: 0; margin-bottom: 2px; }
+    .quick-arrow {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 18px; height: 18px;
+      margin-left: auto;
+      color: rgba(79,70,229,0.72);
+      flex-shrink: 0;
+      transition: transform 0.18s ease, color 0.18s ease, opacity 0.18s ease;
+      opacity: 0.9;
+    }
+    .quick-arrow svg { width: 16px; height: 16px; }
     .qi-title, .qi-sub { position: relative; z-index: 1; }
-    .quick-btn:hover::before, .quick-btn.clicked::before { transform: scale(1); opacity: 1; }
-    .quick-btn:hover .qi-icon, .quick-btn.clicked .qi-icon { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: #fff; }
+    .quick-btn.clicked::before { transform: scale(1); opacity: 1; }
+    .quick-btn.clicked .qi-icon { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: #fff; }
+    .quick-btn.clicked .quick-arrow { color: #4F46E5; transform: translateX(1px); opacity: 1; }
     .quick-btn:active::before { transform: scale(0.94); }
-    .qi-title { font-size: 13px; font-weight: 700; }
-    .qi-sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+    .qi-title { font-size: 13px; font-weight: 700; min-width: 0; }
+    .qi-sub { font-size: 11px; color: var(--text-secondary); }
 
     /* Weekly chart */
     .week-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 5px; margin-top: 10px; }
@@ -1737,7 +1833,7 @@
       box-shadow: 0 3px 10px rgba(139,92,246,0.12), 0 1px 3px rgba(0,0,0,0.07);
       font-size: 10px;
       display: flex; flex-direction: column; align-items: center; gap: 3px;
-      position: relative; min-width: 48px; max-width: 110px;
+      position: relative; min-width: 56px; max-width: 110px;
     }
     .podium-bubble-tags { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; justify-content: center; }
     .podium-bubble::after {
@@ -1754,7 +1850,7 @@
       border: 7px solid transparent;
       border-top-color: rgba(139,92,246,0.2); border-bottom: 0;
     }
-    .podium-bubble-lv { font-size: 14px; line-height: 1; }
+    .podium-bubble-lv { font-size: 20px; line-height: 1; display:inline-flex; align-items:center; justify-content:center; }
     .podium-avatar { width:56px; height:56px; border-radius:50%; overflow:hidden; background:var(--bg); margin:0 auto; }
     .podium-item.podium-first .podium-avatar { width:68px; height:68px; }
     .podium-item.podium-second .podium-avatar,
@@ -2711,7 +2807,6 @@
 
     <div class="quick-grid">
       <button class="quick-btn" onclick="quickNav(this,()=>navigate('exercise'))">
-        <span style="position:absolute;top:9px;right:9px;width:8px;height:8px;border-radius:50%;background:#7C3AED;z-index:2;"></span>
         <div class="qi-icon">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M6.5 6.5h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1z"/>
@@ -2720,7 +2815,18 @@
             <line x1="8.5" y1="12" x2="15.5" y2="12"/>
           </svg>
         </div>
-        <div><div class="qi-title">운동, 혈당 기록</div><div class="qi-sub" id="rec-quick">오늘을 기록해보세요</div></div>
+        <div class="qi-copy">
+          <div class="qi-head">
+            <div class="qi-title">운동, 혈당 기록</div>
+            <span class="quick-arrow" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5.5 4.5 10.5 10l-5 5.5"/>
+                <path d="M10 4.5 15 10l-5 5.5"/>
+              </svg>
+            </span>
+          </div>
+          <div class="qi-sub" id="rec-quick">오늘을 기록해보세요</div>
+        </div>
       </button>
       <button class="quick-btn" onclick="quickNav(this,()=>{navigate('community');setCommunityTab('league');if(hasActiveChallengeRegistration()){S.leagueTab='challenger';const ct=document.getElementById('league-tab-challenger');if(ct){document.querySelectorAll('.league-tab').forEach(t=>t.classList.remove('active'));ct.classList.add('active');renderLeague();}}})">
         <div class="qi-icon">
@@ -3407,7 +3513,7 @@
     <span class="nav-label">보상</span>
   </button>
   <button class="nav-btn" onclick="navigate('challenge')" data-page="challenge" style="position:relative">
-    <span style="position:absolute;top:4px;right:6px;background:#EF4444;color:#fff;font-size:8px;font-weight:800;letter-spacing:.3px;border-radius:6px;padding:1px 4px;line-height:1.4">NEW</span>
+    <span class="nav-top-chip">HI RUN DAY</span>
     <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M6 9H3V5h3M18 9h3V5h-3M6 9c0 3.31 2.69 6 6 6s6-2.69 6-6V5H6v4z"/>
       <line x1="12" y1="15" x2="12" y2="19"/>
@@ -4852,19 +4958,26 @@ function myWeekPts() {
 ════════════════════════════════════════ */
 const _isTouch = () => window.matchMedia('(hover: none)').matches;
 function quickNav(btn, fn) {
-  if (!_isTouch()) { fn(); return; }
-  // 다른 카드의 물방울 효과 초기화
   document.querySelectorAll('.quick-btn.clicked').forEach(b => {
-    if (b !== btn) { b._ready = false; b.classList.remove('clicked'); }
+    if (b !== btn) {
+      if (b._navTimer) clearTimeout(b._navTimer);
+      b._navTimer = null;
+      b.classList.remove('clicked');
+    }
   });
-  if (btn._ready) {
-    btn._ready = false;
-    btn.classList.remove('clicked');
+
+  if (!_isTouch()) {
     fn();
-  } else {
-    btn._ready = true;
-    btn.classList.add('clicked');
+    return;
   }
+
+  if (btn._navTimer) clearTimeout(btn._navTimer);
+  btn.classList.add('clicked');
+  btn._navTimer = setTimeout(() => {
+    btn.classList.remove('clicked');
+    btn._navTimer = null;
+    fn();
+  }, 110);
 }
 
 function navigate(page) {
@@ -5099,10 +5212,8 @@ function renderHome() {
     `;
   }).join('');
 
-  // 운동기록 카드 물방울 기본값
+  // 홈 레이아웃 초기 계산
   requestAnimationFrame(() => {
-    const btns = document.querySelectorAll('.quick-btn');
-    if (btns[0]) { btns[0]._ready = true; btns[0].classList.add('clicked'); }
     // 히어로카드 고정 높이만큼 스페이서 설정
     const hc = document.getElementById('hero-card-home');
     const sp = document.getElementById('hero-spacer');
@@ -10124,7 +10235,7 @@ init();
         <div class="pm-summary-label">My Profile</div>
         <div class="pm-summary-name" id="pm-preview-name">-</div>
         <div class="pm-summary-meta">
-          <span class="pm-meta-chip"><strong>사번</strong><span id="pm-empid">-</span></span>
+          <span class="pm-meta-chip"><strong>등록번호</strong><span id="pm-empid">-</span></span>
           <span class="pm-meta-chip"><strong>이름</strong><span id="pm-realname">-</span></span>
         </div>
       </div>
