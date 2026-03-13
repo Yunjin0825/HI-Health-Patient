@@ -147,8 +147,34 @@
       width: 64px; height: 64px;
       border-radius: 14px; flex-shrink: 0;
       object-fit: contain;
+      transform-origin: center;
+      will-change: transform, filter;
     }
     .why-img.warmup, .why-img.record, .why-img.donate { background: none; }
+    .why-img.warmup { animation: whyWarmup 3.6s ease-in-out infinite; }
+    .why-img.record { animation: whyRecord 3.2s ease-in-out infinite; }
+    .why-img.donate { animation: whyDonate 2.8s ease-in-out infinite; }
+    @keyframes whyWarmup {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      35% { transform: translateY(-4px) rotate(-3deg); }
+      65% { transform: translateY(-1px) rotate(2deg); }
+    }
+    @keyframes whyRecord {
+      0%, 100% { transform: translateY(0) scale(1); }
+      25% { transform: translateY(-2px) scale(1.03); }
+      50% { transform: translateY(2px) scale(0.98); }
+      75% { transform: translateY(-1px) scale(1.02); }
+    }
+    @keyframes whyDonate {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(249,115,22,0)); }
+      35% { transform: scale(1.06); filter: drop-shadow(0 6px 12px rgba(249,115,22,0.18)); }
+      60% { transform: scale(0.99); filter: drop-shadow(0 2px 6px rgba(249,115,22,0.08)); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .why-img.warmup,
+      .why-img.record,
+      .why-img.donate { animation: none; }
+    }
     .why-body {}
     .why-card-title { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
     .why-card-desc  { font-size: 13px; color: var(--sub); line-height: 1.65; }
@@ -163,6 +189,13 @@
       letter-spacing: -0.5px; color: var(--text); margin-bottom: 20px;
     }
 
+    .sch-card {
+      background: #fff;
+      border-radius: 14px;
+      border: 1px solid #f0f0f4;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      padding: 20px;
+    }
     .sch-list { display: flex; flex-direction: column; }
     .sch-item {
       display: flex; gap: 16px;
@@ -193,8 +226,14 @@
     .sch-phase { font-size: 10px; font-weight: 700; color: var(--dim); white-space: nowrap; }
     .sch-date { font-size: 15px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
     .sch-desc { font-size: 13px; color: var(--sub); line-height: 1.65; }
+    .sch-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
     .sch-tag {
-      display: inline-block; margin-top: 6px;
+      display: inline-block;
       font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
       background: #ffffff; border: 1px solid #e5e7eb; color: var(--sub);
     }
@@ -239,6 +278,7 @@
       display: flex; align-items: center; justify-content: space-between;
       padding: 18px 20px 14px;
       border-bottom: 1px solid #f3f4f6;
+      gap: 12px;
     }
     .people-title-row { display: flex; align-items: center; gap: 8px; }
     .live-dot {
@@ -254,10 +294,27 @@
     }
     .live-label { font-size: 10px; font-weight: 800; color: #1e1047; letter-spacing: 1px; text-transform: uppercase; }
     .people-count-badge {
+      flex-shrink: 0;
       font-size: 11px; font-weight: 700; color: var(--sub);
       background: #f3f4f6; border-radius: 20px; padding: 3px 10px;
     }
     .people-count-badge span { color: #1e1047; font-weight: 900; }
+    .people-donation {
+      margin-left:auto;
+      flex-shrink:0;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-size:11px;
+      color: var(--sub);
+      white-space: nowrap;
+    }
+    .people-donation strong {
+      font-size:13px;
+      font-weight:900;
+      color:#1e1047;
+      letter-spacing:-0.2px;
+    }
 
     .av-stack {
       display: flex; align-items: center;
@@ -368,27 +425,27 @@
     .rank-chip .rv { font-size: 10px; font-weight: 600; color: var(--sub); }
     .rank-chip.on .rv { color: var(--p); }
 
-    .shoe-grid { display: flex; flex-direction: column; gap: 8px; }
+    .shoe-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
     .scard {
-      display: flex; gap: 12px; align-items: center;
+      display: flex; flex-direction: column; gap: 8px;
       background: #f9fafb; border: 1.5px solid #e5e7eb;
-      border-radius: 12px; padding: 10px 12px; transition: border-color 0.15s;
+      border-radius: 12px; padding: 10px 10px 8px; transition: border-color 0.15s;
     }
     .scard.on { border-color: #c4b5fd; background: #f5f3ff; }
-    .simg { width: 68px; height: 46px; object-fit: contain; border-radius: 8px; flex-shrink: 0; }
-    .sinfo { flex: 1; min-width: 0; }
-    .snm { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+    .simg { width: 100%; height: 72px; object-fit: cover; border-radius: 6px; cursor: zoom-in; }
+    .sinfo { min-width: 0; }
+    .snm { font-size: 11px; font-weight: 700; color: var(--text); margin-bottom: 3px; line-height: 1.3; }
     .stag {
       display: inline-block; font-size: 9px; font-weight: 700;
       padding: 1px 7px; border-radius: 20px;
     }
     .stag.f { background: #fce7f3; color: #9d174d; }
     .stag.m { background: #e0e7ff; color: #3730a3; }
-    .srbcol { display: flex; flex-direction: column; gap: 3px; }
+    .srbcol { display: flex; gap: 3px; }
     .srb {
-      padding: 3px 8px; font-size: 10px; font-weight: 700;
+      flex: 1; padding: 4px 2px; font-size: 10px; font-weight: 700;
       background: #fff; border: 1.5px solid #e5e7eb;
-      border-radius: 6px; color: var(--dim);
+      border-radius: 6px; color: var(--dim); text-align: center;
       cursor: pointer; font-family: inherit; transition: all 0.12s;
     }
     .srb.on { background: var(--p2); border-color: var(--p2); color: #fff; }
@@ -401,6 +458,10 @@
     }
     .snote:focus { border-color: var(--p2); }
     .snote::placeholder { color: #d1d5db; }
+
+    @media (max-width: 390px) {
+      .shoe-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
 
     .hdivider { height: 1px; background: #f3f4f6; margin: 10px 0; }
 
@@ -470,6 +531,42 @@
 
     .hide { display: none !important; }
 
+    /* ─── IMG PREVIEW ───────────────────────── */
+    .img-preview-overlay {
+      position: fixed; inset: 0; z-index: 600;
+      background: rgba(0,0,0,0.82);
+      -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 32px 24px;
+    }
+    .img-preview-overlay.hidden { display: none; }
+    .img-preview-img {
+      max-width: 100%; max-height: 60vh;
+      object-fit: contain; border-radius: 16px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+      animation: previewIn 0.22s cubic-bezier(0.22,1,0.36,1);
+    }
+    @keyframes previewIn {
+      from { opacity:0; transform: scale(0.88); }
+      to   { opacity:1; transform: scale(1); }
+    }
+    .img-preview-label {
+      margin-top: 18px; font-size: 14px; font-weight: 700;
+      color: rgba(255,255,255,0.9); text-align: center;
+    }
+    .img-preview-sub {
+      margin-top: 4px; font-size: 12px;
+      color: rgba(255,255,255,0.45); text-align: center;
+    }
+    .img-preview-close {
+      position: absolute; top: calc(max(env(safe-area-inset-top), 16px) + 8px); right: 20px;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,0.15); border: none; color: #fff;
+      font-size: 20px; cursor: pointer; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+    }
+
     /* ─── TOAST ──────────────────────────────── */
     .toasts {
       position: fixed; bottom: calc(24px + env(safe-area-inset-bottom));
@@ -525,21 +622,21 @@
   <div class="why-title">참여해야 할 이유 3가지</div>
   <div class="why-cards">
     <div class="why-card">
-      <img src="images/run_day_patch.png" alt="건강 루틴" class="why-img warmup">
+      <img src="images/avatars/av8.png" alt="건강 루틴" class="why-img warmup">
       <div class="why-body">
         <div class="why-card-title">건강한 루틴 만들기</div>
         <div class="why-card-desc">워밍업부터 주 2회 운동 인증, 집중기간엔 혈당 기록까지 — 내 몸의 변화를 직접 확인하세요.</div>
       </div>
     </div>
     <div class="why-card">
-      <img src="images/avatars/av3.png" alt="참여 혜택" class="why-img record">
+      <img src="images/avatars/av13.png" alt="참여 혜택" class="why-img record">
       <div class="why-body">
         <div class="why-card-title">다양한 참여 혜택</div>
         <div class="why-card-desc">러닝화 지급 · 사인북 · 한강 크루즈 탑승 · 함께달리기까지, 참여할수록 더 풍성해집니다.</div>
       </div>
     </div>
     <div class="why-card">
-      <img src="images/badge_run.png" alt="기부" class="why-img donate">
+      <img src="images/avatars/av16.png" alt="기부" class="why-img donate">
       <div class="why-body">
         <div class="why-card-title">달린 거리만큼 기부</div>
         <div class="why-card-desc">행사 당일 직원들이 달린 거리가 전액 기부로 이어집니다.</div>
@@ -552,50 +649,62 @@
 <div class="section">
   <div class="section-kicker">Schedule</div>
   <div class="section-title">챌린지 기간</div>
-  <div class="sch-list">
+  <div class="sch-card">
+    <div class="sch-list">
 
-    <div class="sch-item">
-      <div class="sch-line-wrap">
-        <div class="sch-dot warmup">1</div>
-      </div>
-      <div class="sch-body">
-        <div class="sch-date-row">
-          <div class="sch-phase">워밍업</div>
-          <div class="sch-date">Mar 22 – Apr 4</div>
+      <div class="sch-item">
+        <div class="sch-line-wrap">
+          <div class="sch-dot warmup">1</div>
         </div>
-        <div class="sch-desc">운동으로 루틴을 만들고 몸을 깨우는 기간입니다.</div>
-        <span class="sch-tag">운동 인증 주 2회</span>
-      </div>
-    </div>
-
-    <div class="sch-item">
-      <div class="sch-line-wrap">
-        <div class="sch-dot main">2</div>
-      </div>
-      <div class="sch-body">
-        <div class="sch-date-row">
-          <div class="sch-phase">집중기간</div>
-          <div class="sch-date">Apr 5 – Apr 14</div>
+        <div class="sch-body">
+          <div class="sch-date-row">
+            <div class="sch-phase">워밍업</div>
+            <div class="sch-date">Mar 22 – Apr 4</div>
+          </div>
+          <div class="sch-desc">운동으로 루틴을 만들고 몸을 깨우는 기간입니다.</div>
+          <div class="sch-tags">
+            <span class="sch-tag">운동 인증 주 2회</span>
+            <span class="sch-tag">가족과 함께</span>
+          </div>
         </div>
-        <div class="sch-desc">운동 + 혈당 기록을 함께 진행하는 핵심 기간입니다.</div>
-        <span class="sch-tag">운동 + 혈당 주 3회 이상</span>
       </div>
-    </div>
 
-    <div class="sch-item">
-      <div class="sch-line-wrap">
-        <div class="sch-dot event">3</div>
-      </div>
-      <div class="sch-body">
-        <div class="sch-date-row">
-          <div class="sch-phase">행사 당일</div>
-          <div class="sch-date">Apr 15</div>
+      <div class="sch-item">
+        <div class="sch-line-wrap">
+          <div class="sch-dot main">2</div>
         </div>
-        <div class="sch-desc">HI 개원 8주년 기념 · 함께달리기 여의도→선유도<br>달린 거리만큼 기부가 진행됩니다.</div>
-        <span class="sch-tag">크루즈 탑승 포함</span>
+        <div class="sch-body">
+          <div class="sch-date-row">
+            <div class="sch-phase">집중기간</div>
+            <div class="sch-date">Apr 5 – Apr 14</div>
+          </div>
+          <div class="sch-desc">운동 + 혈당 기록을 함께 진행하는 핵심 기간입니다.</div>
+          <div class="sch-tags">
+            <span class="sch-tag">운동 + 혈당 주 3회 이상</span>
+            <span class="sch-tag">혈당체크기기(덱스콤7) 제공</span>
+          </div>
+        </div>
       </div>
-    </div>
 
+      <div class="sch-item">
+        <div class="sch-line-wrap">
+          <div class="sch-dot event">3</div>
+        </div>
+        <div class="sch-body">
+          <div class="sch-date-row">
+            <div class="sch-phase">행사 당일</div>
+            <div class="sch-date">Apr 15</div>
+          </div>
+          <div class="sch-desc">HI 개원 8주년 기념 · 함께달리기 여의도→선유도<br>달린 거리만큼 기부가 진행됩니다.</div>
+          <div class="sch-tags">
+            <span class="sch-tag">크루즈 탑승 포함</span>
+            <span class="sch-tag">직원만 참여</span>
+            <span class="sch-tag">함께 달려요</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
 
@@ -669,8 +778,9 @@
       <div class="people-title-row">
         <div class="live-dot"></div>
         <div class="live-label">실시간</div>
+        <div class="people-count-badge" id="people-count-badge"><span id="people-count">0</span>명 신청</div>
       </div>
-      <div class="people-count-badge" id="people-count-badge"><span id="people-count">-</span>명 신청</div>
+      <div class="people-donation" id="people-donation">예상 기부금 <strong>0원</strong></div>
     </div>
     <div class="av-stack" id="av-stack">
       <!-- filled by JS -->
@@ -844,6 +954,14 @@
 
 <div class="toasts" id="toasts"></div>
 
+<!-- ─── IMAGE PREVIEW ───────────────────────── -->
+<div class="img-preview-overlay hidden" id="img-preview" onclick="closeImgPreview()">
+  <button class="img-preview-close" onclick="closeImgPreview()">✕</button>
+  <img class="img-preview-img" id="img-preview-img" src="" alt="">
+  <div class="img-preview-label" id="img-preview-label"></div>
+  <div class="img-preview-sub" id="img-preview-sub">탭하면 닫힙니다</div>
+</div>
+
 <script>
   const MODELS = [
     { id:'nike1', label:'Nike Vomero Plus (화이트)', img:'images/nike1.png', g:'f' },
@@ -862,7 +980,7 @@
         `<button type="button" class="srb${P[i]===m.id?' on':''}" onclick="pick(${i},'${m.id}')">${i+1}순위</button>`
       ).join('');
       return `<div class="scard${sel?' on':''}" id="sc-${m.id}">
-        <img class="simg" src="${m.img}" alt="${m.label}" loading="lazy">
+        <img class="simg" src="${m.img}" alt="${m.label}" loading="lazy" onclick="openImgPreview('${m.img}','${m.label}','${m.g==='f'?'여성':'남성'}')">
         <div class="sinfo">
           <div class="snm">${m.label}</div>
           <span class="stag ${m.g}">${m.g==='f'?'여성':'남성'}</span>
@@ -905,6 +1023,7 @@
   }
 
   const CH_KEY = 'hi_health_registrations_v2';
+  const DONATION_PER_PERSON = 36000;
   const SB_URL = 'https://nbnmvvobehjitophkqmu.supabase.co';
   const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ibm12dm9iZWhqaXRvcGhrcW11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3Nzk4NzQsImV4cCI6MjA4ODM1NTg3NH0.iZS4JvhHUqv4ZMPxm9STit6xqVp2JA5H55M8Wmd1yjY';
 
@@ -998,6 +1117,21 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  /* ── 이미지 크게 보기 ──────────────────────── */
+  function openImgPreview(src, label, sub) {
+    const overlay = document.getElementById('img-preview');
+    document.getElementById('img-preview-img').src = src;
+    document.getElementById('img-preview-label').textContent = label;
+    document.getElementById('img-preview-sub').textContent = sub + ' · 탭하면 닫힙니다';
+    overlay.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeImgPreview() {
+    document.getElementById('img-preview').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeImgPreview(); });
+
   renderShoes();
 
   /* ── 실시간 신청자 현황 ─────────────────── */
@@ -1012,6 +1146,7 @@
   function renderPeople(list) {
     const total = list.length;
     document.getElementById('people-count').textContent = total;
+    document.getElementById('people-donation').innerHTML = `예상 기부금 <strong>${(total * DONATION_PER_PERSON).toLocaleString('ko-KR')}원</strong>`;
 
     const stack = document.getElementById('av-stack');
     const recent = list.slice(0, 8);
@@ -1029,7 +1164,7 @@
     // 로컬 데이터 먼저 렌더
     const local = JSON.parse(localStorage.getItem(CH_KEY) || '[]')
       .sort((a, b) => new Date(b.registeredAt) - new Date(a.registeredAt));
-    if (local.length) renderPeople(local);
+    renderPeople(local);
 
     // Supabase에서 실시간 데이터 fetch
     try {

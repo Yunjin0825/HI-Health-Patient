@@ -375,7 +375,7 @@
     .hc-body { padding: 12px 20px 0; }
     .app-header.solid {
       background: rgba(255,255,255,0.97);
-      box-shadow: 0 1px 12px rgba(0,0,0,0.08);
+      box-shadow: none;
       -webkit-backdrop-filter: blur(12px);
       backdrop-filter: blur(12px);
     }
@@ -385,6 +385,14 @@
     .app-header:not(.solid) .logo-img       { display: none; }
     .app-header:not(.solid) .logo-img-white { display: block; }
     .header-right { display: flex; align-items: center; gap: 12px; }
+    .header-profile-trigger { display:flex; align-items:center; gap:6px; cursor:pointer; }
+    .header-profile-label {
+      display:inline;
+      font-size:11px;
+      font-weight:600;
+      color:rgba(255,255,255,0.75);
+    }
+    .app-header.solid .header-profile-label { color: var(--text-secondary); }
     .header-points {
       display: flex; align-items: center; gap: 3px;
       border: 1.5px solid var(--primary);
@@ -2449,13 +2457,6 @@
       .ch-shoe-pref-size { width:100%; }
       .ch-shoe-pref-ranks { grid-template-columns:1fr; }
       .ch-shoe-pref-grid { grid-template-columns:1fr; }
-      .ch-story-head,
-      .ch-donation-head { flex-direction:column; }
-      .ch-story-visual,
-      .ch-donation-mark { width:100%; }
-      .ch-story-visual { align-items:flex-start; }
-      .ch-story-foot,
-      .ch-donation-metric { grid-template-columns:1fr; }
     }
 
     /* ── Challenge Hero ── */
@@ -2482,247 +2483,63 @@
     .ch-program-num { width:28px; height:28px; border-radius:50%; background:var(--primary); color:#fff; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
     .ch-program-title { font-size:14px; font-weight:700; margin-bottom:2px; }
     .ch-program-desc  { font-size:12px; color:var(--text-secondary); line-height:1.5; }
-    .ch-story-card,
     .ch-donation-card {
-      position:relative;
-      overflow:hidden;
       margin-bottom:14px;
-      padding:18px;
-      border-radius:20px;
-      color:#fff;
-      box-shadow:0 16px 36px rgba(15,23,42,0.16);
-      isolation:isolate;
+      padding:16px;
+      border-radius:16px;
+      background:linear-gradient(135deg,#eff6ff 0%,#ecfeff 100%);
+      border:1px solid rgba(14,165,233,0.18);
+      box-shadow:0 10px 24px rgba(14,165,233,0.08);
     }
-    .ch-story-card {
-      background:linear-gradient(145deg,#0f172a 0%,#172554 52%,#1d4ed8 100%);
-      border:1px solid rgba(191,219,254,0.18);
-    }
-    .ch-story-card::before,
-    .ch-donation-card::before {
-      content:"";
-      position:absolute;
-      width:180px;
-      height:180px;
-      border-radius:50%;
-      filter:blur(10px);
-      z-index:-1;
-    }
-    .ch-story-card::before {
-      top:-78px;
-      right:-42px;
-      background:radial-gradient(circle, rgba(251,146,60,0.34) 0%, rgba(251,146,60,0) 72%);
-    }
-    .ch-story-card::after,
-    .ch-donation-card::after {
-      content:"";
-      position:absolute;
-      left:-40px;
-      bottom:-82px;
-      width:190px;
-      height:190px;
-      border-radius:50%;
-      filter:blur(6px);
-      z-index:-1;
-    }
-    .ch-story-card::after {
-      background:radial-gradient(circle, rgba(96,165,250,0.24) 0%, rgba(96,165,250,0) 72%);
-    }
-    .ch-story-head,
-    .ch-donation-head {
-      position:relative;
-      z-index:1;
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:14px;
-    }
-    .ch-story-copy,
-    .ch-donation-copy {
-      flex:1;
-      min-width:0;
-    }
-    .ch-story-kicker,
     .ch-donation-badge {
       display:inline-flex;
       align-items:center;
       gap:6px;
-      padding:6px 12px;
+      padding:5px 11px;
       border-radius:999px;
-      background:rgba(255,255,255,0.14);
-      border:1px solid rgba(255,255,255,0.18);
-      color:rgba(255,255,255,0.88);
+      background:#fff;
+      border:1px solid rgba(14,165,233,0.16);
+      color:#0369a1;
       font-size:11px;
       font-weight:800;
       margin-bottom:10px;
-      letter-spacing:0.3px;
-      backdrop-filter:blur(12px);
     }
-    .ch-story-title,
     .ch-donation-title {
-      font-size:20px;
-      font-weight:900;
-      line-height:1.25;
-      color:#fff;
-      margin-bottom:8px;
+      font-size:17px;
+      font-weight:800;
+      color:#0f172a;
+      line-height:1.35;
+      margin-bottom:6px;
     }
-    .ch-story-desc,
     .ch-donation-desc {
       font-size:12px;
-      line-height:1.65;
-      color:rgba(255,255,255,0.82);
-    }
-    .ch-story-tags {
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin-top:12px;
-    }
-    .ch-story-tag {
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      padding:7px 10px;
-      border-radius:999px;
-      background:rgba(255,255,255,0.12);
-      border:1px solid rgba(255,255,255,0.14);
-      font-size:11px;
-      font-weight:700;
-      color:#fff;
-      white-space:nowrap;
-    }
-    .ch-story-visual,
-    .ch-donation-mark {
-      position:relative;
-      z-index:1;
-      flex-shrink:0;
-    }
-    .ch-story-visual {
-      width:112px;
-      display:flex;
-      flex-direction:column;
-      align-items:flex-end;
-      gap:10px;
-    }
-    .ch-story-patch,
-    .ch-donation-mark {
-      width:82px;
-      height:82px;
-      padding:10px;
-      border-radius:20px;
-      background:rgba(255,255,255,0.14);
-      border:1px solid rgba(255,255,255,0.16);
-      box-shadow:inset 0 1px 0 rgba(255,255,255,0.18);
-    }
-    .ch-story-patch img,
-    .ch-donation-mark img {
-      width:100%;
-      height:100%;
-      object-fit:contain;
-      display:block;
-    }
-    .ch-story-avatars,
-    .ch-donation-runners {
-      display:flex;
-      align-items:center;
-      justify-content:flex-end;
-      padding-right:6px;
-    }
-    .ch-story-avatar,
-    .ch-donation-runner {
-      width:36px;
-      height:36px;
-      border-radius:50%;
-      overflow:hidden;
-      border:2px solid rgba(255,255,255,0.92);
-      box-shadow:0 8px 16px rgba(15,23,42,0.2);
-      margin-right:-9px;
-      background:#fff;
-    }
-    .ch-story-avatar:last-child,
-    .ch-donation-runner:last-child {
-      margin-right:0;
-    }
-    .ch-story-avatar img,
-    .ch-donation-runner img {
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      display:block;
-    }
-    .ch-story-foot {
-      position:relative;
-      z-index:1;
-      display:grid;
-      grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:9px;
-      margin-top:15px;
-    }
-    .ch-story-point {
-      padding:11px 12px;
-      border-radius:15px;
-      background:rgba(255,255,255,0.12);
-      border:1px solid rgba(255,255,255,0.14);
-    }
-    .ch-story-point strong {
-      display:block;
-      font-size:13px;
-      font-weight:800;
-      color:#fff;
-      margin-bottom:3px;
-    }
-    .ch-story-point span {
-      display:block;
-      font-size:11px;
-      line-height:1.45;
-      color:rgba(255,255,255,0.72);
-    }
-    .ch-donation-card {
-      background:linear-gradient(145deg,#082f49 0%,#1d4ed8 50%,#f97316 120%);
-      border:1px solid rgba(191,219,254,0.18);
-    }
-    .ch-donation-card::before {
-      top:-84px;
-      right:-48px;
-      background:radial-gradient(circle, rgba(255,255,255,0.24) 0%, rgba(255,255,255,0) 70%);
-    }
-    .ch-donation-card::after {
-      background:radial-gradient(circle, rgba(14,165,233,0.32) 0%, rgba(14,165,233,0) 72%);
+      line-height:1.6;
+      color:#475569;
     }
     .ch-donation-metric {
-      position:relative;
-      z-index:1;
       margin-top:12px;
       display:grid;
       grid-template-columns:repeat(2,minmax(0,1fr));
       gap:8px;
     }
     .ch-donation-pill {
-      padding:11px 12px;
+      padding:10px 12px;
       border-radius:12px;
-      background:rgba(255,255,255,0.13);
-      border:1px solid rgba(255,255,255,0.14);
-      box-shadow:inset 0 1px 0 rgba(255,255,255,0.12);
+      background:rgba(255,255,255,0.78);
+      border:1px solid rgba(14,165,233,0.14);
     }
     .ch-donation-pill strong {
       display:block;
       font-size:13px;
       font-weight:800;
-      color:#fff;
+      color:#0369a1;
       margin-bottom:2px;
     }
     .ch-donation-pill span {
       display:block;
       font-size:11px;
-      color:rgba(241,245,249,0.8);
+      color:#64748b;
       line-height:1.45;
-    }
-    .ch-donation-note {
-      position:relative;
-      z-index:1;
-      margin-top:12px;
-      font-size:11px;
-      line-height:1.6;
-      color:rgba(255,255,255,0.82);
     }
 
     /* ── Speaker card ── */
@@ -2999,8 +2816,8 @@
             </svg>
             <span class="header-cart-badge hidden" id="header-cart-badge">0</span>
           </button>
-          <div style="display:flex;align-items:center;gap:6px;cursor:pointer" onclick="openProfileModal()" title="프로필 설정">
-            <span id="header-profile-label" style="display:none;font-size:11px;font-weight:600;color:rgba(255,255,255,0.75)">프로필변경</span>
+          <div class="header-profile-trigger" onclick="openProfileModal()" title="프로필 설정">
+            <span id="header-profile-label" class="header-profile-label">프로필변경</span>
             <div class="header-avatar" id="header-avatar"></div>
           </div>
         </div>
@@ -5237,21 +5054,19 @@ function navigate(page) {
   const content = document.querySelector('.app-content');
   const isHome = page === 'home';
   const isChallenge = page === 'challenge';
-  const isFlow = isHome || isChallenge;
-  // 헤더 DOM 이동: 홈이면 hero-card-home 안, 챌린지면 ch-hero-card 안, 다른 탭이면 sentinel 앞
+  const useFlowHeader = isHome && !isChallenge;
+  const useSolidHeader = isChallenge || !useFlowHeader;
+  // 헤더 DOM 이동: 홈이면 hero-card-home 안, 다른 탭이면 sentinel 앞
   if (hdr) {
     const heroCard = document.getElementById('hero-card-home');
-    const chHeroCard = document.getElementById('ch-hero-card');
     const sentinel = document.getElementById('header-sentinel');
     if (isHome && heroCard && hdr.parentNode !== heroCard) {
       heroCard.insertBefore(hdr, heroCard.firstChild);
-    } else if (isChallenge && chHeroCard && hdr.parentNode !== chHeroCard) {
-      chHeroCard.insertBefore(hdr, chHeroCard.firstChild);
-    } else if (!isFlow && sentinel && hdr.parentNode !== sentinel.parentNode) {
+    } else if (!isHome && sentinel && hdr.parentNode !== sentinel.parentNode) {
       sentinel.parentNode.insertBefore(hdr, sentinel);
     }
-    hdr.classList.toggle('solid', !isFlow);
-    hdr.classList.toggle('flow', isFlow);
+    hdr.classList.toggle('solid', useSolidHeader);
+    hdr.classList.toggle('flow', useFlowHeader);
     hdr.style.display = '';
     const hdrLogo = hdr.querySelector('.header-logo');
     const hdrPts  = hdr.querySelector('.header-points');
@@ -5261,8 +5076,6 @@ function navigate(page) {
     if (hdrCart) hdrCart.style.display = isChallenge ? 'none' : '';
     const hdrRight = hdr.querySelector('.header-right');
     if (hdrRight) hdrRight.style.marginLeft = isChallenge ? 'auto' : '';
-    const hdrProfileLabel = hdr.querySelector('#header-profile-label');
-    if (hdrProfileLabel) hdrProfileLabel.style.display = isChallenge ? 'inline' : 'none';
     const guestBanner = hdr.querySelector('#guest-banner');
     if (guestBanner) {
       if (isChallenge) {
@@ -5278,7 +5091,7 @@ function navigate(page) {
   }
   if (content) {
     content.classList.remove('no-top-margin');
-    if (isFlow) content.classList.add('no-top-margin');
+    if (useFlowHeader) content.classList.add('no-top-margin');
   }
   const pg = document.getElementById('page-' + page);
   if (pg) pg.classList.add('active');
@@ -9391,45 +9204,15 @@ function renderChallenge() {
     _chShoePrefs = ['', '', ''];
     _chShoeRequestNote = '';
     doneEl.innerHTML = `
-      <div class="ch-story-card">
-        <div class="ch-story-head">
-          <div class="ch-story-copy">
-            <div class="ch-story-kicker">${getChallengePhaseLabel(phase)}</div>
-            <div class="ch-story-title">운동 루틴부터 HI RUN DAY 행사까지<br>한 흐름으로 이어지는 챌린지</div>
-            <div class="ch-story-desc">
-              워밍업기간에는 운동으로 루틴을 만들고, 집중기간에는 운동과 혈당 기록을 함께 진행합니다.
-              스페셜 인증 미션까지 이어지는 이벤트형 챌린지입니다.
-            </div>
-            <div class="ch-story-tags">
-              <span class="ch-story-tag">워밍업 3/22-4/4</span>
-              <span class="ch-story-tag">집중 4/5-4/14</span>
-              <span class="ch-story-tag">행사 4/15</span>
-            </div>
-          </div>
-          <div class="ch-story-visual">
-            <div class="ch-story-patch">
-              <img src="images/run_day_patch.png" alt="HI RUN DAY patch">
-            </div>
-            <div class="ch-story-avatars" aria-hidden="true">
-              <div class="ch-story-avatar"><img src="images/avatars/av14.png" alt=""></div>
-              <div class="ch-story-avatar"><img src="images/avatars/av2.png" alt=""></div>
-              <div class="ch-story-avatar"><img src="images/avatars/av11.png" alt=""></div>
-            </div>
-          </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">챌린지 소개</span>
+          <span class="badge badge-primary">${getChallengePhaseLabel(phase)}</span>
         </div>
-        <div class="ch-story-foot">
-          <div class="ch-story-point">
-            <strong>주 2회</strong>
-            <span>워밍업 운동 인증</span>
-          </div>
-          <div class="ch-story-point">
-            <strong>주 3회+</strong>
-            <span>운동 + 혈당 기록</span>
-          </div>
-          <div class="ch-story-point">
-            <strong>각 1회</strong>
-            <span>스페셜 인증 미션</span>
-          </div>
+        <div style="font-size:13px;line-height:1.72;color:var(--text-secondary)">
+          HI RUN DAY 챌린지가 시작됩니다.<br><br>
+          워밍업기간에는 운동으로 루틴을 만들고, 집중기간에는 운동과 혈당 기록을 함께 진행합니다.<br>
+          스페셜 인증 미션도 참여해 주세요.
         </div>
       </div>
     `;
@@ -9645,18 +9428,11 @@ function renderChallenge() {
   } else {
     infoEl.innerHTML = `
       <div class="ch-donation-card">
-        <div class="ch-donation-head">
-          <div class="ch-donation-copy">
-            <div class="ch-donation-badge">RUN FOR GOOD</div>
-            <div class="ch-donation-title">달린 거리만큼 좋은 영향도 함께 이어집니다</div>
-            <div class="ch-donation-desc">
-              행사 당일 직원들이 함께 달린 거리만큼 기부가 진행됩니다.
-              HI RUN DAY는 건강한 루틴과 좋은 영향이 함께 남는 이벤트입니다.
-            </div>
-          </div>
-          <div class="ch-donation-mark">
-            <img src="images/badge_run.png" alt="HI RUN DAY badge">
-          </div>
+        <div class="ch-donation-badge">HI RUN DAY WITH DONATION</div>
+        <div class="ch-donation-title">행사 당일에는 직원들이 함께 달린 거리만큼 기부가 진행됩니다</div>
+        <div class="ch-donation-desc">
+          HI RUN DAY는 함께 달리고 기록하는 것으로 끝나지 않습니다.
+          행사 당일 직원들이 달린 거리를 모아 기부로 연결하는 이벤트가 함께 진행됩니다.
         </div>
         <div class="ch-donation-metric">
           <div class="ch-donation-pill">
@@ -9668,12 +9444,6 @@ function renderChallenge() {
             <span>행사 당일 러닝의 의미를 좋은 영향으로 이어갑니다</span>
           </div>
         </div>
-        <div class="ch-donation-runners" aria-hidden="true">
-          <div class="ch-donation-runner"><img src="images/avatars/av8.png" alt=""></div>
-          <div class="ch-donation-runner"><img src="images/avatars/av14.png" alt=""></div>
-          <div class="ch-donation-runner"><img src="images/avatars/av2.png" alt=""></div>
-        </div>
-        <div class="ch-donation-note">함께 달린 발걸음이 행사 당일 기부로 이어지는 HI RUN DAY의 스페셜 메시지입니다.</div>
       </div>
       <div class="card">
         <div class="card-header">
