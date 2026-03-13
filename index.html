@@ -114,6 +114,7 @@
     }
     .app-login-logo { height: 116px; width: auto; margin-bottom: 4px; }
     .app-login-screen.runday .app-login-logo { height: 120px; margin-bottom: 4px; animation: loginBob 3s ease-in-out infinite; }
+    .app-login-screen.runday .app-login-input::placeholder { color: transparent; }
     @keyframes loginBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
     .app-login-title { font-size: 15px; font-weight: 700; color: #3730A3; margin-bottom: 4px; }
     .app-login-screen.runday .app-login-title { color: #3730A3; }
@@ -10254,7 +10255,7 @@ function init() {
   const runHero = document.getElementById('login-run-hero');
   if (runHero) runHero.style.display = IS_RUN_MODE ? '' : 'none';
   const loginLogo = document.querySelector('.app-login-logo');
-  if (loginLogo) loginLogo.src = IS_RUN_MODE ? 'images/avatars/run1.png' : 'images/avatars/av2.png';
+  if (loginLogo) loginLogo.src = IS_RUN_MODE ? 'images/run_day_patch.png' : 'images/avatars/av2.png';
   const loginEmpInput = document.getElementById('login-empid-input');
   configureLoginFields();
   syncLoginFieldOverlays();
