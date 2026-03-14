@@ -1708,6 +1708,21 @@
     .pm-section-body.collapsed { display:none; }
     .btn-danger { background:#FEE2E2; color:#DC2626; border:none; }
     .btn-danger:active { transform:scale(0.97); background:#FECACA; }
+    /* ── Install Guide Popup ── */
+    .install-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:400; display:flex; align-items:flex-end; justify-content:center; padding:16px; }
+    .install-overlay.pm-hidden { display:none !important; }
+    .install-card { background:var(--card); border-radius:20px; padding:24px 20px 20px; width:100%; max-width:360px; }
+    .install-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .install-title { font-size:16px; font-weight:700; }
+    .install-close { background:none; border:none; font-size:20px; color:var(--text-secondary); cursor:pointer; padding:0; line-height:1; }
+    .install-steps { display:flex; flex-direction:column; gap:12px; margin-bottom:18px; }
+    .install-step { display:flex; align-items:flex-start; gap:12px; }
+    .install-step-num { width:24px; height:24px; border-radius:50%; background:var(--accent); color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+    .install-step-text { font-size:14px; line-height:1.5; color:var(--text); }
+    .install-step-text strong { font-weight:700; }
+    .install-step-icon { display:inline-block; background:#F1F5F9; border-radius:6px; padding:2px 7px; font-size:13px; margin:0 2px; vertical-align:middle; }
+    .install-btn { width:100%; padding:13px; border-radius:12px; border:none; background:var(--accent); color:#fff; font-size:15px; font-weight:700; cursor:pointer; }
+    .install-skip { text-align:center; margin-top:10px; font-size:12px; color:var(--text-secondary); cursor:pointer; text-decoration:underline; }
     /* ── Confirm Modal ── */
     .confirm-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:300; display:flex; align-items:center; justify-content:center; padding:24px; }
     .confirm-modal { background:var(--card); border-radius:var(--radius); padding:28px 24px 20px; width:100%; max-width:320px; text-align:center; }
@@ -10389,6 +10404,7 @@ async function doAppLogin() {
 
   document.getElementById('app-login-screen').classList.add('hidden');
   document.getElementById('guest-banner')?.style.setProperty('display', 'none');
+  window.dispatchEvent(new Event('hi:loggedin'));
   document.getElementById('runday-iframe')?.contentWindow?.postMessage({
     type: 'LOGIN',
     name: S.user.name,
@@ -10751,6 +10767,45 @@ init();
   </div>
 </div>
 
+<div id="install-overlay" class="install-overlay pm-hidden">
+  <div class="install-card">
+    <div class="install-header">
+      <div class="install-title">📲 홈 화면에 추가하기</div>
+      <button class="install-close" onclick="closeInstallGuide()">✕</button>
+    </div>
+    <div id="install-steps-ios" class="install-steps" style="display:none">
+      <div class="install-step">
+        <div class="install-step-num">1</div>
+        <div class="install-step-text">Safari 하단의 <span class="install-step-icon">공유 □↑</span> 버튼을 탭하세요</div>
+      </div>
+      <div class="install-step">
+        <div class="install-step-num">2</div>
+        <div class="install-step-text">스크롤을 내려 <strong>'홈 화면에 추가'</strong>를 탭하세요</div>
+      </div>
+      <div class="install-step">
+        <div class="install-step-num">3</div>
+        <div class="install-step-text">오른쪽 위 <strong>'추가'</strong>를 탭하면 완료!</div>
+      </div>
+    </div>
+    <div id="install-steps-android" class="install-steps" style="display:none">
+      <div class="install-step">
+        <div class="install-step-num">1</div>
+        <div class="install-step-text">Chrome 오른쪽 위 <span class="install-step-icon">⋮</span> 메뉴를 탭하세요</div>
+      </div>
+      <div class="install-step">
+        <div class="install-step-num">2</div>
+        <div class="install-step-text"><strong>'홈 화면에 추가'</strong> 또는 <strong>'앱 설치'</strong>를 탭하세요</div>
+      </div>
+      <div class="install-step">
+        <div class="install-step-num">3</div>
+        <div class="install-step-text"><strong>'추가'</strong>를 탭하면 완료!</div>
+      </div>
+    </div>
+    <button class="install-btn" onclick="closeInstallGuide()">확인했어요</button>
+    <div class="install-skip" onclick="dismissInstallGuide()">다시 보지 않기</div>
+  </div>
+</div>
+
 <div id="confirm-overlay" class="confirm-overlay pm-hidden">
   <div class="confirm-modal">
     <div class="confirm-icon" id="confirm-icon"></div>
@@ -10765,6 +10820,27 @@ init();
 
 
 <script>
+  // ── Install Guide ──
+  function showInstallGuide() {
+    const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+    if (isStandalone) return;
+    if (localStorage.getItem('hi_install_dismissed')) return;
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isAndroid = /android/i.test(navigator.userAgent);
+    if (!isIOS && !isAndroid) return;
+    document.getElementById(isIOS ? 'install-steps-ios' : 'install-steps-android').style.display = '';
+    document.getElementById('install-overlay').classList.remove('pm-hidden');
+  }
+  function closeInstallGuide() {
+    document.getElementById('install-overlay').classList.add('pm-hidden');
+  }
+  function dismissInstallGuide() {
+    localStorage.setItem('hi_install_dismissed', '1');
+    closeInstallGuide();
+  }
+  // 로그인 후 3초 뒤에 표시
+  window.addEventListener('hi:loggedin', () => setTimeout(showInstallGuide, 3000));
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js').then(reg => {
