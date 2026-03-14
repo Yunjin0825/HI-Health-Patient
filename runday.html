@@ -1157,15 +1157,15 @@
         </div>
         <div class="route-focus-stat">
           <div class="route-focus-stat-label">Running</div>
-          <div class="route-focus-stat-value">30-40분</div>
+          <div class="route-focus-stat-value">50분-60분</div>
         </div>
         <div class="route-focus-stat">
-          <div class="route-focus-stat-label">Event Pace</div>
-          <div class="route-focus-stat-value">45-60분</div>
+          <div class="route-focus-stat-label">운영 시간</div>
+          <div class="route-focus-stat-value">90분</div>
         </div>
         <div class="route-focus-stat">
           <div class="route-focus-stat-label">Finish</div>
-          <div class="route-focus-stat-value">공원 입구 집결</div>
+          <div class="route-focus-stat-value">선유도공원</div>
         </div>
       </div>
       <div class="route-focus-map" style="margin-top:12px">
@@ -1179,8 +1179,8 @@
               <stop offset="0%" stop-color="#9edcff"></stop>
               <stop offset="100%" stop-color="#54bdf5"></stop>
             </linearGradient>
-            <marker id="route-focus-arrow" markerWidth="10" markerHeight="10" refX="7" refY="5" orient="auto">
-              <path d="M0,0 L0,10 L8,5 Z" fill="#f97316"></path>
+            <marker id="route-focus-arrow" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto">
+              <path d="M1 1L7.5 4.5L1 8C2.4 6.8 3.1 5.8 3.1 4.5C3.1 3.2 2.4 2.2 1 1Z" fill="#7c3aed"></path>
             </marker>
             <filter id="route-focus-shadow" x="-20%" y="-20%" width="140%" height="140%">
               <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#0f172a" flood-opacity="0.08"></feDropShadow>
@@ -1193,26 +1193,30 @@
           <path d="M0 112C49 101 95 97 144 100C198 103 244 115 293 111C322 109 343 103 360 96V150C343 156 322 160 292 162C243 165 197 154 144 150C94 147 48 150 0 159Z" fill="url(#route-focus-river)"></path>
           <path d="M0 120C49 109 95 106 144 109C198 112 244 123 293 119C322 117 343 110 360 103" fill="none" stroke="rgba(255,255,255,0.68)" stroke-width="2.2" stroke-linecap="round"></path>
           <path d="M0 146C47 136 91 132 139 134C188 137 235 147 286 143C317 141 339 134 360 124V214H0Z" fill="#d9f99d" opacity="0.45"></path>
-          <path d="M306 131C278 121 250 114 221 113C186 112 156 118 126 119C100 120 78 116 56 87" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"></path>
-          <path d="M306 131C278 121 250 114 221 113C186 112 156 118 126 119C100 120 78 116 56 87" fill="none" stroke="#f97316" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="8 8" marker-end="url(#route-focus-arrow)"></path>
+          <path d="M304 160C276 154 248 149 217 149C182 149 150 154 120 156C96 158 76 160 58 158" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M304 160C276 154 248 149 217 149C182 149 150 154 120 156C96 158 76 160 58 158" fill="none" stroke="#a78bfa" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.38"></path>
+          <path d="M304 160C276 154 248 149 217 149C182 149 150 154 120 156C96 158 76 160 58 158" fill="none" stroke="#7c3aed" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#route-focus-arrow)"></path>
           <path d="M178 92V137" stroke="#1d4ed8" stroke-width="2" stroke-linecap="round" opacity="0.28"></path>
           <text x="178" y="87" text-anchor="middle" font-size="10" fill="#1d4ed8" font-family="sans-serif" font-weight="700" opacity="0.75">양화대교</text>
-          <circle cx="306" cy="131" r="8.5" fill="#0f172a"></circle>
-          <circle cx="306" cy="131" r="3.4" fill="#ffffff"></circle>
-          <circle cx="56" cy="87" r="8.5" fill="#16a34a"></circle>
-          <circle cx="56" cy="87" r="3.4" fill="#ffffff"></circle>
-          <circle cx="220" cy="113" r="5.5" fill="#ffffff" stroke="#38bdf8" stroke-width="2"></circle>
+          <circle cx="304" cy="160" r="8.5" fill="#0f172a"></circle>
+          <circle cx="304" cy="160" r="3.4" fill="#ffffff"></circle>
+          <circle cx="58" cy="158" r="8.5" fill="#16a34a"></circle>
+          <circle cx="58" cy="158" r="3.4" fill="#ffffff"></circle>
+          <circle cx="220" cy="149" r="5.5" fill="#ffffff" stroke="#38bdf8" stroke-width="2.4"></circle>
+          <circle cx="220" cy="149" r="2.1" fill="#60a5fa"></circle>
+          <circle cx="162" cy="153" r="5.5" fill="#ffffff" stroke="#38bdf8" stroke-width="2.4"></circle>
+          <circle cx="162" cy="153" r="2.1" fill="#60a5fa"></circle>
+          <text x="180" y="30" text-anchor="middle" font-size="12" fill="#0369a1" font-family="sans-serif" font-weight="800" opacity="0.72">한강변 4.7km</text>
           <g filter="url(#route-focus-shadow)">
-            <rect x="210" y="146" width="126" height="40" rx="14" fill="rgba(255,255,255,0.96)"></rect>
-            <text x="223" y="162" font-size="9" fill="#64748b" font-family="sans-serif" font-weight="800">START</text>
-            <text x="223" y="176" font-size="12" fill="#0f172a" font-family="sans-serif" font-weight="800">여의도 유람선터미널</text>
+            <rect x="210" y="168" width="126" height="34" rx="14" fill="rgba(255,255,255,0.96)"></rect>
+            <text x="223" y="182" font-size="9" fill="#64748b" font-family="sans-serif" font-weight="800">START</text>
+            <text x="223" y="194" font-size="12" fill="#0f172a" font-family="sans-serif" font-weight="800">여의도 유람선터미널</text>
           </g>
           <g filter="url(#route-focus-shadow)">
-            <rect x="20" y="26" width="116" height="40" rx="14" fill="rgba(255,255,255,0.96)"></rect>
-            <text x="33" y="42" font-size="9" fill="#16a34a" font-family="sans-serif" font-weight="800">FINISH</text>
-            <text x="33" y="56" font-size="12" fill="#0f172a" font-family="sans-serif" font-weight="800">선유도공원 입구</text>
+            <rect x="20" y="168" width="116" height="34" rx="14" fill="rgba(255,255,255,0.96)"></rect>
+            <text x="33" y="182" font-size="9" fill="#16a34a" font-family="sans-serif" font-weight="800">FINISH</text>
+            <text x="33" y="194" font-size="12" fill="#0f172a" font-family="sans-serif" font-weight="800">선유도공원 입구</text>
           </g>
-          <text x="180" y="195" text-anchor="middle" font-size="12" fill="#0369a1" font-family="sans-serif" font-weight="800" opacity="0.72">한강변 4.7km</text>
         </svg>
       </div>
       <div class="route-focus-points">
