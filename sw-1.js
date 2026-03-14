@@ -1,4 +1,4 @@
-const CACHE = 'hi-health-v335';
+const CACHE = 'hi-health-v336';
 const STATIC_ASSETS = [
   './manifest.webmanifest',
   './icons/icon.svg',
@@ -30,8 +30,8 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
 
-  // HTML 파일 / 아바타 이미지: 항상 네트워크에서 최신 버전 가져오기
-  if (e.request.destination === 'document' || e.request.url.endsWith('.html') || e.request.url.includes('/images/avatars/')) {
+  // HTML 파일 / 아바타 이미지 / 히어로 이미지: 항상 네트워크에서 최신 버전 가져오기
+  if (e.request.destination === 'document' || e.request.url.endsWith('.html') || e.request.url.includes('/images/avatars/') || e.request.url.includes('run_day_rola')) {
     e.respondWith(
       fetch(e.request).then(res => {
         if (res && res.status === 200) {
