@@ -1853,6 +1853,7 @@
   window.addEventListener('message', (e) => {
     if (e.data?.type === 'LOGIN' || e.data?.type === 'AVATAR_CHANGE') {
       prefillFromLogin(e.data.name, e.data.empId, e.data.avatar);
+      if (e.data?.type === 'LOGIN') checkExisting(e.data.empId);
       // localStorage의 내 reg 아바타도 즉시 업데이트
       const newAvatar = normalizeLiveAvatar(e.data.avatar);
       if (newAvatar && e.data.empId) {
@@ -2079,13 +2080,20 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  (function checkExisting() {
-    const regs = JSON.parse(localStorage.getItem(CH_KEY) || '[]').filter(r => r.status !== 'cancelled');
-    if (!regs.length) return;
-    renderSuccessScreen(regs[regs.length - 1]);
-    document.getElementById('form-screen').classList.add('hide');
-    document.getElementById('success-screen').classList.add('show');
-  })();
+  function checkExisting(empId) {
+    const uid = (empId || getCurrentEmpId() || '').toUpperCase();
+    const regs = JSON.parse(localStorage.getItem(CH_KEY) || '[]')
+      .filter(r => r.status !== 'cancelled' && (uid ? String(r.empId || '').toUpperCase() === uid : true));
+    if (regs.length) {
+      renderSuccessScreen(regs[regs.length - 1]);
+      document.getElementById('form-screen').classList.add('hide');
+      document.getElementById('success-screen').classList.add('show');
+    } else {
+      document.getElementById('success-screen').classList.remove('show');
+      document.getElementById('form-screen').classList.remove('hide');
+    }
+  }
+  checkExisting();
 </script>
 </body>
 </html>
