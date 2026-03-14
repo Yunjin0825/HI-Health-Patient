@@ -1708,6 +1708,29 @@
     .pm-section-body.collapsed { display:none; }
     .btn-danger { background:#FEE2E2; color:#DC2626; border:none; }
     .btn-danger:active { transform:scale(0.97); background:#FECACA; }
+    /* ── Run Course Detail Overlay ── */
+    #rd-course-overlay{position:fixed;inset:0;z-index:9999;display:none;flex-direction:column;align-items:flex-end;justify-content:flex-end;background:rgba(15,23,42,0.58);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:0;}
+    #rd-course-overlay.show{display:flex;}
+    #rd-course-sheet{width:100%;max-width:480px;margin:0 auto;max-height:90vh;overflow-y:auto;background:linear-gradient(180deg,#fff 0%,#f8fbff 100%);border-radius:24px 24px 0 0;box-shadow:0 -8px 40px rgba(15,23,42,0.18);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;color:#1e293b;}
+    #rd-course-sheet .route-modal-head{position:sticky;top:0;z-index:1;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:18px 18px 14px;background:linear-gradient(180deg,rgba(255,255,255,0.98) 0%,rgba(255,255,255,0.92) 100%);backdrop-filter:blur(10px);border-bottom:1px solid rgba(148,163,184,0.16);}
+    #rd-course-sheet .route-modal-kicker{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:#e0f2fe;color:#0369a1;font-size:10px;font-weight:800;letter-spacing:.4px;margin-bottom:8px;}
+    #rd-course-sheet .route-modal-title{font-size:18px;font-weight:800;color:#1e1047;line-height:1.35;letter-spacing:-0.3px;}
+    #rd-course-sheet .route-modal-sub{margin-top:6px;font-size:12px;line-height:1.6;color:#64748b;}
+    #rd-course-sheet .route-modal-close{flex-shrink:0;width:36px;height:36px;border:none;border-radius:999px;background:#f3f4f6;color:#475569;font-size:18px;cursor:pointer;}
+    #rd-course-sheet .route-modal-body{padding:16px 18px 32px;}
+    #rd-course-sheet .route-focus-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
+    #rd-course-sheet .route-focus-stat{background:#f8fafc;border-radius:12px;padding:10px 8px;text-align:center;}
+    #rd-course-sheet .route-focus-stat-label{font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+    #rd-course-sheet .route-focus-stat-value{font-size:14px;font-weight:800;color:#1e1047;letter-spacing:-0.2px;}
+    #rd-course-sheet .route-focus-map{margin-top:12px;}
+    #rd-course-sheet .route-focus-map svg{width:100%;display:block;border-radius:14px;}
+    #rd-course-sheet .route-focus-points{display:grid;grid-template-columns:1fr;gap:0;margin-top:16px;}
+    #rd-course-sheet .route-focus-point{display:flex;flex-direction:column;padding:12px 0;border-bottom:1px solid #f1f5f9;}
+    #rd-course-sheet .route-focus-point:last-child{border-bottom:none;}
+    #rd-course-sheet .route-focus-point-dist{font-size:11px;font-weight:800;color:#6366f1;letter-spacing:.4px;margin-bottom:4px;}
+    #rd-course-sheet .route-focus-point-title{font-size:14px;font-weight:700;color:#1e1047;margin-bottom:4px;letter-spacing:-0.3px;}
+    #rd-course-sheet .route-focus-point-desc{font-size:12px;color:#64748b;line-height:1.6;}
+    #rd-course-sheet .route-focus-note{margin-top:16px;background:#f0f9ff;border-radius:12px;padding:12px 14px;font-size:12px;color:#0369a1;line-height:1.6;}
     /* ── Install Guide Popup ── */
     .install-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:400; display:flex; align-items:flex-end; justify-content:center; padding:16px; }
     .install-overlay.pm-hidden { display:none !important; }
@@ -10770,6 +10793,10 @@ init();
   </div>
 </div>
 
+<div id="rd-course-overlay" onclick="if(event.target===this)closeRunCourseDetail()">
+  <div id="rd-course-sheet"></div>
+</div>
+
 <div id="install-overlay" class="install-overlay pm-hidden">
   <div class="install-card">
     <div class="install-header">
@@ -10831,6 +10858,24 @@ init();
 
 
 <script>
+  // ── Run Course Detail ──
+  function closeRunCourseDetail() {
+    document.getElementById('rd-course-overlay').classList.remove('show');
+    document.getElementById('runday-iframe')?.contentWindow?.postMessage({ type: 'CLOSE_COURSE_DETAIL' }, '*');
+  }
+  window.addEventListener('message', (e) => {
+    if (e.data?.type === 'SHOW_COURSE_DETAIL') {
+      const sheet = document.getElementById('rd-course-sheet');
+      sheet.innerHTML = e.data.html;
+      const closeBtn = sheet.querySelector('.route-modal-close');
+      if (closeBtn) closeBtn.onclick = closeRunCourseDetail;
+      document.getElementById('rd-course-overlay').classList.add('show');
+    }
+    if (e.data?.type === 'CLOSE_COURSE_DETAIL') {
+      document.getElementById('rd-course-overlay').classList.remove('show');
+    }
+  });
+
   // ── Install Guide ──
   function showInstallGuide() {
     const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
