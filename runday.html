@@ -1437,15 +1437,21 @@
   let familyMembers = [];
 
   function openCourseDetail() {
+    toast('▶ 코스 상세 로딩중');
     const src = document.getElementById('route-detail-modal');
-    if (!src) return;
-    const html = src.querySelector('.route-modal-sheet').outerHTML;
+    if (!src) { toast('모달 없음'); return; }
+    const sheet = src.querySelector('.route-modal-sheet');
+    if (!sheet) { toast('시트 없음'); return; }
+    const html = sheet.outerHTML;
     try {
       if (typeof window.parent.openRunCourseDetail === 'function') {
         window.parent.openRunCourseDetail(html);
+        toast('parent 함수 호출 성공');
         return;
+      } else {
+        toast('parent 함수 없음, postMessage 시도');
       }
-    } catch(e) {}
+    } catch(e) { toast('오류: ' + e.message); }
     window.parent.postMessage({ type: 'SHOW_COURSE_DETAIL', html }, '*');
   }
 
