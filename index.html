@@ -10859,21 +10859,19 @@ init();
 
 <script>
   // ── Run Course Detail ──
+  function openRunCourseDetail(html) {
+    const sheet = document.getElementById('rd-course-sheet');
+    sheet.innerHTML = html;
+    const closeBtn = sheet.querySelector('.route-modal-close');
+    if (closeBtn) closeBtn.onclick = closeRunCourseDetail;
+    document.getElementById('rd-course-overlay').classList.add('show');
+  }
   function closeRunCourseDetail() {
     document.getElementById('rd-course-overlay').classList.remove('show');
-    document.getElementById('runday-iframe')?.contentWindow?.postMessage({ type: 'CLOSE_COURSE_DETAIL' }, '*');
   }
   window.addEventListener('message', (e) => {
-    if (e.data?.type === 'SHOW_COURSE_DETAIL') {
-      const sheet = document.getElementById('rd-course-sheet');
-      sheet.innerHTML = e.data.html;
-      const closeBtn = sheet.querySelector('.route-modal-close');
-      if (closeBtn) closeBtn.onclick = closeRunCourseDetail;
-      document.getElementById('rd-course-overlay').classList.add('show');
-    }
-    if (e.data?.type === 'CLOSE_COURSE_DETAIL') {
-      document.getElementById('rd-course-overlay').classList.remove('show');
-    }
+    if (e.data?.type === 'SHOW_COURSE_DETAIL') openRunCourseDetail(e.data.html);
+    if (e.data?.type === 'CLOSE_COURSE_DETAIL') closeRunCourseDetail();
   });
 
   // ── Install Guide ──

@@ -1439,10 +1439,18 @@
   function openCourseDetail() {
     const src = document.getElementById('route-detail-modal');
     if (!src) return;
-    window.parent.postMessage({ type: 'SHOW_COURSE_DETAIL', html: src.querySelector('.route-modal-sheet').outerHTML }, '*');
+    const html = src.querySelector('.route-modal-sheet').outerHTML;
+    try {
+      if (typeof window.parent.openRunCourseDetail === 'function') {
+        window.parent.openRunCourseDetail(html);
+        return;
+      }
+    } catch(e) {}
+    window.parent.postMessage({ type: 'SHOW_COURSE_DETAIL', html }, '*');
   }
 
   function closeCourseDetail() {
+    try { window.parent.closeRunCourseDetail(); } catch(e) {}
     window.parent.postMessage({ type: 'CLOSE_COURSE_DETAIL' }, '*');
   }
 
