@@ -5276,6 +5276,7 @@ function navigate(page) {
     const hdrLogo = hdr.querySelector('.header-logo');
     const hdrPts  = hdr.querySelector('.header-points');
     const hdrCart = hdr.querySelector('.header-cart-btn');
+    hdr.style.background = isChallenge ? '#fdfcf0' : '';
     if (hdrLogo) hdrLogo.style.display = isChallenge ? 'none' : '';
     if (hdrPts)  hdrPts.style.display  = isChallenge ? 'none' : '';
     if (hdrCart) hdrCart.style.display = isChallenge ? 'none' : '';

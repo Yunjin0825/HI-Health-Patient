@@ -53,7 +53,7 @@
     .hero-char {
       width: 120px;
       margin-top: 64px;
-      margin-bottom: 32px;
+      margin-bottom: 16px;
       animation: bob 3s ease-in-out infinite;
       filter: none;
     }
@@ -941,12 +941,6 @@
 <!-- ─── HERO ───────────────────────────────── -->
 <div class="hero">
   <div class="hero-inner">
-    <div class="hero-copy">
-      <div class="hero-label">
-        <img src="images/avatars/av14.png" alt="HI 8주년">
-        <span>Happy 8th Anniversary</span>
-      </div>
-    </div>
     <img src="images/run_day_rola.png?v=2" alt="HI RUN DAY 마스코트" class="hero-char">
     <div class="hero-copy">
       <div class="hero-title">HI <span class="t-run">RUN</span> DAY</div>
@@ -1446,14 +1440,14 @@
     const modal = document.getElementById('route-detail-modal');
     if (!modal) return;
     modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
+    modal.style.display = 'flex';
   }
 
   function closeCourseDetail() {
     const modal = document.getElementById('route-detail-modal');
     if (!modal) return;
     modal.classList.add('hidden');
-    document.body.style.overflow = '';
+    modal.style.display = '';
   }
 
   document.addEventListener('keydown', (event) => {
