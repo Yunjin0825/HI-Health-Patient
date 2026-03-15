@@ -1,4 +1,4 @@
-const CACHE = 'hi-health-v425';
+const CACHE = 'hi-health-v465';
 const STATIC_ASSETS = [
   './manifest.webmanifest',
   './icons/icon.svg',
@@ -54,4 +54,60 @@ self.addEventListener('fetch', e => {
       });
     })
   );
+});
+
+function normalizeNotificationPayload(raw = {}) {
+  const title = String(raw.title || 'HI Health');
+  const body = String(raw.body || '새 알림이 도착했어요.');
+  const url = String(raw.url || './index.html');
+  return {
+    title,
+    options: {
+      body,
+      icon: './icons/icon-192.png?v=10',
+      badge: './icons/icon-192.png?v=10',
+      tag: String(raw.tag || 'hi-health-notice'),
+      renotify: Boolean(raw.renotify),
+      requireInteraction: Boolean(raw.requireInteraction),
+      data: {
+        url,
+        sentAt: raw.sentAt || new Date().toISOString(),
+      },
+    },
+  };
+}
+
+self.addEventListener('message', e => {
+  if (e.data?.type !== 'SHOW_LOCAL_NOTIFICATION') return;
+  const payload = normalizeNotificationPayload(e.data.payload || {});
+  e.waitUntil(self.registration.showNotification(payload.title, payload.options));
+});
+
+self.addEventListener('push', e => {
+  let raw = {};
+  try {
+    raw = e.data ? e.data.json() : {};
+  } catch (_) {
+    raw = { body: e.data ? e.data.text() : '새 알림이 도착했어요.' };
+  }
+  const payload = normalizeNotificationPayload(raw || {});
+  e.waitUntil(self.registration.showNotification(payload.title, payload.options));
+});
+
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const targetUrl = new URL(e.notification?.data?.url || './index.html', self.location.origin).href;
+  e.waitUntil((async () => {
+    const clientList = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const client of clientList) {
+      const sameOrigin = new URL(client.url).origin === self.location.origin;
+      if (!sameOrigin) continue;
+      if ('focus' in client) {
+        await client.focus();
+        if ('navigate' in client) await client.navigate(targetUrl);
+        return;
+      }
+    }
+    await clients.openWindow(targetUrl);
+  })());
 });
