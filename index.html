@@ -78,6 +78,10 @@
     /* ── App Login Screen ── */
     .app-login-screen {
       position: fixed; inset: 0; z-index: 2000;
+      --login-guide-color: #1f2a44;
+      --login-guide-soft: rgba(31, 42, 68, 0.78);
+      --login-guide-muted: rgba(31, 42, 68, 0.58);
+      --login-guide-faint: rgba(31, 42, 68, 0.18);
       background: linear-gradient(160deg, #ffffff 0%, #f5f5f3 52%, #ececeb 100%);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       padding: 20px; overflow-y: auto; overflow-x: hidden;
@@ -113,8 +117,8 @@
       border-radius: 40px; padding: 4px 14px; margin-bottom: 14px;
     }
     .app-login-run { font-size: 48px; font-weight: 900; letter-spacing: -2.5px; color: #1e1047; line-height: 1; margin-bottom: 8px; }
-    .app-login-date { font-size: 13px; font-weight: 600; color: #6d28d9; opacity: 0.75; margin-bottom: 4px; }
-    .app-login-route { font-size: 12px; color: #6b7280; }
+    .app-login-date { font-size: 13px; font-weight: 600; color: var(--login-guide-soft); margin-bottom: 4px; }
+    .app-login-route { font-size: 12px; color: var(--login-guide-soft); }
     /* 카드 */
     .app-login-card {
       background: #fdfcf0; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -124,8 +128,8 @@
     }
     .app-login-logo { height: 120px; width: auto; margin-top: 16px; margin-bottom: 4px; animation: loginBob 3s ease-in-out infinite; }
     @keyframes loginBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-    .app-login-title { font-size: 15px; font-weight: 700; color: #3730A3; margin-bottom: 4px; }
-    .app-login-sub { font-size: 12px; color: #6D28D9; opacity: 0.7; margin-bottom: 20px; line-height: 1.5; }
+    .app-login-title { font-size: 15px; font-weight: 700; color: var(--login-guide-color); margin-bottom: 4px; }
+    .app-login-sub { font-size: 12px; color: var(--login-guide-soft); margin-bottom: 20px; line-height: 1.5; }
     .app-login-input {
       width: 100%; padding: 13px 16px; margin-bottom: 10px;
       border: 1px solid rgba(109,40,217,0.2); border-radius: 10px;
@@ -143,13 +147,13 @@
       display: flex; align-items: center; gap: 5px;
       pointer-events: none;
     }
-    .login-hint-main { font-size: 14px; font-weight: 700; color: rgba(109,40,217,0.5); white-space: nowrap; }
-    .login-hint-sub  { font-size: 12px; font-weight: 400; color: rgba(109,40,217,0.35); white-space: nowrap; }
+    .login-hint-main { font-size: 14px; font-weight: 700; color: rgba(109,40,217,0.62); white-space: nowrap; }
+    .login-hint-sub  { font-size: 12px; font-weight: 400; color: rgba(109,40,217,0.45); white-space: nowrap; }
     .app-login-input:focus { border-color: #7C3AED; box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
     .login-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
     .login-field-label {
-      font-size: 11px; font-weight: 700; color: #6D28D9; letter-spacing: 0.3px;
-      padding-left: 2px; opacity: 0.75;
+      font-size: 11px; font-weight: 700; color: var(--login-guide-soft); letter-spacing: 0.3px;
+      padding-left: 2px;
     }
     .login-field .login-id-wrapper,
     .login-field .app-login-input { margin-bottom: 0; }
@@ -184,7 +188,7 @@
     }
     .app-login-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(124,58,237,0.35); }
     .app-login-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-    .app-login-loading { font-size: 13px; color: #6D28D9; opacity: 0.6; margin-top: 12px; display: none; }
+    .app-login-loading { font-size: 13px; color: var(--login-guide-soft); margin-top: 12px; display: none; }
     .app-login-err { font-size: 13px; color: #DC2626; margin-top: 10px; display: none; }
 
     .app-login-info { font-size: 13px; color: #059669; margin-top: 10px; display: none; }
@@ -193,19 +197,19 @@
       gap: 8px; margin: 16px 0 16px; cursor: pointer;
     }
     .app-login-keep input[type=checkbox] { width: 16px; height: 16px; accent-color: #7C3AED; cursor: pointer; }
-    .app-login-keep span { font-size: 12px; color: #6D28D9; opacity: 0.55; }
+    .app-login-keep span { font-size: 12px; color: var(--login-guide-soft); }
     .login-divider {
       display: flex; align-items: center; gap: 10px; margin: 16px 0 14px;
     }
     .login-divider::before, .login-divider::after {
-      content: ''; flex: 1; height: 1px; background: rgba(109,40,217,0.12);
+      content: ''; flex: 1; height: 1px; background: var(--login-guide-faint);
     }
-    .login-divider span { font-size: 11px; color: rgba(109,40,217,0.35); white-space: nowrap; }
+    .login-divider span { font-size: 11px; color: var(--login-guide-muted); white-space: nowrap; }
     .app-login-guest-btn {
       width: 100%; padding: 11px; margin-top: 0;
       background: none; border: 1px solid rgba(109,40,217,0.2);
       border-radius: 14px; cursor: pointer; font-family: inherit;
-      font-size: 13px; font-weight: 500; color: rgba(109,40,217,0.55);
+      font-size: 13px; font-weight: 500; color: var(--login-guide-soft);
       transition: all 0.18s;
     }
     .app-login-guest-btn:hover { background: rgba(109,40,217,0.05); color: #7C3AED; }
@@ -5976,13 +5980,35 @@ function changeWoMonth(dir) {
   renderExerciseHistory();
 }
 
+function getWorkoutDisplayMemo(workout) {
+  const memo = String(workout?.memo || '').trim();
+  if (!memo) return '';
+  const recordId = String(workout?.id || '').trim();
+  if (recordId && memo === recordId) return '';
+  if (/^\d{8}$/.test(memo)) return '';
+  return memo;
+}
+
+function getWorkoutDisplayName(workout) {
+  const ex = getExType(workout?.exId);
+  const fallbackName = ex?.name || '운동';
+  const name = String(workout?.customName || '').trim();
+  if (!name) return fallbackName;
+  const recordId = String(workout?.id || '').trim();
+  if (recordId && name === recordId) return fallbackName;
+  if (/^\d{8}$/.test(name)) return fallbackName;
+  return name;
+}
+
 function workoutItemHTML(w) {
   const ex = getExType(w.exId);
+  const name = escHtmlComm(getWorkoutDisplayName(w));
+  const memo = getWorkoutDisplayMemo(w);
   return `
     <div class="workout-item">
       <span class="wo-icon">${ex.icon}</span>
-      <span class="wo-name">${w.customName || ex.name}</span>
-      <span class="wo-meta">${w.duration}분 · ${fmtTime(w.ts)}${w.memo ? ' · '+w.memo : ''}</span>
+      <span class="wo-name">${name}</span>
+      <span class="wo-meta">${w.duration}분 · ${fmtTime(w.ts)}${memo ? ' · ' + escHtmlComm(memo) : ''}</span>
       <div class="wo-pts">+${w.points}p</div>
       <button type="button" class="wo-del" onclick="deleteWorkout(${w.id})" title="삭제">${_trashSvgSm}</button>
     </div>
@@ -6496,9 +6522,10 @@ function buildDayMessage() {
   if (tw.length) {
     const woList = tw.map(w => {
       const ex = EX_TYPES.find(e => e.id === w.exId);
-      const name = w.customName || (ex ? ex.name : '운동');
+      const name = getWorkoutDisplayName(w);
       const icon = ex ? ex.icon : '🏃';
-      return icon + ' ' + name + ' ' + w.duration + '분' + (w.memo ? ' · ' + w.memo : '');
+      const memo = getWorkoutDisplayMemo(w);
+      return icon + ' ' + name + ' ' + w.duration + '분' + (memo ? ' · ' + memo : '');
     }).join(', ');
     lines.push(woList + ' 완료했어요!');
   }
@@ -6793,8 +6820,7 @@ function deleteWorkout(id) {
   const idx = S.workouts.findIndex(w => w.id === id);
   if (idx === -1) return;
   const wo = S.workouts[idx];
-  const ex = EX_TYPES.find(e => e.id === wo.exId);
-  const exName = wo.customName || (ex ? ex.name : '운동');
+  const exName = getWorkoutDisplayName(wo);
   showConfirm({
     icon: '🏋️',
     title: '운동 기록 삭제',
