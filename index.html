@@ -3315,6 +3315,40 @@
       </div>
 
       <div id="rec-panel-glucose" style="display:none">
+        <!-- 덱스콤 연동 카드 -->
+        <div id="dexcom-card" style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:16px;padding:14px 16px;margin-bottom:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div style="font-size:13px;font-weight:700;color:#0369a1">덱스콤 G7 실시간 연동</div>
+            <button id="dexcom-setup-btn" onclick="openDexcomSetup()" style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;border:none;background:#0369a1;color:#fff;cursor:pointer">연동하기</button>
+          </div>
+          <div id="dexcom-live" style="display:none">
+            <div style="display:flex;align-items:baseline;gap:8px">
+              <span id="dexcom-val" style="font-size:42px;font-weight:800;color:#0c4a6e;letter-spacing:-1px">--</span>
+              <span style="font-size:16px;color:#0369a1;font-weight:600">mg/dL</span>
+              <span id="dexcom-arrow" style="font-size:28px;color:#0369a1">—</span>
+            </div>
+            <div style="font-size:11px;color:#64748b;margin-top:2px" id="dexcom-time">—</div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button onclick="fetchDexcom()" style="font-size:11px;padding:4px 10px;border-radius:999px;border:1.5px solid #bae6fd;background:#fff;color:#0369a1;font-weight:700;cursor:pointer">새로고침</button>
+              <button onclick="disconnectDexcom()" style="font-size:11px;padding:4px 10px;border-radius:999px;border:1.5px solid #e5e7eb;background:#fff;color:#94a3b8;cursor:pointer">연동 해제</button>
+            </div>
+          </div>
+          <div id="dexcom-idle" style="font-size:12px;color:#64748b">덱스콤 앱 계정을 연동하면 혈당이 자동으로 불러와져요.</div>
+        </div>
+
+        <!-- 덱스콤 설정 모달 -->
+        <div id="dexcom-modal" style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,0.5);display:none;align-items:flex-end;justify-content:center;padding:16px">
+          <div style="background:#fff;border-radius:20px;padding:24px 20px;width:100%;max-width:420px">
+            <div style="font-size:16px;font-weight:700;margin-bottom:4px">덱스콤 G7 계정 연동</div>
+            <div style="font-size:12px;color:#64748b;margin-bottom:16px">덱스콤 앱 로그인 정보를 입력해주세요.<br>비밀번호는 이 기기에만 저장됩니다.</div>
+            <input id="dexcom-username" type="text" placeholder="덱스콤 아이디 (이메일)" autocomplete="username" style="width:100%;padding:12px 14px;border:1.5px solid #e5e7eb;border-radius:12px;font-size:14px;margin-bottom:10px;box-sizing:border-box;font-family:inherit">
+            <input id="dexcom-password" type="password" placeholder="비밀번호" autocomplete="current-password" style="width:100%;padding:12px 14px;border:1.5px solid #e5e7eb;border-radius:12px;font-size:14px;margin-bottom:16px;box-sizing:border-box;font-family:inherit">
+            <div id="dexcom-modal-err" style="display:none;font-size:12px;color:#ef4444;margin-bottom:10px;text-align:center"></div>
+            <button onclick="connectDexcom()" style="width:100%;padding:14px;border-radius:14px;border:none;background:#0369a1;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px" id="dexcom-connect-btn">연동하기</button>
+            <button onclick="closeDexcomSetup()" style="width:100%;padding:10px;border-radius:14px;border:none;background:none;color:#94a3b8;font-size:14px;cursor:pointer">취소</button>
+          </div>
+        </div>
+
         <div class="ex-type-grid">
           <button type="button" class="ex-type-btn" id="sa-gt-fasting"  onclick="setGlucoseTiming('공복')">공복</button>
           <button type="button" class="ex-type-btn" id="sa-gt-after"    onclick="setGlucoseTiming('식후')">식후</button>
@@ -11193,6 +11227,89 @@ init();
     document.getElementById('rec-tab-exercise')?.click();
     toast('달리기 기록이 입력됐어요! 운동 기록하기를 눌러 저장하세요 🏃');
   }
+  // ── Dexcom G7 Integration ──
+  const DEXCOM_FN = 'https://nbnmvvobehjitophkqmu.supabase.co/functions/v1/dexcom-proxy';
+  let _dexTimer = null;
+
+  function openDexcomSetup() {
+    const m = document.getElementById('dexcom-modal');
+    m.style.display = 'flex';
+    const saved = localStorage.getItem('dexcom_user') || '';
+    document.getElementById('dexcom-username').value = saved;
+    document.getElementById('dexcom-password').value = '';
+    document.getElementById('dexcom-modal-err').style.display = 'none';
+  }
+  function closeDexcomSetup() {
+    document.getElementById('dexcom-modal').style.display = 'none';
+  }
+  async function connectDexcom() {
+    const u = document.getElementById('dexcom-username').value.trim();
+    const p = document.getElementById('dexcom-password').value;
+    const btn = document.getElementById('dexcom-connect-btn');
+    const err = document.getElementById('dexcom-modal-err');
+    if (!u || !p) { err.textContent = '아이디와 비밀번호를 모두 입력해주세요.'; err.style.display = ''; return; }
+    btn.textContent = '연결 중...'; btn.disabled = true; err.style.display = 'none';
+    try {
+      const res = await fetch(DEXCOM_FN, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY },
+        body: JSON.stringify({ username: u, password: p })
+      });
+      const data = await res.json();
+      if (data.error) { err.textContent = data.error; err.style.display = ''; return; }
+      localStorage.setItem('dexcom_user', u);
+      localStorage.setItem('dexcom_pass', btoa(p));
+      closeDexcomSetup();
+      _dexRenderReading(data.readings[0]);
+      _dexStartTimer();
+      toast('덱스콤 G7 연동 완료! 5분마다 자동 갱신돼요 🩸');
+    } catch(e) {
+      err.textContent = '연결 오류가 발생했어요. 다시 시도해주세요.'; err.style.display = '';
+    } finally { btn.textContent = '연동하기'; btn.disabled = false; }
+  }
+  async function fetchDexcom() {
+    const u = localStorage.getItem('dexcom_user');
+    const p = localStorage.getItem('dexcom_pass');
+    if (!u || !p) return;
+    try {
+      const res = await fetch(DEXCOM_FN, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY },
+        body: JSON.stringify({ username: u, password: atob(p) })
+      });
+      const data = await res.json();
+      if (data.readings?.[0]) _dexRenderReading(data.readings[0]);
+    } catch(e) {}
+  }
+  function _dexRenderReading(r) {
+    if (!r) return;
+    document.getElementById('dexcom-val').textContent = r.value ?? '--';
+    document.getElementById('dexcom-arrow').textContent = r.trendArrow ?? '—';
+    const t = r.time ? new Date(parseInt(r.time.replace(/\/Date\((\d+)\)\//, '$1'))) : null;
+    document.getElementById('dexcom-time').textContent = t ? `측정: ${t.toLocaleTimeString('ko-KR', {hour:'2-digit',minute:'2-digit'})}` : '';
+    document.getElementById('dexcom-live').style.display = '';
+    document.getElementById('dexcom-idle').style.display = 'none';
+    document.getElementById('dexcom-setup-btn').style.display = 'none';
+  }
+  function _dexStartTimer() {
+    if (_dexTimer) clearInterval(_dexTimer);
+    _dexTimer = setInterval(fetchDexcom, 5 * 60 * 1000);
+  }
+  function disconnectDexcom() {
+    if (!confirm('덱스콤 연동을 해제할까요?')) return;
+    localStorage.removeItem('dexcom_user'); localStorage.removeItem('dexcom_pass');
+    clearInterval(_dexTimer); _dexTimer = null;
+    document.getElementById('dexcom-live').style.display = 'none';
+    document.getElementById('dexcom-idle').style.display = '';
+    document.getElementById('dexcom-setup-btn').style.display = '';
+  }
+  // 앱 시작 시 저장된 계정 있으면 자동 연동
+  window.addEventListener('hi:loggedin', () => {
+    if (localStorage.getItem('dexcom_user') && localStorage.getItem('dexcom_pass')) {
+      fetchDexcom(); _dexStartTimer();
+    }
+  });
+
   // ── Run Course Detail ──
   function openRunCourseDetail(html) {
     const sheet = document.getElementById('rd-course-sheet');
