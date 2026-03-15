@@ -880,13 +880,13 @@
     .home-logo-wrap { text-align: center; padding: 18px 0 10px; }
     .home-logo-img  { height: 72px; width: auto; display: inline-block; }
 
-    .hc-body { padding: 20px 20px 0; display: flex; flex-direction: column; }
-    .hero-greeting { font-size: 14px; opacity: 0.85; margin-bottom: 8px; }
+    .hc-body { padding: 16px 20px 0; display: flex; flex-direction: column; }
+    .hero-greeting { font-size: 14px; opacity: 0.85; margin-bottom: 6px; }
     .hero-stats {
       display: flex; gap: 0;
       background: rgba(0,0,0,0.18);
       border-top: 1px solid rgba(255,255,255,0.12);
-      margin: 16px -20px 0; padding: 13px 20px;
+      margin: 10px -20px 0; padding: 11px 20px;
       position: relative; z-index: 1;
     }
     .hero-stat { flex: 1; text-align: center; position: relative; }
@@ -1222,10 +1222,11 @@
     }
     .photo-lightbox {
       position: fixed; inset: 0; background: rgba(0,0,0,0.88);
-      z-index: 500; display: flex; align-items: center; justify-content: center;
+      z-index: 10000; display: flex; align-items: center; justify-content: center;
       padding: 20px; cursor: pointer;
     }
-    .photo-lightbox img { max-width:100%; max-height:80vh; border-radius:12px; }
+    .photo-lightbox img { max-width:100%; max-height:80vh; border-radius:12px; pointer-events:none; }
+    .photo-lightbox-close { position:absolute; top:max(env(safe-area-inset-top),16px); right:16px; width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.15); border:none; color:#fff; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:1; }
     .avatar-preview-overlay {
       position: fixed; inset: 0; z-index: 650;
       background: rgba(2, 6, 23, 0.88);
@@ -1606,8 +1607,8 @@
     .glucose-graph-legend { display:flex; gap:12px; justify-content:center; font-size:10px; font-weight:600; margin-top:8px; flex-wrap:wrap; color:var(--text-secondary); }
     .glucose-graph-empty { text-align:center; padding:24px 0; color:var(--text-secondary); font-size:13px; line-height:1.7; }
 
-    .hero-name-row { display:flex; align-items:center; gap:10px; margin-bottom:14px; overflow:hidden; }
-    .hero-name { font-size:22px; font-weight:800; margin-bottom:0; line-height:1; flex-shrink:0; }
+    .hero-name-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; overflow:hidden; line-height:1.2; }
+    .hero-name { font-size:22px; font-weight:800; margin-bottom:0; line-height:1.2; flex-shrink:0; align-self:center; }
     .hero-name::after { content:''; display:inline-block; width:1px; height:14px; background:rgba(255,255,255,0.3); margin-left:10px; vertical-align:middle; }
     .profile-edit-btn { background:rgba(255,255,255,0.22); border:none; cursor:pointer; font-size:12px; padding:3px 10px; border-radius:20px; color:white; flex-shrink:0; }
     .profile-modal-overlay {
@@ -1701,11 +1702,16 @@
     }
     .pm-push-status.off { background:#F1F5F9; color:#64748B; }
     .pm-push-copy {
-      margin-bottom:12px;
-      font-size:12px; line-height:1.6; color:#475569;
+      margin-bottom:10px;
+      font-size:11px; line-height:1.45; color:#64748B;
     }
     .pm-push-actions {
       display:flex; flex-wrap:wrap; gap:8px;
+    }
+    .pm-push-panel .pm-panel-sub {
+      font-size:10px;
+      line-height:1.4;
+      color:#94A3B8;
     }
     .pm-push-btn {
       flex:1 1 0;
@@ -1761,9 +1767,9 @@
     .pm-challenge-info { font-size:12px; color:#334155; line-height:1.55; }
     .pm-challenge-phase { font-size:11px; font-weight:700; color:var(--primary); margin-top:8px; }
     /* Hero card tag display */
-    .hero-tags { display:flex; flex-wrap:nowrap; gap:5px; margin-bottom:0; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; flex:1; min-width:0; }
+    .hero-tags { display:flex; flex-wrap:nowrap; align-items:center; gap:5px; margin-bottom:0; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; flex:1; min-width:0; align-self:center; }
     .hero-tags::-webkit-scrollbar { display:none; }
-    .hero-tag { font-size:10px; padding:3px 10px; border-radius:20px; background:rgba(255,255,255,0.18); color:#fff; font-weight:600; flex-shrink:0; white-space:nowrap; letter-spacing:0.02em; border:1px solid rgba(255,255,255,0.25); }
+    .hero-tag { font-size:10px; padding:4px 10px; border-radius:20px; background:rgba(255,255,255,0.18); color:#fff; font-weight:600; flex-shrink:0; white-space:nowrap; letter-spacing:0.02em; border:1px solid rgba(255,255,255,0.25); line-height:1.2; }
     .avatar-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; margin-bottom:10px; }
     .avatar-opt {
       width:100%; aspect-ratio:1; padding:0; --avatar-pad:0px;
@@ -3263,24 +3269,6 @@
     </div>
     <div id="hero-spacer"></div>
 
-    <button type="button" class="btn-run-tracker" id="btn-run-tracker" onclick="openRunTracker()">
-      <div class="btn-run-tracker-col btn-run-tracker-col--logo">
-        <div class="btn-run-tracker-sticker">
-          <img src="images/4x/run_day_bla.png" class="btn-run-tracker-char" alt="">
-          <div class="btn-run-tracker-logo-wrap">
-            <img src="images/4x/run_day.png" class="btn-run-tracker-logo" alt="RunDay">
-            <div class="btn-run-tracker-sub">거리 · 페이스 · 시간 측정</div>
-          </div>
-        </div>
-      </div>
-      <div class="btn-run-tracker-col btn-run-tracker-col--char">
-        <div class="btn-run-tracker-cta">
-          달리기 측정하기
-          <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 4.5 10.5 10l-5 5.5"/><path d="M10 4.5 15 10l-5 5.5"/></svg>
-        </div>
-      </div>
-    </button>
-
     <div class="quick-grid">
       <button class="quick-btn" onclick="quickNav(this,()=>navigate('exercise'))">
         <div class="qi-icon">
@@ -3333,10 +3321,36 @@
       </button>
     </div>
 
+    <button type="button" class="btn-run-tracker" id="btn-run-tracker" onclick="openRunTracker()">
+      <div class="btn-run-tracker-col btn-run-tracker-col--logo">
+        <div class="btn-run-tracker-sticker">
+          <img src="images/4x/run_day_bla.png" class="btn-run-tracker-char" alt="">
+          <div class="btn-run-tracker-logo-wrap">
+            <img src="images/4x/run_day.png" class="btn-run-tracker-logo" alt="RunDay">
+            <div class="btn-run-tracker-sub">거리 · 페이스 · 시간 측정</div>
+          </div>
+        </div>
+      </div>
+      <div class="btn-run-tracker-col btn-run-tracker-col--char">
+        <div class="btn-run-tracker-cta">
+          달리기 측정하기
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 4.5 10.5 10l-5 5.5"/><path d="M10 4.5 15 10l-5 5.5"/></svg>
+        </div>
+      </div>
+    </button>
+
     <div class="card">
       <div class="card-header">
-        <span class="card-title">이번 주 활동</span>
-        <span class="badge badge-primary" id="week-total-badge">0분</span>
+        <span class="card-title" id="week-card-title">이번 주 활동</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button type="button" id="week-prev-btn" onclick="shiftWeek(-1)" style="background:none;border:none;cursor:pointer;padding:2px 4px;color:var(--text-secondary);display:flex;align-items:center;border-radius:6px">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5L8 10l5 5"/></svg>
+          </button>
+          <button type="button" id="week-next-btn" onclick="shiftWeek(1)" style="background:none;border:none;cursor:pointer;padding:2px 4px;color:var(--text-secondary);display:flex;align-items:center;border-radius:6px">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 5l5 5-5 5"/></svg>
+          </button>
+          <span class="badge badge-primary" id="week-total-badge">0분</span>
+        </div>
       </div>
       <div class="week-grid" id="week-grid"></div>
     </div>
@@ -5363,17 +5377,48 @@ function todayWorkouts() {
   const today = new Date().toDateString();
   return S.workouts.filter(w => new Date(w.ts).toDateString() === today);
 }
-function weekData() {
+let _weekOffset = 0;
+function weekData(offset = _weekOffset) {
   const now = new Date();
-  const dow = now.getDay(); // 0=Sun
+  const dow = now.getDay();
+  const base = new Date(now); base.setDate(now.getDate() - dow + offset * 7);
   return Array.from({length:7}, (_,i) => {
-    const d = new Date(now); d.setDate(now.getDate() - dow + i);
+    const d = new Date(base); d.setDate(base.getDate() + i);
     const ds = d.toDateString();
     const mins = S.workouts
       .filter(w => new Date(w.ts).toDateString() === ds)
       .reduce((s,w) => s + w.duration, 0);
     return { label: `${d.getMonth()+1}/${d.getDate()} ${WEEK_DAYS[i]}`, mins, isToday: ds === now.toDateString() };
   });
+}
+function shiftWeek(dir) {
+  _weekOffset += dir;
+  if (_weekOffset > 0) _weekOffset = 0;
+  renderWeekCard();
+}
+function renderWeekCard() {
+  const wd = weekData();
+  const maxMins = Math.max(...wd.map(d => d.mins), 1);
+  const totalWeekMins = wd.reduce((s,d) => s+d.mins, 0);
+  const now = new Date();
+  const dow = now.getDay();
+  const weekStart = new Date(now); weekStart.setDate(now.getDate() - dow + _weekOffset * 7);
+  const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6);
+  const fmt = d => `${d.getMonth()+1}/${d.getDate()}`;
+  const title = _weekOffset === 0 ? '이번 주 활동' : `${fmt(weekStart)} ~ ${fmt(weekEnd)}`;
+  document.getElementById('week-card-title').textContent = title;
+  document.getElementById('week-total-badge').textContent = totalWeekMins + '분';
+  document.getElementById('week-next-btn').style.opacity = _weekOffset === 0 ? '0.25' : '1';
+  document.getElementById('week-next-btn').style.pointerEvents = _weekOffset === 0 ? 'none' : '';
+  document.getElementById('week-grid').innerHTML = wd.map(d => `
+    <div class="week-day ${d.isToday ? 'today' : ''}">
+      <span class="week-label">${d.label}</span>
+      <div class="week-bar">
+        <div class="week-fill" style="height:${d.mins ? Math.max(10, (d.mins/maxMins*100)) : 0}%"></div>
+      </div>
+      <span class="week-val">${d.mins || ''}</span>
+    </div>
+  `).join('');
 }
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -5805,19 +5850,7 @@ function renderHome() {
   document.getElementById('comm-quick').textContent = myPostCnt === 0 ? '응원 메시지를 남겨보세요' : '내 글 ' + myPostCnt + '개 · 댓글 ' + myCommentCnt + '개';
 
   // Weekly chart
-  const wd = weekData();
-  const maxMins = Math.max(...wd.map(d => d.mins), 1);
-  const totalWeekMins = wd.reduce((s,d) => s+d.mins, 0);
-  document.getElementById('week-total-badge').textContent = totalWeekMins + '분';
-  document.getElementById('week-grid').innerHTML = wd.map(d => `
-    <div class="week-day ${d.isToday ? 'today' : ''}">
-      <span class="week-label">${d.label}</span>
-      <div class="week-bar">
-        <div class="week-fill" style="height:${d.mins ? Math.max(10, (d.mins/maxMins*100)) : 0}%"></div>
-      </div>
-      <span class="week-val">${d.mins || ''}</span>
-    </div>
-  `).join('');
+  renderWeekCard();
 
   // Achievements strip
   const earned = earnedAchs();
@@ -7997,6 +8030,7 @@ function resetToLoggedOutState() {
   const pmChTag = document.getElementById('pm-challenge-tag');
   if (pmChTag) pmChTag.style.display = 'none';
 
+  document.getElementById('ch-dup-warn')?.classList.remove('show');
   document.getElementById('profile-modal').classList.add('pm-hidden');
   document.getElementById('app-login-screen').classList.remove('hidden');
   document.getElementById('login-empid-input').value = '';
@@ -9747,9 +9781,14 @@ function openShoeLightbox(src, alt) {
   const box = document.createElement('div');
   box.className = 'photo-lightbox';
   box.onclick = () => box.remove();
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'photo-lightbox-close';
+  closeBtn.innerHTML = '✕';
+  closeBtn.onclick = (e) => { e.stopPropagation(); box.remove(); };
   const img = document.createElement('img');
   img.src = src;
   img.alt = alt || '운동화 이미지';
+  box.appendChild(closeBtn);
   box.appendChild(img);
   document.body.appendChild(box);
 }
@@ -11284,21 +11323,6 @@ init();
     <div class="pm-panel">
       <div class="pm-panel-head">
         <div>
-          <div class="pm-panel-title">앱 알림</div>
-          <div class="pm-panel-sub">관리자 공지와 RUN DAY 안내를 기기 알림으로 받아볼 수 있어요</div>
-        </div>
-        <span class="pm-push-status off" id="pm-push-status">확인 중</span>
-      </div>
-      <div class="pm-push-copy" id="pm-push-help">이 기기에서 받을 알림 설정을 준비하고 있어요.</div>
-      <div class="pm-push-actions">
-        <button type="button" class="pm-push-btn primary" id="pm-push-enable-btn" onclick="enablePushNotifications()">알림 켜기</button>
-        <button type="button" class="pm-push-btn" id="pm-push-disable-btn" onclick="disablePushNotifications()">알림 끄기</button>
-        <button type="button" class="pm-push-btn ghost" id="pm-push-preview-btn" onclick="previewPushNotification()">미리보기</button>
-      </div>
-    </div>
-    <div class="pm-panel">
-      <div class="pm-panel-head">
-        <div>
           <div class="pm-panel-title">아바타</div>
           <div class="pm-panel-sub">탭하면 크게 보고 선택할 수 있어요</div>
         </div>
@@ -11320,6 +11344,21 @@ init();
       <div class="pm-section-body" id="pm-section-tag">
         <div id="pm-tag-list"></div>
         <div style="font-size:11px;color:#9ca3af;margin-top:10px;text-align:center;">선택한 태그가 홈화면에 바로 보여집니다</div>
+      </div>
+    </div>
+    <div class="pm-panel pm-push-panel">
+      <div class="pm-panel-head">
+        <div>
+          <div class="pm-panel-title">앱 알림</div>
+          <div class="pm-panel-sub">관리자 공지와 RUN DAY 안내를 기기 알림으로 받아볼 수 있어요</div>
+        </div>
+        <span class="pm-push-status off" id="pm-push-status">확인 중</span>
+      </div>
+      <div class="pm-push-copy" id="pm-push-help">이 기기에서 받을 알림 설정을 준비하고 있어요.</div>
+      <div class="pm-push-actions">
+        <button type="button" class="pm-push-btn primary" id="pm-push-enable-btn" onclick="enablePushNotifications()">알림 켜기</button>
+        <button type="button" class="pm-push-btn" id="pm-push-disable-btn" onclick="disablePushNotifications()">알림 끄기</button>
+        <button type="button" class="pm-push-btn ghost" id="pm-push-preview-btn" onclick="previewPushNotification()">미리보기</button>
       </div>
     </div>
     <div class="pm-actions">
