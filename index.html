@@ -78,14 +78,29 @@
     /* ── App Login Screen ── */
     .app-login-screen {
       position: fixed; inset: 0; z-index: 2000;
-      background: linear-gradient(150deg, #f5f3ff 0%, #ede9fe 55%, #ddd6fe 100%);
+      background: linear-gradient(160deg, #ffffff 0%, #f5f5f3 52%, #ececeb 100%);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       padding: 20px; overflow-y: auto; overflow-x: hidden;
     }
     .app-login-screen.hidden { display: none; }
+    .app-login-bg-circle { position:absolute; border-radius:50%; pointer-events:none; }
+    .app-login-bg-circle.bg-one {
+      width:320px; height:320px; top:-100px; right:-80px;
+      background: radial-gradient(circle, rgba(209,213,219,0.3) 0%, transparent 70%);
+    }
+    .app-login-bg-circle.bg-two {
+      width:240px; height:240px; bottom:-80px; left:-60px;
+      background: radial-gradient(circle, rgba(229,231,235,0.5) 0%, transparent 72%);
+    }
     /* 챌린지(runday) 전용 스타일 */
     .app-login-screen.runday {
       background: linear-gradient(150deg, #f5f3ff 0%, #ede9fe 55%, #ddd6fe 100%);
+    }
+    .app-login-screen.runday .app-login-bg-circle.bg-one {
+      background: radial-gradient(circle,rgba(109,40,217,.14) 0%,transparent 70%);
+    }
+    .app-login-screen.runday .app-login-bg-circle.bg-two {
+      background: radial-gradient(circle,rgba(139,92,246,.12) 0%,transparent 70%);
     }
     .app-login-hero { text-align: center; margin-bottom: 20px; position: relative; z-index: 1; }
     .app-login-eyebrow {
@@ -179,7 +194,6 @@
     }
     .app-login-keep input[type=checkbox] { width: 16px; height: 16px; accent-color: #7C3AED; cursor: pointer; }
     .app-login-keep span { font-size: 12px; color: #6D28D9; opacity: 0.55; }
-    .app-login-bg-circle { position:absolute; border-radius:50%; pointer-events:none; }
     .login-divider {
       display: flex; align-items: center; gap: 10px; margin: 16px 0 14px;
     }
@@ -3123,8 +3137,8 @@
 
 <!-- 앱 로그인 화면 -->
 <div class="app-login-screen" id="app-login-screen">
-  <div class="app-login-bg-circle" style="width:320px;height:320px;top:-100px;right:-80px;background:radial-gradient(circle,rgba(109,40,217,.14) 0%,transparent 70%)"></div>
-  <div class="app-login-bg-circle" style="width:240px;height:240px;bottom:-80px;left:-60px;background:radial-gradient(circle,rgba(139,92,246,.12) 0%,transparent 70%)"></div>
+  <div class="app-login-bg-circle bg-one"></div>
+  <div class="app-login-bg-circle bg-two"></div>
   <div class="app-login-hero" id="login-run-hero" style="display:none">
     <div class="app-login-run">HI RUN DAY!</div>
     <div class="app-login-date">2026년 4월 15일 (수) &nbsp;<span style="opacity:0.7;font-weight:500">PM 2:30</span></div>
