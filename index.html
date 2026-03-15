@@ -367,6 +367,22 @@
       backdrop-filter: none;
     }
     .app-header.challenge-mode::before { display: none; }
+    .app-header.challenge-mode .header-profile-label {
+      color: rgba(30,16,71,0.68);
+    }
+    .app-header.challenge-mode .header-profile-trigger {
+      padding: 0;
+      border-radius: 0;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+    .app-header.challenge-mode .header-avatar {
+      border-color: rgba(30,16,71,0.14);
+      background: rgba(255,255,255,0.66);
+    }
     .header-logo { display: flex; align-items: center; min-height: 38px; }
     .logo-img       { height: 40px; width: auto; display: block; }
     .logo-img-white { height: 28px; width: auto; display: none; }
@@ -1750,11 +1766,11 @@
     .install-close { background:none; border:none; font-size:20px; color:var(--text-secondary); cursor:pointer; padding:0; line-height:1; }
     .install-steps { display:flex; flex-direction:column; gap:12px; margin-bottom:18px; }
     .install-step { display:flex; align-items:flex-start; gap:12px; }
-    .install-step-num { width:24px; height:24px; border-radius:50%; background:var(--accent); color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+    .install-step-num { width:24px; height:24px; border-radius:50%; background:#4c1d95; color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
     .install-step-text { font-size:14px; line-height:1.5; color:var(--text); }
     .install-step-text strong { font-weight:700; }
-    .install-step-icon { display:inline-block; background:#F1F5F9; border-radius:6px; padding:2px 7px; font-size:13px; margin:0 2px; vertical-align:middle; }
-    .install-btn { width:100%; padding:13px; border-radius:12px; border:none; background:var(--accent); color:#fff; font-size:15px; font-weight:700; cursor:pointer; }
+    .install-step-icon { display:inline-flex; align-items:center; justify-content:center; background:#F1F5F9; border-radius:6px; padding:2px 7px; font-size:13px; margin:0 2px; vertical-align:middle; }
+    .install-btn { width:100%; padding:13px; border-radius:12px; border:none; background:#4c1d95; color:#fff; font-size:15px; font-weight:700; cursor:pointer; }
     .install-skip { text-align:center; margin-top:10px; font-size:12px; color:var(--text-secondary); cursor:pointer; text-decoration:underline; }
     .install-kakao-notice { background:#FEF9C3; border-radius:10px; padding:12px 14px; margin-bottom:14px; font-size:13px; line-height:1.6; color:#78350F; }
     .install-kakao-notice strong { font-weight:700; }
@@ -10914,21 +10930,21 @@ init();
 <div id="install-overlay" class="install-overlay pm-hidden">
   <div class="install-card">
     <div class="install-header">
-      <div class="install-title">📲 홈 화면에 추가하기</div>
+      <div class="install-title">홈 화면에 바로가기 추가하기</div>
       <button class="install-close" onclick="closeInstallGuide()">✕</button>
     </div>
     <div id="install-kakao-ios" class="install-kakao-notice" style="display:none">
-      ⚠️ 카카오톡 브라우저에서는 홈화면 추가가 되지 않아요.<br>
+      💬 카카오톡 브라우저에서는 홈화면 추가가 되지 않아요.<br>
       화면 하단 <strong>···</strong> → <strong>'Safari로 열기'</strong> 후 아래 절차를 따라주세요.
     </div>
     <div id="install-kakao-android" class="install-kakao-notice" style="display:none">
-      ⚠️ 카카오톡 브라우저에서는 홈화면 추가가 되지 않아요.<br>
+      💬 카카오톡 브라우저에서는 홈화면 추가가 되지 않아요.<br>
       화면 우측 상단 <strong>⋮</strong> → <strong>'기본 브라우저로 열기'</strong> 후 아래 절차를 따라주세요.
     </div>
     <div id="install-steps-ios" class="install-steps" style="display:none">
       <div class="install-step">
         <div class="install-step-num">1</div>
-        <div class="install-step-text">Safari 하단의 <span class="install-step-icon">공유 □↑</span> 버튼을 탭하세요</div>
+        <div class="install-step-text">Safari 하단의 <span class="install-step-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></span> 버튼을 탭하세요</div>
       </div>
       <div class="install-step">
         <div class="install-step-num">2</div>
