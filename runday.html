@@ -58,29 +58,29 @@
       pointer-events: auto;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      border: none;
-      background: transparent;
-      padding: 0;
-      border-radius: 0;
+      gap: 8px;
+      border: 1px solid rgba(255,255,255,0.78);
+      background: rgba(255,255,255,0.72);
+      padding: 5px 6px 5px 12px;
+      border-radius: 999px;
       box-shadow: none;
-      -webkit-backdrop-filter: none;
-      backdrop-filter: none;
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
       cursor: pointer;
       font-family: inherit;
     }
     .hero-profile-label {
       font-size: 11px;
       font-weight: 600;
-      color: rgba(30,16,71,0.72);
+      color: rgba(30,16,71,0.82);
     }
     .hero-profile-avatar {
       width: 38px;
       height: 38px;
       border-radius: 50%;
-      border: 1.5px solid rgba(30,16,71,0.12);
-      background: rgba(255,255,255,0.28);
-      box-shadow: 0 3px 10px rgba(15,23,42,0.06);
+      border: 1.5px solid rgba(30,16,71,0.1);
+      background: rgba(255,255,255,0.92);
+      box-shadow: none;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -98,14 +98,14 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding-top: 24px;
+      padding-top: 44px;
     }
     body.embedded-runday .hero-topbar { display: none; }
 
     /* 마스코트 */
     .hero-char {
       width: 120px;
-      margin-top: 64px;
+      margin-top: 88px;
       margin-bottom: 16px;
       animation: bob 3s ease-in-out infinite;
       filter: none;
@@ -278,12 +278,12 @@
     .sch-body { flex: 1; padding-bottom: 24px; }
     .sch-date-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
     .sch-phase { font-size: 10px; font-weight: 700; color: var(--dim); white-space: nowrap; }
-    .sch-date { font-size: 13px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
+    .sch-date { font-size: 12.5px; font-weight: 500; color: var(--text); letter-spacing: -0.45px; }
     .sch-desc { font-size: 13px; color: var(--sub); line-height: 1.65; }
     .sch-tags {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
+      gap: 4px;
       margin-top: 6px;
     }
     .sch-tag {
@@ -345,8 +345,8 @@
       50% { transform: translateY(-2px) scale(1.03); }
     }
     @keyframes routeChipGlow {
-      0%, 100% { box-shadow: 0 5px 14px rgba(14,165,233,0.18); }
-      50% { box-shadow: 0 9px 18px rgba(14,165,233,0.28); }
+      0%, 100% { box-shadow: 0 4px 10px rgba(14,165,233,0.14); }
+      50% { box-shadow: 0 7px 14px rgba(14,165,233,0.22); }
     }
     .route-focus-chip {
       display:inline-flex;
@@ -366,7 +366,7 @@
       white-space:nowrap;
       cursor:pointer;
       touch-action:manipulation;
-      box-shadow:0 5px 14px rgba(14,165,233,0.18);
+      box-shadow:0 4px 10px rgba(14,165,233,0.14);
       transition:filter 0.15s ease;
       animation:routeChipFloat 1.9s ease-in-out infinite, routeChipGlow 1.9s ease-in-out infinite;
       position:relative;
@@ -1010,7 +1010,7 @@
         HI 8주년을 맞이하는 특별한 챌린지
       </p>
       <div class="hero-chips">
-        <div class="chip"><span class="chip-dot" style="background:#f97316"></span>3/22 워밍업</div>
+        <div class="chip"><span class="chip-dot" style="background:#22c55e"></span>3/22 워밍업</div>
         <div class="chip"><span class="chip-dot" style="background:#6366f1"></span>4/5 페이스업</div>
         <div class="chip"><span class="chip-dot" style="background:#a855f7"></span>4/15 RUN DAY</div>
       </div>
@@ -1085,10 +1085,10 @@
             <div class="sch-phase">페이스업</div>
             <div class="sch-date">4월 5일 – 4월 14일</div>
           </div>
-          <div class="sch-desc">운동 + 혈당 기록을 함께 진행하는 페이스업 기간입니다.</div>
+          <div class="sch-desc">운동 + 혈당 기록을 함께 진행하는 집중 훈련 기간입니다.</div>
           <div class="sch-tags">
             <span class="sch-tag">운동 + 혈당 주 3회 이상</span>
-            <span class="sch-tag">혈당체크기기(덱스콤7) 제공</span>
+            <span class="sch-tag">혈당체크기기 제공</span>
           </div>
         </div>
       </div>
@@ -1102,10 +1102,10 @@
             <div class="sch-phase">RUN DAY</div>
             <div class="sch-date">4월 15일</div>
           </div>
-          <div class="sch-desc">HI 개원 8주년 기념 · 함께달리기 여의도→선유도공원 약 4.7km · 달린만큼 기부가 진행됩니다.</div>
+          <div class="sch-desc">HI 개원 8주년 기념 · 함께 달리기 여의도→선유도공원</div>
           <div class="sch-tags">
-            <span class="sch-tag">크루즈 탑승 포함</span>
-            <span class="sch-tag">함께 달려요</span>
+            <span class="sch-tag">4.1KM 완주</span>
+            <span class="sch-tag">함께 달리고 기부해요</span>
           </div>
         </div>
       </div>
@@ -1166,7 +1166,7 @@
         <div class="prog-body">
           <div class="prog-row">
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0;">
-              <div class="prog-title">함께 달리기 <span style="font-size:11px;font-weight:500;opacity:0.6;">약 4.7km</span></div>
+              <div class="prog-title">함께 달리기 <span style="font-size:11px;font-weight:500;opacity:0.6;">약 4.1km</span></div>
               <button type="button" class="route-focus-chip" id="route-focus-toggle" onclick="openCourseDetail()" aria-haspopup="dialog" aria-controls="route-detail-modal">
                 <span>RUN COURSE DETAIL</span>
                 <span class="route-focus-chip-sep" aria-hidden="true"></span>
@@ -1178,7 +1178,7 @@
             </div>
             <div class="prog-time">pm 2:30</div>
           </div>
-          <div class="prog-desc">여의도 유람선터미널 출발 → 선유도공원 입구 · 전문 트레이너 코칭</div>
+          <div class="prog-desc">여의도 유람선터미널 출발 → 선유도공원 · 전문 트레이너 코칭</div>
         </div>
       </div>
     </div>
@@ -1203,7 +1203,7 @@
       <div>
         <div class="route-modal-kicker">RUN COURSE DETAIL</div>
         <div class="route-modal-title" id="route-modal-title">여의도 유람선터미널 → 선유도공원 입구</div>
-        <div class="route-modal-sub">한강변 기준 약 4.7km 코스입니다. 평지 위주로 이어지지만 단체 러닝에서는 보행 구간과 포토타임을 함께 고려해 운영합니다.</div>
+        <div class="route-modal-sub">한강변 기준 약 4.1km 코스입니다. 평지 위주로 이어지지만 단체 러닝에서는 보행 구간과 포토타임을 함께 고려해 운영합니다.</div>
       </div>
       <button type="button" class="route-modal-close" onclick="closeCourseDetail()" aria-label="닫기">✕</button>
     </div>
@@ -1211,7 +1211,7 @@
       <div class="route-focus-stats" style="margin-top:0">
         <div class="route-focus-stat">
           <div class="route-focus-stat-label">Distance</div>
-          <div class="route-focus-stat-value">약 4.7km</div>
+          <div class="route-focus-stat-value">약 4.1km</div>
         </div>
         <div class="route-focus-stat">
           <div class="route-focus-stat-label">Running</div>
@@ -1233,34 +1233,20 @@
               <stop offset="0%" stop-color="#fdfefe"></stop>
               <stop offset="100%" stop-color="#eef6ff"></stop>
             </linearGradient>
-            <linearGradient id="route-focus-river" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#9edcff"></stop>
-              <stop offset="100%" stop-color="#54bdf5"></stop>
-            </linearGradient>
             <filter id="route-focus-shadow" x="-20%" y="-20%" width="140%" height="140%">
               <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#0f172a" flood-opacity="0.08"></feDropShadow>
             </filter>
+            <clipPath id="route-focus-photo-clip">
+              <rect width="360" height="214" rx="18"></rect>
+            </clipPath>
           </defs>
-          <rect width="360" height="214" rx="18" fill="url(#route-focus-bg)"></rect>
-          <circle cx="320" cy="188" r="54" fill="#dbeafe" opacity="0.78"></circle>
-          <circle cx="40" cy="26" r="50" fill="#dcfce7" opacity="0.72"></circle>
-          <path d="M0 0H360V82C333 89 308 93 275 92C230 91 193 81 145 79C96 76 48 81 0 94Z" fill="#d9f99d" opacity="0.42"></path>
-          <path d="M0 96C49 85 95 81 144 84C198 87 244 99 293 95C322 93 343 87 360 80V134C343 140 322 144 292 146C243 149 197 138 144 134C94 131 48 134 0 143Z" fill="url(#route-focus-river)"></path>
-          <path d="M0 104C49 93 95 90 144 93C198 96 244 107 293 103C322 101 343 94 360 87" fill="none" stroke="rgba(255,255,255,0.68)" stroke-width="2.2" stroke-linecap="round"></path>
-          <path d="M0 130C47 120 91 116 139 118C188 121 235 131 286 127C317 125 339 118 360 108V214H0Z" fill="#d9f99d" opacity="0.45"></path>
-          <path d="M298 144C270 138 242 133 211 133C176 133 144 138 114 140C90 142 70 144 52 142" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"></path>
-          <path d="M298 144C270 138 242 133 211 133C176 133 144 138 114 140C90 142 70 144 52 142" fill="none" stroke="#a78bfa" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.38"></path>
-          <path d="M298 144C270 138 242 133 211 133C176 133 144 138 114 140C90 142 70 144 52 142" fill="none" stroke="#7c3aed" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"></path>
-          <path d="M57.2 142L65.4 137.6L62.7 142L65.4 146.4Z" fill="#7c3aed" stroke="rgba(255,255,255,0.82)" stroke-width="0.6" stroke-linejoin="round"></path>
-          <path d="M178 92V137" stroke="#1d4ed8" stroke-width="2" stroke-linecap="round" opacity="0.28"></path>
-          <text x="178" y="87" text-anchor="middle" font-size="10" fill="#1d4ed8" font-family="sans-serif" font-weight="700" opacity="0.75">양화대교</text>
-          <path d="M298 144L298 138.5" stroke="#0f172a" stroke-opacity="0.2" stroke-width="1.8" stroke-linecap="round"></path>
-          <path d="M52 142L52 136.5" stroke="#16a34a" stroke-opacity="0.24" stroke-width="1.8" stroke-linecap="round"></path>
-          <circle cx="298" cy="144" r="15" fill="#0f172a" opacity="0.08"></circle>
-          <circle cx="52" cy="142" r="15" fill="#22c55e" opacity="0.14"></circle>
-          <circle cx="298" cy="144" r="4.8" fill="#ffffff" stroke="#0f172a" stroke-width="2.1"></circle>
-          <circle cx="52" cy="142" r="4.8" fill="#ffffff" stroke="#16a34a" stroke-width="2.1"></circle>
-          <g transform="translate(298 125)" filter="url(#route-focus-shadow)">
+          <g clip-path="url(#route-focus-photo-clip)">
+          <g transform="translate(4,-10) scale(1.22)">
+          <g transform="rotate(1.6 180 107)">
+          <image href="images/avatars/IMG_2162_clean.png?v=20260315-63" x="0" y="-48" width="360" height="358.6"></image>
+          <rect width="360" height="214" rx="18" fill="url(#route-focus-bg)" opacity="0.14"></rect>
+          <g transform="translate(0,-10)">
+          <g transform="translate(252 143)" filter="url(#route-focus-shadow)">
             <g transform="scale(1.15)">
               <circle r="10.5" fill="#ffffff" stroke="#0f172a" stroke-opacity="0.18" stroke-width="1.2"></circle>
               <path d="M-4.1 1.9H4.1L2.9 -1.1H-2.9Z" fill="#ffffff" stroke="#0284c7" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -1268,7 +1254,7 @@
               <path d="M-4 3.6C-3 4.2-2 4.2-1 3.6C0 4.2 1 4.2 2 3.6C3 4.2 3.8 4.1 4.5 3.6" fill="none" stroke="#0284c7" stroke-width="1.05" stroke-linecap="round"></path>
             </g>
           </g>
-          <g transform="translate(52 123)" filter="url(#route-focus-shadow)">
+          <g transform="translate(52 52)" filter="url(#route-focus-shadow)">
             <g transform="scale(1.15)">
               <circle r="10.5" fill="#ffffff" stroke="#16a34a" stroke-opacity="0.24" stroke-width="1.2"></circle>
               <circle cx="0" cy="-2.6" r="3" fill="#22c55e"></circle>
@@ -1278,20 +1264,16 @@
               <path d="M-3.7 5.2H3.7" stroke="#16a34a" stroke-width="1.1" stroke-linecap="round"></path>
             </g>
           </g>
-          <circle cx="214" cy="133" r="5.5" fill="#ffffff" stroke="#38bdf8" stroke-width="2.4"></circle>
-          <circle cx="214" cy="133" r="2.1" fill="#60a5fa"></circle>
-          <circle cx="156" cy="137" r="5.5" fill="#ffffff" stroke="#38bdf8" stroke-width="2.4"></circle>
-          <circle cx="156" cy="137" r="2.1" fill="#60a5fa"></circle>
-          <text x="180" y="176" text-anchor="middle" font-size="11.5" fill="#075985" font-family="sans-serif" font-weight="800" opacity="0.82">한강변 4.7km</text>
           <g filter="url(#route-focus-shadow)">
-            <rect x="228" y="166" width="116" height="38" rx="16" fill="rgba(255,255,255,0.97)"></rect>
-            <text x="286" y="181" text-anchor="middle" font-size="9" fill="#64748b" font-family="sans-serif" font-weight="800">START</text>
-            <text x="286" y="194" text-anchor="middle" font-size="11.5" fill="#0f172a" font-family="sans-serif" font-weight="800">유람선터미널</text>
+            <rect x="225" y="159" width="54" height="20" rx="10" fill="rgba(2,132,199,0.92)"></rect>
+            <text x="252" y="172" text-anchor="middle" font-size="9.2" fill="#ffffff" font-family="sans-serif" font-weight="800">START</text>
           </g>
           <g filter="url(#route-focus-shadow)">
-            <rect x="10" y="166" width="108" height="38" rx="16" fill="rgba(255,255,255,0.97)"></rect>
-            <text x="64" y="181" text-anchor="middle" font-size="9" fill="#16a34a" font-family="sans-serif" font-weight="800">FINISH</text>
-            <text x="64" y="194" text-anchor="middle" font-size="11.5" fill="#0f172a" font-family="sans-serif" font-weight="800">선유도 입구</text>
+            <rect x="25" y="68" width="54" height="20" rx="10" fill="rgba(22,163,74,0.92)"></rect>
+            <text x="52" y="81" text-anchor="middle" font-size="9.2" fill="#ffffff" font-family="sans-serif" font-weight="800">FINISH</text>
+          </g>
+          </g>
+          </g>
           </g>
         </svg>
       </div>
@@ -1312,7 +1294,7 @@
           <div class="route-focus-point-desc">보행자와 자전거가 섞일 수 있어 2열 이하 간격 유지가 필요한 구간입니다.</div>
         </div>
         <div class="route-focus-point">
-          <div class="route-focus-point-dist">4.7KM</div>
+          <div class="route-focus-point-dist">4.1KM</div>
           <div class="route-focus-point-title">선유도공원 입구 도착</div>
           <div class="route-focus-point-desc">도착 후 재정비와 마무리 스트레칭을 진행하기 편한 최종 집결 지점입니다.</div>
         </div>
@@ -1463,7 +1445,7 @@
       <div class="hdivider"></div>
       <div class="fg">
         <label class="lbl">함께 달리기 <span class="req">*</span></label>
-        <p class="hint">여의도 유람선터미널→선유도공원 입구 약 4.7km, 운영 페이스 기준 45~60분 내외로 진행합니다.</p>
+        <p class="hint">여의도 유람선터미널→선유도공원 입구 약 4.1km, 운영 페이스 기준 45~60분 내외로 진행합니다.</p>
         <div class="rg">
           <label class="rl"><input type="radio" name="event" value="yes">참여</label>
           <label class="rl"><input type="radio" name="event" value="no">불참</label>

@@ -3879,7 +3879,7 @@
 
   <!-- ████  CHALLENGE  ████ -->
   <section id="page-challenge" class="page">
-    <iframe id="runday-iframe" data-src="runday.html?v=20260315-56" title="HI RUN DAY" loading="lazy"></iframe>
+    <iframe id="runday-iframe" data-src="runday.html?v=20260315-64" title="HI RUN DAY" loading="lazy"></iframe>
   </section>
 
 </main>
@@ -5355,7 +5355,7 @@ function myWeekPts() {
    NAVIGATION
 ════════════════════════════════════════ */
 const _isTouch = () => window.matchMedia('(hover: none)').matches;
-const RUNDAY_IFRAME_SRC = 'runday.html?v=20260315-56';
+const RUNDAY_IFRAME_SRC = 'runday.html?v=20260315-64';
 let _rundayIframeReady = false;
 let _rundayIframeLoadStarted = false;
 const _rundayIframeQueue = [];
@@ -9996,7 +9996,7 @@ function renderChallenge() {
           <div>
             <div class="ch-route-kicker">RUN COURSE DETAIL</div>
             <div class="ch-route-title">여의도 유람선터미널에서 선유도공원 입구까지 달려요</div>
-            <div class="ch-route-sub">한강변 기준 약 4.7km 코스입니다. 평지 위주라 초보 러너도 부담이 적고, 단체 운영에서는 사진 촬영과 보행 구간을 포함해 여유 있게 이동합니다.</div>
+            <div class="ch-route-sub">한강변 기준 약 4.1km 코스입니다. 평지 위주라 초보 러너도 부담이 적고, 단체 운영에서는 사진 촬영과 보행 구간을 포함해 여유 있게 이동합니다.</div>
           </div>
           <button type="button" class="ch-route-toggle" id="ch-route-toggle" onclick="toggleChRouteDetail()" aria-expanded="${_chRouteExpanded ? 'true' : 'false'}">
             <span id="ch-route-toggle-label">${_chRouteExpanded ? '접기' : '자세히 보기'}</span>
@@ -10014,7 +10014,7 @@ function renderChallenge() {
         <div class="ch-route-stats">
           <div class="ch-route-stat">
             <div class="ch-route-stat-label">Distance</div>
-            <div class="ch-route-stat-value">약 4.7km</div>
+            <div class="ch-route-stat-value">약 4.1km</div>
           </div>
           <div class="ch-route-stat">
             <div class="ch-route-stat-label">Running</div>
@@ -10041,15 +10041,12 @@ function renderChallenge() {
                   <rect width="360" height="214" rx="18"></rect>
                 </clipPath>
               </defs>
-              <g clip-path="url(#ch-route-photo-clip)" transform="translate(-6,-10) scale(1.18)">
-              <image href="images/avatars/IMG_2162.jpg" x="0" y="-48" width="360" height="358.6"></image>
+              <g clip-path="url(#ch-route-photo-clip)">
+              <g transform="translate(4,-10) scale(1.22)">
+              <g transform="rotate(1.6 180 107)">
+              <image href="images/avatars/IMG_2162_clean.png?v=20260315-63" x="0" y="-48" width="360" height="358.6"></image>
               <rect width="360" height="214" rx="18" fill="url(#ch-route-sky)" opacity="0.14"></rect>
               <g transform="translate(0,-10)">
-              <g opacity="0.98">
-                <ellipse cx="286" cy="170" rx="22" ry="17" fill="#9fb7eb"></ellipse>
-                <ellipse cx="280" cy="178" rx="15" ry="9" fill="#8dc56e"></ellipse>
-                <path d="M268 178C276 172 288 170 300 174" fill="none" stroke="#f2e8c1" stroke-width="2.6" stroke-linecap="round"></path>
-              </g>
               <g transform="translate(48 52)">
                 <g transform="scale(1.15)">
                   <circle r="10.5" fill="#ffffff" stroke="#16a34a" stroke-opacity="0.24" stroke-width="1.2"></circle>
@@ -10074,6 +10071,7 @@ function renderChallenge() {
               <text x="228" y="93" text-anchor="middle" font-size="10.5" fill="#ffffff" font-family="sans-serif" font-weight="700">여의도 한강공원</text>
               <rect x="233" y="96" width="54" height="20" rx="10" fill="rgba(2,132,199,0.92)"></rect>
               <text x="260" y="109" text-anchor="middle" font-size="9.2" fill="#ffffff" font-family="sans-serif" font-weight="800">START</text>
+              </g>
               </g>
               </g>
             </svg>
@@ -10101,7 +10099,7 @@ function renderChallenge() {
               <div class="ch-route-point-desc">보행자와 자전거가 겹치는 구간이 있어 2열 이하로 간격을 맞춰 이동합니다.</div>
             </div>
             <div class="ch-route-point">
-              <div class="ch-route-point-dist">4.7KM</div>
+              <div class="ch-route-point-dist">4.1KM</div>
               <div class="ch-route-point-title">선유도공원 입구 도착</div>
               <div class="ch-route-point-desc">도착 후 재정비와 마무리 스트레칭을 진행하기 편한 최종 집결 지점입니다.</div>
             </div>
@@ -11355,7 +11353,7 @@ init();
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js?v=20260315-56')
+      navigator.serviceWorker.register('./sw.js?v=20260315-64')
         .catch(err => console.warn('SW 등록 실패:', err));
     });
   }
