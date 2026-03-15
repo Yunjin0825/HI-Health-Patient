@@ -358,6 +358,14 @@
       -webkit-backdrop-filter: blur(12px);
       backdrop-filter: blur(12px);
     }
+    .app-header.challenge-mode {
+      background: transparent;
+      border-bottom-left-radius: 28px;
+      border-bottom-right-radius: 28px;
+      overflow: hidden;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
     .header-logo { display: flex; align-items: center; min-height: 38px; }
     .logo-img       { height: 40px; width: auto; display: block; }
     .logo-img-white { height: 28px; width: auto; display: none; }
@@ -542,7 +550,8 @@
     .page.active { display: block; }
     #page-challenge {
       padding: 0;
-      height: calc(100vh - var(--header-height) - max(env(safe-area-inset-top), 44px) - var(--nav-height) - env(safe-area-inset-bottom));
+      margin-top: calc(-1 * (var(--header-height) + max(env(safe-area-inset-top), 44px)));
+      height: calc(100vh - var(--nav-height) - env(safe-area-inset-bottom));
       overflow: hidden;
     }
     #runday-iframe {
@@ -3776,7 +3785,7 @@
 
   <!-- ████  CHALLENGE  ████ -->
   <section id="page-challenge" class="page">
-    <iframe id="runday-iframe" src="runday.html" title="HI RUN DAY"></iframe>
+    <iframe id="runday-iframe" src="runday.html?v=20260315-2" title="HI RUN DAY"></iframe>
   </section>
 
 </main>
@@ -5293,13 +5302,14 @@ function navigate(page) {
     } else if (!isHome && sentinel && hdr.parentNode !== sentinel.parentNode) {
       sentinel.parentNode.insertBefore(hdr, sentinel);
     }
+    hdr.classList.toggle('challenge-mode', isChallenge);
     hdr.classList.toggle('solid', useSolidHeader);
     hdr.classList.toggle('flow', useFlowHeader);
     hdr.style.display = '';
     const hdrLogo = hdr.querySelector('.header-logo');
     const hdrPts  = hdr.querySelector('.header-points');
     const hdrCart = hdr.querySelector('.header-cart-btn');
-    hdr.style.background = isChallenge ? '#fdfcf0' : '';
+    hdr.style.background = isChallenge ? 'transparent' : '';
     if (hdrLogo) hdrLogo.style.display = isChallenge ? 'none' : '';
     if (hdrPts)  hdrPts.style.display  = isChallenge ? 'none' : '';
     if (hdrCart) hdrCart.style.display = isChallenge ? 'none' : '';
@@ -9282,7 +9292,7 @@ function getChallengePhaseLabel(phase = getChPhase()) {
     preparing: '워밍업 시작 전',
     pre: '워밍업기간 진행 중',
     main: '집중기간 진행 중',
-    event: 'HI RUN DAY 행사일',
+    event: 'HI RUN DAY',
     ended: '챌린지 종료',
   }[phase] || '';
 }
@@ -9398,7 +9408,7 @@ function renderChallenge() {
       <div class="ch-hero-eyebrow">HI HEALTH CHALLENGE</div>
       <div class="ch-hero-title">HI RUN DAY</div>
       <div class="ch-hero-date">2026년 3월 22일(일) - 4월 15일(수)</div>
-      <div class="ch-hero-route">워밍업기간 · 집중기간 · HI RUN DAY 행사</div>
+      <div class="ch-hero-route">워밍업기간 · 집중기간 · HI RUN DAY</div>
       <div class="ch-hero-badge">${heroBadge}</div>
     </div>
   `;
@@ -9413,7 +9423,7 @@ function renderChallenge() {
       stats: [
         { v: '3/22', l: '워밍업 시작' },
         { v: '4/5', l: '집중기간 시작' },
-        { v: '4/15', l: '행사일' },
+        { v: '4/15', l: 'RUN DAY' },
       ],
     },
     registration: {
@@ -9424,7 +9434,7 @@ function renderChallenge() {
       stats: [
         { v: '3/22', l: '워밍업 시작' },
         { v: '4/5', l: '집중기간 시작' },
-        { v: '4/15', l: '행사일' },
+        { v: '4/15', l: 'RUN DAY' },
       ]
     },
     preparing: {
@@ -9435,7 +9445,7 @@ function renderChallenge() {
       stats: [
         { v: `D-${warmupDday}`, l: '워밍업 시작까지' },
         { v: '주 2회', l: '운동 인증' },
-        { v: '4/15', l: '행사일' },
+        { v: '4/15', l: 'RUN DAY' },
       ]
     },
     pre: {
@@ -9463,10 +9473,10 @@ function renderChallenge() {
     event: {
       grad: 'linear-gradient(135deg,#F97316,#EA580C)',
       badge: '오늘! HI RUN DAY',
-      title: '오늘은 HI RUN DAY 행사일입니다',
+      title: '오늘은 HI RUN DAY입니다',
       desc: '워밍업과 집중기간 인증을 마치고, 스페셜 인증까지 확인해 주세요. 오늘은 직원들이 함께 달린 거리만큼 기부도 이어집니다.',
       stats: [
-        { v: '4/15', l: '행사일' },
+        { v: '4/15', l: 'RUN DAY' },
         { v: '주 3회+', l: '집중기간 기준' },
         { v: '각 1회', l: '스페셜 인증' },
       ]
@@ -9479,7 +9489,7 @@ function renderChallenge() {
       stats: [
         { v: '2주', l: '워밍업기간' },
         { v: '10일', l: '집중기간' },
-        { v: '4/15', l: '행사일' },
+        { v: '4/15', l: 'RUN DAY' },
       ]
     },
   };
@@ -9716,10 +9726,10 @@ function renderChallenge() {
     infoEl.innerHTML = `
       <div class="ch-donation-card">
         <div class="ch-donation-badge">HI RUN DAY WITH DONATION</div>
-        <div class="ch-donation-title">행사 당일에는 직원들이 함께 달린 거리만큼 기부가 진행됩니다</div>
+        <div class="ch-donation-title">RUN DAY에는 직원들이 함께 달린 거리만큼 기부가 진행됩니다</div>
         <div class="ch-donation-desc">
           HI RUN DAY는 함께 달리고 기록하는 것으로 끝나지 않습니다.
-          행사 당일 직원들이 달린 거리를 모아 기부로 연결하는 이벤트가 함께 진행됩니다.
+          RUN DAY에 직원들이 달린 거리를 모아 기부로 연결하는 이벤트가 함께 진행됩니다.
         </div>
         <div class="ch-donation-metric">
           <div class="ch-donation-pill">
@@ -9728,7 +9738,7 @@ function renderChallenge() {
           </div>
           <div class="ch-donation-pill">
             <strong>기부로 연결</strong>
-            <span>행사 당일 러닝의 의미를 좋은 영향으로 이어갑니다</span>
+            <span>RUN DAY 러닝의 의미를 좋은 영향으로 이어갑니다</span>
           </div>
         </div>
       </div>
@@ -9839,8 +9849,12 @@ function renderChallenge() {
                   <stop offset="0%" stop-color="#7dd3fc"></stop>
                   <stop offset="100%" stop-color="#38bdf8"></stop>
                 </linearGradient>
-                <marker id="ch-route-arrow" markerWidth="10" markerHeight="10" refX="7" refY="5" orient="auto">
-                  <path d="M0,0 L0,10 L8,5 Z" fill="#f97316"></path>
+                <linearGradient id="ch-route-arrow-fill" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#8b5cf6"></stop>
+                  <stop offset="100%" stop-color="#22c55e"></stop>
+                </linearGradient>
+                <marker id="ch-route-arrow" markerWidth="8" markerHeight="6" refX="1" refY="3" orient="auto">
+                  <path d="M1 3L5 1V2.2H7V3.8H5V5Z" fill="url(#ch-route-arrow-fill)" stroke="rgba(255,255,255,0.9)" stroke-width="0.45" stroke-linejoin="round"></path>
                 </marker>
               </defs>
               <rect width="360" height="214" rx="18" fill="url(#ch-route-sky)"></rect>
@@ -9849,6 +9863,24 @@ function renderChallenge() {
               <path d="M0 130C44 119 90 116 140 118C194 121 232 132 285 127C321 124 340 115 360 104" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="2" stroke-linecap="round"></path>
               <path d="M312 78C284 91 260 95 233 96C200 98 173 91 139 89C112 88 88 90 58 96" fill="none" stroke="#f97316" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 8" marker-end="url(#ch-route-arrow)"></path>
               <path d="M312 78C284 91 260 95 233 96C200 98 173 91 139 89C112 88 88 90 58 96" fill="none" stroke="rgba(255,255,255,0.48)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 8"></path>
+              <path d="M312 78L309 58" stroke="#0f172a" stroke-opacity="0.12" stroke-width="2" stroke-linecap="round"></path>
+              <path d="M58 96L61 76" stroke="#16a34a" stroke-opacity="0.18" stroke-width="2" stroke-linecap="round"></path>
+              <g transform="translate(292 28)">
+                <circle cx="17" cy="17" r="16" fill="#ffffff"></circle>
+                <circle cx="17" cy="17" r="13" fill="#e0f2fe" stroke="#7dd3fc" stroke-width="1.2"></circle>
+                <path d="M10.2 18.8H23.8L21.7 13.8H12.3Z" fill="#ffffff" stroke="#0284c7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M12.5 12.2V10.3H21.5V12.2" fill="none" stroke="#0284c7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M10.4 21.3C12.1 22.4 13.8 22.4 15.5 21.3C17.2 22.4 18.9 22.4 20.6 21.3C22.3 22.4 23.8 22.3 25 21.3" fill="none" stroke="#0284c7" stroke-width="1.5" stroke-linecap="round"></path>
+              </g>
+              <g transform="translate(42 50)">
+                <circle cx="17" cy="17" r="16" fill="#ffffff"></circle>
+                <circle cx="17" cy="17" r="13" fill="#dcfce7" stroke="#86efac" stroke-width="1.2"></circle>
+                <circle cx="17" cy="12" r="4.8" fill="#22c55e"></circle>
+                <circle cx="12.1" cy="15.4" r="3.4" fill="#4ade80"></circle>
+                <circle cx="21.8" cy="15.6" r="3.1" fill="#16a34a"></circle>
+                <path d="M17 16.2V22.3" stroke="#8b5a2b" stroke-width="1.9" stroke-linecap="round"></path>
+                <path d="M11.2 22.8H22.8" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"></path>
+              </g>
               <circle cx="58" cy="96" r="8" fill="#16a34a"></circle>
               <circle cx="58" cy="96" r="3.2" fill="#ffffff"></circle>
               <circle cx="143" cy="90" r="6.5" fill="#0284c7"></circle>
@@ -10888,31 +10920,23 @@ init();
       document.getElementById(isIOS ? 'install-kakao-ios' : 'install-kakao-android').style.display = '';
     }
     document.getElementById(isIOS ? 'install-steps-ios' : 'install-steps-android').style.display = '';
+    localStorage.setItem('hi_install_dismissed', '1');
     document.getElementById('install-overlay').classList.remove('pm-hidden');
+    setTimeout(closeInstallGuide, 30000);
   }
   function closeInstallGuide() {
     document.getElementById('install-overlay').classList.add('pm-hidden');
   }
   function dismissInstallGuide() {
-    localStorage.setItem('hi_install_dismissed', '1');
     closeInstallGuide();
   }
-  // 로그인 후 3초 뒤에 표시
-  window.addEventListener('hi:loggedin', () => setTimeout(showInstallGuide, 3000));
+  // 로그인 후 5초 뒤에 표시 (단 한 번만)
+  window.addEventListener('hi:loggedin', () => setTimeout(showInstallGuide, 5000));
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').then(reg => {
-        // 새 서비스 워커가 설치되면 즉시 활성화 후 페이지 새로고침
-        reg.addEventListener('updatefound', () => {
-          const newWorker = reg.installing;
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'activated') {
-              window.location.reload();
-            }
-          });
-        });
-      }).catch(err => console.warn('SW 등록 실패:', err));
+      navigator.serviceWorker.register('./sw.js?v=20260315-2')
+        .catch(err => console.warn('SW 등록 실패:', err));
     });
   }
 </script>
