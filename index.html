@@ -535,6 +535,7 @@
       display: flex; align-items: center; justify-content: center;
       transition: all 0.2s;
     }
+    .header-cart-btn.is-disabled { opacity: 0.55; }
     .header-cart-btn svg { width: 17px; height: 17px; stroke: var(--text-secondary); transition: stroke 0.28s; }
     .app-header:not(.solid) .header-cart-btn {
       border-color: rgba(255,255,255,0.75);
@@ -2547,6 +2548,48 @@
     .shop-detail-btn { font-size: 11px; font-weight: 600; color: var(--text-secondary); background: none; border: 1px solid var(--border); border-radius: 12px; padding: 3px 10px; cursor: pointer; white-space: nowrap; }
     .shop-detail-btn:active { background: var(--bg); }
     .shop-section-title { font-size: 15px; font-weight: 700; color: var(--text-primary); padding: 16px 0 8px; }
+    .shop-notice-banner {
+      margin: 12px 0 8px;
+      padding: 16px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #fff8eb 0%, #fff2f2 100%);
+      border: 1px solid #f6d9b8;
+      box-shadow: var(--shadow);
+    }
+    .shop-notice-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 800;
+      color: #b45309;
+      background: rgba(255,255,255,0.72);
+      border-radius: 999px;
+      padding: 5px 10px;
+      margin-bottom: 10px;
+    }
+    .shop-notice-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .shop-notice-text {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+    .shop-notice-action {
+      margin-top: 14px;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 999px;
+      background: #111827;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .shop-notice-action:active { opacity: 0.88; }
     .shop-item:active { opacity: 0.75; }
     .shop-item-thumb { width: 52px; height: 52px; flex-shrink: 0; border-radius: 8px; overflow: hidden; background: #f3f4f6; display: flex; align-items: center; justify-content: center; }
     .shop-item-thumb svg { width: 100%; height: 100%; display: block; }
@@ -2568,12 +2611,44 @@
     .pd-divider { height: 1px; background: var(--border); margin: 14px 0; }
     .pd-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 24px; }
     .pd-cart-row { display: flex; align-items: center; gap: 12px; }
+    .pd-cart-row.pending-mode { display: block; }
     .pd-qty-ctrl { display: flex; align-items: center; gap: 10px; background: var(--card); border-radius: 12px; padding: 8px 14px; }
     .pd-qty-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--primary); font-weight: 700; line-height: 1; padding: 0 2px; }
     .pd-qty-num { font-size: 16px; font-weight: 700; min-width: 20px; text-align: center; }
     .pd-add-btn { flex: 1; padding: 14px; background: var(--primary); color: #fff; border: none; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; }
     .pd-add-btn:active { opacity: 0.85; }
     .pd-close-btn { width: 46px; height: 46px; border-radius: 14px; border: 1.5px solid var(--border); background: var(--bg); font-size: 16px; cursor: pointer; flex-shrink: 0; }
+    .pd-pending-box {
+      width: 100%;
+      padding: 16px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #fff9ec 0%, #fff4f1 100%);
+      border: 1px solid #f6d9b8;
+    }
+    .pd-pending-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .pd-pending-text {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+    .pd-inquiry-btn {
+      margin-top: 14px;
+      width: 100%;
+      padding: 13px 14px;
+      border: none;
+      border-radius: 14px;
+      background: #111827;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .pd-inquiry-btn:active { opacity: 0.88; }
     .shop-qty-btn {
       width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--border);
       background: var(--bg); font-size: 16px; line-height: 1;
@@ -2587,6 +2662,12 @@
       font-size: 12px; font-weight: 700; cursor: pointer;
     }
     .shop-add-btn:active { background: var(--primary-dark); }
+    .shop-add-btn.is-inquiry {
+      background: #fff;
+      color: var(--primary);
+      border: 1px solid rgba(17,24,39,0.12);
+    }
+    .shop-add-btn.is-inquiry:active { background: #f8fafc; }
     /* 장바구니 바 */
     .shop-cart-bar {
       position: fixed; bottom: calc(var(--nav-height) + 8px); left: 50%;
@@ -4647,7 +4728,37 @@ const SHOP_PRODUCTS = [
   { id:'hp15', name:'병원 메모패드 세트',     price:4000,  cat:'merch', img:'', desc:'병원 로고가 인쇄된 포스트잇 스타일 메모패드 3종 세트입니다. 75×75mm 50매, 38×51mm 100매, 25×75mm 100매로 구성되어 업무에서 다양하게 활용 가능합니다.' },
 ];
 
+const SHOP_PURCHASE_ENABLED = false;
+const SHOP_PURCHASE_NOTICE = '영양제와 병원 제작 상품 구매는 현재 작업 중이라 둘러보기만 가능해요. 직접 구매를 원하시면 커뮤니케이션에 문의해주세요.';
+const SHOP_PURCHASE_TOAST = '직접 구매는 아직 준비 중이에요. 커뮤니케이션에 문의해주세요.';
+
 let _cart = {}; // { productId: quantity }
+
+function renderShopInquiryBanner() {
+  return `
+    <div class="shop-notice-banner">
+      <div class="shop-notice-eyebrow">둘러보기 전용 안내</div>
+      <div class="shop-notice-title">직접 구매는 아직 준비 중이에요</div>
+      <div class="shop-notice-text">${SHOP_PURCHASE_NOTICE}</div>
+      <button type="button" class="shop-notice-action" onclick="moveToShopInquiry()">커뮤니케이션 문의</button>
+    </div>`;
+}
+
+function showShopPurchasePendingToast() {
+  haptic('light');
+  showToast(SHOP_PURCHASE_TOAST);
+}
+
+function moveToShopInquiry() {
+  const pdOverlay = document.getElementById('pd-overlay');
+  if (pdOverlay && !pdOverlay.classList.contains('pd-hidden')) closeProductDetail();
+  const cartPanel = document.getElementById('cart-panel');
+  if (cartPanel && !cartPanel.classList.contains('hidden')) closeCartPanel();
+  const orderModal = document.getElementById('shop-order-modal');
+  if (orderModal && !orderModal.classList.contains('so-hidden')) closeShopOrder();
+  navigate('community');
+  showToast('커뮤니케이션에서 문의를 남겨주세요');
+}
 
 function cartCount() { return Object.values(_cart).reduce((s,q) => s+q, 0); }
 function cartTotal() {
@@ -4658,9 +4769,17 @@ function cartTotal() {
 }
 function saveCart() {
   localStorage.setItem(SHOP_CART_KEY, JSON.stringify(_cart));
+  const cartBtn = document.getElementById('header-cart-btn');
   const badge = document.getElementById('header-cart-badge');
   const count = cartCount();
-  if (badge) { badge.textContent = count; badge.classList.toggle('hidden', count === 0); }
+  if (cartBtn) {
+    cartBtn.classList.toggle('is-disabled', !SHOP_PURCHASE_ENABLED);
+    cartBtn.title = SHOP_PURCHASE_ENABLED ? '장바구니' : '구매 준비중';
+  }
+  if (badge) {
+    badge.textContent = count;
+    badge.classList.toggle('hidden', !SHOP_PURCHASE_ENABLED || count === 0);
+  }
 }
 function loadCart() {
   try { _cart = JSON.parse(localStorage.getItem(SHOP_CART_KEY) || '{}'); } catch(e) { _cart = {}; }
@@ -4673,6 +4792,7 @@ function clearCart() {
 }
 function clearCartFromPanel() {
   if (IS_GUEST) { flashGuestBanner(); return; }
+  if (!SHOP_PURCHASE_ENABLED) { showShopPurchasePendingToast(); return; }
   haptic('medium');
   _cart = {};
   saveCart();
@@ -4682,6 +4802,7 @@ function clearCartFromPanel() {
 
 function addToCart(id) {
   if (IS_GUEST) { flashGuestBanner(); return; }
+  if (!SHOP_PURCHASE_ENABLED) { showShopPurchasePendingToast(); return; }
   haptic('light');
   _cart[id] = (_cart[id] || 0) + 1;
   saveCart();
@@ -4689,6 +4810,7 @@ function addToCart(id) {
   renderPdCartRow(id);
 }
 function removeFromCart(id) {
+  if (!SHOP_PURCHASE_ENABLED) { showShopPurchasePendingToast(); return; }
   if (!_cart[id]) return;
   haptic('light');
   _cart[id]--;
@@ -4734,9 +4856,19 @@ function openProductDetail(id) {
 
 function renderPdCartRow(id) {
   if (_pdCurrentId !== id) return;
-  const qty = _cart[id] || 0;
   const row = document.getElementById('pd-cart-row');
   if (!row) return;
+  row.classList.toggle('pending-mode', !SHOP_PURCHASE_ENABLED);
+  if (!SHOP_PURCHASE_ENABLED) {
+    row.innerHTML = `
+      <div class="pd-pending-box">
+        <div class="pd-pending-title">직접 구매는 아직 준비 중이에요</div>
+        <div class="pd-pending-text">${SHOP_PURCHASE_NOTICE}</div>
+        <button type="button" class="pd-inquiry-btn" onclick="moveToShopInquiry()">커뮤니케이션 문의</button>
+      </div>`;
+    return;
+  }
+  const qty = _cart[id] || 0;
   if (qty > 0) {
     row.innerHTML = `
       <div class="pd-qty-ctrl">
@@ -4752,6 +4884,7 @@ function renderPdCartRow(id) {
 }
 
 function openCartPanel() {
+  if (!SHOP_PURCHASE_ENABLED) { showShopPurchasePendingToast(); return; }
   const panel = document.getElementById('cart-panel');
   const backdrop = document.getElementById('cart-panel-backdrop');
   if (!panel) return;
@@ -5434,7 +5567,7 @@ function openCurrentRunRouteMap() {
     routePoints: routePath,
     stats: [
       { label: '거리', value: `${(_rt.dist / 1000).toFixed(2)} km` },
-      { label: '시간', value: fmtTime(_rt.elapsed) },
+      { label: '시간', value: rtFmtTime(_rt.elapsed) },
       { label: '페이스', value: fmtPace(_rt.dist / 1000, _rt.elapsed) },
     ],
     note: 'GPS 오차가 큰 구간은 자동으로 제외될 수 있어요.',
@@ -9688,6 +9821,15 @@ function renderShop() {
       const thumbHtml = (p.svg && SUPP_SVG[p.svg])
         ? `<div class="shop-item-thumb">${SUPP_SVG[p.svg]}</div>`
         : '';
+      const actionHtml = SHOP_PURCHASE_ENABLED
+        ? (qty > 0 ? `
+                <button type="button" class="shop-qty-btn" onclick="removeFromCart('${p.id}')">−</button>
+                <span class="shop-qty-num">${qty}</span>
+                <button type="button" class="shop-qty-btn" onclick="addToCart('${p.id}')">+</button>
+              ` : `
+                <button type="button" class="shop-add-btn" onclick="addToCart('${p.id}')">담기</button>
+              `)
+        : `<button type="button" class="shop-add-btn is-inquiry" onclick="moveToShopInquiry()">문의하기</button>`;
       return `
         <div class="shop-item">
           ${thumbHtml}
@@ -9697,15 +9839,7 @@ function renderShop() {
           </div>
           <div class="shop-item-ctrl">
             <button type="button" class="shop-detail-btn" onclick="openProductDetail('${p.id}')">상세보기</button>
-            <div class="shop-item-cart-row">
-              ${qty > 0 ? `
-                <button type="button" class="shop-qty-btn" onclick="removeFromCart('${p.id}')">−</button>
-                <span class="shop-qty-num">${qty}</span>
-                <button type="button" class="shop-qty-btn" onclick="addToCart('${p.id}')">+</button>
-              ` : `
-                <button type="button" class="shop-add-btn" onclick="addToCart('${p.id}')">담기</button>
-              `}
-            </div>
+            <div class="shop-item-cart-row">${actionHtml}</div>
           </div>
         </div>`;
     }).join('');
@@ -9717,22 +9851,27 @@ function renderShop() {
   list.innerHTML =
     `<div class="shop-section-title">영양제</div>` +
     renderProductList(suppProducts) +
+    renderShopInquiryBanner() +
     `<div class="shop-section-title">병원 제작 상품</div>` +
     renderProductList(merchProducts);
 
   const count = cartCount();
   const bar   = document.getElementById('shop-cart-bar');
   if (bar) {
-    bar.classList.toggle('hidden', count === 0);
-    const countEl = document.getElementById('shop-cart-count');
-    const totalEl = document.getElementById('shop-cart-total');
-    if (countEl) countEl.textContent = count;
-    if (totalEl) totalEl.textContent = cartTotal().toLocaleString() + '원';
+    if (!SHOP_PURCHASE_ENABLED) {
+      bar.classList.add('hidden');
+    } else {
+      bar.classList.toggle('hidden', count === 0);
+      const countEl = document.getElementById('shop-cart-count');
+      const totalEl = document.getElementById('shop-cart-total');
+      if (countEl) countEl.textContent = count;
+      if (totalEl) totalEl.textContent = cartTotal().toLocaleString() + '원';
+    }
   }
   const hBadge = document.getElementById('header-cart-badge');
   if (hBadge) {
     hBadge.textContent = count;
-    hBadge.classList.toggle('hidden', count === 0);
+    hBadge.classList.toggle('hidden', !SHOP_PURCHASE_ENABLED || count === 0);
   }
 
 }
@@ -9869,6 +10008,7 @@ function previewDepositImg(input) {
 }
 
 function openShopOrder() {
+  if (!SHOP_PURCHASE_ENABLED) { showShopPurchasePendingToast(); return; }
   if (cartCount() === 0) { showToast('장바구니가 비어있어요'); return; }
   const nameEl = document.getElementById('so-name');
   if (nameEl && S.user.name) nameEl.value = S.user.name;
@@ -9900,6 +10040,7 @@ function closeShopOrder() {
 }
 
 function submitShopOrder() {
+  if (!SHOP_PURCHASE_ENABLED) { showShopPurchasePendingToast(); return; }
   const name       = document.getElementById('so-name').value.trim();
   const phone      = document.getElementById('so-phone').value.trim();
   const depositor  = document.getElementById('so-depositor').value.trim();
@@ -12219,7 +12360,7 @@ init();
     const s = Math.sin(dLat/2)**2 + Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dLon/2)**2;
     return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1-s));
   }
-  function fmtTime(s) {
+  function rtFmtTime(s) {
     const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), ss = s%60;
     return h ? `${h}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}` : `${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
   }
@@ -12231,7 +12372,7 @@ init();
   }
   function rtUpdateUI() {
     document.getElementById('rt-dist').textContent = (_rt.dist/1000).toFixed(2);
-    document.getElementById('rt-time').textContent = fmtTime(_rt.elapsed);
+    document.getElementById('rt-time').textContent = rtFmtTime(_rt.elapsed);
     document.getElementById('rt-pace').textContent = fmtPace(_rt.dist/1000, _rt.elapsed);
   }
   function openRunTracker() {
@@ -12336,7 +12477,7 @@ init();
     document.getElementById('rt-status').className = 'rt-status';
     document.getElementById('rt-status').textContent = '완료';
     document.getElementById('rts-dist').textContent = (_rt.dist/1000).toFixed(2);
-    document.getElementById('rts-time').textContent = fmtTime(_rt.elapsed);
+    document.getElementById('rts-time').textContent = rtFmtTime(_rt.elapsed);
     document.getElementById('rts-pace').textContent = fmtPace(_rt.dist/1000, _rt.elapsed);
     document.getElementById('rt-summary').classList.add('show');
     renderCurrentRunRoutePreview();
@@ -12464,7 +12605,7 @@ init();
         const memo = document.getElementById('ex-memo');
         if (memo) {
           memo.dataset.trackedRunToken = trackedRunToken;
-          memo.value = `${memoPrefix} · ${fmtTime(_rt.elapsed)} · 페이스 ${fmtPace(distKm, _rt.elapsed)}`;
+          memo.value = `${memoPrefix} · ${rtFmtTime(_rt.elapsed)} · 페이스 ${fmtPace(distKm, _rt.elapsed)}`;
           memo.scrollIntoView({ behavior: 'smooth', block: 'center' });
           memo.focus();
         }
