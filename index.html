@@ -5214,7 +5214,7 @@ function normalizeWorkoutRecord(record, fallback = {}) {
     supp: record.supp ?? fallback.supp ?? null,
     suppList,
     routePath,
-    ts: Number(record.ts) || fallback.ts || 0,
+    ts: (() => { const raw = Number(record.ts) || fallback.ts || 0; return (raw > 0 && raw < 1e11) ? raw * 1000 : raw; })(),
   };
 }
 
@@ -6065,7 +6065,8 @@ function closeCelebration() {
   document.getElementById('celebration-overlay').classList.remove('active');
 }
 function fmtTime(ts) {
-  const diff = Date.now() - ts;
+  const msTs = (ts > 0 && ts < 1e11) ? ts * 1000 : ts;
+  const diff = Date.now() - msTs;
   const m = Math.floor(diff/60000);
   if (m < 1)  return '방금 전';
   if (m < 60) return m + '분 전';
