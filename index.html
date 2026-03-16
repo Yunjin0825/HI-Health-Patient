@@ -3327,7 +3327,6 @@
       <span class="login-id-prefix" id="login-id-prefix">HI-</span>
       <div class="login-input-overlay" id="login-empid-overlay">
         <span class="login-hint-main" id="login-empid-hint-main">등록번호 입력</span>
-        <span class="login-hint-sub" id="login-empid-hint-sub">(예: HI-123456)</span>
       </div>
       <input type="text" class="app-login-input login-placeholder-val" id="login-empid-input"
         value=""
@@ -7206,7 +7205,16 @@ function logExercise() {
     showToast(`⚠️ 오늘 남은 포인트 한도: ${remaining}p. 운동 시간을 줄여주세요`);
     return;
   }
-  const memo = document.getElementById('ex-memo').value.trim();
+  const memoEl = document.getElementById('ex-memo');
+  const memo = memoEl?.value.trim() || '';
+  const trackedRunToken = memoEl?.dataset?.trackedRunToken || '';
+  const isTrackedRunRecord =
+    S.selectedEx === 'running' &&
+    _pendingTrackedRun &&
+    Array.isArray(_pendingTrackedRun.routePath) &&
+    _pendingTrackedRun.routePath.length > 1 &&
+    _pendingTrackedRun.token &&
+    _pendingTrackedRun.token === trackedRunToken;
   S.workouts.push({
     id: Date.now(),
     exId: S.selectedEx,
@@ -7214,6 +7222,7 @@ function logExercise() {
     duration: S.duration,
     points: pts,
     memo,
+    routePath: isTrackedRunRecord ? compressRoutePath(_pendingTrackedRun.routePath, 180) : null,
     photo: _photoData || null,
     diet:      _dietRating,
     mealTypes: _mealTypes.length ? [..._mealTypes] : null,
@@ -7222,6 +7231,8 @@ function logExercise() {
     suppList:  _suppList.length ? [..._suppList] : null,
     ts: Date.now(),
   });
+  if (memoEl?.dataset) delete memoEl.dataset.trackedRunToken;
+  _pendingTrackedRun = null;
   const prevEarnedIds = new Set(earnedAchs().map(a => a.id));
   S.user.points += pts;
   S.user.totalPoints = (S.user.totalPoints || 0) + pts;
@@ -8516,7 +8527,10 @@ function resetToLoggedOutState() {
   S.adminPosts = [];
   S.todayLog = null;
   const exMemo = document.getElementById('ex-memo');
-  if (exMemo) exMemo.value = '';
+  if (exMemo) {
+    exMemo.value = '';
+    delete exMemo.dataset.trackedRunToken;
+  }
   const glMemo = document.getElementById('glucose-memo');
   if (glMemo) glMemo.value = '';
   const sleepNoteEl = document.getElementById('sleep-memo-input');
@@ -11186,19 +11200,16 @@ function configureLoginFields() {
   const loginSub = document.querySelector('.app-login-sub');
   const prefix = document.getElementById('login-id-prefix');
   const empMain = document.getElementById('login-empid-hint-main');
-  const empSub = document.getElementById('login-empid-hint-sub');
   const errEl = document.getElementById('login-err');
   if (IS_RUN_MODE) {
     if (loginSub) loginSub.textContent = '사번과 이름을 입력해 시작하세요';
     if (prefix) prefix.textContent = '';
-    if (empMain) empMain.textContent = '사번 또는 생년월일 입력';
-    if (empSub) empSub.textContent = '';
+    if (empMain) empMain.textContent = '사번 입력';
     if (errEl) errEl.textContent = '사번을 입력해주세요';
   } else {
     if (loginSub) loginSub.textContent = '등록번호와 이름을 입력해 시작하세요';
     if (prefix) prefix.textContent = 'HI-';
     if (empMain) empMain.textContent = '등록번호 입력';
-    if (empSub) empSub.textContent = '(예: HI-123456)';
     if (errEl) errEl.textContent = '등록번호를 입력해주세요';
     const empInputEl = document.getElementById('login-empid-input');
     if (empInputEl) { empInputEl.placeholder = ''; empInputEl.style.letterSpacing = ''; }
@@ -11480,7 +11491,10 @@ function applyGuestSampleState() {
   _glucoseTiming = null;
   _glucoseTime = '';
   const exMemo = document.getElementById('ex-memo');
-  if (exMemo) exMemo.value = '';
+  if (exMemo) {
+    exMemo.value = '';
+    delete exMemo.dataset.trackedRunToken;
+  }
   const glMemo = document.getElementById('glucose-memo');
   if (glMemo) glMemo.value = '';
   const sleepNoteEl = document.getElementById('sleep-memo-input');
@@ -11773,7 +11787,7 @@ function init() {
   configureLoginFields();
   syncLoginFieldOverlays();
   if (IS_RUN_MODE) {
-    if (loginEmpInput) { loginEmpInput.placeholder = '사번 (예: A1801)'; loginEmpInput.style.letterSpacing = '0'; }
+    if (loginEmpInput) { loginEmpInput.placeholder = ''; loginEmpInput.style.letterSpacing = '0'; }
     // IS_RUN_MODE: 로그인 유지 체크박스 + 게스트 버튼 숨김
     const keepWrap = document.querySelector('.app-login-keep');
     if (keepWrap) keepWrap.style.display = 'none';
@@ -12310,10 +12324,12 @@ init();
     const distKm = _rt.dist / 1000;
     const mins = Math.max(1, Math.round(_rt.elapsed / 60));
     const memoPrefix = `러닝 ${distKm.toFixed(2)}km`;
+    const trackedRunToken = `run_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     _pendingTrackedRun = {
       routePath: compressRoutePath(_rt.positions || [], 180),
       duration: mins,
       memoPrefix,
+      token: trackedRunToken,
       createdAt: Date.now(),
     };
     closeRunTracker();
@@ -12332,6 +12348,7 @@ init();
         }
         const memo = document.getElementById('ex-memo');
         if (memo) {
+          memo.dataset.trackedRunToken = trackedRunToken;
           memo.value = `${memoPrefix} · ${fmtTime(_rt.elapsed)} · 페이스 ${fmtPace(distKm, _rt.elapsed)}`;
           memo.scrollIntoView({ behavior: 'smooth', block: 'center' });
           memo.focus();
