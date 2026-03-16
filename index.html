@@ -3408,49 +3408,6 @@
 <!-- Toast -->
 <div id="toast" class="toast"></div>
 <div id="snackbar" class="snackbar"></div>
-<div class="app-intro hidden" id="app-intro" onclick="introSkip()">
-  <div class="app-intro-card" onclick="event.stopPropagation()">
-    <div class="app-intro-slides" id="app-intro-slides">
-      <div class="app-intro-slide">
-        <div class="app-intro-icon">🏃</div>
-        <div class="app-intro-title">매일의 운동을<br>간편하게 기록해요</div>
-        <div class="app-intro-desc">걷기, 달리기, 요가 등 다양한 운동을 기록하고 포인트를 모아보세요</div>
-      </div>
-      <div class="app-intro-slide">
-        <div class="app-intro-icon">⭐</div>
-        <div class="app-intro-title">운동할수록<br>레벨이 올라가요</div>
-        <div class="app-intro-desc">꾸준히 기록하면 새싹에서 레전드까지, 나만의 성장 흐름을 확인할 수 있어요</div>
-      </div>
-      <div class="app-intro-slide">
-        <div class="app-intro-icon">💬</div>
-        <div class="app-intro-title">함께하면<br>더 즐거워요</div>
-        <div class="app-intro-desc">커뮤니티에서 응원을 나누고 서로의 기록을 보며 건강 습관을 이어가세요</div>
-      </div>
-      <div class="app-intro-slide">
-        <div class="app-intro-icon">🏆</div>
-        <div class="app-intro-title">챌린지로<br>함께 도전해요</div>
-        <div class="app-intro-desc">팀 챌린지와 리그에서 목표를 확인하고, 기록이 쌓이는 흐름을 한눈에 볼 수 있어요</div>
-      </div>
-      <div class="app-intro-slide">
-        <div class="app-intro-icon">🎁</div>
-        <div class="app-intro-title">포인트로<br>다양한 혜택을</div>
-        <div class="app-intro-desc">모은 포인트로 건강 용품을 구매하고 리워드도 교환할 수 있어요</div>
-      </div>
-    </div>
-    <div class="app-intro-bottom">
-      <div class="app-intro-dots" id="app-intro-dots">
-        <div class="app-intro-dot active"></div>
-        <div class="app-intro-dot"></div>
-        <div class="app-intro-dot"></div>
-        <div class="app-intro-dot"></div>
-        <div class="app-intro-dot"></div>
-      </div>
-      <button class="app-intro-next" id="app-intro-next-btn" onclick="introNext()">다음</button>
-      <button class="app-intro-skip" onclick="introSkip()">건너뛰기</button>
-    </div>
-  </div>
-</div>
-
 <!-- Header -->
 <!-- 앱 인트로 팝업 -->
 <div class="app-intro hidden" id="app-intro" onclick="introSkip()">
@@ -3481,10 +3438,22 @@
         <div class="app-intro-title">포인트로<br>다양한 혜택을</div>
         <div class="app-intro-desc">모은 포인트로 건강 용품을 구매하고 특별한 리워드를 받아보세요</div>
       </div>
+      <div class="app-intro-slide">
+        <div class="app-intro-icon">🏅</div>
+        <div class="app-intro-title">달리기 측정으로<br>기록을 남겨요</div>
+        <div class="app-intro-desc">실시간 달리기 타이머로 거리·시간을 측정하고 운동 기록에 바로 저장할 수 있어요</div>
+      </div>
+      <div class="app-intro-slide">
+        <div class="app-intro-icon">📡</div>
+        <div class="app-intro-title">덱스콤 연동으로<br>혈당을 자동 확인</div>
+        <div class="app-intro-desc">덱스콤 앱과 연동하면 실시간 혈당 수치와 추이가 HI Health에 자동으로 불러와져요</div>
+      </div>
     </div>
     <div class="app-intro-bottom">
       <div class="app-intro-dots" id="app-intro-dots">
         <div class="app-intro-dot active"></div>
+        <div class="app-intro-dot"></div>
+        <div class="app-intro-dot"></div>
         <div class="app-intro-dot"></div>
         <div class="app-intro-dot"></div>
         <div class="app-intro-dot"></div>
@@ -11481,7 +11450,7 @@ function submitChReg(e) {
 ════════════════════════════════════════ */
 /* ── App Intro ── */
 let _introIdx = 0;
-const INTRO_TOTAL = 5;
+const INTRO_TOTAL = 7;
 let _introSwipeBound = false;
 
 function configureLoginFields() {
