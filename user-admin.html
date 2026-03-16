@@ -1710,6 +1710,20 @@ function buildExTypes() {
 
 function woReset() { wPage = 0; renderWorkouts(); }
 
+function isHiddenWorkoutText(value, workoutId = '') {
+  const text = String(value ?? '').trim();
+  if (!text) return false;
+  const recordId = String(workoutId ?? '').trim();
+  if (recordId && text === recordId) return true;
+  return /^\d{8}$/.test(text);
+}
+
+function getWorkoutMemoText(workout) {
+  const memo = String(workout?.memo || '').trim();
+  if (!memo) return '';
+  return isHiddenWorkoutText(memo, workout?.id) ? '' : memo;
+}
+
 function filteredWorkouts() {
   const q      = document.getElementById('wo-search').value.toLowerCase();
   const userId = document.getElementById('wo-user').value;
@@ -1719,7 +1733,8 @@ function filteredWorkouts() {
   return GD.workouts.filter(w => {
     if (userId && w.deviceId !== userId) return false;
     const exName = EX_MAP[w.exId] || w.exId || '';
-    if (q && ![exName, w.memo||'', w.userName||''].some(s => s.toLowerCase().includes(q))) return false;
+    const memo = getWorkoutMemoText(w);
+    if (q && ![exName, memo, w.userName || ''].some(s => String(s || '').toLowerCase().includes(q))) return false;
     if (type && w.exId !== type) return false;
     if (per) {
       const d = new Date(Number(w.ts)||0);
@@ -1752,14 +1767,15 @@ function renderWorkouts() {
     const ds = `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     const icon = EX_ICON[w.exId] || '✏️';
     const name = EX_MAP[w.exId] || w.exId || '기타';
+    const memo = getWorkoutMemoText(w);
     const safeId = String(w.id).replace(/'/g,'');
     return `<tr>
       <td class="td-date">${ds}</td>
-      <td>${w.userName||'-'}</td>
-      <td><span class="badge ex">${icon} ${name}</span></td>
+      <td>${escHtml(w.userName || '-')}</td>
+      <td><span class="badge ex">${escHtml(icon)} ${escHtml(name)}</span></td>
       <td>${w.duration||0}분</td>
       <td><span class="badge pts">+${w.points||0}p</span></td>
-      <td class="td-memo">${w.memo||'-'}</td>
+      <td class="td-memo">${escHtml(memo || '-')}</td>
       <td>
         <div style="display:flex;gap:4px">
           <button class="abtn det" onclick="showWorkoutDetail('${safeId}')">상세</button>
@@ -1775,18 +1791,19 @@ function showWorkoutDetail(id) {
   const w = GD.workouts.find(x => String(x.id) === String(id));
   if (!w) return;
   const d = new Date(Number(w.ts)||0);
+  const memo = getWorkoutMemoText(w);
   const rows = [
     ['이용자', w.userName||'-'],
     ['날짜', d.toLocaleString('ko-KR')],
     ['종류', (EX_ICON[w.exId]||'') + ' ' + (EX_MAP[w.exId]||w.exId||'기타')],
     ['시간', (w.duration||0) + '분'],
     ['포인트', '+' + (w.points||0) + 'p'],
-    ['메모', w.memo||'-'],
+    ['메모', memo || '-'],
     ['식단', w.diet ? '⭐'.repeat(w.diet) : '-'],
     ['수면', w.sleep ? w.sleep+'시간' : '-'],
   ];
   document.getElementById('wo-modal-body').innerHTML = rows.map(([l,v]) =>
-    `<div class="detail-row"><div class="detail-label">${l}</div><div class="detail-value">${v}</div></div>`).join('');
+    `<div class="detail-row"><div class="detail-label">${escHtml(l)}</div><div class="detail-value">${escHtml(v)}</div></div>`).join('');
   document.getElementById('wo-del-btn').onclick = () => { deleteWorkout(id); closeModal('wo-modal'); };
   document.getElementById('wo-modal').classList.add('open');
 }
