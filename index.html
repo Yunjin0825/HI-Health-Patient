@@ -215,32 +215,79 @@
     .app-login-guest-btn:hover { background: rgba(109,40,217,0.05); color: #7C3AED; }
     .guest-banner {
       display: none;
-      align-items: center; gap: 8px;
-      background: rgba(255,255,255,0.12);
-      border: 1.5px solid rgba(255,255,255,0.3);
-      border-radius: 999px;
-      padding: 4px 4px 4px 12px;
-      white-space: nowrap;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 0 14px;
+      padding: 13px 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(99,102,241,0.12);
+      background: linear-gradient(135deg, rgba(238,242,255,0.95) 0%, rgba(255,255,255,0.98) 100%);
+      box-shadow: 0 10px 28px rgba(79,70,229,0.09);
     }
+    .guest-banner.home {
+      margin: 14px 18px 0;
+      background: rgba(255,255,255,0.14);
+      border-color: rgba(255,255,255,0.24);
+      box-shadow: none;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .guest-banner-copy {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .guest-banner-kicker {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #4F46E5;
+    }
+    .guest-banner.home .guest-banner-kicker { color: rgba(255,255,255,0.72); }
     .guest-banner-text {
-      font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.85);
+      font-size: 13px;
+      font-weight: 700;
+      color: #1E1047;
+      line-height: 1.25;
     }
+    .guest-banner.home .guest-banner-text { color: #fff; }
+    .guest-banner-sub {
+      font-size: 11px;
+      color: #6B7280;
+      line-height: 1.4;
+    }
+    .guest-banner.home .guest-banner-sub { color: rgba(255,255,255,0.76); }
     .guest-banner button {
+      flex-shrink: 0;
+      min-height: 34px;
+      padding: 0 14px;
       background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-      border: 1.5px solid rgba(255,255,255,0.6);
+      border: none;
       color: #fff;
-      font-size: 10px; font-weight: 700; padding: 4px 12px;
-      border-radius: 999px; cursor: pointer; font-family: inherit;
-      box-shadow: 0 2px 6px rgba(79,70,229,0.4);
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 999px;
+      cursor: pointer;
+      font-family: inherit;
+      box-shadow: 0 6px 16px rgba(79,70,229,0.22);
     }
-    .app-header.solid .guest-banner {
-      background: rgba(79,70,229,0.07);
-      border-color: rgba(79,70,229,0.25);
+    .guest-banner.home button {
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.3);
+      box-shadow: none;
     }
-    .app-header.solid .guest-banner-text { color: #4F46E5; }
-    .app-header.solid .guest-banner button { border-color: rgba(79,70,229,0.3); }
+    @media (max-width: 380px) {
+      .guest-banner {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .guest-banner button {
+        width: 100%;
+      }
+    }
     @keyframes guestFlash {
       0%,100% { opacity: 1; }
       20% { opacity: 0.15; }
@@ -3364,6 +3411,14 @@
 </div>
 
 <div id="header-sentinel"></div>
+<div class="guest-banner" id="guest-banner">
+  <div class="guest-banner-copy">
+    <div class="guest-banner-kicker">Guest Mode</div>
+    <div class="guest-banner-text">둘러보기 모드로 앱을 보고 있어요</div>
+    <div class="guest-banner-sub">로그인하면 내 기록을 저장하고 이어서 사용할 수 있어요.</div>
+  </div>
+  <button type="button" onclick="doGuestLogout()">로그인하기</button>
+</div>
 
 <!-- Cart Panel -->
 <div class="cart-panel-backdrop hidden" id="cart-panel-backdrop" onclick="closeCartPanel()"></div>
@@ -3413,10 +3468,6 @@
           <img src="images/logo-white.png" alt="HI Health" class="logo-img-white">
         </div>
         <div class="header-right">
-          <div class="guest-banner" id="guest-banner">
-            <span class="guest-banner-text">둘러보기 모드</span>
-            <button type="button" onclick="doGuestLogout()">로그인하기</button>
-          </div>
           <div class="header-points" id="header-pts" onclick="navigate('rewards')">
             <span id="hpts-val">0</span>p
           </div>
@@ -6149,20 +6200,6 @@ function navigate(page) {
     if (hdrProfileLabel) hdrProfileLabel.style.display = isChallenge ? 'inline' : 'none';
     const hdrRight = hdr.querySelector('.header-right');
     if (hdrRight) hdrRight.style.marginLeft = isChallenge ? 'auto' : '';
-    const guestBanner = hdr.querySelector('#guest-banner');
-    if (guestBanner) {
-      if (isChallenge) {
-        guestBanner.style.display = 'none';
-        guestBanner.style.position = 'absolute';
-        guestBanner.style.left = '50%';
-        guestBanner.style.transform = 'translateX(-50%)';
-      } else {
-        guestBanner.style.display = IS_GUEST ? 'flex' : 'none';
-        guestBanner.style.position = '';
-        guestBanner.style.left = '';
-        guestBanner.style.transform = '';
-      }
-    }
   }
   if (content) {
     content.classList.remove('no-top-margin');
@@ -6201,18 +6238,42 @@ function navigate(page) {
       avatar: normalizeAvatar(S.user.avatar),
     }, { ensureLoaded: true });
   }
+  placeGuestBanner(page);
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
 /* ════════════════════════════════════════
    RENDER: HEADER
 ════════════════════════════════════════ */
+function placeGuestBanner(page = null) {
+  const banner = document.getElementById('guest-banner');
+  if (!banner) return;
+  const currentPage = page || document.querySelector('.page.active')?.id?.replace('page-', '') || 'home';
+  const isChallengePage = currentPage === 'challenge';
+  if (!IS_GUEST || isChallengePage) {
+    banner.style.display = 'none';
+    banner.classList.remove('home');
+    return;
+  }
+
+  if (currentPage === 'home') {
+    const spacer = document.getElementById('hero-spacer');
+    if (spacer?.parentNode) spacer.parentNode.insertBefore(banner, spacer.nextSibling);
+    banner.classList.add('home');
+  } else {
+    const pageEl = document.getElementById('page-' + currentPage);
+    if (pageEl) pageEl.insertBefore(banner, pageEl.firstChild);
+    banner.classList.remove('home');
+  }
+
+  banner.style.display = 'flex';
+}
+
 function renderHeader() {
   document.getElementById('hpts-val').textContent = S.user.points;
   document.getElementById('header-avatar').innerHTML = avHTML(S.user.avatar);
-  const guestBanner = document.getElementById('guest-banner');
-  const isChallengePage = document.getElementById('page-challenge')?.classList.contains('active');
-  if (guestBanner) guestBanner.style.display = (IS_GUEST && !isChallengePage) ? 'flex' : 'none';
+  const activePage = document.querySelector('.page.active')?.id?.replace('page-', '') || 'home';
+  placeGuestBanner(activePage);
   // 챌린지 탭: 'before' 또는 'ended' 단계엔 숨김
   const phase = getChPhase();
   const challengeNavBtn = document.querySelector('.nav-btn[data-page="challenge"]');
@@ -8340,8 +8401,7 @@ function saveProfileModal() {
     empId: S.user.empId || ACTIVE_EMPID,
     avatar: normalizeAvatar(S.user.avatar),
   });
-  const btn = document.getElementById('pm-save-btn');
-  if (btn) { btn.textContent = '저장됐어요 ✓'; setTimeout(() => { btn.textContent = '저장하기'; }, 1500); }
+  document.getElementById('profile-modal').classList.add('pm-hidden');
 }
 function closeProfileModal() {
   saveProfileModal();
