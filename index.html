@@ -11757,6 +11757,20 @@ function applyGuestSampleState() {
   if (suppMemoEl) suppMemoEl.value = '';
   updateStreak();
   loadTodayLog();
+
+  // 게스트 샘플: 덱스콤 연동된 상태로 표시
+  const dexVal = document.getElementById('dexcom-val');
+  const dexArrow = document.getElementById('dexcom-arrow');
+  const dexTime = document.getElementById('dexcom-time');
+  const dexLive = document.getElementById('dexcom-live');
+  const dexIdle = document.getElementById('dexcom-idle');
+  const dexSetupBtn = document.getElementById('dexcom-setup-btn');
+  if (dexVal) dexVal.textContent = '108';
+  if (dexArrow) dexArrow.textContent = '→';
+  if (dexTime) dexTime.textContent = '5분 전 업데이트';
+  if (dexLive) dexLive.style.display = '';
+  if (dexIdle) dexIdle.style.display = 'none';
+  if (dexSetupBtn) dexSetupBtn.style.display = 'none';
 }
 
 function doGuestLogin() {
