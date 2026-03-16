@@ -8156,15 +8156,13 @@ function renderGlucose() {
     const d  = new Date(r.ts);
     const timeStr = (d.getMonth()+1) + '/' + d.getDate() + ' ' +
                     String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    const metaParts = [r.timing, r.value + ' mg/dL', r.memo ? escHtmlComm(r.memo) : '', timeStr].filter(Boolean);
     return `<div class="glucose-item">
-      <div class="glucose-badge"><span class="glucose-badge-val">${r.value}</span><span class="glucose-val-unit">mg/dL</span></div>
-      <div class="glucose-info">
-        ${r.timing ? `<span class="glucose-timing-lbl">${r.timing}</span>` : ''}
-        <span class="glucose-time">${timeStr}</span>
-        ${r.memo ? `<div class="glucose-memo">${escHtmlComm(r.memo)}</div>` : ''}
-      </div>
-      <span class="glucose-status-tag ${st.cls}">${st.label}</span>
-      <button class="glucose-del" onclick="deleteGlucose(${r.id})">✕</button>
+      <span class="wo-icon" style="font-size:16px">🩸</span>
+      <span class="wo-name">${r.value} <span style="font-size:10px;font-weight:500;opacity:0.7">mg/dL</span></span>
+      <span class="wo-meta">${[r.timing, r.memo ? escHtmlComm(r.memo) : '', timeStr].filter(Boolean).join(' · ')}</span>
+      <span class="glucose-status-tag ${st.cls}" style="flex-shrink:0">${st.label}</span>
+      <button class="wo-del" onclick="deleteGlucose(${r.id})" title="삭제">${_trashSvgSm}</button>
     </div>`;
   }).join('')
   + (remain > 0 ? `<button class="load-more-btn" onclick="_glShowCount+=5;renderGlucose()">더보기 (${remain}개 남음)</button>` : '');
