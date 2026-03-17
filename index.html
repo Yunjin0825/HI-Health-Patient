@@ -9303,7 +9303,7 @@ function buildRealLeagueUsers(allUsers, allRegs, wPtsByDevice = {}) {
     return;
   }
 
-  const filtered = allUsers.filter(u => u.deviceId !== S.deviceId && u.name);
+  const filtered = allUsers.filter(u => u.deviceId !== S.deviceId && u.name && !ADMIN_EMPIDS.includes((u.empId || '').toUpperCase()));
   if (!filtered.length) {
     _realLeagueUsers = null;
     return;
@@ -9430,7 +9430,7 @@ function renderLeague() {
     const baseUsers = (_realLeagueUsers && _realLeagueUsers.length) ? _realLeagueUsers : MOCK_USERS;
     const challengers = [
       ...baseUsers.filter(u => u.isChallenger).map(u => ({ ...u, isMe: false })),
-      ...(isRegistered ? [me] : []),
+      ...(isRegistered && !isAdminUser() ? [me] : []),
     ].sort((a, b) => b.pts - a.pts).map((u, i) => ({ ...u, rank: i + 1 }));
 
     // My rank card
@@ -9546,7 +9546,7 @@ function renderLeague() {
     ...baseUsers
       .filter(u => currentTab === 'level' ? u.lv === myLvNum : true)
       .map(u => ({ ...u, isMe: false })),
-    me
+    ...(isAdminUser() ? [] : [me])
   ].sort((a,b) => currentTab === 'weekly' ? b.wPts - a.wPts : b.pts - a.pts)
    .map((u,i) => ({ ...u, rank: i+1 }));
 
