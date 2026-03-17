@@ -11162,19 +11162,27 @@ function shouldUseChallengeDeviceFallback(regId = S.user.registrationId, empId =
   return !normChallengeId(regId) && !normChallengeEmpId(empId);
 }
 
+function isCurrentChallengeIdentityMatch(row, identity = {}) {
+  const regId = normChallengeId(identity.regId ?? S.user.registrationId);
+  const empId = normChallengeEmpId(identity.empId ?? S.user.empId ?? ACTIVE_EMPID);
+  const deviceId = normChallengeId(identity.deviceId ?? S.deviceId);
+  const useDeviceFallback = identity.useDeviceFallback ?? shouldUseChallengeDeviceFallback(regId, empId);
+  const rid = normChallengeId(row?.id);
+  const remp = normChallengeEmpId(row?.empId);
+  const rdev = normChallengeId(row?.deviceId);
+  if (regId && rid === regId) return true;
+  if (empId && remp === empId) return true;
+  if (useDeviceFallback && deviceId && rdev === deviceId) return true;
+  return false;
+}
+
 function getMyChallengeRegMatches(rows) {
   const regId = normChallengeId(S.user.registrationId);
   const empId = normChallengeEmpId(S.user.empId || ACTIVE_EMPID);
   const deviceId = normChallengeId(S.deviceId);
   const useDeviceFallback = shouldUseChallengeDeviceFallback(regId, empId);
   return (rows || []).filter(r => {
-    const rid = normChallengeId(r?.id);
-    const remp = normChallengeEmpId(r?.empId);
-    const rdev = normChallengeId(r?.deviceId);
-    if (regId && rid === regId) return true;
-    if (empId && remp === empId) return true;
-    if (useDeviceFallback && deviceId && rdev === deviceId) return true;
-    return false;
+    return isCurrentChallengeIdentityMatch(r, { regId, empId, deviceId, useDeviceFallback });
   }).sort((a, b) => {
     const aScore = (regId && normChallengeId(a?.id) === regId ? 4 : 0)
       + (empId && normChallengeEmpId(a?.empId) === empId ? 2 : 0)
@@ -11247,11 +11255,19 @@ function hasActiveChallengeRegistration() {
 }
 
 async function syncMyChallengeRegistration() {
+  return syncMyChallengeRegistrationWithOptions();
+}
+
+let _challengeDupRefreshInFlight = null;
+let _challengeDupRefreshKey = '';
+
+async function syncMyChallengeRegistrationWithOptions(opts = {}) {
   if (!_db) return getMyReg();
   const regId = normChallengeId(S.user.registrationId);
   const empId = normChallengeEmpId(S.user.empId || ACTIVE_EMPID);
   const deviceId = normChallengeId(S.deviceId);
   const useDeviceFallback = shouldUseChallengeDeviceFallback(regId, empId);
+  const pruneMissingRemote = !!opts.pruneMissingRemote;
   const filters = [];
   if (regId) filters.push(`id.eq.${regId}`);
   if (empId) {
@@ -11269,7 +11285,6 @@ async function syncMyChallengeRegistration() {
     }
 
     const current = getStoredChallengeRegs();
-    const myMatches = getMyChallengeRegMatches(current);
     let next = [...current];
     if (data && data.length) {
       const byId = new Map(next.map(r => [normChallengeId(r?.id), r]));
@@ -11279,6 +11294,23 @@ async function syncMyChallengeRegistration() {
         byId.set(id, { ...(byId.get(id) || {}), ...r });
       });
       next = [...byId.values()];
+    }
+    if (pruneMissingRemote) {
+      const activeRemoteRows = (data || []).filter(isActiveChallengeReg);
+      const activeRemoteIds = new Set(activeRemoteRows.map(r => normChallengeId(r?.id)).filter(Boolean));
+      const activeRemoteEmpIds = new Set(activeRemoteRows.map(r => normChallengeEmpId(r?.empId)).filter(Boolean));
+      const activeRemoteDeviceIds = new Set(activeRemoteRows.map(r => normChallengeId(r?.deviceId)).filter(Boolean));
+      next = next.filter(r => {
+        if (!isCurrentChallengeIdentityMatch(r, { regId, empId, deviceId, useDeviceFallback })) return true;
+        if (!isActiveChallengeReg(r)) return true;
+        const rid = normChallengeId(r?.id);
+        const remp = normChallengeEmpId(r?.empId);
+        const rdev = normChallengeId(r?.deviceId);
+        if (rid) return activeRemoteIds.has(rid);
+        if (remp) return activeRemoteEmpIds.has(remp);
+        if (useDeviceFallback && rdev) return activeRemoteDeviceIds.has(rdev);
+        return false;
+      });
     }
     // Supabase에 결과가 없어도 로컬 신청 데이터는 보존 (apiSync 지연/실패 대응)
     setStoredChallengeRegs(next);
@@ -11290,6 +11322,26 @@ async function syncMyChallengeRegistration() {
     console.error('[syncMyChallengeRegistration]', e);
     return getMyReg();
   }
+}
+
+function queueChallengeDuplicateRefresh(empId = S.user.empId || ACTIVE_EMPID) {
+  const normalizedEmpId = normChallengeEmpId(empId);
+  if (!_db || !normalizedEmpId) return;
+  if (normalizedEmpId !== normChallengeEmpId(S.user.empId || ACTIVE_EMPID)) return;
+  if (_challengeDupRefreshInFlight && _challengeDupRefreshKey === normalizedEmpId) return;
+  _challengeDupRefreshKey = normalizedEmpId;
+  _challengeDupRefreshInFlight = (async () => {
+    const hadActive = hasActiveChallengeRegistration();
+    await syncMyChallengeRegistrationWithOptions({ pruneMissingRemote: true });
+    const hasActive = hasActiveChallengeRegistration();
+    if (document.getElementById('page-challenge')?.classList.contains('active') && hadActive !== hasActive) renderChallenge();
+    else updateChSubmitState();
+  })().catch(e => {
+    console.error('[queueChallengeDuplicateRefresh]', e);
+  }).finally(() => {
+    _challengeDupRefreshInFlight = null;
+    _challengeDupRefreshKey = '';
+  });
 }
 
 function shareChReg(id, name, dept) {
@@ -12070,6 +12122,7 @@ function updateChSubmitState() {
   const shoePrefsReady = !!String(_chShoePrefs[0] || '').trim();
   const dup = hasDuplicateChallengeReg(empId);
   const ready = !!(name && empId && phone && shoe && cruiseChoice && eventChoice && consent && shoePrefsReady && !dup);
+  if (dup) queueChallengeDuplicateRefresh(empId);
 
   if (warnEl) warnEl.classList.toggle('show', !!empId && dup);
   if (submitBtn) {
@@ -12079,7 +12132,7 @@ function updateChSubmitState() {
   return { ready, dup, cruiseChoice, eventChoice, shoePrefsReady };
 }
 
-function submitChReg(e) {
+async function submitChReg(e) {
   e.preventDefault();
   const name  = (document.getElementById('ch-name').value || '').trim();
   const empId = (document.getElementById('ch-empid').value || '').trim().toUpperCase();
@@ -12099,8 +12152,9 @@ function submitChReg(e) {
   if (!eventVal) { showToast('⚠️ 행사 참여 여부를 선택해주세요'); return; }
   if (!ok) { showToast('⚠️ 개인정보 동의가 필요합니다'); return; }
 
-  const regs = getStoredChallengeRegs();
+  await syncMyChallengeRegistrationWithOptions({ pruneMissingRemote: true });
   if (hasDuplicateChallengeReg(empId)) { showToast('⚠️ 이미 신청하신 사번입니다'); return; }
+  const regs = getStoredChallengeRegs();
 
   const shoeRequestNote = String(_chShoeRequestNote || '').trim();
   const regNote = buildChRegistrationNote({

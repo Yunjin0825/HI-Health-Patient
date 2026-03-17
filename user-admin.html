@@ -502,11 +502,12 @@
         <div class="ch-s-pill"><div class="ch-s-val" id="ch-ok">-</div><div class="ch-s-lbl">확정</div></div>
         <div class="ch-s-pill"><div class="ch-s-val" id="ch-can">-</div><div class="ch-s-lbl">취소</div></div>
         <div class="ch-s-pill"><div class="ch-s-val" id="ch-fam">-</div><div class="ch-s-lbl">가족참여</div></div>
+        <div class="ch-s-pill"><div class="ch-s-val" id="ch-cgm">-</div><div class="ch-s-lbl">혈당기기</div></div>
         <div class="ch-s-pill"><div class="ch-s-val" id="ch-cruise">-</div><div class="ch-s-lbl">크루즈</div></div>
         <div class="ch-s-pill"><div class="ch-s-val" id="ch-event">-</div><div class="ch-s-lbl">행사참여</div></div>
       </div>
       <div class="ctrl-bar">
-        <input class="ctrl-inp" id="ch-search" placeholder="신청번호·이름·등록번호·희망브랜드·요청사항 검색" oninput="renderChallenge()">
+        <input class="ctrl-inp" id="ch-search" placeholder="신청번호·이름·등록번호·티셔츠·혈당체크기기·희망브랜드 검색" oninput="renderChallenge()">
         <select class="ctrl-sel" id="ch-sfilter" onchange="renderChallenge()">
           <option value="">전체 상태</option>
           <option value="pending">대기</option>
@@ -524,6 +525,8 @@
               <th>이름</th>
               <th>등록번호</th>
               <th>본인신발</th>
+              <th>티셔츠</th>
+              <th>혈당체크기기</th>
               <th>희망브랜드</th>
               <th>가족 정보</th>
               <th>참여 옵션</th>
@@ -838,8 +841,24 @@ function getRegShoeRequestText(r) {
   const direct = String(r?.shoeRequestNote || '').trim();
   if (direct) return direct;
   const note = String(r?.note || '').trim();
-  const match = note.match(/운동화요청:\s*(.+)$/m);
+  const match = note.match(/(?:운동화요청|러닝화요청):\s*(.+)$/m);
   return match ? String(match[1] || '').trim() : '';
+}
+
+function getRegTshirtText(r) {
+  const direct = String(r?.tshirtSize || r?.tshirtsize || '').trim();
+  if (direct) return direct;
+  return String(getRegNoteLine(r, '티셔츠') || '').trim();
+}
+
+function getRegCgmParticipation(r) {
+  const noteVal = getRegNoteLine(r, '혈당체크기기');
+  if (noteVal) {
+    if (/미신청|안 함|없음/i.test(noteVal)) return false;
+    if (/신청|예|yes/i.test(noteVal)) return true;
+  }
+  const direct = parseRegBool(r?.cgmParticipation ?? r?.cgmparticipation);
+  return direct !== null ? direct : false;
 }
 
 function escHtml(v) {
@@ -1220,8 +1239,10 @@ function normalizeRegistrationRow(r) {
     dept: r?.dept || '',
     phone: r?.phone || '',
     shoeSize: r?.shoeSize ?? r?.shoesize ?? '',
+    tshirtSize: r?.tshirtSize ?? r?.tshirtsize ?? '',
     shoePrefs: r?.shoePrefs ?? r?.shoeprefs ?? [],
     shoeRequestNote: r?.shoeRequestNote ?? r?.shoerequestnote ?? '',
+    cgmParticipation: r?.cgmParticipation ?? r?.cgmparticipation ?? null,
     familyParticipation: r?.familyParticipation ?? r?.familyparticipation ?? null,
     familyCount: r?.familyCount ?? r?.familycount ?? 0,
     familyGender: r?.familyGender ?? r?.familygender ?? '',
@@ -1240,10 +1261,6 @@ function normalizeRegistrationRow(r) {
   };
 }
 
-function isPendingRegSync(r) {
-  return !!r?.__derived && !String(r?.note || '').trim();
-}
-
 function isActiveRegistration(r) {
   return String(r?.status || 'pending').trim() !== 'cancelled';
 }
@@ -1260,50 +1277,6 @@ function isSyntheticDerivedDeviceId(deviceId) {
 
 function normRegEmpId(v) {
   return String(v || '').trim().toUpperCase();
-}
-
-function mergeRegistrationsWithUsers(registrations, users) {
-  const rows = [...(registrations || [])].map(r => ({ ...r, __derived: false }));
-  const existing = new Set(rows.map(r => String(r.id || '').trim()).filter(Boolean));
-  const activeEmpIds = new Set(
-    rows
-      .filter(r => !r.__derived && isActiveRegistration(r))
-      .map(r => normRegEmpId(r.empId))
-      .filter(Boolean)
-  );
-  const activeDeviceIds = new Set(
-    rows
-      .filter(r => !r.__derived && isActiveRegistration(r))
-      .map(r => String(r.deviceId || '').trim())
-      .filter(Boolean)
-  );
-  (users || []).forEach(u => {
-    const regId = String(u.registrationId || u.registrationid || '').trim();
-    const empId = normRegEmpId(u.empId);
-    const deviceId = String(u.deviceId || '').trim();
-    if (!regId || existing.has(regId)) return;
-    if ((empId && activeEmpIds.has(empId)) || (!empId && deviceId && activeDeviceIds.has(deviceId))) return;
-    rows.push({
-      id: regId,
-      deviceId: deviceId,
-      empId: empId,
-      name: u.name || '',
-      dept: u.dept || '',
-      phone: '',
-      shoeSize: '',
-      shoePrefs: [],
-      familyParticipation: null,
-      familyCount: 0,
-      cruiseParticipation: null,
-      eventParticipation: null,
-      note: '',
-      status: 'pending',
-      registeredAt: u.lastActiveAt || u.lastactiveat || '',
-      __derived: true,
-    });
-    existing.add(regId);
-  });
-  return rows;
 }
 
 function mergeUsersWithRegistrations(users, registrations) {
@@ -1438,8 +1411,7 @@ async function loadAll(opts = {}) {
       ? []
       : deriveUsersFromActivity(w.data || [], p.data || [], g.data || [], rawRegistrations, o.data || []);
     const nextUsersBase = rawUsers.length ? rawUsers.map(normalizeUserRow) : fallbackUsers;
-    const mergedRegistrations = mergeRegistrationsWithUsers(rawRegistrations, nextUsersBase);
-    const nextUsers = mergeUsersWithRegistrations(nextUsersBase, mergedRegistrations);
+    const nextUsers = mergeUsersWithRegistrations(nextUsersBase, rawRegistrations);
     const nextOrders = (o.data || []).map(ord => ({
       ...ord,
       items: typeof ord.items === 'string' ? (() => { try { return JSON.parse(ord.items); } catch(e) { return []; } })() : (ord.items||[]),
@@ -1449,7 +1421,7 @@ async function loadAll(opts = {}) {
       workouts: w.data || [],
       posts: p.data || [],
       glucose: g.data || [],
-      registrations: mergedRegistrations,
+      registrations: rawRegistrations,
       orders: nextOrders,
       adminPosts: ap.data || [],
     };
@@ -2431,6 +2403,8 @@ function renderChallenge() {
       r.name || '',
       r.empId || '',
       r.dept || '',
+      getRegTshirtText(r),
+      getRegCgmParticipation(r) ? '신청' : '미신청',
       getRegShoePrefText(r),
       getRegRequestSummaryText(r),
       getRegFamilySummaryText(r),
@@ -2446,26 +2420,27 @@ function renderChallenge() {
   document.getElementById('ch-ok').textContent      = all.filter(r => r.status === 'confirmed').length;
   document.getElementById('ch-can').textContent     = all.filter(r => r.status === 'cancelled').length;
   document.getElementById('ch-fam').textContent     = all.filter(getRegFamilyParticipation).length;
+  document.getElementById('ch-cgm').textContent     = all.filter(getRegCgmParticipation).length;
   document.getElementById('ch-cruise').textContent  = all.filter(getRegCruiseParticipation).length;
   document.getElementById('ch-event').textContent   = all.filter(getRegEventParticipation).length;
   document.getElementById('ch-count').textContent   = list.length + '건';
 
   const tbody = document.getElementById('ch-tbody');
   if (!list.length) {
-    tbody.innerHTML = `<tr><td class="empty-cell" colspan="10">신청 내역이 없습니다</td></tr>`;
+    tbody.innerHTML = `<tr><td class="empty-cell" colspan="12">신청 내역이 없습니다</td></tr>`;
     return;
   }
   tbody.innerHTML = list.map(r => {
-    const syncPending = isPendingRegSync(r);
-    const sBadge = syncPending ? '<span class="badge pend">동기화 대기</span>'
-      : r.status === 'confirmed' ? '<span class="badge ok">확정</span>'
+    const sBadge = r.status === 'confirmed' ? '<span class="badge ok">확정</span>'
       : r.status === 'cancelled' ? '<span class="badge can">취소</span>'
       : '<span class="badge pend">대기</span>';
     const safeId = (r.id||'').replace(/'/g,'');
-    const ownShoe = withMm(r.shoeSize) || withMm(getRegNoteLine(r, '신발사이즈')) || (syncPending ? '동기화 대기' : '-');
-    const shoePrefText = getRegShoePrefText(r) || (syncPending ? '동기화 대기' : '-');
-    const familySummary = syncPending ? '동기화 대기' : getRegFamilySummaryText(r);
-    const optionSummary = syncPending ? '동기화 대기' : getRegOptionSummaryText(r);
+    const ownShoe = withMm(r.shoeSize) || withMm(getRegNoteLine(r, '신발사이즈')) || '-';
+    const tshirtText = getRegTshirtText(r) || '-';
+    const cgmText = getRegCgmParticipation(r) ? '신청' : '미신청';
+    const shoePrefText = getRegShoePrefText(r) || '-';
+    const familySummary = getRegFamilySummaryText(r);
+    const optionSummary = getRegOptionSummaryText(r);
     const requestParts = [];
     const shoeReq = getRegShoeRequestText(r);
     const familyMemo = getRegFamilyMemoText(r);
@@ -2473,12 +2448,14 @@ function renderChallenge() {
     if (familyMemo) requestParts.push(`가족메모: ${familyMemo}`);
     const requestHtml = requestParts.length
       ? requestParts.map(v => `<div>${escHtml(v)}</div>`).join('')
-      : (syncPending ? '동기화 대기' : '-');
+      : '-';
     return `<tr>
       <td class="td-date">${r.id||'-'}</td>
       <td class="td-name">${escHtml(r.name||'-')}</td>
       <td>${escHtml(r.empId||'-')}</td>
       <td>${escHtml(ownShoe)}</td>
+      <td>${escHtml(tshirtText)}</td>
+      <td>${escHtml(cgmText)}</td>
       <td class="td-memo">${escHtml(shoePrefText)}</td>
       <td class="td-memo">${escHtml(familySummary)}</td>
       <td class="td-memo">${escHtml(optionSummary)}</td>
@@ -2494,7 +2471,8 @@ function renderChallenge() {
 function showChDetail(id) {
   const r = GD.registrations.find(x => String(x.id) === String(id));
   if (!r) return;
-  const syncPending = isPendingRegSync(r);
+  const tshirtText = getRegTshirtText(r);
+  const cgmText = getRegCgmParticipation(r) ? '신청' : '미신청';
   const shoePrefText = getRegShoePrefText(r);
   const shoeRequestText = getRegShoeRequestText(r);
   const familyParticipation = getRegFamilyParticipation(r);
@@ -2508,15 +2486,17 @@ function showChDetail(id) {
     ['등록번호', r.empId],
     ['부서', r.dept],
     ['연락처', r.phone],
-    ['신발(본인)', withMm(r.shoeSize) || withMm(getRegNoteLine(r, '신발사이즈')) || (syncPending ? '동기화 대기' : '-')],
-    ['희망브랜드', shoePrefText || (syncPending ? '동기화 대기' : '-')],
-    ['운동화요청', shoeRequestText || (syncPending ? '동기화 대기' : '-')],
-    ['가족참여', syncPending ? '동기화 대기' : (familyParticipation ? '가족함께 참여' : '본인만')],
-    ['가족정보', syncPending ? '동기화 대기' : (familySummary || '-')],
-    ['가족메모', familyMemo || (syncPending ? '동기화 대기' : '-')],
-    ['크루즈', syncPending ? '동기화 대기' : (cruiseParticipation ? '탑승 희망' : '탑승 안 함')],
-    ['행사', syncPending ? '동기화 대기' : (eventParticipation ? '참여' : '불참')],
-    ['상태', syncPending ? '동기화 대기' : r.status],
+    ['신발(본인)', withMm(r.shoeSize) || withMm(getRegNoteLine(r, '신발사이즈')) || '-'],
+    ['티셔츠', tshirtText || '-'],
+    ['혈당체크기기', cgmText],
+    ['희망브랜드', shoePrefText || '-'],
+    ['운동화요청', shoeRequestText || '-'],
+    ['가족참여', familyParticipation ? '가족함께 참여' : '본인만'],
+    ['가족정보', familySummary || '-'],
+    ['가족메모', familyMemo || '-'],
+    ['크루즈', cruiseParticipation ? '탑승 희망' : '탑승 안 함'],
+    ['행사', eventParticipation ? '참여' : '불참'],
+    ['상태', r.status],
     ['신청일', r.registeredAt ? new Date(r.registeredAt).toLocaleString('ko-KR') : '-'],
     ['비고', r.adminNote||'-'],
   ];
@@ -2525,11 +2505,10 @@ function showChDetail(id) {
 
   const confirmBtn = document.getElementById('ch-confirm-btn');
   const cancelBtn = document.getElementById('ch-cancel-btn');
-  const disableActions = syncPending;
-  confirmBtn.disabled = disableActions;
-  cancelBtn.disabled = disableActions;
-  confirmBtn.title = disableActions ? '신청 데이터가 아직 서버에 완전히 동기화되지 않았습니다.' : '';
-  cancelBtn.title = disableActions ? '신청 데이터가 아직 서버에 완전히 동기화되지 않았습니다.' : '';
+  confirmBtn.disabled = false;
+  cancelBtn.disabled = false;
+  confirmBtn.title = '';
+  cancelBtn.title = '';
   confirmBtn.onclick = () => updateChStatus(id, 'confirmed');
   cancelBtn.onclick  = () => updateChStatus(id, 'cancelled');
   document.getElementById('ch-modal').classList.add('open');
@@ -2537,46 +2516,21 @@ function showChDetail(id) {
 
 async function updateChStatus(id, status) {
   showLoading(true);
-  const cur = GD.registrations.find(x => String(x.id) === String(id));
-  if (isPendingRegSync(cur)) {
-    showLoading(false);
-    toast('신청 데이터 동기화 후 처리해주세요');
-    return;
-  }
-  let error = null;
-  if (cur?.__derived) {
-    const res = await db.from('registrations').upsert({
-      id: cur.id,
-      deviceId: cur.deviceId || '',
-      empId: cur.empId || '',
-      name: cur.name || '',
-      dept: cur.dept || '',
-      phone: cur.phone || '',
-      shoeSize: cur.shoeSize || '',
-      familyParticipation: !!cur.familyParticipation,
-      familyCount: Number(cur.familyCount) || 0,
-      note: cur.note || '',
-      status,
-      registeredAt: cur.registeredAt || new Date().toISOString(),
-    }, { onConflict: 'id' });
-    error = res.error || null;
-  } else {
-    const res = await db.from('registrations').update({ status }).eq('id', id);
-    error = res.error || null;
-  }
+  const res = await db.from('registrations').update({ status }).eq('id', id);
+  const error = res.error || null;
   showLoading(false);
   if (error) { toast('실패: ' + error.message); return; }
   const r = GD.registrations.find(x => String(x.id) === String(id));
-  if (r) { r.status = status; r.__derived = false; }
+  if (r) r.status = status;
   closeModal('ch-modal');
   renderChallenge();
   toast(status === 'confirmed' ? '✅ 확정 처리 완료' : '취소 처리 완료');
 }
 
 function exportChallengeCsv() {
-  const rows = [['신청번호','이름','등록번호','부서','연락처','본인신발','희망브랜드','운동화요청','가족참여','가족정보','가족메모','크루즈','행사','상태','신청일']];
+  const rows = [['신청번호','이름','등록번호','부서','연락처','본인신발','티셔츠','혈당체크기기','희망브랜드','운동화요청','가족참여','가족정보','가족메모','크루즈','행사','상태','신청일']];
   GD.registrations.forEach(r => rows.push([
-    r.id, r.name, r.empId, r.dept, r.phone, withMm(r.shoeSize) || withMm(getRegNoteLine(r, '신발사이즈')), getRegShoePrefText(r), getRegShoeRequestText(r),
+    r.id, r.name, r.empId, r.dept, r.phone, withMm(r.shoeSize) || withMm(getRegNoteLine(r, '신발사이즈')), getRegTshirtText(r), getRegCgmParticipation(r) ? '신청' : '미신청', getRegShoePrefText(r), getRegShoeRequestText(r),
     getRegFamilyParticipation(r) ? 'Y':'N', getRegFamilySummaryText(r), getRegFamilyMemoText(r),
     getRegCruiseParticipation(r) ? 'Y':'N', getRegEventParticipation(r) ? 'Y' : 'N', r.status,
     r.registeredAt ? new Date(r.registeredAt).toLocaleDateString('ko-KR') : '',

@@ -1844,6 +1844,10 @@
 
   let editingRegId = '';
 
+  function isActiveRegRow(reg) {
+    return String(reg?.status || '').trim().toLowerCase() !== 'cancelled';
+  }
+
   function hasDup(empId, ignoreId = editingRegId) {
     const normalizedEmpId = String(empId || '').trim().toUpperCase();
     const excludedId = String(ignoreId || '').trim();
@@ -1857,6 +1861,49 @@
         if (excludedId && rowId === excludedId) return false;
         return rowEmpId === normalizedEmpId;
       });
+  }
+
+  async function syncLocalRegsForEmp(empId = getCurrentEmpId(), opts = {}) {
+    const normalizedEmpId = String(empId || '').trim().toUpperCase();
+    if (!normalizedEmpId) return false;
+    const pruneMissing = !!opts.pruneMissing;
+    const local = JSON.parse(localStorage.getItem(CH_KEY) || '[]');
+    let remote = [];
+    try {
+      const filters = [`empId.eq.${normalizedEmpId}`];
+      if (normalizedEmpId.toLowerCase() !== normalizedEmpId) filters.push(`empId.eq.${normalizedEmpId.toLowerCase()}`);
+      const res = await fetch(
+        SB_URL + '/rest/v1/registrations?select=*&or=(' + filters.join(',') + ')',
+        { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } }
+      );
+      if (res.ok) remote = await res.json();
+    } catch (e) {
+      return false;
+    }
+
+    const byId = new Map(local.map(r => [String(r?.id || '').trim(), r]));
+    remote.forEach(r => {
+      const id = String(r?.id || '').trim();
+      if (!id) return;
+      byId.set(id, { ...(byId.get(id) || {}), ...r });
+    });
+    let next = [...byId.values()];
+    if (pruneMissing) {
+      const activeRemoteIds = new Set(
+        remote.filter(isActiveRegRow).map(r => String(r?.id || '').trim()).filter(Boolean)
+      );
+      next = next.filter(r => {
+        const rowEmpId = String(r?.empId || '').trim().toUpperCase();
+        if (rowEmpId !== normalizedEmpId) return true;
+        if (!isActiveRegRow(r)) return true;
+        const rowId = String(r?.id || '').trim();
+        return rowId && activeRemoteIds.has(rowId);
+      });
+    }
+
+    const changed = JSON.stringify(next) !== JSON.stringify(local);
+    if (changed) localStorage.setItem(CH_KEY, JSON.stringify(next));
+    return changed;
   }
 
   async function submitReg() {
@@ -1882,6 +1929,7 @@
     if (!cruise) return toast('크루즈 탑승 여부를 선택해주세요');
     if (!eventV) return toast('행사 참여 여부를 선택해주세요');
     if (!ok)     return toast('개인정보 동의가 필요합니다');
+    await syncLocalRegsForEmp(empId, { pruneMissing: true });
     if (hasDup(empId)) return toast('이미 신청하신 사번입니다');
 
     const submitBtn = document.getElementById('btn-submit');
@@ -2430,13 +2478,14 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function checkExisting(empId) {
+  async function checkExisting(empId) {
     if (String(editingRegId || '').trim()) {
       document.getElementById('success-screen').classList.remove('show');
       document.getElementById('form-screen').classList.remove('hide');
       return;
     }
     const uid = (empId || getCurrentEmpId() || '').toUpperCase();
+    if (uid) await syncLocalRegsForEmp(uid, { pruneMissing: true });
     const regs = JSON.parse(localStorage.getItem(CH_KEY) || '[]')
       .filter(r => r.status !== 'cancelled' && (uid ? String(r.empId || '').toUpperCase() === uid : true));
     if (regs.length) {
