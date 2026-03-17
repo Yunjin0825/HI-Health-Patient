@@ -1980,22 +1980,21 @@
       note: parts.join('\n'), status: 'pending', adminNote: '', registeredAt: prevReg?.registeredAt || now,
     };
 
+    const { error } = await persistRegistrationToRemote(reg, { note: reg.note || '' });
+    if (error) {
+      console.error('[challenge-registration]', error);
+      toast('신청 저장에 실패했습니다. 잠시 후 다시 시도해주세요');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = currentEditId ? '수정 완료' : '신청하기';
+      }
+      return;
+    }
+
     const nextRegs = regs.filter(r => String(r?.id || '').trim() !== id);
     nextRegs.push(reg);
     localStorage.setItem(CH_KEY, JSON.stringify(nextRegs));
     notifyParentRegistrationChange({ registration: reg });
-
-    try {
-      await fetch(SB_URL + '/rest/v1/registrations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY,
-          'Prefer': 'resolution=merge-duplicates',
-        },
-        body: JSON.stringify(buildRegistrationPayload(reg)),
-      });
-    } catch(e) { console.warn('[Supabase]', e); }
     await syncCurrentUserRegistrationRef(reg.id, reg.empId, reg.deviceId);
 
     editingRegId = '';
@@ -2217,16 +2216,96 @@
       dept: reg?.dept || '',
       phone: reg?.phone || '',
       shoeSize: reg?.shoeSize || '',
+      tshirtSize: reg?.tshirtSize || '',
       shoePrefs: JSON.stringify(reg?.shoePrefs || []),
+      shoeRequestNote: reg?.shoeRequestNote || '',
+      cgmParticipation: reg?.cgmParticipation === true,
       familyParticipation: reg?.familyParticipation === true,
       familyCount: Number(reg?.familyCount) || 0,
+      familyGender: reg?.familyGender || '',
+      familyAge: reg?.familyAge || '',
+      familyShoeSize: reg?.familyShoeSize || '',
+      familyMemo: reg?.familyMemo || '',
+      familyMembers: Array.isArray(reg?.familyMembers) ? reg.familyMembers : [],
       cruiseParticipation: !!reg?.cruiseParticipation,
       eventParticipation: !!reg?.eventParticipation,
       status: reg?.status || 'pending',
       note: reg?.note || '',
+      adminNote: reg?.adminNote || '',
       registeredAt: reg?.registeredAt || new Date().toISOString(),
       ...overrides,
     };
+  }
+
+  function buildLegacyRegistrationPayload(reg, overrides = {}) {
+    return {
+      id: reg?.id || '',
+      deviceId: reg?.deviceId || getCurrentDeviceId() || '',
+      empId: reg?.empId || getCurrentEmpId() || '',
+      name: reg?.name || '',
+      dept: reg?.dept || '',
+      phone: reg?.phone || '',
+      shoeSize: reg?.shoeSize || '',
+      familyParticipation: reg?.familyParticipation === true,
+      familyCount: Number(reg?.familyCount) || 0,
+      status: reg?.status || 'pending',
+      registeredAt: reg?.registeredAt || new Date().toISOString(),
+      ...overrides,
+    };
+  }
+
+  function isRegistrationSchemaError(error) {
+    const message = String(error?.message || error || '');
+    return /column .* does not exist|Could not find the '.*' column/i.test(message);
+  }
+
+  async function persistRegistrationToRemote(reg, overrides = {}) {
+    const remoteReg = {
+      ...reg,
+      ...overrides,
+      note: overrides.note ?? reg?.note ?? '',
+      status: overrides.status || reg?.status || 'pending',
+      registeredAt: overrides.registeredAt || reg?.registeredAt || new Date().toISOString(),
+    };
+    const postPayload = async payload => {
+      try {
+        const response = await fetch(SB_URL + '/rest/v1/registrations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SB_KEY,
+            'Authorization': 'Bearer ' + SB_KEY,
+            'Prefer': 'resolution=merge-duplicates',
+          },
+          body: JSON.stringify(payload),
+        });
+        if (response.ok) return { error: null };
+        const text = await response.text().catch(() => '');
+        console.warn('[Supabase][registrations]', response.status, text);
+        return { error: new Error(text || ('HTTP ' + response.status)) };
+      } catch (e) {
+        console.warn('[Supabase]', e);
+        return { error: e };
+      }
+    };
+    let lastError = null;
+    try {
+      const parentPersist = window.parent?.persistChallengeRegistrationToRemote;
+      if (window.parent && window.parent !== window && typeof parentPersist === 'function') {
+        const result = await parentPersist(remoteReg);
+        if (!result?.error) return { error: null };
+        lastError = result.error || null;
+      }
+    } catch (e) {
+      console.warn('[parent.persistChallengeRegistrationToRemote]', e);
+      lastError = e;
+    }
+    const res = await postPayload(buildRegistrationPayload(remoteReg, overrides));
+    if (!res.error) return res;
+    if (!isRegistrationSchemaError(res.error)) return { error: lastError || res.error };
+    console.warn('[persistRegistrationToRemote] schema mismatch, retrying legacy payload');
+    const legacyRes = await postPayload(buildLegacyRegistrationPayload(remoteReg, overrides));
+    return legacyRes.error ? { error: lastError || legacyRes.error } : legacyRes;
   }
 
   async function syncCurrentUserRegistrationRef(registrationId = '', empId = getCurrentEmpId(), deviceId = getCurrentDeviceId()) {
@@ -2290,16 +2369,19 @@
     // Supabase에서 실시간 데이터 fetch
     try {
       const res = await fetch(
-        SB_URL + '/rest/v1/registrations?select=id,name,dept,empId,registeredAt&order=registeredAt.desc&limit=50',
+        SB_URL + '/rest/v1/registrations?select=id,name,dept,empId,registeredAt,status&order=registeredAt.desc&limit=50',
         { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } }
       );
       if (res.ok) {
         const data = await res.json();
         if (data && data.length) {
-          const merged = [...local];
+          const byId = new Map(local.map(row => [String(row?.id || '').trim(), row]));
           data.forEach(row => {
-            if (!merged.some(localRow => String(localRow.id) === String(row.id))) merged.push(row);
+            const rowId = String(row?.id || '').trim();
+            if (!rowId) return;
+            byId.set(rowId, { ...(byId.get(rowId) || {}), ...row });
           });
+          const merged = [...byId.values()];
           merged.sort((a, b) => new Date(b.registeredAt) - new Date(a.registeredAt));
           renderPeople(merged);
         }
@@ -2437,7 +2519,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function cancelReg(regId) {
+  async function cancelReg(regId) {
     if (!confirm('정말 취소하시겠습니까?')) return;
     const regs = JSON.parse(localStorage.getItem(CH_KEY) || '[]');
     const idx = regs.findIndex(r => String(r.id) === String(regId));
@@ -2450,27 +2532,21 @@
       note: '취소 처리됨',
     };
     if (!cancelledReg.deviceId) cancelledReg.deviceId = getCurrentDeviceId();
+    const { error } = await persistRegistrationToRemote(cancelledReg, {
+      note: cancelledReg.note || '취소 처리됨',
+      status: 'cancelled',
+      registeredAt: cancelledReg.registeredAt || new Date().toISOString(),
+    });
+    if (error) {
+      console.error('[challenge-registration/cancel]', error);
+      toast('취소 저장에 실패했습니다. 잠시 후 다시 시도해주세요');
+      return;
+    }
     if (idx >= 0) regs[idx] = cancelledReg;
     else regs.push(cancelledReg);
     localStorage.setItem(CH_KEY, JSON.stringify(regs));
     notifyParentRegistrationChange({ registrationId: regId, cancelled: true, empId: getCurrentEmpId(), registration: cancelledReg });
-    try {
-      fetch(SB_URL + '/rest/v1/registrations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SB_KEY,
-          'Authorization': 'Bearer ' + SB_KEY,
-          'Prefer': 'resolution=merge-duplicates',
-        },
-        body: JSON.stringify(buildRegistrationPayload(cancelledReg, {
-          note: cancelledReg.note || '취소 처리됨',
-          status: 'cancelled',
-          registeredAt: cancelledReg.registeredAt || new Date().toISOString(),
-        })),
-      });
-    } catch(e) {}
-    syncCurrentUserRegistrationRef('', cancelledReg.empId || getCurrentEmpId(), cancelledReg.deviceId || getCurrentDeviceId());
+    await syncCurrentUserRegistrationRef('', cancelledReg.empId || getCurrentEmpId(), cancelledReg.deviceId || getCurrentDeviceId());
     editingRegId = '';
     loadPeople();
     document.getElementById('success-screen').classList.remove('show');

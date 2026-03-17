@@ -4746,7 +4746,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const PUSH_PUBLIC_KEY   = 'BLGJTMpYpyBS_TUbqZ54-x56lvRc2LULPdj_FpReD4CPsIEdHJJNX0DFx5h57aLMV3kkKz_h9mPgntTcK73GGu8';
 const PUSH_TABLE        = 'push_subscriptions';
 const PUSH_DEFAULT_URL  = './index.html#community';
-const SW_VERSION        = '20260316-72';
+const SW_VERSION        = '20260318-73';
 let _db = null; // Supabase 클라이언트
 let _realLeagueUsers = null; // Supabase에서 가져온 실제 유저 목록
 let _leagueFetching = false;
@@ -11262,6 +11262,130 @@ async function syncMyChallengeRegistration() {
 let _challengeDupRefreshInFlight = null;
 let _challengeDupRefreshKey = '';
 
+function buildChallengeRegistrationPayload(reg = {}) {
+  return {
+    id: normChallengeId(reg?.id),
+    deviceId: normChallengeId(reg?.deviceId || S.deviceId),
+    empId: normChallengeEmpId(reg?.empId || S.user.empId || ACTIVE_EMPID),
+    name: String(reg?.name || S.user.name || '').trim(),
+    dept: String(reg?.dept || S.user.dept || '').trim(),
+    phone: String(reg?.phone || '').trim(),
+    shoeSize: String(reg?.shoeSize || '').trim(),
+    tshirtSize: String(reg?.tshirtSize || '').trim(),
+    shoePrefs: JSON.stringify(reg?.shoePrefs || []),
+    shoeRequestNote: String(reg?.shoeRequestNote || '').trim(),
+    cgmParticipation: reg?.cgmParticipation === true,
+    familyParticipation: reg?.familyParticipation === true,
+    familyCount: Number(reg?.familyCount) || 0,
+    familyGender: String(reg?.familyGender || '').trim(),
+    familyAge: String(reg?.familyAge || '').trim(),
+    familyShoeSize: String(reg?.familyShoeSize || '').trim(),
+    familyMemo: String(reg?.familyMemo || '').trim(),
+    familyMembers: Array.isArray(reg?.familyMembers) ? reg.familyMembers : [],
+    cruiseParticipation: !!reg?.cruiseParticipation,
+    eventParticipation: !!reg?.eventParticipation,
+    note: String(reg?.note || buildChRegistrationNote(reg) || '').trim(),
+    adminNote: String(reg?.adminNote || '').trim(),
+    status: String(reg?.status || 'pending').trim() || 'pending',
+    registeredAt: reg?.registeredAt || new Date().toISOString(),
+  };
+}
+
+function buildLegacyChallengeRegistrationPayload(reg = {}) {
+  return {
+    id: normChallengeId(reg?.id),
+    deviceId: normChallengeId(reg?.deviceId || S.deviceId),
+    empId: normChallengeEmpId(reg?.empId || S.user.empId || ACTIVE_EMPID),
+    name: String(reg?.name || S.user.name || '').trim(),
+    dept: String(reg?.dept || S.user.dept || '').trim(),
+    phone: String(reg?.phone || '').trim(),
+    shoeSize: String(reg?.shoeSize || '').trim(),
+    familyParticipation: reg?.familyParticipation === true,
+    familyCount: Number(reg?.familyCount) || 0,
+    status: String(reg?.status || 'pending').trim() || 'pending',
+    registeredAt: reg?.registeredAt || new Date().toISOString(),
+  };
+}
+
+function isChallengeRegistrationSchemaError(error) {
+  const message = String(error?.message || error || '');
+  return /column .* does not exist|Could not find the '.*' column/i.test(message);
+}
+
+async function upsertChallengeRegistrationPayload(payload = {}) {
+  if (!payload?.id) return { error: new Error('missing registration id') };
+  if (_db) {
+    const res = await _db.from('registrations').upsert(payload, { onConflict: 'id' });
+    if (!res.error) return res;
+    console.error('[upsertChallengeRegistrationPayload]', res.error);
+  }
+  try {
+    const response = await fetch(SUPABASE_URL + '/rest/v1/registrations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Prefer': 'resolution=merge-duplicates',
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      return { error: new Error(text || ('HTTP ' + response.status)) };
+    }
+    return { error: null };
+  } catch (e) {
+    console.error('[upsertChallengeRegistrationPayload/fetch]', e);
+    return { error: e };
+  }
+}
+
+async function persistChallengeRegistrationToRemote(reg = {}) {
+  const payload = buildChallengeRegistrationPayload(reg);
+  const res = await upsertChallengeRegistrationPayload(payload);
+  if (!res.error) return res;
+  if (!isChallengeRegistrationSchemaError(res.error)) return res;
+  console.warn('[persistChallengeRegistrationToRemote] schema mismatch, retrying legacy payload');
+  return upsertChallengeRegistrationPayload(buildLegacyChallengeRegistrationPayload(reg));
+}
+
+function getChallengeRegistrationStorageKeys(reg = {}) {
+  const empId = normChallengeEmpId(reg?.empId);
+  const regId = normChallengeId(reg?.id);
+  const keys = [];
+  if (empId) {
+    keys.push('hi_health_challenge_backup_' + empId);
+    if (regId) keys.push('hi_health_challenge_backup_' + empId + '_' + regId);
+  }
+  return keys;
+}
+
+function backupChallengeRegistrationLocally(reg = {}) {
+  if (IS_GUEST) return;
+  const payload = {
+    ...reg,
+    empId: normChallengeEmpId(reg?.empId || S.user.empId || ACTIVE_EMPID),
+    id: normChallengeId(reg?.id),
+    savedAt: new Date().toISOString(),
+  };
+  getChallengeRegistrationStorageKeys(payload).forEach(key => {
+    try { localStorage.setItem(key, JSON.stringify(payload)); } catch (e) {}
+  });
+}
+
+function restoreChallengeRegistrationBackup(reg = {}) {
+  if (IS_GUEST) return reg;
+  const keys = getChallengeRegistrationStorageKeys(reg);
+  for (const key of keys) {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(key) || 'null');
+      if (parsed && typeof parsed === 'object') return { ...parsed, ...reg };
+    } catch (e) {}
+  }
+  return reg;
+}
+
 async function syncMyChallengeRegistrationWithOptions(opts = {}) {
   if (!_db) return getMyReg();
   const regId = normChallengeId(S.user.registrationId);
@@ -11367,23 +11491,12 @@ function repairChRegNote() {
       changed = true;
     }
     const note = String(r.note || rebuilt || '').trim();
-    _db.from('registrations').upsert({
-      id: r.id,
-      deviceId: r.deviceId || S.deviceId || '',
-      empId: r.empId || '',
-      name: r.name || '',
-      dept: r.dept || '',
-      phone: r.phone || '',
-      shoeSize: r.shoeSize || '',
-      shoePrefs: JSON.stringify(r.shoePrefs || []),
-      familyParticipation: r.familyParticipation === true,
-      familyCount: Number(r.familyCount) || 0,
-      cruiseParticipation: !!r.cruiseParticipation,
-      eventParticipation: !!r.eventParticipation,
+    persistChallengeRegistrationToRemote({
+      ...r,
       note,
       status: r.status || 'pending',
       registeredAt: r.registeredAt || new Date().toISOString(),
-    }, { onConflict: 'id' }).then(({ error }) => {
+    }).then(({ error }) => {
       if (error) console.error('[repairChRegNote]', error);
     });
   });
@@ -11414,34 +11527,25 @@ function clearRemoteChallengeRegistrationRef(empId = S.user.empId || ACTIVE_EMPI
   syncRemoteChallengeRegistrationRef('', empId, deviceId);
 }
 
-function cancelRegistration(regId) {
+async function cancelRegistration(regId) {
   if (!confirm('정말 취소하시겠습니까?')) return;
   const regs = getStoredChallengeRegs();
   const r = regs.find(x => x.id === regId);
   if (!r) return;
+  const cancelledReg = {
+    ...r,
+    status: 'cancelled',
+    note: r.note || buildChRegistrationNote(r) || '취소 처리됨',
+    registeredAt: r.registeredAt || new Date().toISOString(),
+  };
+  const { error } = await persistChallengeRegistrationToRemote(cancelledReg);
+  if (error) {
+    console.error('[cancelRegistration]', error);
+    showToast('⚠️ 취소 저장에 실패했습니다. 잠시 후 다시 시도해주세요');
+    return;
+  }
   r.status = 'cancelled';
   setStoredChallengeRegs(regs);
-  if (_db) {
-    _db.from('registrations').upsert({
-      id: r.id,
-      deviceId: r.deviceId || S.deviceId || '',
-      empId: r.empId || S.user.empId || ACTIVE_EMPID || '',
-      name: r.name || S.user.name || '',
-      dept: r.dept || S.user.dept || '',
-      phone: r.phone || '',
-      shoeSize: r.shoeSize || '',
-      shoePrefs: JSON.stringify(r.shoePrefs || []),
-      familyParticipation: r.familyParticipation === true,
-      familyCount: Number(r.familyCount) || 0,
-      cruiseParticipation: !!r.cruiseParticipation,
-      eventParticipation: !!r.eventParticipation,
-      note: r.note || buildChRegistrationNote(r) || '취소 처리됨',
-      status: 'cancelled',
-      registeredAt: r.registeredAt || new Date().toISOString(),
-    }, { onConflict: 'id' }).then(({ error }) => {
-      if (error) console.error('[cancelRegistration]', error);
-    });
-  }
   const activeReg = getMyReg();
   S.user.registrationId = activeReg ? activeReg.id : null;
   clearRemoteChallengeRegistrationRef(r.empId || S.user.empId || ACTIVE_EMPID, r.deviceId || S.deviceId);
@@ -11477,29 +11581,17 @@ function applyRundayRegistrationSync(payload = {}) {
       status: reg?.status || (idx >= 0 ? regs[idx]?.status : '') || 'pending',
       registeredAt: reg?.registeredAt || (idx >= 0 ? regs[idx]?.registeredAt : '') || new Date().toISOString(),
     };
+    const backedUpReg = restoreChallengeRegistrationBackup(mergedReg);
     if (idx >= 0) {
-      const merged = { ...mergedReg };
+      const merged = { ...backedUpReg };
       // Don't restore cancelled status from iframe sync
       if (regs[idx].status === 'cancelled') merged.status = 'cancelled';
       regs[idx] = merged;
-    } else regs.push(mergedReg);
+    } else regs.push(backedUpReg);
     setStoredChallengeRegs(regs);
-    apiSync('addRegistration', {
-      id: regId,
-      deviceId: mergedReg.deviceId || S.deviceId || '',
-      empId: mergedReg.empId || '',
-      name: mergedReg.name || '',
-      dept: mergedReg.dept || '',
-      phone: mergedReg.phone || '',
-      shoeSize: mergedReg.shoeSize || '',
-      shoePrefs: JSON.stringify(mergedReg.shoePrefs || []),
-      familyParticipation: mergedReg.familyParticipation === true,
-      familyCount: Number(mergedReg.familyCount) || 0,
-      cruiseParticipation: !!mergedReg.cruiseParticipation,
-      eventParticipation: !!mergedReg.eventParticipation,
-      note: mergedReg.note || '',
-      status: mergedReg.status || 'pending',
-      registeredAt: mergedReg.registeredAt || new Date().toISOString(),
+    backupChallengeRegistrationLocally(backedUpReg);
+    persistChallengeRegistrationToRemote(backedUpReg).then(({ error }) => {
+      if (error) console.error('[applyRundayRegistrationSync]', error);
     });
   }
 
@@ -12170,7 +12262,7 @@ async function submitChReg(e) {
     eventParticipation: eventVal === 'yes',
   });
   const id = 'HC-' + String(Date.now()).slice(-6);
-  regs.push({
+  const nextReg = {
     id, deviceId: S.deviceId || '', name, empId, dept, phone, email:'', shoeSize: shoe,
     shoePrefs: [..._chShoePrefs],
     shoeRequestNote,
@@ -12184,26 +12276,16 @@ async function submitChReg(e) {
     eventParticipation: eventVal === 'yes',
     note: regNote, status:'pending', adminNote:'',
     registeredAt: new Date().toISOString(),
-  });
+  };
+  const { error } = await persistChallengeRegistrationToRemote(nextReg);
+  if (error) {
+    console.error('[submitChReg]', error);
+    showToast('⚠️ 신청 저장에 실패했습니다. 잠시 후 다시 시도해주세요');
+    return;
+  }
+  regs.push(nextReg);
   setStoredChallengeRegs(regs);
-  const lastReg = regs[regs.length - 1];
-  apiSync('addRegistration', {
-    id: lastReg.id,
-    deviceId: S.deviceId,
-    empId: lastReg.empId,
-    name: lastReg.name,
-    dept: lastReg.dept,
-    phone: lastReg.phone,
-    shoeSize: lastReg.shoeSize,
-    shoePrefs: JSON.stringify(lastReg.shoePrefs || []),
-    familyParticipation: lastReg.familyParticipation,
-    familyCount: lastReg.familyCount,
-    cruiseParticipation: lastReg.cruiseParticipation,
-    eventParticipation: lastReg.eventParticipation,
-    note: regNote,
-    status: lastReg.status,
-    registeredAt: lastReg.registeredAt,
-  });
+  backupChallengeRegistrationLocally(nextReg);
 
   S.user.registrationId = id;
   S.user.name = name;
