@@ -1919,6 +1919,18 @@ function buildExTypes() {
     uSel.appendChild(o);
   });
   uSel.value = [...uSel.options].some(opt => opt.value === prevUser) ? prevUser : '';
+  // 커뮤니티 이용자 드롭다운
+  const puSel = document.getElementById('po-user');
+  if (puSel) {
+    const prevPoUser = puSel.value;
+    puSel.innerHTML = '<option value="">이용자 선택</option>';
+    [...GD.users].sort((a,b) => (a.name||'').localeCompare(b.name||'','ko')).forEach(u => {
+      const o = document.createElement('option');
+      o.value = u.deviceId; o.textContent = u.name || u.deviceId;
+      puSel.appendChild(o);
+    });
+    puSel.value = [...puSel.options].some(opt => opt.value === prevPoUser) ? prevPoUser : '';
+  }
 }
 
 function woReset() { wPage = 0; renderWorkouts(); }
@@ -2204,26 +2216,167 @@ async function deleteWorkout(id) {
 /* ══════════════════════════════════════════════
    POSTS
 ══════════════════════════════════════════════ */
-function renderPosts() {
-  const q = document.getElementById('po-search').value.toLowerCase();
-  const list = GD.posts.filter(p =>
-    !q || [(p.body||''),(p.userName||'')].some(s => s.toLowerCase().includes(q))
-  ).sort((a,b) => Number(b.ts||0) - Number(a.ts||0));
+function getPostSelectedUserId() {
+  return document.getElementById('po-user')?.value || '';
+}
 
-  document.getElementById('po-count').textContent = list.length + '건';
-  const tbody = document.getElementById('po-tbody');
-  if (!list.length) {
-    tbody.innerHTML = `<tr><td class="empty-cell" colspan="5">게시글이 없습니다</td></tr>`;
+function syncPostSelectionUI(deviceId = getPostSelectedUserId()) {
+  const wrap = document.getElementById('po-sel-bar');
+  const nameEl = document.getElementById('po-sel-name');
+  const guideEl = document.getElementById('po-guide');
+  const countEl = document.getElementById('po-count');
+  const user = GD.users.find(u => u.deviceId === deviceId);
+  if (deviceId && user) {
+    if (wrap) wrap.style.display = '';
+    if (nameEl) nameEl.textContent = user.name || user.deviceId;
+    if (guideEl) guideEl.textContent = '선택한 이용자의 게시글만 표시합니다.';
+  } else {
+    if (wrap) wrap.style.display = 'none';
+    if (nameEl) nameEl.textContent = '';
+    if (guideEl) guideEl.textContent = '전체 게시글을 한 번에 나열하지 않고, 먼저 활동 요약과 최근 작성 이용자 상위 목록을 보여줍니다. 특정 이용자를 선택하면 그 사람 게시글만 자세히 볼 수 있습니다.';
+    if (countEl) countEl.textContent = '최근 작성 이용자 상위 보기';
+  }
+}
+
+function setPostUserFilter(deviceId = '', opts = {}) {
+  const sel = document.getElementById('po-user');
+  if (sel) sel.value = deviceId || '';
+  syncPostSelectionUI(deviceId);
+  if (!opts.skipRender) renderPosts();
+}
+
+function clearPostUserFilter() {
+  setPostUserFilter('');
+}
+
+function openUserPosts(deviceId) {
+  if (!deviceId) { toast('이용자를 먼저 선택해주세요'); return; }
+  setPostUserFilter(deviceId, { skipRender: true });
+  const btn = document.getElementById('tab-btn-posts');
+  if (btn) switchTab('posts', btn);
+  renderPosts();
+  document.getElementById('panel-posts')?.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function useSelectedUserForPosts() {
+  if (!selDeviceId) { toast('이용자 탭에서 먼저 대상을 선택해주세요'); return; }
+  openUserPosts(selDeviceId);
+}
+
+function buildPostUserStats() {
+  const weekStart = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const stats = new Map();
+  GD.posts.forEach(p => {
+    const deviceId = String(p.deviceId || '').trim();
+    if (!deviceId) return;
+    const ts = Number(p.ts || 0);
+    const stat = stats.get(deviceId) || { count: 0, latestTs: 0, weekCount: 0 };
+    stat.count += 1;
+    if (ts > stat.latestTs) stat.latestTs = ts;
+    if (ts >= weekStart) stat.weekCount += 1;
+    stats.set(deviceId, stat);
+  });
+  return stats;
+}
+
+function renderPostSummary() {
+  const weekStart = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+  const todayCount = GD.posts.filter(p => Number(p.ts||0) >= todayStart.getTime()).length;
+  const weekPosts = GD.posts.filter(p => Number(p.ts||0) >= weekStart);
+  const weekUsers = new Set(weekPosts.map(p => String(p.deviceId||'').trim()).filter(Boolean));
+  document.getElementById('po-sum-today').textContent = todayCount.toLocaleString();
+  document.getElementById('po-sum-week').textContent = weekPosts.length.toLocaleString();
+  document.getElementById('po-sum-users').textContent = weekUsers.size.toLocaleString();
+}
+
+function renderPostOverview() {
+  const tbody = document.getElementById('po-overview-body');
+  const q = (document.getElementById('po-search')?.value || '').toLowerCase();
+  const stats = buildPostUserStats();
+  const allRows = GD.users
+    .map(u => ({ user: u, stat: stats.get(u.deviceId) || { count: 0, latestTs: 0, weekCount: 0 } }))
+    .filter(({ user, stat }) => {
+      if (!stat.count) return false;
+      if (!q) return true;
+      return [user.name || '', user.empId || '', user.dept || '']
+        .some(value => value.toLowerCase().includes(q));
+    })
+    .sort((a, b) => {
+      if (b.stat.latestTs !== a.stat.latestTs) return b.stat.latestTs - a.stat.latestTs;
+      return b.stat.count - a.stat.count;
+    });
+  const rows = allRows.slice(0, 30);
+
+  document.getElementById('po-list-wrap').style.display = 'none';
+  document.getElementById('po-overview-wrap').style.display = '';
+  document.getElementById('po-pager').innerHTML = '';
+
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td class="empty-cell" colspan="7">검색 조건에 맞는 작성 이용자가 없습니다</td></tr>`;
+    document.getElementById('po-count').textContent = '0명';
     return;
   }
-  tbody.innerHTML = list.map(p => {
+
+  document.getElementById('po-count').textContent = `작성 이용자 ${allRows.length}명 · 상위 ${rows.length}명 표시`;
+  tbody.innerHTML = rows.map(({ user, stat }, idx) => {
+    const safeId = String(user.deviceId || '').replace(/'/g, "\\'");
+    const latestText = stat.latestTs
+      ? new Date(stat.latestTs).toLocaleString('ko-KR', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' })
+      : '-';
+    return `<tr>
+      <td><span class="rank ${idx === 0 ? 'g1' : idx === 1 ? 'g2' : idx === 2 ? 'g3' : ''}">${idx + 1}</span></td>
+      <td class="td-name">${escHtml(user.name || '(이름없음)')}</td>
+      <td>${escHtml(user.empId || '-')}</td>
+      <td class="td-date">${escHtml(latestText)}</td>
+      <td>${stat.weekCount.toLocaleString()}건</td>
+      <td>${stat.count.toLocaleString()}건</td>
+      <td><button class="abtn det" onclick="openUserPosts('${safeId}')">보기</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderPosts() {
+  buildExTypes();
+  renderPostSummary();
+  const selectedUserId = getPostSelectedUserId();
+  syncPostSelectionUI(selectedUserId);
+  if (!selectedUserId) {
+    renderPostOverview();
+    return;
+  }
+
+  const q = (document.getElementById('po-search')?.value || '').toLowerCase();
+  const list = GD.posts
+    .filter(p => {
+      if (p.deviceId !== selectedUserId) return false;
+      if (!q) return true;
+      return [(p.body||''), (p.userName||'')].some(s => s.toLowerCase().includes(q));
+    })
+    .sort((a, b) => Number(b.ts||0) - Number(a.ts||0));
+
+  const pageSize = 50;
+  const totalPages = Math.max(1, Math.ceil(list.length / pageSize));
+  if (poPage >= totalPages) poPage = totalPages - 1;
+  const page = list.slice(poPage * pageSize, (poPage + 1) * pageSize);
+
+  document.getElementById('po-overview-wrap').style.display = 'none';
+  document.getElementById('po-list-wrap').style.display = '';
+  document.getElementById('po-count').textContent = list.length + '건';
+
+  const tbody = document.getElementById('po-tbody');
+  if (!page.length) {
+    tbody.innerHTML = `<tr><td class="empty-cell" colspan="4">게시글이 없습니다</td></tr>`;
+    document.getElementById('po-pager').innerHTML = '';
+    return;
+  }
+  tbody.innerHTML = page.map(p => {
     const d = new Date(Number(p.ts)||0);
     const ds = p.ts ? `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}` : '-';
-    const preview = (p.body||'').substring(0,60) + ((p.body||'').length > 60 ? '…' : '');
+    const preview = (p.body||'').substring(0, 60) + ((p.body||'').length > 60 ? '…' : '');
     const safeId = String(p.id).replace(/'/g,'');
     return `<tr>
       <td class="td-date">${ds}</td>
-      <td>${p.userName||'-'}</td>
       <td>${p.exTag ? `<span class="badge ex">${p.exTag}</span>` : '-'}</td>
       <td class="td-memo">${preview}</td>
       <td>
@@ -2234,6 +2387,7 @@ function renderPosts() {
       </td>
     </tr>`;
   }).join('');
+  renderPager('po-pager', list.length, totalPages, poPage, p => { poPage = p; renderPosts(); });
 }
 
 function showPostDetail(id) {
@@ -2880,6 +3034,7 @@ function switchTab(name, btn) {
   document.getElementById('panel-' + name).classList.add('active');
   btn.classList.add('active');
   if (name === 'workouts') renderWorkouts();
+  if (name === 'posts') renderPosts();
   if (name === 'orders') loadShopConfig();
   if (name === 'settings') loadSettingsTab();
 }
