@@ -3596,7 +3596,7 @@
     </div>
     <div class="app-login-keep">
       <label style="display:flex;align-items:center;gap:5px;cursor:pointer">
-        <input type="checkbox" id="login-save-empid-checkbox">
+        <input type="checkbox" id="login-save-empid-checkbox" checked>
         <span>등록번호 저장</span>
       </label>
       <span style="color:var(--border);font-size:14px;user-select:none">|</span>
@@ -3942,7 +3942,7 @@
           <button type="button" class="ex-type-btn" id="sa-gt-after2h"  onclick="setGlucoseTiming('식후2h')">식후 2h</button>
           <button type="button" class="ex-type-btn" id="sa-gt-before"   onclick="setGlucoseTiming('식전')">식전</button>
           <button type="button" class="ex-type-btn" id="sa-gt-bedtime"  onclick="setGlucoseTiming('취침전')">취침 전</button>
-          <button type="button" class="custom-ex-link" id="sa-gt-time" onclick="toggleGlucoseTimeInput()">✏️ 측정시간 직접입력</button>
+          <button type="button" class="custom-ex-link" id="sa-gt-time" onclick="toggleGlucoseTimeInput()"><span data-svg-icon="pencil" data-svg-size="14px"></span><span>측정시간 직접입력</span></button>
         </div>
         <div class="custom-ex-wrap" id="sa-glucose-time-wrap">
           <input type="time" id="sa-glucose-time" class="glucose-time-input"
@@ -4317,7 +4317,7 @@
   <div class="shop-order-modal so-hidden" id="shop-order-modal">
     <div class="shop-order-sheet">
       <div class="rf-header">
-        <span class="rf-title">🛒 주문서 작성</span>
+        <span class="rf-title" style="display:inline-flex;align-items:center;gap:6px" data-svg-icon="cart" data-svg-size="16px" data-svg-text="주문서 작성"></span>
         <button type="button" class="rf-close" onclick="closeShopOrder()">✕</button>
       </div>
       <div id="so-cart-summary"></div>
@@ -4475,7 +4475,7 @@
   <section id="page-admin" class="page" style="display:none">
     <div class="card" style="margin-bottom:10px">
       <div class="card-header" style="margin-bottom:0">
-        <span class="card-title">⚙️ 앱 운영 설정</span>
+        <span class="card-title" style="display:inline-flex;align-items:center;gap:6px" data-svg-icon="settings" data-svg-size="15px" data-svg-text="앱 운영 설정"></span>
         <span style="font-size:11px;color:var(--text-secondary)">관리자 전용</span>
       </div>
     </div>
@@ -7161,6 +7161,8 @@ const UI_SVG_ICONS = {
   medal: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h4l1 4H8L7 3z"/><path d="M13 3h4l-1 4h-4l1-4z"/><circle cx="12" cy="14" r="5.5"/><path d="M12 11.4l1.1 2.2 2.4.35-1.75 1.7.42 2.39L12 16.95l-2.17 1.15.42-2.39-1.75-1.7 2.4-.35L12 11.4z"/></svg>`,
   signal: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="18" r="1.6" fill="currentColor" stroke="none"/><path d="M8.5 14.5a5 5 0 0 1 7 0"/><path d="M6 12a8.5 8.5 0 0 1 12 0"/><path d="M3.5 9.5a12 12 0 0 1 17 0"/></svg>`,
   blood: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c2.8 4 5 6.6 5 10a5 5 0 1 1-10 0c0-3.4 2.2-6 5-10z"/><path d="M10 14.5c.6.9 1.4 1.3 2.4 1.3 1 0 1.9-.5 2.6-1.6"/></svg>`,
+  cart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M3 4h2l2.4 10.5a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.76L21 8H7"/></svg>`,
+  settings: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1 1 0 0 0-1.1-.2 1 1 0 0 0-.6.9V20a2 2 0 1 1-4 0v-.2a1 1 0 0 0-.6-.9 1 1 0 0 0-1.1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1 1 0 0 0 .2-1.1 1 1 0 0 0-.9-.6H4a2 2 0 1 1 0-4h.2a1 1 0 0 0 .9-.6 1 1 0 0 0-.2-1.1l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1 1 0 0 0 1.1.2 1 1 0 0 0 .6-.9V4a2 2 0 1 1 4 0v.2a1 1 0 0 0 .6.9 1 1 0 0 0 1.1-.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1 1 0 0 0-.2 1.1 1 1 0 0 0 .9.6H20a2 2 0 1 1 0 4h-.2a1 1 0 0 0-.9.6z"/></svg>`,
   pencil: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4.2-1 9-9a2.1 2.1 0 0 0-3-3l-9 9L4 20z"/><path d="M13 6l4 4"/></svg>`,
 };
 
@@ -8208,7 +8210,7 @@ function renderMealChips() {
     const on = _mealTypes.includes(name);
     return `<button type="button" class="hc-sub-chip hc-meal-chip${on?' on':''}" data-name="${name}" onclick="toggleMeal('${name}')">${name}<span onclick="event.stopPropagation();removeCustomMealType('${name}')" style="margin-left:3px;opacity:0.4;font-size:10px;line-height:1">✕</span></button>`;
   }).join('');
-  const directBtn = `<button type="button" id="meal-direct-btn" class="chip-direct-btn${isDirectOpen?' selected':''}" onclick="toggleMealDirect()">✏️ 직접 입력</button>`;
+  const directBtn = `<button type="button" id="meal-direct-btn" class="chip-direct-btn${isDirectOpen?' selected':''}" onclick="toggleMealDirect()">${renderNamedSvgIcon('pencil', { size:'14px', color:'currentColor' })}<span>직접 입력</span></button>`;
   row.innerHTML = presetBtns + customBtns + directBtn;
 }
 function renderSuppChips() {
@@ -8223,7 +8225,7 @@ function renderSuppChips() {
     const on = _suppList.includes(name);
     return `<button type="button" class="hc-sub-chip hc-supp-preset${on?' on':''}" data-name="${name}" onclick="toggleSuppItem('${name}')">${name}<span onclick="event.stopPropagation();removeCustomSuppType('${name}')" style="margin-left:3px;opacity:0.4;font-size:10px;line-height:1">✕</span></button>`;
   }).join('');
-  const directBtn = `<button type="button" id="supp-direct-btn" class="chip-direct-btn${isDirectOpen?' selected':''}" onclick="toggleSuppDirect()">✏️ 직접 입력</button>`;
+  const directBtn = `<button type="button" id="supp-direct-btn" class="chip-direct-btn${isDirectOpen?' selected':''}" onclick="toggleSuppDirect()">${renderNamedSvgIcon('pencil', { size:'14px', color:'currentColor' })}<span>직접 입력</span></button>`;
   row.innerHTML = presetBtns + customBtns + directBtn;
 }
 function removeCustomMealType(name) {
@@ -10163,7 +10165,7 @@ function renderCommentList() {
   const list = post.commentList || [];
   const el = document.getElementById('cm-list');
   if (!list.length) {
-    el.innerHTML = '<div class="cm-empty">아직 댓글이 없어요.<br>첫 댓글을 남겨보세요! 💬</div>';
+    el.innerHTML = `<div class="cm-empty">아직 댓글이 없어요.<br>${renderNamedSvgIcon('chat', { size:'12px', color:'var(--primary)' })} 첫 댓글을 남겨보세요!</div>`;
     return;
   }
   el.innerHTML = list.map(c => {
@@ -12720,7 +12722,7 @@ async function init() {
       <button type="button" class="pm-logout-btn" id="pm-logout-btn" onclick="appLogout()">로그아웃</button>
     </div>
     <button type="button" class="pm-delete-btn" id="pm-delete-data-btn" onclick="requestDeleteMyDeviceAndServerData()">모든 데이터 삭제 초기화</button>
-    <button type="button" class="pm-admin-btn" id="pm-admin-btn" onclick="openAdminPanel()" style="display:none">⚙️ 앱 운영 설정</button>
+    <button type="button" class="pm-admin-btn" id="pm-admin-btn" onclick="openAdminPanel()" style="display:none" data-svg-icon="settings" data-svg-size="14px" data-svg-text="앱 운영 설정"></button>
   </div>
 </div>
 
@@ -12728,7 +12730,7 @@ async function init() {
 <div id="admin-panel-overlay" class="profile-modal-overlay pm-hidden" onclick="closeAdminPanel()">
   <div class="profile-modal" style="max-width:360px" onclick="event.stopPropagation()">
     <div class="pm-header">
-      <span class="pm-title">⚙️ 앱 운영 설정</span>
+      <span class="pm-title" style="display:inline-flex;align-items:center;gap:6px" data-svg-icon="settings" data-svg-size="17px" data-svg-text="앱 운영 설정"></span>
       <button type="button" class="pm-close" onclick="closeAdminPanel()">✕</button>
     </div>
     <div style="padding:20px">
@@ -12755,7 +12757,7 @@ async function init() {
 <div id="comment-overlay" class="comment-overlay pm-hidden">
   <div class="comment-modal">
     <div class="cm-header">
-      <span class="cm-title">💬 댓글</span>
+      <span class="cm-title" style="display:inline-flex;align-items:center;gap:6px" data-svg-icon="chat" data-svg-size="16px" data-svg-text="댓글"></span>
       <button type="button" class="cm-close" onclick="closeComments()">✕</button>
     </div>
     <div class="cm-list" id="cm-list"></div>
