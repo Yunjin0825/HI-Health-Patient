@@ -346,11 +346,11 @@
           <button class="cbtn" style="background:var(--bg)" onclick="hideDetail()">✕ 닫기</button>
         </div>
         <div class="dp-grid">
-          <div class="dp-field"><label>이름</label><input class="dp-inp" id="d-name"></div>
-          <div class="dp-field"><label>닉네임</label><input class="dp-inp" id="d-nickname" readonly style="background:var(--bg)"></div>
-          <div class="dp-field"><label>아바타</label><input class="dp-inp" id="d-avatar"></div>
-          <div class="dp-field"><label>포인트</label><input class="dp-inp" type="number" id="d-points"></div>
-          <div class="dp-field"><label>연속 달성일</label><input class="dp-inp" type="number" id="d-streak"></div>
+          <div class="dp-field"><label>이름</label><input class="dp-inp" id="d-name" oninput="markUserDetailDirty()"></div>
+          <div class="dp-field"><label>닉네임</label><input class="dp-inp" id="d-nickname" oninput="markUserDetailDirty()"></div>
+          <div class="dp-field"><label>아바타</label><input class="dp-inp" id="d-avatar" oninput="markUserDetailDirty()"></div>
+          <div class="dp-field"><label>포인트</label><input class="dp-inp" type="number" id="d-points" oninput="markUserDetailDirty()"></div>
+          <div class="dp-field"><label>연속 달성일</label><input class="dp-inp" type="number" id="d-streak" oninput="markUserDetailDirty()"></div>
           <div class="dp-field"><label>계정 ID</label><input class="dp-inp" id="d-empid" readonly style="background:var(--bg)"></div>
           <div class="dp-field"><label>신청번호</label><input class="dp-inp" id="d-registration-id" readonly style="background:var(--bg)"></div>
           <div class="dp-field"><label>부서</label><input class="dp-inp" id="d-dept" readonly style="background:var(--bg)"></div>
@@ -657,16 +657,19 @@
         <button class="cbtn pri" onclick="postAdminNotice()">콘텐츠 게시</button>
       </div>
       <div class="ap-compose" style="margin-top:14px;border-top:1px dashed #E2E8F0;padding-top:14px">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
-          <div style="font-size:14px;font-weight:700">푸시 알림 발송</div>
-          <div id="push-target-hint" style="font-size:11px;color:#64748B">선택 사용자 테스트를 보내려면 이용자를 먼저 선택해주세요.</div>
-        </div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:10px">푸시 알림 발송</div>
         <div style="display:flex;gap:8px;margin-bottom:8px">
           <input class="dp-inp" id="push-title" placeholder="푸시 제목" style="flex:1.2">
           <input class="dp-inp" id="push-url" placeholder="알림 클릭 이동 URL (기본: ./index.html#community)" style="flex:1">
         </div>
         <textarea id="push-body" placeholder="푸시 내용을 입력하세요..."></textarea>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <select class="ctrl-sel" id="push-user-sel" onchange="onPushUserSelChange()" style="flex:1;min-width:140px">
+            <option value="">이용자 선택 (테스트 발송용)</option>
+          </select>
+          <span id="push-target-hint" style="font-size:11px;color:#64748B;flex:1"></span>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
           <button class="cbtn pri" onclick="sendPushNotice('all')">전체 발송</button>
           <button class="cbtn" onclick="sendPushNotice('selected')">선택 사용자 테스트</button>
         </div>
@@ -1039,6 +1042,7 @@ let ADMIN_PW = localStorage.getItem('hi_admin_pw') || '1111'; // 비밀번호 �
 let db = null;
 let GD = { users:[], workouts:[], posts:[], glucose:[], registrations:[], orders:[], adminPosts:[] };
 let selDeviceId = '';
+let _userDetailDirty = false;
 let uPage = 0, wPage = 0, poPage = 0;
 const PAGE = 50;
 let uSearchTimer = null;
@@ -1084,6 +1088,7 @@ function doLogout() {
   _lastDataSignature = '';
   _queuedLoadOpts = null;
   _loadInFlight = null;
+  _userDetailDirty = false;
   db = null;
 }
 
@@ -1574,7 +1579,14 @@ async function loadAll(opts = {}) {
       ? []
       : deriveUsersFromActivity(w.data || [], p.data || [], g.data || [], rawRegistrations, o.data || []);
     const nextUsersBase = rawUsers.length ? rawUsers.map(normalizeUserRow) : fallbackUsers;
-    const nextUsers = mergeUsersWithRegistrations(nextUsersBase, rawRegistrations);
+    const rawNicknameByDeviceId = new Map(
+      rawUsers.map(user => [String(user?.deviceId || '').trim(), String(user?.nickname || '').trim()])
+    );
+    const nextUsers = mergeUsersWithRegistrations(nextUsersBase, rawRegistrations).map(user => {
+      const deviceId = String(user?.deviceId || '').trim();
+      if (!deviceId || !rawNicknameByDeviceId.has(deviceId)) return user;
+      return { ...user, nickname: rawNicknameByDeviceId.get(deviceId) || '' };
+    });
     const nextOrders = (o.data || []).map(ord => ({
       ...ord,
       items: typeof ord.items === 'string' ? (() => { try { return JSON.parse(ord.items); } catch(e) { return []; } })() : (ord.items||[]),
@@ -1627,6 +1639,7 @@ async function loadAll(opts = {}) {
 function renderAll() {
   renderStats();
   renderUsers();
+  syncSelectedUserDetail();
   renderWorkouts();
   renderPosts();
   renderChallenge();
@@ -1842,22 +1855,41 @@ function selectUser(deviceId, name) {
 
   document.getElementById('sel-bar').style.display = '';
   document.getElementById('sel-bar-name').textContent = u.name || name;
-
-  document.getElementById('d-name').value     = u.name     || '';
-  document.getElementById('d-nickname').value = u.nickname || '';
-  document.getElementById('d-avatar').value   = u.avatar   || '';
-  document.getElementById('d-points').value = Number(u.points) || 0;
-  document.getElementById('d-streak').value = Number(u.streak) || 0;
-  document.getElementById('d-empid').value  = u.empId  || '';
-  document.getElementById('d-registration-id').value = u.registrationId || '-';
-  document.getElementById('d-dept').value   = u.dept   || '';
-  document.getElementById('u-detail-title').textContent = (u.avatar||'') + ' ' + (u.name||'이용자') + ' 상세';
+  fillUserDetailForm(u, name);
   document.getElementById('u-detail').style.display = '';
   document.getElementById('u-detail').scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
+function markUserDetailDirty() {
+  _userDetailDirty = true;
+}
+
+function fillUserDetailForm(u, fallbackName = '') {
+  if (!u) return;
+  document.getElementById('d-name').value     = u.name     || fallbackName || '';
+  document.getElementById('d-nickname').value = u.nickname || '';
+  document.getElementById('d-avatar').value   = u.avatar   || '';
+  document.getElementById('d-points').value   = Number(u.points) || 0;
+  document.getElementById('d-streak').value   = Number(u.streak) || 0;
+  document.getElementById('d-empid').value    = u.empId  || '';
+  document.getElementById('d-registration-id').value = u.registrationId || '-';
+  document.getElementById('d-dept').value     = u.dept   || '';
+  document.getElementById('u-detail-title').textContent = (u.avatar||'') + ' ' + (u.name||fallbackName||'이용자') + ' 상세';
+  _userDetailDirty = false;
+}
+
+function syncSelectedUserDetail() {
+  if (!selDeviceId || _userDetailDirty) return;
+  const u = GD.users.find(x => x.deviceId === selDeviceId);
+  if (!u) return;
+  fillUserDetailForm(u, u.name || '');
+}
+
 function clearSel() {
   selDeviceId = '';
+  _userDetailDirty = false;
+  const pushSel = document.getElementById('push-user-sel');
+  if (pushSel) pushSel.value = '';
   renderPushTargetHint();
   document.getElementById('sel-bar').style.display = 'none';
   document.getElementById('u-detail').style.display = 'none';
@@ -1870,15 +1902,17 @@ async function saveUserDetail() {
   const cur = GD.users.find(x => x.deviceId === selDeviceId);
   if (cur?.__derived) { toast('임시 이용자는 수정할 수 없습니다. 앱 로그인 후 users가 생성되면 수정해주세요.'); return; }
   const name   = document.getElementById('d-name').value.trim();
+  const nickname = document.getElementById('d-nickname').value.trim();
   const avatar = document.getElementById('d-avatar').value.trim();
   const points = Math.max(0, parseInt(document.getElementById('d-points').value)||0);
   const streak = Math.max(0, parseInt(document.getElementById('d-streak').value)||0);
   showLoading(true);
-  const { error } = await db.from('users').update({ name, avatar, points, streak }).eq('deviceId', selDeviceId);
+  const { error } = await db.from('users').update({ name, nickname, avatar, points, streak }).eq('deviceId', selDeviceId);
   showLoading(false);
   if (error) { toast('저장 실패: ' + error.message); return; }
   const u = GD.users.find(x => x.deviceId === selDeviceId);
-  if (u) Object.assign(u, { name, avatar, points, streak });
+  if (u) Object.assign(u, { name, nickname, avatar, points, streak });
+  fillUserDetailForm(u || { name, nickname, avatar, points, streak }, name);
   renderStats(); renderUsers();
   toast('이용자 정보 저장 완료 ✓');
 }
@@ -2073,6 +2107,18 @@ function buildExTypes() {
       puSel.appendChild(o);
     });
     puSel.value = [...puSel.options].some(opt => opt.value === prevPoUser) ? prevPoUser : '';
+  }
+  // 푸시 알림 이용자 드롭다운
+  const pushSel = document.getElementById('push-user-sel');
+  if (pushSel) {
+    const prev = pushSel.value;
+    pushSel.innerHTML = '<option value="">이용자 선택 (테스트 발송용)</option>';
+    [...GD.users].sort((a,b) => (a.name||'').localeCompare(b.name||'','ko')).forEach(u => {
+      const o = document.createElement('option');
+      o.value = u.deviceId; o.textContent = `${u.name || u.deviceId}${u.empId ? ' · ' + u.empId : ''}`;
+      pushSel.appendChild(o);
+    });
+    pushSel.value = [...pushSel.options].some(opt => opt.value === prev) ? prev : '';
   }
 }
 
@@ -3042,19 +3088,26 @@ async function postAdminNotice() {
   toast('공지 게시 완료 ✓');
 }
 
+function onPushUserSelChange() {
+  const sel = document.getElementById('push-user-sel');
+  selDeviceId = sel?.value || '';
+  renderPushTargetHint();
+}
+
 function renderPushTargetHint() {
   const hintEl = document.getElementById('push-target-hint');
+  // 드롭다운을 selDeviceId와 동기화
+  const pushSel = document.getElementById('push-user-sel');
+  if (pushSel && pushSel.value !== selDeviceId) {
+    pushSel.value = [...pushSel.options].some(o => o.value === selDeviceId) ? selDeviceId : '';
+  }
   if (!hintEl) return;
   if (!selDeviceId) {
-    hintEl.textContent = '선택 사용자 테스트를 보내려면 이용자를 먼저 선택해주세요.';
+    hintEl.textContent = '';
     return;
   }
   const user = GD.users.find(x => x.deviceId === selDeviceId);
-  if (!user) {
-    hintEl.textContent = '선택된 사용자 정보를 찾지 못했어요.';
-    return;
-  }
-  hintEl.textContent = `테스트 대상: ${user.name || '이름없음'}${user.empId ? ' · ' + user.empId : ''}`;
+  hintEl.textContent = user ? `테스트 대상: ${user.name || '이름없음'}${user.empId ? ' · ' + user.empId : ''}` : '';
 }
 
 async function sendPushNotice(mode = 'all') {
