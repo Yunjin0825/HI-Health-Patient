@@ -926,21 +926,33 @@
 
     /* ─── IMG PREVIEW ───────────────────────── */
     .img-preview-overlay {
+      --preview-side-pad: 24px;
+      --preview-nav-space: 62px;
       position: fixed; inset: 0; z-index: 600;
       background: rgba(0,0,0,0.82);
       -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      padding: 32px 24px;
+      padding: 32px var(--preview-side-pad);
     }
     .img-preview-overlay.hidden { display: none; }
+    .img-preview-viewer {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      max-width: calc(100vw - (var(--preview-side-pad) * 2));
+      padding: 0 var(--preview-nav-space);
+      box-sizing: border-box;
+    }
     .img-preview-stage {
       position: relative;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      max-width: 100%;
+      max-width: calc(100vw - (var(--preview-side-pad) * 2) - (var(--preview-nav-space) * 2));
       max-height: 60vh;
+      min-width: 0;
     }
     .img-preview-img {
       display: block;
@@ -1004,10 +1016,24 @@
       box-shadow: 0 10px 24px rgba(0,0,0,0.28);
       text-shadow: 0 2px 10px rgba(0,0,0,0.45);
       transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+      z-index: 4;
     }
     .img-preview-nav:hover { background: rgba(30,41,59,0.92); box-shadow: 0 14px 30px rgba(0,0,0,0.34); }
     .img-preview-nav.prev { left: 16px; }
     .img-preview-nav.next { right: 16px; }
+    @media (max-width: 480px) {
+      .img-preview-overlay {
+        --preview-side-pad: 18px;
+        --preview-nav-space: 52px;
+      }
+      .img-preview-nav {
+        width: 44px;
+        height: 44px;
+        font-size: 28px;
+      }
+      .img-preview-nav.prev { left: 8px; }
+      .img-preview-nav.next { right: 8px; }
+    }
 
     /* ─── TOAST ──────────────────────────────── */
     .toasts {
@@ -1508,15 +1534,17 @@
 
 <!-- ─── IMAGE PREVIEW ───────────────────────── -->
 <div class="img-preview-overlay hidden" id="img-preview" onclick="if(event.target===this)closeImgPreview()">
-  <button class="img-preview-nav prev" onclick="event.stopPropagation();previewNav(-1)">‹</button>
-  <div class="img-preview-stage" onclick="event.stopPropagation()">
-    <button type="button" class="img-preview-close" onclick="event.stopPropagation();closeImgPreview()">✕</button>
-    <img class="img-preview-img" id="img-preview-img" src="" alt="">
+  <div class="img-preview-viewer" onclick="event.stopPropagation()">
+    <button class="img-preview-nav prev" onclick="event.stopPropagation();previewNav(-1)">‹</button>
+    <div class="img-preview-stage">
+      <button type="button" class="img-preview-close" onclick="event.stopPropagation();closeImgPreview()">✕</button>
+      <img class="img-preview-img" id="img-preview-img" src="" alt="">
+    </div>
+    <button class="img-preview-nav next" onclick="event.stopPropagation();previewNav(1)">›</button>
   </div>
   <div class="img-preview-gender" id="img-preview-gender"></div>
   <div class="img-preview-label" id="img-preview-label"></div>
   <div class="img-preview-sub" id="img-preview-sub">탭하면 닫힙니다</div>
-  <button class="img-preview-nav next" onclick="event.stopPropagation();previewNav(1)">›</button>
 </div>
 
 <script>

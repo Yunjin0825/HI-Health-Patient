@@ -230,8 +230,8 @@
     <img src="images/Hi_health_home.png" class="login-logo" alt="HI Health">
     <div class="login-title">관리자 페이지</div>
     <div class="login-sub">HI Health 데이터 관리</div>
-    <input type="password" id="pw-input" class="login-inp" placeholder="비밀번호"
-      onkeydown="if(event.key==='Enter')doLogin()">
+    <input type="text" id="pw-input" class="login-inp" placeholder="사번 입력"
+      onkeydown="if(event.key==='Enter')doLogin()" autocomplete="off" autocapitalize="characters">
     <button class="login-btn" onclick="doLogin()">로그인</button>
     <div class="login-err" id="login-err"></div>
   </div>
@@ -272,6 +272,7 @@
       <button class="tab-btn" onclick="switchTab('orders',this)">🛒 구매</button>
       <button class="tab-btn" onclick="switchTab('rewards',this)">🎁 보상</button>
       <button class="tab-btn" onclick="switchTab('content',this)">📝 콘텐츠 작성</button>
+      <button class="tab-btn" onclick="switchTab('settings',this)">⚙️ 설정</button>
     </div>
 
     <!-- ── PANEL: USERS ── -->
@@ -865,7 +866,8 @@ function getRegRequestSummaryText(r) {
 /* ══════════════════════════════════════════════
    STATE
 ══════════════════════════════════════════════ */
-let ADMIN_PW = localStorage.getItem('hi_admin_pw') || '1111';
+const ADMIN_EMPIDS = ['1111','A1803'];
+let ADMIN_PW = localStorage.getItem('hi_admin_pw') || '1111'; // 비밀번호 변경용 (하위호환)
 let db = null;
 let GD = { users:[], workouts:[], posts:[], glucose:[], registrations:[], orders:[], adminPosts:[] };
 let selDeviceId = '';
@@ -883,14 +885,14 @@ let _lastDataSignature = '';
 function doLogin() {
   const inp = document.getElementById('pw-input');
   const err = document.getElementById('login-err');
-  if (inp.value === ADMIN_PW) {
+  if (ADMIN_EMPIDS.includes(inp.value.trim().toUpperCase())) {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('admin').style.display = 'block';
     initSupabase();
   } else {
     inp.classList.add('err');
     inp.value = '';
-    err.textContent = '비밀번호가 올바르지 않습니다';
+    err.textContent = '사번이 올바르지 않습니다';
     setTimeout(() => { inp.classList.remove('err'); err.textContent = ''; }, 2500);
   }
 }
