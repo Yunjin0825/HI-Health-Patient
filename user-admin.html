@@ -294,7 +294,7 @@
       </div>
 
       <div class="ctrl-bar">
-        <input class="ctrl-inp" id="u-search" placeholder="이름·등록번호·신청번호·부서 검색" oninput="onUserSearch()">
+        <input class="ctrl-inp" id="u-search" placeholder="이름·닉네임·등록번호·신청번호·부서 검색" oninput="onUserSearch()">
         <select class="ctrl-sel" id="u-filter" onchange="renderUsers()">
           <option value="all">전체</option>
           <option value="bad">이상한 이름</option>
@@ -320,6 +320,7 @@
             <thead><tr>
               <th>#</th>
               <th>이름</th>
+              <th>닉네임</th>
               <th>등록번호</th>
               <th>신청번호</th>
               <th>부서</th>
@@ -331,7 +332,7 @@
               <th>관리</th>
             </tr></thead>
             <tbody id="u-tbody">
-              <tr><td class="empty-cell" colspan="11">불러오는 중...</td></tr>
+              <tr><td class="empty-cell" colspan="12">불러오는 중...</td></tr>
             </tbody>
           </table>
         </div>
@@ -346,6 +347,7 @@
         </div>
         <div class="dp-grid">
           <div class="dp-field"><label>이름</label><input class="dp-inp" id="d-name"></div>
+          <div class="dp-field"><label>닉네임</label><input class="dp-inp" id="d-nickname" readonly style="background:var(--bg)"></div>
           <div class="dp-field"><label>아바타</label><input class="dp-inp" id="d-avatar"></div>
           <div class="dp-field"><label>포인트</label><input class="dp-inp" type="number" id="d-points"></div>
           <div class="dp-field"><label>연속 달성일</label><input class="dp-inp" type="number" id="d-streak"></div>
@@ -1566,7 +1568,7 @@ function filteredUsers() {
     if (uTab === 'gen') { if (isChallenger(u)) return false; }
     if (uTab === 'ch')  { if (!isChallenger(u)) return false; }
     // 검색
-    if (q && ![(u.name||''),(u.empId||''),(u.registrationId||''),(u.dept||'')].some(s => s.toLowerCase().includes(q))) return false;
+    if (q && ![(u.name||''),(u.nickname||''),(u.empId||''),(u.registrationId||''),(u.dept||'')].some(s => s.toLowerCase().includes(q))) return false;
     // 드롭다운 필터
     if (mode === 'bad') return isBadName(u.name);
     if (mode === 'dup') return dupIds.has((u.empId||'').trim());
@@ -1620,7 +1622,7 @@ function renderUsers() {
   const tbody = document.getElementById('u-tbody');
 
   if (!page.length) {
-    tbody.innerHTML = `<tr><td class="empty-cell" colspan="11">이용자가 없습니다</td></tr>`;
+    tbody.innerHTML = `<tr><td class="empty-cell" colspan="12">이용자가 없습니다</td></tr>`;
     document.getElementById('u-pager').innerHTML = '';
     return;
   }
@@ -1644,6 +1646,7 @@ function renderUsers() {
         ${isCh ? '<span class="badge ch" style="margin-left:4px">챌린지</span>' : ''}
         ${u.__derived ? '<span class="badge" style="margin-left:4px">임시</span>' : ''}
       </td>
+      <td style="color:var(--t2)">${u.nickname||'-'}</td>
       <td>${u.empId||'-'}</td>
       <td>${u.registrationId||'-'}</td>
       <td>${u.dept||'-'}</td>
@@ -1673,8 +1676,9 @@ function selectUser(deviceId, name) {
   document.getElementById('sel-bar').style.display = '';
   document.getElementById('sel-bar-name').textContent = u.name || name;
 
-  document.getElementById('d-name').value   = u.name   || '';
-  document.getElementById('d-avatar').value = u.avatar || '';
+  document.getElementById('d-name').value     = u.name     || '';
+  document.getElementById('d-nickname').value = u.nickname || '';
+  document.getElementById('d-avatar').value   = u.avatar   || '';
   document.getElementById('d-points').value = Number(u.points) || 0;
   document.getElementById('d-streak').value = Number(u.streak) || 0;
   document.getElementById('d-empid').value  = u.empId  || '';

@@ -5412,6 +5412,7 @@ function save(opts = {}) {
       dept: S.user.dept || '',
       points: S.user.points,
       streak: S.user.streak,
+      nickname: S.user.nickname || '',
       tags: (S.user.tags || []).join(','),
       registrationId: S.user.registrationId || '',
       lastactiveat: new Date().toISOString(),
