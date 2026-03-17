@@ -4438,6 +4438,35 @@
     <iframe id="runday-iframe" data-src="runday.html?v=20260315-70" title="HI RUN DAY" loading="lazy"></iframe>
   </section>
 
+  <!-- ████  ADMIN  ████ -->
+  <section id="page-admin" class="page" style="display:none">
+    <div class="card" style="margin-bottom:10px">
+      <div class="card-header" style="margin-bottom:0">
+        <span class="card-title">⚙️ 앱 운영 설정</span>
+        <span style="font-size:11px;color:var(--text-secondary)">관리자 전용</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" style="margin-bottom:12px">
+        <span class="card-title" style="font-size:14px">구매 기능</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 0">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px">구매 기능 운영</div>
+          <div style="font-size:12px;color:var(--text-secondary);line-height:1.5">켜면 장바구니·구매 기능이 활성화됩니다.<br>끄면 문의하기 모드로 전환됩니다.</div>
+        </div>
+        <label style="position:relative;display:inline-block;width:52px;height:28px;flex-shrink:0">
+          <input type="checkbox" id="admin-page-shop-toggle" onchange="toggleShopPurchasePage()" style="opacity:0;width:0;height:0;position:absolute">
+          <span style="position:absolute;inset:0;border-radius:14px;cursor:pointer;transition:background 0.2s;display:flex;align-items:center;padding:0 3px" id="admin-page-shop-track">
+            <span id="admin-page-shop-thumb" style="width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.2);transition:transform 0.2s"></span>
+          </span>
+        </label>
+      </div>
+      <div id="admin-shop-status" style="margin-top:12px;padding:10px 12px;border-radius:10px;font-size:12px;font-weight:600;text-align:center"></div>
+    </div>
+  </section>
+
 </main>
 
 <!-- Bottom Nav -->
@@ -4846,6 +4875,31 @@ async function toggleShopPurchase() {
   renderShop();
   saveCart();
   showToast(_shopPurchaseEnabled ? '✅ 구매 기능이 활성화되었습니다' : '🔒 구매 기능이 비활성화되었습니다');
+}
+
+async function toggleShopPurchasePage() {
+  _shopPurchaseEnabled = document.getElementById('admin-page-shop-toggle').checked;
+  await saveAppConfig('shop_purchase_enabled', String(_shopPurchaseEnabled));
+  renderShop();
+  saveCart();
+  renderAdminPage();
+  showToast(_shopPurchaseEnabled ? '✅ 구매 기능이 활성화되었습니다' : '🔒 구매 기능이 비활성화되었습니다');
+}
+
+function renderAdminPage() {
+  const toggle = document.getElementById('admin-page-shop-toggle');
+  const track  = document.getElementById('admin-page-shop-track');
+  const thumb  = document.getElementById('admin-page-shop-thumb');
+  const status = document.getElementById('admin-shop-status');
+  if (!toggle) return;
+  toggle.checked = _shopPurchaseEnabled;
+  if (track) track.style.background = _shopPurchaseEnabled ? '#1535c4' : '#d1d5db';
+  if (thumb) thumb.style.transform  = _shopPurchaseEnabled ? 'translateX(24px)' : 'translateX(0)';
+  if (status) {
+    status.style.background = _shopPurchaseEnabled ? '#dcfce7' : '#fef2f2';
+    status.style.color      = _shopPurchaseEnabled ? '#166534' : '#991b1b';
+    status.textContent      = _shopPurchaseEnabled ? '🟢 구매 기능 운영 중' : '🔴 구매 기능 비활성화 중';
+  }
 }
 
 let _cart = {}; // { productId: quantity }
@@ -5296,8 +5350,10 @@ function save(opts = {}) {
     }));
   } catch(e) {}
   // 태그를 별도 키에 저장 (로그아웃 후에도 유지)
-  if (S.user.empId && S.user.tags?.length) {
-    localStorage.setItem('hi_health_tags_' + S.user.empId, JSON.stringify(S.user.tags));
+  if (S.user.empId) {
+    try {
+      localStorage.setItem('hi_health_tags_' + S.user.empId, JSON.stringify(Array.isArray(S.user.tags) ? S.user.tags : []));
+    } catch(e) {}
   }
   if (skipRemote) return;
   // 사용자 정보 Supabase 동기화 (tags는 문자열로 저장)
@@ -5382,6 +5438,26 @@ function mapGlucoseRecords(records, prevRecords = []) {
     const normalizedId = String(Number(record.id) || record.id);
     return normalizeGlucoseRecord(record, prevMap.get(normalizedId) || prevMap.get(String(record.id)) || {});
   });
+}
+function recordTsValue(record) {
+  const raw = record?.ts ?? record?.userTime ?? 0;
+  const num = Number(raw);
+  if (Number.isFinite(num) && num > 0) return num < 1e11 ? num * 1000 : num;
+  const parsed = Date.parse(String(raw || ''));
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+function mergeGlucoseRecords(records, prevRecords = []) {
+  const merged = new Map();
+  (prevRecords || []).forEach(record => {
+    const normalized = normalizeGlucoseRecord(record);
+    merged.set(String(normalized.id), normalized);
+  });
+  (records || []).forEach(record => {
+    const normalizedId = String(Number(record.id) || record.id);
+    const fallback = merged.get(normalizedId) || merged.get(String(record.id)) || {};
+    merged.set(normalizedId, normalizeGlucoseRecord(record, fallback));
+  });
+  return [...merged.values()].sort((a, b) => recordTsValue(b) - recordTsValue(a));
 }
 let _pendingTrackedRun = null;
 let _routeMapSeq = 0;
@@ -5473,6 +5549,19 @@ function mapWorkoutRecords(records, prevRecords = []) {
     const normalizedId = String(Number(record.id) || record.id);
     return normalizeWorkoutRecord(record, prevMap.get(normalizedId) || prevMap.get(String(record.id)) || {});
   });
+}
+function mergeWorkoutRecords(records, prevRecords = []) {
+  const merged = new Map();
+  (prevRecords || []).forEach(record => {
+    const normalized = normalizeWorkoutRecord(record);
+    merged.set(String(normalized.id), normalized);
+  });
+  (records || []).forEach(record => {
+    const normalizedId = String(Number(record.id) || record.id);
+    const fallback = merged.get(normalizedId) || merged.get(String(record.id)) || {};
+    merged.set(normalizedId, normalizeWorkoutRecord(record, fallback));
+  });
+  return [...merged.values()].sort((a, b) => recordTsValue(a) - recordTsValue(b));
 }
 
 function routeMapProjectX(lon, zoom) {
@@ -6484,7 +6573,9 @@ function navigate(page) {
   const content = document.querySelector('.app-content');
   const isHome = page === 'home';
   const isChallenge = page === 'challenge';
-  const useWhiteContentBg = page === 'exercise' || page === 'community' || page === 'rewards';
+  const isAdmin = page === 'admin';
+  const useWhiteContentBg = page === 'exercise' || page === 'community' || page === 'rewards' || isAdmin;
+  if (isAdmin) renderAdminPage();
   const useFlowHeader = isHome && !isChallenge;
   const useSolidHeader = isChallenge || !useFlowHeader;
   // 헤더 DOM 이동: 홈이면 hero-card-home 안, 다른 탭이면 sentinel 앞
@@ -7671,8 +7762,11 @@ function deleteWorkout(id) {
     title: '운동 기록 삭제',
     msg: exName + ' ' + wo.duration + '분 기록을 삭제할까요?\n포인트 ' + wo.points + 'p가 차감됩니다.',
     okLabel: '삭제',
-    onOk: () => {
+    onOk: async () => {
       haptic('delete');
+      const prevWorkouts = [...S.workouts];
+      const prevPoints = S.user.points;
+      const prevTotalPoints = S.user.totalPoints || 0;
       S.workouts.splice(idx, 1);
       S.user.points = Math.max(0, S.user.points - wo.points);
       S.user.totalPoints = Math.max(0, (S.user.totalPoints || 0) - wo.points);
@@ -7683,6 +7777,25 @@ function deleteWorkout(id) {
       renderRecordTabDots();
       _shareRewrite = false;
       updateSharePreview();
+      if (_db) {
+        try {
+          const { error } = await _db.from('workouts').delete().eq('id', String(id)).eq('deviceId', S.deviceId);
+          if (error) throw error;
+        } catch (e) {
+          console.error('[deleteWorkout]', e);
+          S.workouts = prevWorkouts;
+          S.user.points = prevPoints;
+          S.user.totalPoints = prevTotalPoints;
+          updateStreak();
+          save();
+          renderHeader();
+          renderExercise();
+          renderRecordTabDots();
+          updateSharePreview();
+          showToast('운동 기록 삭제를 서버에 반영하지 못했어요. 다시 시도해주세요.');
+          return;
+        }
+      }
       showToast('운동 기록이 삭제되었습니다');
     },
   });
@@ -8145,8 +8258,11 @@ function deleteGlucose(id) {
     title: '혈당 기록 삭제',
     msg: `${rec.value} mg/dL 기록을 삭제할까요?\n포인트 ${rec.points || GLUCOSE_POINTS}p가 차감됩니다.`,
     okLabel: '삭제',
-    onOk: () => {
+    onOk: async () => {
       haptic('delete');
+      const prevGlucoseRecords = [...S.glucoseRecords];
+      const prevPoints = S.user.points;
+      const prevTotalPoints = S.user.totalPoints || 0;
       S.glucoseRecords = S.glucoseRecords.filter(r => r.id !== id);
       S.user.points = Math.max(0, S.user.points - (rec.points || GLUCOSE_POINTS));
       S.user.totalPoints = Math.max(0, (S.user.totalPoints || 0) - (rec.points || GLUCOSE_POINTS));
@@ -8156,6 +8272,24 @@ function deleteGlucose(id) {
       renderRecordTabDots();
       _shareRewrite = false;
       updateSharePreview();
+      if (_db) {
+        try {
+          const { error } = await _db.from('glucose').delete().eq('id', String(id)).eq('deviceId', S.deviceId);
+          if (error) throw error;
+        } catch (e) {
+          console.error('[deleteGlucose]', e);
+          S.glucoseRecords = prevGlucoseRecords;
+          S.user.points = prevPoints;
+          S.user.totalPoints = prevTotalPoints;
+          save();
+          renderHeader();
+          renderGlucose();
+          renderRecordTabDots();
+          updateSharePreview();
+          showToast('혈당 기록 삭제를 서버에 반영하지 못했어요. 다시 시도해주세요.');
+          return;
+        }
+      }
       showToast('혈당 기록이 삭제되었습니다');
     },
   });
@@ -8402,6 +8536,7 @@ function openAvatarPickerPreview(src) {
 
 let _selAvatar = AVATARS[0];
 let _selTags   = [];
+let _preservedProfileTags = [];
 function activeTags() { return PROFILE_TAGS; }
 function getProfileIdentity() {
   const loginEmpId = String(
@@ -8653,6 +8788,7 @@ function openProfileModal(onboarding = false) {
   document.getElementById('pm-nickname').value = S.user.nickname || S.user.name || '';
   _selAvatar = normalizeAvatar(S.user.avatar);
   const validTags = new Set(activeTags().flatMap(c => c.tags));
+  _preservedProfileTags = (S.user.tags || []).filter(t => !validTags.has(t));
   _selTags = (S.user.tags || []).filter(t => validTags.has(t));
   document.getElementById('pm-avatar-grid').innerHTML = AVATARS.map(a =>
     `<button type="button" class="avatar-opt${a===_selAvatar?' selected':''}" data-av="${a}" title="탭해서 크게 보기" onclick="openAvatarPickerPreview('${a}')">${avHTML(a)}</button>`
@@ -8700,7 +8836,7 @@ function saveProfileModal() {
   const nickname = document.getElementById('pm-nickname')?.value.trim();
   S.user.nickname = nickname || '';
   S.user.avatar = normalizeAvatar(_selAvatar);
-  S.user.tags = [..._selTags];
+  S.user.tags = [...new Set([..._preservedProfileTags, ..._selTags])];
   save();
   renderHeader();
   renderHome();
@@ -8746,7 +8882,7 @@ function togglePmTag(ci, ti) {
   const tag = activeTags()[ci].tags[ti];
   const idx = _selTags.indexOf(tag);
   if (idx === -1) _selTags.push(tag); else _selTags.splice(idx, 1);
-  S.user.tags = [..._selTags];
+  S.user.tags = [...new Set([..._preservedProfileTags, ..._selTags])];
   save();
   renderPmTags();
   renderHeader();
@@ -11799,7 +11935,7 @@ function buildGuestSampleState() {
       stickersReceived: 0,
       levelCardShares: 0,
       registrationId: challengeRegId,
-      tags: ['HI RUN DAY 참가', '루틴 만들기'],
+      tags: ['매일 걷기', 'HI RUN DAY 화이팅'],
     },
     challengeRegs: [challengeReg],
     workouts,
@@ -11968,14 +12104,6 @@ async function doAppLogin() {
         infoEl.style.display = 'block';
         setTimeout(() => { infoEl.style.display = 'none'; }, 3000);
       }
-    } else {
-      // Supabase에 없는 사번 = 신규 or 삭제된 계정 → 로컬 데이터 초기화
-      const oldKey = 'hi_health_v2_' + regId;
-      if (localStorage.getItem(oldKey)) {
-        localStorage.removeItem(oldKey);
-        localStorage.removeItem('hi_device_id_' + regId);
-        localStorage.removeItem('hi_synced_' + localStorage.getItem('hi_device_id_' + regId));
-      }
     }
   }
   loadEl.style.display = 'none';
@@ -12062,12 +12190,8 @@ async function doAppLogin() {
         tags: typeof u.tags === 'string' ? u.tags.split(',').filter(Boolean) : (u.tags || []),
         registrationId: u.registrationId || null,
       };
-      if (w.data?.length) {
-        S.workouts = mapWorkoutRecords(w.data, S.workouts);
-      }
-      if (g.data?.length) {
-        S.glucoseRecords = mapGlucoseRecords(g.data, S.glucoseRecords);
-      }
+      S.workouts = mergeWorkoutRecords(w.data || [], S.workouts);
+      S.glucoseRecords = mergeGlucoseRecords(g.data || [], S.glucoseRecords);
       await syncMyChallengeRegistration();
       save();
       renderHeader();
@@ -12112,8 +12236,8 @@ function loadSheetsUserData(data) {
     registrationId: u.registrationId || null,
   };
   S.deviceId = u.deviceId;
-  S.workouts = mapWorkoutRecords(data.workouts || [], S.workouts);
-  S.glucoseRecords = mapGlucoseRecords(data.glucose || [], S.glucoseRecords);
+  S.workouts = mergeWorkoutRecords(data.workouts || [], S.workouts);
+  S.glucoseRecords = mergeGlucoseRecords(data.glucose || [], S.glucoseRecords);
   const myPosts = (data.posts || []).map(p => ({
     id: Number(p.id), userId: 0,
     name: p.userName, avatar: normalizeAvatar(S.user.avatar),
@@ -12245,12 +12369,8 @@ function init() {
           tags: typeof u.tags === 'string' ? u.tags.split(',').filter(Boolean) : (u.tags || []),
           registrationId: u.registrationId || null,
         };
-        if (w.data?.length) {
-          S.workouts = mapWorkoutRecords(w.data, S.workouts);
-        }
-        if (g.data?.length) {
-          S.glucoseRecords = mapGlucoseRecords(g.data, S.glucoseRecords);
-        }
+        S.workouts = mergeWorkoutRecords(w.data || [], S.workouts);
+        S.glucoseRecords = mergeGlucoseRecords(g.data || [], S.glucoseRecords);
         await syncMyChallengeRegistration();
         save();
         renderHeader();
@@ -12969,8 +13089,8 @@ init();
             tags: typeof u.tags === 'string' ? u.tags.split(',').filter(Boolean) : (u.tags || []),
             registrationId: u.registrationId || null,
           };
-          if (w.data?.length) S.workouts = mapWorkoutRecords(w.data, S.workouts);
-          if (g.data?.length) S.glucoseRecords = mapGlucoseRecords(g.data, S.glucoseRecords);
+          S.workouts = mergeWorkoutRecords(w.data || [], S.workouts);
+          S.glucoseRecords = mergeGlucoseRecords(g.data || [], S.glucoseRecords);
           await syncMyChallengeRegistration();
           save();
           renderHeader();

@@ -211,6 +211,15 @@
       .adm-body{padding:12px;}
       .stat-grid{grid-template-columns:repeat(2,1fr);}
     }
+    .shop-config-bar{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+    .shop-config-title{font-size:14px;font-weight:700;color:#111827;margin-bottom:4px;}
+    .shop-config-status{font-size:12px;color:#6b7280;}
+    .shop-toggle-wrap{position:relative;display:inline-block;width:52px;height:28px;flex-shrink:0;}
+    .shop-toggle-wrap input{opacity:0;width:0;height:0;position:absolute;}
+    .shop-toggle-track{position:absolute;inset:0;border-radius:14px;background:#d1d5db;cursor:pointer;transition:background .2s;display:flex;align-items:center;padding:0 3px;}
+    .shop-toggle-track.on{background:#1535c4;}
+    .shop-toggle-thumb{width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:transform .2s;}
+    .shop-toggle-thumb.on{transform:translateX(24px);}
   </style>
 </head>
 <body>
@@ -458,6 +467,19 @@
 
     <!-- ── PANEL: ORDERS ── -->
     <div class="panel" id="panel-orders">
+      <!-- 구매 기능 운영 설정 -->
+      <div class="shop-config-bar">
+        <div>
+          <div class="shop-config-title">구매 기능 운영</div>
+          <div class="shop-config-status" id="shop-config-status">로딩 중...</div>
+        </div>
+        <label class="shop-toggle-wrap">
+          <input type="checkbox" id="admin-shop-toggle" onchange="applyShopPurchaseToggle()">
+          <span class="shop-toggle-track" id="admin-shop-track">
+            <span class="shop-toggle-thumb" id="admin-shop-thumb"></span>
+          </span>
+        </label>
+      </div>
       <div class="ch-status-bar">
         <div class="ch-s-pill"><div class="ch-s-val" id="ord-total">-</div><div class="ch-s-lbl">전체</div></div>
         <div class="ch-s-pill"><div class="ch-s-val" id="ord-pend">-</div><div class="ch-s-lbl">대기</div></div>
@@ -2482,6 +2504,44 @@ function switchTab(name, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('panel-' + name).classList.add('active');
   btn.classList.add('active');
+  if (name === 'orders') loadShopConfig();
+}
+
+/* ── 구매 기능 설정 ── */
+async function loadShopConfig() {
+  const statusEl = document.getElementById('shop-config-status');
+  if (!db) { if (statusEl) statusEl.textContent = 'DB 연결 필요'; return; }
+  try {
+    const { data } = await db.from('app_config').select('key,value').eq('key','shop_purchase_enabled').maybeSingle();
+    const enabled = data?.value === 'true';
+    renderShopConfigUI(enabled);
+  } catch(e) {
+    if (statusEl) statusEl.textContent = '설정 로드 실패 (app_config 테이블 확인 필요)';
+  }
+}
+
+function renderShopConfigUI(enabled) {
+  const toggle = document.getElementById('admin-shop-toggle');
+  const track  = document.getElementById('admin-shop-track');
+  const thumb  = document.getElementById('admin-shop-thumb');
+  const status = document.getElementById('shop-config-status');
+  if (!toggle) return;
+  toggle.checked = enabled;
+  track?.classList.toggle('on', enabled);
+  thumb?.classList.toggle('on', enabled);
+  if (status) status.textContent = enabled ? '🟢 운영 중 — 사용자가 장바구니·구매를 이용할 수 있습니다' : '🔴 비활성화 — 사용자에게 문의하기로 표시됩니다';
+}
+
+async function applyShopPurchaseToggle() {
+  const enabled = document.getElementById('admin-shop-toggle').checked;
+  renderShopConfigUI(enabled);
+  if (!db) return;
+  try {
+    await db.from('app_config').upsert({ key: 'shop_purchase_enabled', value: String(enabled), updated_at: new Date().toISOString() }, { onConflict: 'key' });
+    alert(enabled ? '✅ 구매 기능이 활성화되었습니다' : '🔒 구매 기능이 비활성화되었습니다');
+  } catch(e) {
+    alert('저장 실패: ' + e.message);
+  }
 }
 
 /* ══════════════════════════════════════════════
