@@ -2084,6 +2084,15 @@
     }
     .pm-delete-btn:hover { color:#B91C1C; }
     .pm-delete-btn:disabled { opacity:0.55; cursor:default; }
+    .pm-admin-btn {
+      width:100%; padding:10px; margin-top:8px;
+      background:none; border:1px solid #e5e7eb; border-radius:10px;
+      font-family:inherit; font-size:12px; font-weight:600; color:#6b7280;
+      cursor:pointer; transition:all 0.15s;
+    }
+    .pm-admin-btn:hover { background:#f3f4f6; color:#374151; }
+    #admin-shop-toggle:checked + span { background:#1535c4; }
+    #admin-shop-toggle:checked + span span { transform:translateX(22px); }
     .pm-section-body { overflow:hidden; transition:all 0.2s; }
     .pm-section-body.collapsed { display:none; }
     .btn-danger { background:#FEE2E2; color:#DC2626; border:none; }
@@ -4788,9 +4797,56 @@ const SHOP_PRODUCTS = [
   { id:'hp15', name:'병원 메모패드 세트',     price:4000,  cat:'merch', img:'', desc:'병원 로고가 인쇄된 포스트잇 스타일 메모패드 3종 세트입니다. 75×75mm 50매, 38×51mm 100매, 25×75mm 100매로 구성되어 업무에서 다양하게 활용 가능합니다.' },
 ];
 
-const SHOP_PURCHASE_ENABLED = false;
-const SHOP_PURCHASE_NOTICE = '영양제와 병원 제작 상품 구매는 현재 작업 중이라 둘러보기만 가능해요. 직접 구매를 원하시면 커뮤니케이션에 문의해주세요.';
-const SHOP_PURCHASE_TOAST = '직접 구매는 아직 준비 중이에요. 커뮤니케이션에 문의해주세요.';
+// 구매 기능 활성화 여부 — Supabase app_config 테이블에서 로드
+let _shopPurchaseEnabled = false;
+const SHOP_PURCHASE_NOTICE = '현재 구매 기능이 비활성화되어 있어요. 직접 구매를 원하시면 커뮤니케이션에 문의해주세요.';
+const SHOP_PURCHASE_TOAST = '현재 구매 기능이 비활성화되어 있어요.';
+
+// 관리자 사번 목록 (필요시 추가)
+const ADMIN_EMPIDS = ['A1801','ADMIN'];
+
+function isAdminUser() {
+  const empId = (S.user.empId || ACTIVE_EMPID || '').trim().toUpperCase();
+  return ADMIN_EMPIDS.includes(empId);
+}
+
+async function loadAppConfig() {
+  if (!_db) return;
+  try {
+    const { data } = await _db.from('app_config').select('key,value');
+    if (!data) return;
+    data.forEach(row => {
+      if (row.key === 'shop_purchase_enabled') {
+        _shopPurchaseEnabled = row.value === 'true';
+      }
+    });
+  } catch(e) { /* app_config 테이블 없으면 기본값 유지 */ }
+}
+
+async function saveAppConfig(key, value) {
+  if (!_db) return;
+  await _db.from('app_config').upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+}
+
+function openAdminPanel() {
+  const el = document.getElementById('admin-panel-overlay');
+  if (!el) return;
+  document.getElementById('admin-shop-toggle').checked = _shopPurchaseEnabled;
+  el.classList.remove('pm-hidden');
+}
+
+function closeAdminPanel() {
+  const el = document.getElementById('admin-panel-overlay');
+  if (el) el.classList.add('pm-hidden');
+}
+
+async function toggleShopPurchase() {
+  _shopPurchaseEnabled = document.getElementById('admin-shop-toggle').checked;
+  await saveAppConfig('shop_purchase_enabled', String(_shopPurchaseEnabled));
+  renderShop();
+  saveCart();
+  showToast(_shopPurchaseEnabled ? '✅ 구매 기능이 활성화되었습니다' : '🔒 구매 기능이 비활성화되었습니다');
+}
 
 let _cart = {}; // { productId: quantity }
 
@@ -4833,12 +4889,12 @@ function saveCart() {
   const badge = document.getElementById('header-cart-badge');
   const count = cartCount();
   if (cartBtn) {
-    cartBtn.classList.toggle('is-disabled', !SHOP_PURCHASE_ENABLED);
-    cartBtn.title = SHOP_PURCHASE_ENABLED ? '장바구니' : '구매 준비중';
+    cartBtn.classList.toggle('is-disabled', !_shopPurchaseEnabled);
+    cartBtn.title = _shopPurchaseEnabled ? '장바구니' : '구매 준비중';
   }
   if (badge) {
     badge.textContent = count;
-    badge.classList.toggle('hidden', !SHOP_PURCHASE_ENABLED || count === 0);
+    badge.classList.toggle('hidden', !_shopPurchaseEnabled || count === 0);
   }
 }
 function loadCart() {
@@ -4852,7 +4908,7 @@ function clearCart() {
 }
 function clearCartFromPanel() {
   if (IS_GUEST) { flashGuestBanner(); return; }
-  if (!SHOP_PURCHASE_ENABLED) { showShopPurchasePendingToast(); return; }
+  if (!_shopPurchaseEnabled) { showShopPurchasePendingToast(); return; }
   haptic('medium');
   _cart = {};
   saveCart();
@@ -4862,7 +4918,7 @@ function clearCartFromPanel() {
 
 function addToCart(id) {
   if (IS_GUEST) { flashGuestBanner(); return; }
-  if (!SHOP_PURCHASE_ENABLED) { showShopPurchasePendingToast(); return; }
+  if (!_shopPurchaseEnabled) { showShopPurchasePendingToast(); return; }
   haptic('light');
   _cart[id] = (_cart[id] || 0) + 1;
   saveCart();
@@ -4870,7 +4926,7 @@ function addToCart(id) {
   renderPdCartRow(id);
 }
 function removeFromCart(id) {
-  if (!SHOP_PURCHASE_ENABLED) { showShopPurchasePendingToast(); return; }
+  if (!_shopPurchaseEnabled) { showShopPurchasePendingToast(); return; }
   if (!_cart[id]) return;
   haptic('light');
   _cart[id]--;
@@ -4918,8 +4974,8 @@ function renderPdCartRow(id) {
   if (_pdCurrentId !== id) return;
   const row = document.getElementById('pd-cart-row');
   if (!row) return;
-  row.classList.toggle('pending-mode', !SHOP_PURCHASE_ENABLED);
-  if (!SHOP_PURCHASE_ENABLED) {
+  row.classList.toggle('pending-mode', !_shopPurchaseEnabled);
+  if (!_shopPurchaseEnabled) {
     row.innerHTML = `
       <div class="pd-pending-box">
         <div class="pd-pending-title">직접 구매는 아직 준비 중이에요</div>
@@ -4944,7 +5000,7 @@ function renderPdCartRow(id) {
 }
 
 function openCartPanel() {
-  if (!SHOP_PURCHASE_ENABLED) { showShopPurchasePendingToast(); return; }
+  if (!_shopPurchaseEnabled) { showShopPurchasePendingToast(); return; }
   const panel = document.getElementById('cart-panel');
   const backdrop = document.getElementById('cart-panel-backdrop');
   if (!panel) return;
@@ -8620,6 +8676,10 @@ function openProfileModal(onboarding = false) {
   if (pmChallengeTag) pmChallengeTag.style.display = hasActiveChallengeRegistration() ? '' : 'none';
   refreshPushPreferenceUI();
 
+  // 관리자 버튼 표시 여부
+  const pmAdminBtn = document.getElementById('pm-admin-btn');
+  if (pmAdminBtn) pmAdminBtn.style.display = isAdminUser() ? '' : 'none';
+
   const pmOverlay = document.getElementById('profile-modal');
   pmOverlay.classList.remove('pm-hidden');
   pmOverlay.scrollTop = 0;
@@ -9880,7 +9940,7 @@ function renderShop() {
       const thumbHtml = (p.svg && SUPP_SVG[p.svg])
         ? `<div class="shop-item-thumb">${SUPP_SVG[p.svg]}</div>`
         : '';
-      const actionHtml = SHOP_PURCHASE_ENABLED
+      const actionHtml = _shopPurchaseEnabled
         ? (qty > 0 ? `
                 <button type="button" class="shop-qty-btn" onclick="removeFromCart('${p.id}')">−</button>
                 <span class="shop-qty-num">${qty}</span>
@@ -9917,7 +9977,7 @@ function renderShop() {
   const count = cartCount();
   const bar   = document.getElementById('shop-cart-bar');
   if (bar) {
-    if (!SHOP_PURCHASE_ENABLED) {
+    if (!_shopPurchaseEnabled) {
       bar.classList.add('hidden');
     } else {
       bar.classList.toggle('hidden', count === 0);
@@ -9930,7 +9990,7 @@ function renderShop() {
   const hBadge = document.getElementById('header-cart-badge');
   if (hBadge) {
     hBadge.textContent = count;
-    hBadge.classList.toggle('hidden', !SHOP_PURCHASE_ENABLED || count === 0);
+    hBadge.classList.toggle('hidden', !_shopPurchaseEnabled || count === 0);
   }
 
 }
@@ -10067,7 +10127,7 @@ function previewDepositImg(input) {
 }
 
 function openShopOrder() {
-  if (!SHOP_PURCHASE_ENABLED) { showShopPurchasePendingToast(); return; }
+  if (!_shopPurchaseEnabled) { showShopPurchasePendingToast(); return; }
   if (cartCount() === 0) { showToast('장바구니가 비어있어요'); return; }
   const nameEl = document.getElementById('so-name');
   if (nameEl && S.user.name) nameEl.value = S.user.name;
@@ -10099,7 +10159,7 @@ function closeShopOrder() {
 }
 
 function submitShopOrder() {
-  if (!SHOP_PURCHASE_ENABLED) { showShopPurchasePendingToast(); return; }
+  if (!_shopPurchaseEnabled) { showShopPurchasePendingToast(); return; }
   const name       = document.getElementById('so-name').value.trim();
   const phone      = document.getElementById('so-phone').value.trim();
   const depositor  = document.getElementById('so-depositor').value.trim();
@@ -12287,6 +12347,34 @@ init();
       <button type="button" class="pm-logout-btn" id="pm-logout-btn" onclick="appLogout()">로그아웃</button>
     </div>
     <button type="button" class="pm-delete-btn" id="pm-delete-data-btn" onclick="requestDeleteMyDeviceAndServerData()">모든 데이터 삭제 초기화</button>
+    <button type="button" class="pm-admin-btn" id="pm-admin-btn" onclick="openAdminPanel()" style="display:none">⚙️ 앱 운영 설정</button>
+  </div>
+</div>
+
+<!-- Admin Panel -->
+<div id="admin-panel-overlay" class="profile-modal-overlay pm-hidden" onclick="closeAdminPanel()">
+  <div class="profile-modal" style="max-width:360px" onclick="event.stopPropagation()">
+    <div class="pm-header">
+      <span class="pm-title">⚙️ 앱 운영 설정</span>
+      <button type="button" class="pm-close" onclick="closeAdminPanel()">✕</button>
+    </div>
+    <div style="padding:20px">
+      <div style="background:#f8f9fb;border-radius:12px;padding:16px;margin-bottom:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div>
+            <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:3px">구매 기능 운영</div>
+            <div style="font-size:12px;color:#6b7280;line-height:1.4">켜면 장바구니·구매 기능이 활성화됩니다</div>
+          </div>
+          <label style="position:relative;display:inline-block;width:48px;height:26px;flex-shrink:0">
+            <input type="checkbox" id="admin-shop-toggle" onchange="toggleShopPurchase()" style="opacity:0;width:0;height:0;position:absolute">
+            <span id="admin-shop-track" style="position:absolute;inset:0;border-radius:13px;background:#d1d5db;transition:background 0.2s;cursor:pointer;display:flex;align-items:center;padding:0 3px">
+              <span id="admin-shop-thumb" style="width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.2);transition:transform 0.2s"></span>
+            </span>
+          </label>
+        </div>
+      </div>
+      <div style="font-size:11px;color:#9ca3af;text-align:center">관리자 전용 메뉴입니다</div>
+    </div>
   </div>
 </div>
 
@@ -12843,6 +12931,9 @@ init();
     if (!SUPABASE_URL || SUPABASE_URL === 'YOUR_SUPABASE_URL') return;
     const { createClient } = supabase;
     _db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // 앱 설정 로드 (구매 기능 ON/OFF 등)
+    loadAppConfig().then(() => { renderShop(); saveCart(); });
 
     // _db 초기화 후 이미 로그인 상태면 즉시 Supabase 동기화
     // (init()이 _db보다 먼저 실행되므로 여기서 재sync 필요)
