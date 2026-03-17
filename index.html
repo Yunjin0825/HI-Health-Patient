@@ -11883,13 +11883,10 @@ function submitChReg(e) {
     shoeSize: lastReg.shoeSize,
     familyParticipation: lastReg.familyParticipation,
     familyCount: lastReg.familyCount,
+    note: regNote,
     status: lastReg.status,
     registeredAt: lastReg.registeredAt,
   });
-  if (_db && regNote) {
-    _db.from('registrations').update({ note: regNote }).eq('id', lastReg.id)
-      .then(({ error }) => { if (error) console.warn('[registration.note]', error.message); });
-  }
 
   S.user.registrationId = id;
   S.user.name = name;

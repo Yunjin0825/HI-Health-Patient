@@ -206,6 +206,9 @@
     /* ── SELECTED USER BAR ── */
     .sel-bar{background:var(--pl);border-radius:var(--rs);padding:10px 16px;display:flex;align-items:center;gap:10px;margin-bottom:14px;font-size:13px;font-weight:600;color:var(--p);}
     .sel-bar button{background:none;border:none;color:var(--p);cursor:pointer;font-size:16px;line-height:1;padding:0 4px;}
+    .wo-guide{background:#F8FAFC;border:1px dashed #CBD5E1;border-radius:var(--rs);padding:14px 16px;margin-bottom:14px;font-size:13px;color:var(--t2);line-height:1.55;}
+    .wo-summary-grid{margin-bottom:14px;}
+    .wo-inline-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
 
     @media(max-width:600px){
       .adm-body{padding:12px;}
@@ -266,7 +269,7 @@
     <!-- TABS -->
     <div class="tab-bar">
       <button class="tab-btn active" onclick="switchTab('users',this)">👥 이용자</button>
-      <button class="tab-btn" onclick="switchTab('workouts',this)">🏋️ 운동기록</button>
+      <button class="tab-btn" id="tab-btn-workouts" onclick="switchTab('workouts',this)">🏋️ 운동기록</button>
       <button class="tab-btn" onclick="switchTab('posts',this)">💬 커뮤니티</button>
       <button class="tab-btn" onclick="switchTab('challenge',this)">🏆 챌린지</button>
       <button class="tab-btn" onclick="switchTab('orders',this)">🛒 구매</button>
@@ -358,6 +361,7 @@
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="cbtn pri" onclick="saveUserDetail()">저장</button>
+          <button class="cbtn sky" onclick="openUserWorkouts()">운동기록 보기</button>
           <button class="cbtn dan" onclick="deleteSelUser()">이용자 삭제</button>
         </div>
       </div>
@@ -365,14 +369,27 @@
 
     <!-- ── PANEL: WORKOUTS ── -->
     <div class="panel" id="panel-workouts">
+      <div class="stat-grid wo-summary-grid">
+        <div class="stat-card a"><div class="s-lbl">오늘 운동</div><div class="s-val" id="wo-sum-today">-</div><div class="s-sub">건</div></div>
+        <div class="stat-card g"><div class="s-lbl">최근 7일 운동</div><div class="s-val" id="wo-sum-week">-</div><div class="s-sub">건</div></div>
+        <div class="stat-card pu"><div class="s-lbl">최근 7일 활동 이용자</div><div class="s-val" id="wo-sum-active-users">-</div><div class="s-sub">명</div></div>
+        <div class="stat-card sk"><div class="s-lbl">총 운동시간</div><div class="s-val" id="wo-sum-mins">-</div><div class="s-sub">분</div></div>
+      </div>
+      <div class="wo-guide" id="wo-guide">
+        전체 운동기록을 한 번에 나열하지 않고, 먼저 활동 요약과 최근 활동 이용자를 보여줍니다. 특정 이용자를 선택하면 그 사람 기록만 자세히 볼 수 있습니다.
+      </div>
       <div class="ctrl-bar">
-        <input class="ctrl-inp" id="wo-search" placeholder="이름·종류·메모 검색" oninput="woReset()">
-        <select class="ctrl-sel" id="wo-user" onchange="woReset()"><option value="">전체 이용자</option></select>
+        <input class="ctrl-inp" id="wo-search" placeholder="이용자명 또는 선택한 이용자의 운동 종류·메모 검색" oninput="woReset()">
+        <select class="ctrl-sel" id="wo-user" onchange="woReset()"><option value="">이용자 선택</option></select>
+        <div class="wo-inline-actions">
+          <button class="cbtn sky" onclick="useSelectedUserForWorkouts()">선택 이용자 보기</button>
+          <button class="cbtn" style="background:var(--bg);color:var(--t2)" onclick="clearWorkoutUserFilter()">선택 해제</button>
+        </div>
         <select class="ctrl-sel" id="wo-type" onchange="woReset()"><option value="">전체 종류</option></select>
         <select class="ctrl-sel" id="wo-period" onchange="woReset()">
           <option value="">전체 기간</option>
           <option value="today">오늘</option>
-          <option value="week">이번 주</option>
+          <option value="week">최근 7일</option>
           <option value="month">이번 달</option>
         </select>
         <select class="ctrl-sel" id="wo-pagesize" onchange="woReset()">
@@ -380,9 +397,30 @@
           <option value="100">100건씩</option>
           <option value="200">200건씩</option>
         </select>
-        <span class="ctrl-count" id="wo-count">0건</span>
+        <span class="ctrl-count" id="wo-count">최근 활동 이용자 보기</span>
       </div>
-      <div class="tbl-wrap">
+      <div class="sel-bar" id="wo-sel-bar" style="display:none">
+        <span id="wo-sel-name"></span> 운동기록 보는 중
+        <button onclick="clearWorkoutUserFilter()" title="선택 해제">✕</button>
+      </div>
+      <div class="tbl-wrap" id="wo-overview-wrap">
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr>
+              <th>#</th>
+              <th>이용자</th>
+              <th>등록번호</th>
+              <th>최근 운동</th>
+              <th>최근 7일</th>
+              <th>누적 운동</th>
+              <th>누적 시간</th>
+              <th>관리</th>
+            </tr></thead>
+            <tbody id="wo-overview-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="tbl-wrap" id="wo-list-wrap" style="display:none">
         <div class="tbl-scroll">
           <table>
             <thead><tr>
@@ -739,7 +777,11 @@ const CH_SHOE_LABELS = {
 };
 
 function getRegShoePrefText(r) {
-  const raw = Array.isArray(r?.shoePrefs) ? r.shoePrefs : [];
+  let raw = Array.isArray(r?.shoePrefs) ? r.shoePrefs : [];
+  if (!raw.length && typeof r?.shoePrefs === 'string') {
+    try { raw = JSON.parse(r.shoePrefs); } catch(e) { raw = [r.shoePrefs]; }
+  }
+  raw = Array.isArray(raw) ? raw : [];
   const localText = raw
     .map(id => CH_SHOE_LABELS[String(id || '').trim().toLowerCase()] || '')
     .filter(Boolean);
@@ -1766,16 +1808,183 @@ function buildExTypes() {
   // 이용자 드롭다운
   const uSel = document.getElementById('wo-user');
   const prevUser = uSel.value;
-  uSel.innerHTML = '<option value="">전체 이용자</option>';
+  uSel.innerHTML = '<option value="">이용자 선택</option>';
   [...GD.users].sort((a,b) => (a.name||'').localeCompare(b.name||'','ko')).forEach(u => {
     const o = document.createElement('option');
     o.value = u.deviceId; o.textContent = u.name || u.deviceId;
     uSel.appendChild(o);
   });
-  uSel.value = prevUser;
+  uSel.value = [...uSel.options].some(opt => opt.value === prevUser) ? prevUser : '';
 }
 
 function woReset() { wPage = 0; renderWorkouts(); }
+
+function workoutTs(w) {
+  const num = Number(w?.ts || 0);
+  if (Number.isFinite(num) && num > 0) return num;
+  const parsed = Date.parse(String(w?.ts || w?.createdAt || ''));
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function getWorkoutPeriodStart(period) {
+  const now = new Date();
+  if (period === 'today') {
+    const start = new Date(now);
+    start.setHours(0,0,0,0);
+    return start.getTime();
+  }
+  if (period === 'week') {
+    const start = new Date(now);
+    start.setDate(now.getDate() - 6);
+    start.setHours(0,0,0,0);
+    return start.getTime();
+  }
+  if (period === 'month') {
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    start.setHours(0,0,0,0);
+    return start.getTime();
+  }
+  return 0;
+}
+
+function matchesWorkoutPeriod(w, period) {
+  if (!period) return true;
+  return workoutTs(w) >= getWorkoutPeriodStart(period);
+}
+
+function getWorkoutSelectedUserId() {
+  return document.getElementById('wo-user')?.value || '';
+}
+
+function syncWorkoutSelectionUI(deviceId = getWorkoutSelectedUserId()) {
+  const wrap = document.getElementById('wo-sel-bar');
+  const nameEl = document.getElementById('wo-sel-name');
+  const guideEl = document.getElementById('wo-guide');
+  const countEl = document.getElementById('wo-count');
+  const detailOnlyControls = [
+    document.getElementById('wo-type'),
+    document.getElementById('wo-period'),
+    document.getElementById('wo-pagesize'),
+  ].filter(Boolean);
+  const user = GD.users.find(u => u.deviceId === deviceId);
+  if (deviceId && user) {
+    if (wrap) wrap.style.display = '';
+    if (nameEl) nameEl.textContent = user.name || user.deviceId;
+    if (guideEl) guideEl.textContent = '선택한 이용자의 운동기록만 표시합니다. 운동 종류, 기간, 메모로 추가 필터링할 수 있습니다.';
+    detailOnlyControls.forEach(el => { el.disabled = false; });
+  } else {
+    if (wrap) wrap.style.display = 'none';
+    if (nameEl) nameEl.textContent = '';
+    if (guideEl) guideEl.textContent = '전체 운동기록을 한 번에 나열하지 않고, 먼저 활동 요약과 최근 활동 이용자를 보여줍니다. 특정 이용자를 선택하면 그 사람 기록만 자세히 볼 수 있습니다.';
+    detailOnlyControls.forEach(el => { el.disabled = true; });
+    if (countEl) countEl.textContent = '최근 활동 이용자 보기';
+  }
+}
+
+function setWorkoutUserFilter(deviceId = '', opts = {}) {
+  const sel = document.getElementById('wo-user');
+  if (sel) sel.value = deviceId || '';
+  syncWorkoutSelectionUI(deviceId);
+  if (!opts.skipRender) woReset();
+}
+
+function clearWorkoutUserFilter() {
+  setWorkoutUserFilter('');
+}
+
+function openUserWorkouts(deviceId = selDeviceId) {
+  if (!deviceId) { toast('이용자를 먼저 선택해주세요'); return; }
+  setWorkoutUserFilter(deviceId, { skipRender: true });
+  const btn = document.getElementById('tab-btn-workouts');
+  if (btn) switchTab('workouts', btn);
+  renderWorkouts();
+  document.getElementById('panel-workouts')?.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function useSelectedUserForWorkouts() {
+  if (!selDeviceId) { toast('이용자 탭에서 먼저 대상을 선택해주세요'); return; }
+  openUserWorkouts(selDeviceId);
+}
+
+function renderWorkoutSummary() {
+  const todayStart = getWorkoutPeriodStart('today');
+  const weekStart = getWorkoutPeriodStart('week');
+  const todayCount = GD.workouts.filter(w => workoutTs(w) >= todayStart).length;
+  const weekRows = GD.workouts.filter(w => workoutTs(w) >= weekStart);
+  const weekUsers = new Set(weekRows.map(w => String(w.deviceId || '').trim()).filter(Boolean));
+  const totalMins = GD.workouts.reduce((sum, w) => sum + (Number(w.duration) || 0), 0);
+  document.getElementById('wo-sum-today').textContent = todayCount.toLocaleString();
+  document.getElementById('wo-sum-week').textContent = weekRows.length.toLocaleString();
+  document.getElementById('wo-sum-active-users').textContent = weekUsers.size.toLocaleString();
+  document.getElementById('wo-sum-mins').textContent = totalMins.toLocaleString();
+}
+
+function buildWorkoutUserStats() {
+  const weekStart = getWorkoutPeriodStart('week');
+  const stats = new Map();
+  GD.workouts.forEach(w => {
+    const deviceId = String(w.deviceId || '').trim();
+    if (!deviceId) return;
+    const stat = stats.get(deviceId) || { count:0, mins:0, latestTs:0, weekCount:0 };
+    const ts = workoutTs(w);
+    stat.count += 1;
+    stat.mins += Number(w.duration) || 0;
+    if (ts > stat.latestTs) stat.latestTs = ts;
+    if (ts >= weekStart) stat.weekCount += 1;
+    stats.set(deviceId, stat);
+  });
+  return stats;
+}
+
+function renderWorkoutOverview() {
+  const tbody = document.getElementById('wo-overview-body');
+  const q = (document.getElementById('wo-search')?.value || '').toLowerCase();
+  const stats = buildWorkoutUserStats();
+  const allRows = GD.users
+    .map(u => ({ user: u, stat: stats.get(u.deviceId) || { count:0, mins:0, latestTs:0, weekCount:0 } }))
+    .filter(({ user, stat }) => {
+      if (!stat.count) return false;
+      if (!q) return true;
+      return [user.name || '', user.empId || '', user.dept || '', user.registrationId || '']
+        .some(value => value.toLowerCase().includes(q));
+    })
+    .sort((a, b) => {
+      if (b.stat.latestTs !== a.stat.latestTs) return b.stat.latestTs - a.stat.latestTs;
+      return b.stat.count - a.stat.count;
+    });
+  const rows = allRows.slice(0, 30);
+
+  document.getElementById('wo-list-wrap').style.display = 'none';
+  document.getElementById('wo-overview-wrap').style.display = '';
+  document.getElementById('wo-pager').innerHTML = '';
+
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td class="empty-cell" colspan="8">운동기록이 있는 이용자가 없습니다</td></tr>`;
+    document.getElementById('wo-count').textContent = '0명';
+    return;
+  }
+
+  document.getElementById('wo-count').textContent = `최근 활동 이용자 ${allRows.length}명`;
+  tbody.innerHTML = rows.map(({ user, stat }, idx) => {
+    const safeId = String(user.deviceId || '').replace(/'/g, "\\'");
+    const latestText = stat.latestTs
+      ? new Date(stat.latestTs).toLocaleString('ko-KR', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' })
+      : '-';
+    return `<tr>
+      <td><span class="rank ${idx === 0 ? 'g1' : idx === 1 ? 'g2' : idx === 2 ? 'g3' : ''}">${idx + 1}</span></td>
+      <td class="td-name">
+        ${escHtml(user.name || '(이름없음)')}
+        ${isChallenger(user) ? '<span class="badge ch" style="margin-left:4px">챌린지</span>' : ''}
+      </td>
+      <td>${escHtml(user.empId || '-')}</td>
+      <td class="td-date">${escHtml(latestText)}</td>
+      <td>${stat.weekCount.toLocaleString()}건</td>
+      <td>${stat.count.toLocaleString()}건</td>
+      <td>${stat.mins.toLocaleString()}분</td>
+      <td><button class="abtn det" onclick="openUserWorkouts('${safeId}')">기록 보기</button></td>
+    </tr>`;
+  }).join('');
+}
 
 function isHiddenWorkoutText(value, workoutId = '') {
   const text = String(value ?? '').trim();
@@ -1791,34 +2000,35 @@ function getWorkoutMemoText(workout) {
   return isHiddenWorkoutText(memo, workout?.id) ? '' : memo;
 }
 
-function filteredWorkouts() {
-  const q      = document.getElementById('wo-search').value.toLowerCase();
-  const userId = document.getElementById('wo-user').value;
+function filteredWorkouts(userId = getWorkoutSelectedUserId()) {
+  if (!userId) return [];
+  const q      = (document.getElementById('wo-search')?.value || '').toLowerCase();
   const type   = document.getElementById('wo-type').value;
   const per    = document.getElementById('wo-period').value;
-  const now    = new Date();
   return GD.workouts.filter(w => {
-    if (userId && w.deviceId !== userId) return false;
+    if (w.deviceId !== userId) return false;
     const exName = EX_MAP[w.exId] || w.exId || '';
     const memo = getWorkoutMemoText(w);
     if (q && ![exName, memo, w.userName || ''].some(s => String(s || '').toLowerCase().includes(q))) return false;
     if (type && w.exId !== type) return false;
-    if (per) {
-      const d = new Date(Number(w.ts)||0);
-      if (per === 'today' && d.toDateString() !== now.toDateString()) return false;
-      if (per === 'week') {
-        const sw = new Date(now); sw.setDate(now.getDate() - now.getDay()); sw.setHours(0,0,0,0);
-        if (d < sw) return false;
-      }
-      if (per === 'month' && (d.getMonth() !== now.getMonth() || d.getFullYear() !== now.getFullYear())) return false;
-    }
+    if (!matchesWorkoutPeriod(w, per)) return false;
     return true;
-  }).sort((a,b) => Number(b.ts||0) - Number(a.ts||0));
+  }).sort((a,b) => workoutTs(b) - workoutTs(a));
 }
 
 function renderWorkouts() {
-  const list = filteredWorkouts();
+  buildExTypes();
+  renderWorkoutSummary();
+  const selectedUserId = getWorkoutSelectedUserId();
+  syncWorkoutSelectionUI(selectedUserId);
+  if (!selectedUserId) {
+    renderWorkoutOverview();
+    return;
+  }
+  const list = filteredWorkouts(selectedUserId);
   const pageSize = parseInt(document.getElementById('wo-pagesize')?.value) || 50;
+  document.getElementById('wo-overview-wrap').style.display = 'none';
+  document.getElementById('wo-list-wrap').style.display = '';
   document.getElementById('wo-count').textContent = list.length.toLocaleString() + '건';
   const totalPages = Math.max(1, Math.ceil(list.length / pageSize));
   if (wPage >= totalPages) wPage = totalPages - 1;
@@ -1857,7 +2067,7 @@ function renderWorkouts() {
 function showWorkoutDetail(id) {
   const w = GD.workouts.find(x => String(x.id) === String(id));
   if (!w) return;
-  const d = new Date(Number(w.ts)||0);
+  const d = new Date(workoutTs(w) || 0);
   const memo = getWorkoutMemoText(w);
   const rows = [
     ['이용자', w.userName||'-'],
@@ -1882,7 +2092,8 @@ async function deleteWorkout(id) {
   showLoading(false);
   if (error) { toast('삭제 실패: ' + error.message); return; }
   GD.workouts = GD.workouts.filter(w => String(w.id) !== String(id));
-  renderStats(); renderWorkouts();
+  buildExTypes();
+  renderStats(); renderUsers(); renderWorkouts();
   toast('운동 기록 삭제 완료');
 }
 
@@ -2549,6 +2760,7 @@ function switchTab(name, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('panel-' + name).classList.add('active');
   btn.classList.add('active');
+  if (name === 'workouts') renderWorkouts();
   if (name === 'orders') loadShopConfig();
   if (name === 'settings') loadSettingsTab();
 }
