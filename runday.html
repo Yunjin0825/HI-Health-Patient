@@ -1842,9 +1842,21 @@
   const SB_URL = 'https://nbnmvvobehjitophkqmu.supabase.co';
   const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ibm12dm9iZWhqaXRvcGhrcW11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3Nzk4NzQsImV4cCI6MjA4ODM1NTg3NH0.iZS4JvhHUqv4ZMPxm9STit6xqVp2JA5H55M8Wmd1yjY';
 
-  function hasDup(empId) {
+  let editingRegId = '';
+
+  function hasDup(empId, ignoreId = editingRegId) {
+    const normalizedEmpId = String(empId || '').trim().toUpperCase();
+    const excludedId = String(ignoreId || '').trim();
+    if (!normalizedEmpId) return false;
     return JSON.parse(localStorage.getItem(CH_KEY) || '[]')
-      .some(r => String(r.empId).toUpperCase() === empId.toUpperCase());
+      .some(r => {
+        const rowEmpId = String(r?.empId || '').trim().toUpperCase();
+        const rowId = String(r?.id || '').trim();
+        const isCancelled = String(r?.status || '').trim().toLowerCase() === 'cancelled';
+        if (isCancelled) return false;
+        if (excludedId && rowId === excludedId) return false;
+        return rowEmpId === normalizedEmpId;
+      });
   }
 
   async function submitReg() {
@@ -1879,8 +1891,14 @@
     }
 
     const fam = famVal === 'yes';
-    const id  = 'HC-' + String(Date.now()).slice(-6);
+    const currentEditId = String(editingRegId || '').trim();
+    const regs = JSON.parse(localStorage.getItem(CH_KEY) || '[]');
+    const prevReg = currentEditId
+      ? (regs.find(r => String(r?.id || '').trim() === currentEditId) || null)
+      : null;
+    const id  = currentEditId || ('HC-' + String(Date.now()).slice(-6));
     const now = new Date().toISOString();
+    const deviceId = getCurrentDeviceId() || String(prevReg?.deviceId || '').trim();
     const parts = [];
     const members = fam ? normalizeFamilyMembers(familyMembers.length ? familyMembers : [createEmptyFamilyMember()]) : [];
     const firstMember = members[0] || createEmptyFamilyMember();
@@ -1902,6 +1920,7 @@
 
     const reg = {
       id, name, empId, dept, phone, email: '', shoeSize: shoe, tshirtSize: tshirt,
+      deviceId,
       avatar: getMyAvatarSrc(),
       shoePrefs: pref ? [pref] : [], shoeRequestNote: shoeN,
       cgmParticipation: cgmVal === 'yes',
@@ -1910,12 +1929,12 @@
       familyShoeSize: '', familyTshirtSize: fam ? firstMember.tshirtSize : '', familyGender: fam ? firstMember.gender : '',
       familyAge: '', familyMemo: fam ? firstMember.memo : '',
       cruiseParticipation: cruise === 'yes', eventParticipation: eventV === 'yes',
-      note: parts.join('\n'), status: 'pending', adminNote: '', registeredAt: now,
+      note: parts.join('\n'), status: 'pending', adminNote: '', registeredAt: prevReg?.registeredAt || now,
     };
 
-    const regs = JSON.parse(localStorage.getItem(CH_KEY) || '[]');
-    regs.push(reg);
-    localStorage.setItem(CH_KEY, JSON.stringify(regs));
+    const nextRegs = regs.filter(r => String(r?.id || '').trim() !== id);
+    nextRegs.push(reg);
+    localStorage.setItem(CH_KEY, JSON.stringify(nextRegs));
     notifyParentRegistrationChange({ registration: reg });
 
     try {
@@ -1926,18 +1945,12 @@
           'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY,
           'Prefer': 'resolution=merge-duplicates',
         },
-        body: JSON.stringify({
-          id: reg.id, deviceId: '', empId: reg.empId, name: reg.name,
-          dept: reg.dept, phone: reg.phone, shoeSize: reg.shoeSize,
-          shoePrefs: JSON.stringify(reg.shoePrefs || []),
-          familyParticipation: reg.familyParticipation, familyCount: reg.familyCount,
-          cruiseParticipation: reg.cruiseParticipation,
-          eventParticipation: reg.eventParticipation,
-          status: reg.status, note: reg.note, registeredAt: reg.registeredAt,
-        }),
+        body: JSON.stringify(buildRegistrationPayload(reg)),
       });
     } catch(e) { console.warn('[Supabase]', e); }
+    await syncCurrentUserRegistrationRef(reg.id, reg.empId, reg.deviceId);
 
+    editingRegId = '';
     loadPeople();
     renderSuccessScreen(reg);
     document.getElementById('form-screen').classList.add('hide');
@@ -2129,6 +2142,65 @@
     return '';
   }
 
+  function getCurrentDeviceId() {
+    try {
+      const parentDeviceId = String(window.parent?.S?.deviceId || '').trim();
+      if (parentDeviceId) return parentDeviceId;
+    } catch (e) {}
+    const empId = getCurrentEmpId();
+    const keys = empId
+      ? [`hi_device_id_${empId}`, `hi_device_id_${empId.toLowerCase()}`, 'hi_device_id']
+      : ['hi_device_id'];
+    try {
+      for (const key of keys) {
+        const stored = String(localStorage.getItem(key) || '').trim();
+        if (stored) return stored;
+      }
+    } catch (e) {}
+    return '';
+  }
+
+  function buildRegistrationPayload(reg, overrides = {}) {
+    return {
+      id: reg?.id || '',
+      deviceId: reg?.deviceId || getCurrentDeviceId() || '',
+      empId: reg?.empId || getCurrentEmpId() || '',
+      name: reg?.name || '',
+      dept: reg?.dept || '',
+      phone: reg?.phone || '',
+      shoeSize: reg?.shoeSize || '',
+      shoePrefs: JSON.stringify(reg?.shoePrefs || []),
+      familyParticipation: reg?.familyParticipation === true,
+      familyCount: Number(reg?.familyCount) || 0,
+      cruiseParticipation: !!reg?.cruiseParticipation,
+      eventParticipation: !!reg?.eventParticipation,
+      status: reg?.status || 'pending',
+      note: reg?.note || '',
+      registeredAt: reg?.registeredAt || new Date().toISOString(),
+      ...overrides,
+    };
+  }
+
+  async function syncCurrentUserRegistrationRef(registrationId = '', empId = getCurrentEmpId(), deviceId = getCurrentDeviceId()) {
+    const normalizedEmpId = String(empId || '').trim().toUpperCase();
+    const normalizedDeviceId = String(deviceId || '').trim();
+    const filters = [];
+    if (normalizedEmpId) {
+      filters.push(`empId.eq.${normalizedEmpId}`);
+      if (normalizedEmpId.toLowerCase() !== normalizedEmpId) filters.push(`empId.eq.${normalizedEmpId.toLowerCase()}`);
+    } else if (normalizedDeviceId) {
+      filters.push(`deviceId.eq.${normalizedDeviceId}`);
+    }
+    if (!filters.length) return;
+    try {
+      await fetch(SB_URL + '/rest/v1/users?or=(' + filters.join(',') + ')', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY },
+        body: JSON.stringify({ registrationId: registrationId || '', lastactiveat: new Date().toISOString() }),
+      });
+    } catch (e) {}
+  }
+
   function getMyAvatarSrc() {
     try {
       const parentAvatar = normalizeLiveAvatar(window.parent?.S?.user?.avatar || '');
@@ -2270,9 +2342,7 @@
     const regs = JSON.parse(localStorage.getItem(CH_KEY) || '[]');
     const reg = regs.find(r => r.id === regId);
     if (!reg) return;
-
-    // 기존 항목 제거 (재제출 시 중복 체크 통과를 위해)
-    localStorage.setItem(CH_KEY, JSON.stringify(regs.filter(r => r.id !== regId)));
+    editingRegId = String(regId || '').trim();
 
     // 기본 정보 채우기
     document.getElementById('f-dept').value = reg.dept || '';
@@ -2326,22 +2396,34 @@
     const cancelledReg = idx >= 0 ? { ...regs[idx], status: 'cancelled' } : {
       id: regId,
       empId: getCurrentEmpId(),
-      deviceId: '',
+      deviceId: getCurrentDeviceId(),
       status: 'cancelled',
       registeredAt: new Date().toISOString(),
       note: '취소 처리됨',
     };
+    if (!cancelledReg.deviceId) cancelledReg.deviceId = getCurrentDeviceId();
     if (idx >= 0) regs[idx] = cancelledReg;
     else regs.push(cancelledReg);
     localStorage.setItem(CH_KEY, JSON.stringify(regs));
     notifyParentRegistrationChange({ registrationId: regId, cancelled: true, empId: getCurrentEmpId(), registration: cancelledReg });
     try {
-      fetch(SB_URL + '/rest/v1/registrations?id=eq.' + regId, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY },
-        body: JSON.stringify({ status: 'cancelled' }),
+      fetch(SB_URL + '/rest/v1/registrations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SB_KEY,
+          'Authorization': 'Bearer ' + SB_KEY,
+          'Prefer': 'resolution=merge-duplicates',
+        },
+        body: JSON.stringify(buildRegistrationPayload(cancelledReg, {
+          note: cancelledReg.note || '취소 처리됨',
+          status: 'cancelled',
+          registeredAt: cancelledReg.registeredAt || new Date().toISOString(),
+        })),
       });
     } catch(e) {}
+    syncCurrentUserRegistrationRef('', cancelledReg.empId || getCurrentEmpId(), cancelledReg.deviceId || getCurrentDeviceId());
+    editingRegId = '';
     loadPeople();
     document.getElementById('success-screen').classList.remove('show');
     document.getElementById('form-screen').classList.remove('hide');
@@ -2349,6 +2431,11 @@
   }
 
   function checkExisting(empId) {
+    if (String(editingRegId || '').trim()) {
+      document.getElementById('success-screen').classList.remove('show');
+      document.getElementById('form-screen').classList.remove('hide');
+      return;
+    }
     const uid = (empId || getCurrentEmpId() || '').toUpperCase();
     const regs = JSON.parse(localStorage.getItem(CH_KEY) || '[]')
       .filter(r => r.status !== 'cancelled' && (uid ? String(r.empId || '').toUpperCase() === uid : true));

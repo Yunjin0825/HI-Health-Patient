@@ -9511,7 +9511,10 @@ function buildRealLeagueUsers(allUsers, allRegs, wPtsByDevice = {}) {
     wPts: wPtsByDevice[u.deviceId] || 0,
     change: 0,
     isMe: false,
-    isChallenger: regIds.has(normChallengeId(u.registrationId)) || regEmpIds.has(normChallengeEmpId(u.empId)) || regDeviceIds.has(normChallengeId(u.deviceId)),
+    isChallenger:
+      regIds.has(normChallengeId(u.registrationId)) ||
+      regEmpIds.has(normChallengeEmpId(u.empId)) ||
+      (!normChallengeEmpId(u.empId) && !normChallengeId(u.registrationId) && regDeviceIds.has(normChallengeId(u.deviceId))),
     tags: typeof u.tags === 'string' ? u.tags.split(',').filter(Boolean) : (u.tags || []),
   }));
 }
@@ -11155,22 +11158,30 @@ function isActiveChallengeReg(r) {
   return !!r && normChallengeId(r.status).toLowerCase() !== 'cancelled';
 }
 
+function shouldUseChallengeDeviceFallback(regId = S.user.registrationId, empId = S.user.empId || ACTIVE_EMPID) {
+  return !normChallengeId(regId) && !normChallengeEmpId(empId);
+}
+
 function getMyChallengeRegMatches(rows) {
   const regId = normChallengeId(S.user.registrationId);
   const empId = normChallengeEmpId(S.user.empId || ACTIVE_EMPID);
   const deviceId = normChallengeId(S.deviceId);
+  const useDeviceFallback = shouldUseChallengeDeviceFallback(regId, empId);
   return (rows || []).filter(r => {
     const rid = normChallengeId(r?.id);
     const remp = normChallengeEmpId(r?.empId);
     const rdev = normChallengeId(r?.deviceId);
-    return (regId && rid === regId) || (empId && remp === empId) || (deviceId && rdev === deviceId);
+    if (regId && rid === regId) return true;
+    if (empId && remp === empId) return true;
+    if (useDeviceFallback && deviceId && rdev === deviceId) return true;
+    return false;
   }).sort((a, b) => {
     const aScore = (regId && normChallengeId(a?.id) === regId ? 4 : 0)
       + (empId && normChallengeEmpId(a?.empId) === empId ? 2 : 0)
-      + (deviceId && normChallengeId(a?.deviceId) === deviceId ? 1 : 0);
+      + (useDeviceFallback && deviceId && normChallengeId(a?.deviceId) === deviceId ? 1 : 0);
     const bScore = (regId && normChallengeId(b?.id) === regId ? 4 : 0)
       + (empId && normChallengeEmpId(b?.empId) === empId ? 2 : 0)
-      + (deviceId && normChallengeId(b?.deviceId) === deviceId ? 1 : 0);
+      + (useDeviceFallback && deviceId && normChallengeId(b?.deviceId) === deviceId ? 1 : 0);
     if (aScore !== bScore) return bScore - aScore;
     const activeDiff = Number(isActiveChallengeReg(b)) - Number(isActiveChallengeReg(a));
     if (activeDiff) return activeDiff;
@@ -11205,12 +11216,13 @@ function getMyReg(opts = {}) {
   const regId = normChallengeId(S.user.registrationId);
   const empId = normChallengeEmpId(S.user.empId || ACTIVE_EMPID);
   const deviceId = normChallengeId(S.deviceId);
+  const useDeviceFallback = shouldUseChallengeDeviceFallback(regId, empId);
   const matches = getMyChallengeRegMatches(getStoredChallengeRegs());
   if (!matches.length) return null;
   const scoreIdentity = r => {
     let score = 0;
     if (empId && normChallengeEmpId(r?.empId) === empId) score += 2;
-    if (deviceId && normChallengeId(r?.deviceId) === deviceId) score += 1;
+    if (useDeviceFallback && deviceId && normChallengeId(r?.deviceId) === deviceId) score += 1;
     return score;
   };
   const compareCandidates = (a, b) => {
@@ -11239,13 +11251,14 @@ async function syncMyChallengeRegistration() {
   const regId = normChallengeId(S.user.registrationId);
   const empId = normChallengeEmpId(S.user.empId || ACTIVE_EMPID);
   const deviceId = normChallengeId(S.deviceId);
+  const useDeviceFallback = shouldUseChallengeDeviceFallback(regId, empId);
   const filters = [];
   if (regId) filters.push(`id.eq.${regId}`);
   if (empId) {
     filters.push(`empId.eq.${empId}`);
     filters.push(`empId.eq.${empId.toLowerCase()}`);
   }
-  if (deviceId) filters.push(`deviceId.eq.${deviceId}`);
+  if (!filters.length && useDeviceFallback && deviceId) filters.push(`deviceId.eq.${deviceId}`);
   if (!filters.length) return getMyReg();
 
   try {
@@ -11324,6 +11337,30 @@ function repairChRegNote() {
   if (changed) setStoredChallengeRegs(regs);
 }
 
+function syncRemoteChallengeRegistrationRef(registrationId = '', empId = S.user.empId || ACTIVE_EMPID, deviceId = S.deviceId) {
+  if (!_db) return;
+  const filters = [];
+  const normalizedEmpId = normChallengeEmpId(empId);
+  const normalizedDeviceId = normChallengeId(deviceId);
+  if (normalizedEmpId) {
+    filters.push(`empId.eq.${normalizedEmpId}`);
+    if (normalizedEmpId.toLowerCase() !== normalizedEmpId) filters.push(`empId.eq.${normalizedEmpId.toLowerCase()}`);
+  } else if (normalizedDeviceId) {
+    filters.push(`deviceId.eq.${normalizedDeviceId}`);
+  }
+  if (!filters.length) return;
+  _db.from('users').update({
+    registrationId: registrationId || '',
+    lastactiveat: new Date().toISOString(),
+  }).or(filters.join(',')).then(({ error }) => {
+    if (error) console.error('[syncRemoteChallengeRegistrationRef]', error);
+  });
+}
+
+function clearRemoteChallengeRegistrationRef(empId = S.user.empId || ACTIVE_EMPID, deviceId = S.deviceId) {
+  syncRemoteChallengeRegistrationRef('', empId, deviceId);
+}
+
 function cancelRegistration(regId) {
   if (!confirm('정말 취소하시겠습니까?')) return;
   const regs = getStoredChallengeRegs();
@@ -11331,9 +11368,30 @@ function cancelRegistration(regId) {
   if (!r) return;
   r.status = 'cancelled';
   setStoredChallengeRegs(regs);
-  if (_db) _db.from('registrations').update({ status: 'cancelled' }).eq('id', regId);
+  if (_db) {
+    _db.from('registrations').upsert({
+      id: r.id,
+      deviceId: r.deviceId || S.deviceId || '',
+      empId: r.empId || S.user.empId || ACTIVE_EMPID || '',
+      name: r.name || S.user.name || '',
+      dept: r.dept || S.user.dept || '',
+      phone: r.phone || '',
+      shoeSize: r.shoeSize || '',
+      shoePrefs: JSON.stringify(r.shoePrefs || []),
+      familyParticipation: r.familyParticipation === true,
+      familyCount: Number(r.familyCount) || 0,
+      cruiseParticipation: !!r.cruiseParticipation,
+      eventParticipation: !!r.eventParticipation,
+      note: r.note || buildChRegistrationNote(r) || '취소 처리됨',
+      status: 'cancelled',
+      registeredAt: r.registeredAt || new Date().toISOString(),
+    }, { onConflict: 'id' }).then(({ error }) => {
+      if (error) console.error('[cancelRegistration]', error);
+    });
+  }
   const activeReg = getMyReg();
   S.user.registrationId = activeReg ? activeReg.id : null;
+  clearRemoteChallengeRegistrationRef(r.empId || S.user.empId || ACTIVE_EMPID, r.deviceId || S.deviceId);
   save();
   renderHeader();
   if (document.getElementById('page-home')?.classList.contains('active')) renderHome();
@@ -11352,29 +11410,43 @@ function applyRundayRegistrationSync(payload = {}) {
 
   if (reg && regId) {
     const idx = regs.findIndex(row => normChallengeId(row?.id) === regId);
+    const mergedReg = {
+      ...(idx >= 0 ? regs[idx] : {}),
+      ...reg,
+      id: regId,
+      deviceId: reg?.deviceId || (idx >= 0 ? regs[idx]?.deviceId : '') || S.deviceId || '',
+      empId: reg?.empId || (idx >= 0 ? regs[idx]?.empId : '') || currentEmpId || S.user.empId || ACTIVE_EMPID || '',
+      name: reg?.name || (idx >= 0 ? regs[idx]?.name : '') || S.user.name || '',
+      dept: reg?.dept || (idx >= 0 ? regs[idx]?.dept : '') || S.user.dept || '',
+      phone: reg?.phone || (idx >= 0 ? regs[idx]?.phone : '') || '',
+      shoeSize: reg?.shoeSize || (idx >= 0 ? regs[idx]?.shoeSize : '') || '',
+      note: reg?.note || buildChRegistrationNote({ ...(idx >= 0 ? regs[idx] : {}), ...reg }) || '',
+      status: reg?.status || (idx >= 0 ? regs[idx]?.status : '') || 'pending',
+      registeredAt: reg?.registeredAt || (idx >= 0 ? regs[idx]?.registeredAt : '') || new Date().toISOString(),
+    };
     if (idx >= 0) {
-      const merged = { ...regs[idx], ...reg };
+      const merged = { ...mergedReg };
       // Don't restore cancelled status from iframe sync
       if (regs[idx].status === 'cancelled') merged.status = 'cancelled';
       regs[idx] = merged;
-    } else regs.push(reg);
+    } else regs.push(mergedReg);
     setStoredChallengeRegs(regs);
     apiSync('addRegistration', {
       id: regId,
-      deviceId: reg.deviceId || S.deviceId || '',
-      empId: reg.empId || '',
-      name: reg.name || '',
-      dept: reg.dept || '',
-      phone: reg.phone || '',
-      shoeSize: reg.shoeSize || '',
-      shoePrefs: JSON.stringify(reg.shoePrefs || []),
-      familyParticipation: reg.familyParticipation === true,
-      familyCount: Number(reg.familyCount) || 0,
-      cruiseParticipation: !!reg.cruiseParticipation,
-      eventParticipation: !!reg.eventParticipation,
-      note: reg.note || buildChRegistrationNote(reg),
-      status: reg.status || 'pending',
-      registeredAt: reg.registeredAt || new Date().toISOString(),
+      deviceId: mergedReg.deviceId || S.deviceId || '',
+      empId: mergedReg.empId || '',
+      name: mergedReg.name || '',
+      dept: mergedReg.dept || '',
+      phone: mergedReg.phone || '',
+      shoeSize: mergedReg.shoeSize || '',
+      shoePrefs: JSON.stringify(mergedReg.shoePrefs || []),
+      familyParticipation: mergedReg.familyParticipation === true,
+      familyCount: Number(mergedReg.familyCount) || 0,
+      cruiseParticipation: !!mergedReg.cruiseParticipation,
+      eventParticipation: !!mergedReg.eventParticipation,
+      note: mergedReg.note || '',
+      status: mergedReg.status || 'pending',
+      registeredAt: mergedReg.registeredAt || new Date().toISOString(),
     });
   }
 
@@ -11408,6 +11480,11 @@ function applyRundayRegistrationSync(payload = {}) {
     if (reg.dept) S.user.dept = reg.dept;
   }
   save();
+  syncRemoteChallengeRegistrationRef(
+    S.user.registrationId || '',
+    reg?.empId || payload?.empId || currentEmpId || S.user.empId || ACTIVE_EMPID,
+    reg?.deviceId || S.deviceId
+  );
   renderHeader();
   if (document.getElementById('page-home')?.classList.contains('active')) renderHome();
   if (document.getElementById('page-challenge')?.classList.contains('active')) renderChallenge();
@@ -12039,7 +12116,7 @@ function submitChReg(e) {
   });
   const id = 'HC-' + String(Date.now()).slice(-6);
   regs.push({
-    id, name, empId, dept, phone, email:'', shoeSize: shoe,
+    id, deviceId: S.deviceId || '', name, empId, dept, phone, email:'', shoeSize: shoe,
     shoePrefs: [..._chShoePrefs],
     shoeRequestNote,
     familyParticipation: false,
@@ -12076,6 +12153,7 @@ function submitChReg(e) {
   S.user.registrationId = id;
   S.user.name = name;
   save();
+  syncRemoteChallengeRegistrationRef(id, empId, S.deviceId);
   renderHeader();
   haptic('success');
   showToast('🎉 챌린지 신청 완료! 신청번호: ' + id);
