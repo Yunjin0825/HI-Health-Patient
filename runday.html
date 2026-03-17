@@ -1929,7 +1929,10 @@
         body: JSON.stringify({
           id: reg.id, deviceId: '', empId: reg.empId, name: reg.name,
           dept: reg.dept, phone: reg.phone, shoeSize: reg.shoeSize,
+          shoePrefs: JSON.stringify(reg.shoePrefs || []),
           familyParticipation: reg.familyParticipation, familyCount: reg.familyCount,
+          cruiseParticipation: reg.cruiseParticipation,
+          eventParticipation: reg.eventParticipation,
           status: reg.status, note: reg.note, registeredAt: reg.registeredAt,
         }),
       });

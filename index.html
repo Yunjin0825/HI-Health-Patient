@@ -11265,24 +11265,36 @@ function shareChReg(id, name, dept) {
   }
 }
 
-// 기존 등록 데이터 중 note가 비어있으면 로컬 필드로 재빌드 후 DB 업데이트
+// 기존 로컬 등록 데이터를 기준으로 핵심 신청 필드를 Supabase에 보정/백필
 function repairChRegNote() {
   if (!_db) return;
   const regs = getStoredChallengeRegs();
   let changed = false;
   regs.forEach(r => {
     if (!r?.id) return;
-    if (String(r.note || '').trim()) return; // note 이미 있음
     const rebuilt = buildChRegistrationNote(r);
-    if (!rebuilt) return;
-    r.note = rebuilt;
-    changed = true;
-    _db.from('registrations').update({
-      note: rebuilt,
+    if (!String(r.note || '').trim() && rebuilt) {
+      r.note = rebuilt;
+      changed = true;
+    }
+    const note = String(r.note || rebuilt || '').trim();
+    _db.from('registrations').upsert({
+      id: r.id,
+      deviceId: r.deviceId || S.deviceId || '',
+      empId: r.empId || '',
+      name: r.name || '',
+      dept: r.dept || '',
+      phone: r.phone || '',
+      shoeSize: r.shoeSize || '',
       shoePrefs: JSON.stringify(r.shoePrefs || []),
+      familyParticipation: r.familyParticipation === true,
+      familyCount: Number(r.familyCount) || 0,
       cruiseParticipation: !!r.cruiseParticipation,
       eventParticipation: !!r.eventParticipation,
-    }).eq('id', r.id).then(({ error }) => {
+      note,
+      status: r.status || 'pending',
+      registeredAt: r.registeredAt || new Date().toISOString(),
+    }, { onConflict: 'id' }).then(({ error }) => {
       if (error) console.error('[repairChRegNote]', error);
     });
   });
@@ -11319,6 +11331,23 @@ function applyRundayRegistrationSync(payload = {}) {
       regs[idx] = merged;
     } else regs.push(reg);
     setStoredChallengeRegs(regs);
+    apiSync('addRegistration', {
+      id: regId,
+      deviceId: reg.deviceId || S.deviceId || '',
+      empId: reg.empId || '',
+      name: reg.name || '',
+      dept: reg.dept || '',
+      phone: reg.phone || '',
+      shoeSize: reg.shoeSize || '',
+      shoePrefs: JSON.stringify(reg.shoePrefs || []),
+      familyParticipation: reg.familyParticipation === true,
+      familyCount: Number(reg.familyCount) || 0,
+      cruiseParticipation: !!reg.cruiseParticipation,
+      eventParticipation: !!reg.eventParticipation,
+      note: reg.note || buildChRegistrationNote(reg),
+      status: reg.status || 'pending',
+      registeredAt: reg.registeredAt || new Date().toISOString(),
+    });
   }
 
   if (payload?.cancelled && regId) {

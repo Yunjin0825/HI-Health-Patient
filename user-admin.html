@@ -758,12 +758,14 @@ const SEND_PUSH_FN = SUPABASE_URL + '/functions/v1/send-push';
 const EX_MAP = {
   walking:'걷기', running:'달리기', swimming:'수영', cycling:'자전거',
   yoga:'요가', strength:'근력운동', stretching:'스트레칭', hiking:'등산',
-  tennis:'테니스', 'aerial-yoga':'플라잉요가', climbing:'클라이밍', custom:'기타'
+  tennis:'테니스', pilates:'필라테스', 'aerial-yoga':'플라잉요가', climbing:'클라이밍',
+  kendo:'검도', soccer:'축구', boxing:'복싱', badminton:'배드민턴', custom:'기타'
 };
 const EX_ICON = {
   walking:'🚶', running:'🏃', swimming:'🏊', cycling:'🚴', yoga:'🧘',
-  strength:'💪', stretching:'🤸', hiking:'🥾', tennis:'🎾',
-  'aerial-yoga':'🪂', climbing:'🧗', custom:'✏️'
+  strength:'💪', stretching:'🤸', hiking:'🥾', tennis:'🎾', pilates:'🧘',
+  'aerial-yoga':'🪂', climbing:'🧗', kendo:'🥋', soccer:'⚽', boxing:'🥊',
+  badminton:'🏸', custom:'✏️'
 };
 const CH_SHOE_LABELS = {
   nike:'Nike',
@@ -1174,6 +1176,40 @@ function normalizeUserRow(u) {
   };
 }
 
+function normalizeRegistrationRow(r) {
+  return {
+    ...r,
+    id: r?.id || '',
+    deviceId: r?.deviceId ?? r?.deviceid ?? '',
+    empId: r?.empId ?? r?.empid ?? '',
+    name: r?.name || '',
+    dept: r?.dept || '',
+    phone: r?.phone || '',
+    shoeSize: r?.shoeSize ?? r?.shoesize ?? '',
+    shoePrefs: r?.shoePrefs ?? r?.shoeprefs ?? [],
+    shoeRequestNote: r?.shoeRequestNote ?? r?.shoerequestnote ?? '',
+    familyParticipation: r?.familyParticipation ?? r?.familyparticipation ?? null,
+    familyCount: r?.familyCount ?? r?.familycount ?? 0,
+    familyGender: r?.familyGender ?? r?.familygender ?? '',
+    familyAge: r?.familyAge ?? r?.familyage ?? '',
+    familyShoeSize: r?.familyShoeSize ?? r?.familyshoesize ?? '',
+    familyMemo: r?.familyMemo ?? r?.familymemo ?? '',
+    familyMembers: r?.familyMembers ?? r?.familymembers ?? [],
+    cruiseParticipation: r?.cruiseParticipation ?? r?.cruiseparticipation ?? null,
+    eventParticipation: r?.eventParticipation ?? r?.eventparticipation ?? null,
+    note: r?.note || '',
+    status: r?.status || 'pending',
+    adminNote: r?.adminNote ?? r?.adminnote ?? '',
+    registeredAt: r?.registeredAt ?? r?.registeredat ?? r?.createdAt ?? r?.createdat ?? '',
+    createdAt: r?.createdAt ?? r?.createdat ?? '',
+    __derived: !!r?.__derived,
+  };
+}
+
+function isPendingRegSync(r) {
+  return !!r?.__derived && !String(r?.note || '').trim();
+}
+
 function isActiveRegistration(r) {
   return String(r?.status || 'pending').trim() !== 'cancelled';
 }
@@ -1202,8 +1238,12 @@ function mergeRegistrationsWithUsers(registrations, users) {
       dept: u.dept || '',
       phone: '',
       shoeSize: '',
-      familyParticipation: false,
+      shoePrefs: [],
+      familyParticipation: null,
       familyCount: 0,
+      cruiseParticipation: null,
+      eventParticipation: null,
+      note: '',
       status: 'pending',
       registeredAt: u.lastActiveAt || u.lastactiveat || '',
       __derived: true,
@@ -1339,12 +1379,13 @@ async function loadAll(opts = {}) {
     if (db !== client) return;
     if (u.error) { console.error('[users]', u.error); setStatus('users 오류: ' + u.error.message, false); return; }
     const rawUsers = u.data || [];
+    const rawRegistrations = (r.data || []).map(normalizeRegistrationRow);
     const fallbackUsers = rawUsers.length
       ? []
-      : deriveUsersFromActivity(w.data || [], p.data || [], g.data || [], r.data || [], o.data || []);
+      : deriveUsersFromActivity(w.data || [], p.data || [], g.data || [], rawRegistrations, o.data || []);
     const nextUsersBase = rawUsers.length ? rawUsers.map(normalizeUserRow) : fallbackUsers;
-    const nextRegistrations = mergeRegistrationsWithUsers(r.data || [], nextUsersBase);
-    const nextUsers = mergeUsersWithRegistrations(nextUsersBase, nextRegistrations);
+    const mergedRegistrations = mergeRegistrationsWithUsers(rawRegistrations, nextUsersBase);
+    const nextUsers = mergeUsersWithRegistrations(nextUsersBase, mergedRegistrations);
     const nextOrders = (o.data || []).map(ord => ({
       ...ord,
       items: typeof ord.items === 'string' ? (() => { try { return JSON.parse(ord.items); } catch(e) { return []; } })() : (ord.items||[]),
@@ -1354,7 +1395,7 @@ async function loadAll(opts = {}) {
       workouts: w.data || [],
       posts: p.data || [],
       glucose: g.data || [],
-      registrations: nextRegistrations,
+      registrations: mergedRegistrations,
       orders: nextOrders,
       adminPosts: ap.data || [],
     };
@@ -2207,14 +2248,16 @@ function renderChallenge() {
     return;
   }
   tbody.innerHTML = list.map(r => {
-    const sBadge = r.status === 'confirmed' ? '<span class="badge ok">확정</span>'
+    const syncPending = isPendingRegSync(r);
+    const sBadge = syncPending ? '<span class="badge pend">동기화 대기</span>'
+      : r.status === 'confirmed' ? '<span class="badge ok">확정</span>'
       : r.status === 'cancelled' ? '<span class="badge can">취소</span>'
       : '<span class="badge pend">대기</span>';
     const safeId = (r.id||'').replace(/'/g,'');
-    const ownShoe = withMm(r.shoeSize) || withMm(getRegNoteLine(r, '신발사이즈')) || '-';
-    const shoePrefText = getRegShoePrefText(r) || '-';
-    const familySummary = getRegFamilySummaryText(r);
-    const optionSummary = getRegOptionSummaryText(r);
+    const ownShoe = withMm(r.shoeSize) || withMm(getRegNoteLine(r, '신발사이즈')) || (syncPending ? '동기화 대기' : '-');
+    const shoePrefText = getRegShoePrefText(r) || (syncPending ? '동기화 대기' : '-');
+    const familySummary = syncPending ? '동기화 대기' : getRegFamilySummaryText(r);
+    const optionSummary = syncPending ? '동기화 대기' : getRegOptionSummaryText(r);
     const requestParts = [];
     const shoeReq = getRegShoeRequestText(r);
     const familyMemo = getRegFamilyMemoText(r);
@@ -2222,7 +2265,7 @@ function renderChallenge() {
     if (familyMemo) requestParts.push(`가족메모: ${familyMemo}`);
     const requestHtml = requestParts.length
       ? requestParts.map(v => `<div>${escHtml(v)}</div>`).join('')
-      : '-';
+      : (syncPending ? '동기화 대기' : '-');
     return `<tr>
       <td class="td-date">${r.id||'-'}</td>
       <td class="td-name">${escHtml(r.name||'-')}</td>
@@ -2243,6 +2286,7 @@ function renderChallenge() {
 function showChDetail(id) {
   const r = GD.registrations.find(x => String(x.id) === String(id));
   if (!r) return;
+  const syncPending = isPendingRegSync(r);
   const shoePrefText = getRegShoePrefText(r);
   const shoeRequestText = getRegShoeRequestText(r);
   const familyParticipation = getRegFamilyParticipation(r);
@@ -2256,29 +2300,41 @@ function showChDetail(id) {
     ['등록번호', r.empId],
     ['부서', r.dept],
     ['연락처', r.phone],
-    ['신발(본인)', withMm(r.shoeSize) || withMm(getRegNoteLine(r, '신발사이즈')) || '-'],
-    ['희망브랜드', shoePrefText || '-'],
-    ['운동화요청', shoeRequestText || '-'],
-    ['가족참여', familyParticipation ? '가족함께 참여' : '본인만'],
-    ['가족정보', familySummary || '-'],
-    ['가족메모', familyMemo || '-'],
-    ['크루즈', cruiseParticipation ? '탑승 희망' : '탑승 안 함'],
-    ['행사', eventParticipation ? '참여' : '불참'],
-    ['상태', r.status],
+    ['신발(본인)', withMm(r.shoeSize) || withMm(getRegNoteLine(r, '신발사이즈')) || (syncPending ? '동기화 대기' : '-')],
+    ['희망브랜드', shoePrefText || (syncPending ? '동기화 대기' : '-')],
+    ['운동화요청', shoeRequestText || (syncPending ? '동기화 대기' : '-')],
+    ['가족참여', syncPending ? '동기화 대기' : (familyParticipation ? '가족함께 참여' : '본인만')],
+    ['가족정보', syncPending ? '동기화 대기' : (familySummary || '-')],
+    ['가족메모', familyMemo || (syncPending ? '동기화 대기' : '-')],
+    ['크루즈', syncPending ? '동기화 대기' : (cruiseParticipation ? '탑승 희망' : '탑승 안 함')],
+    ['행사', syncPending ? '동기화 대기' : (eventParticipation ? '참여' : '불참')],
+    ['상태', syncPending ? '동기화 대기' : r.status],
     ['신청일', r.registeredAt ? new Date(r.registeredAt).toLocaleString('ko-KR') : '-'],
     ['비고', r.adminNote||'-'],
   ];
   document.getElementById('ch-modal-body').innerHTML = rows.map(([l,v]) =>
     `<div class="detail-row"><div class="detail-label">${escHtml(l)}</div><div class="detail-value">${escHtml(v || '-')}</div></div>`).join('');
 
-  document.getElementById('ch-confirm-btn').onclick = () => updateChStatus(id, 'confirmed');
-  document.getElementById('ch-cancel-btn').onclick  = () => updateChStatus(id, 'cancelled');
+  const confirmBtn = document.getElementById('ch-confirm-btn');
+  const cancelBtn = document.getElementById('ch-cancel-btn');
+  const disableActions = syncPending;
+  confirmBtn.disabled = disableActions;
+  cancelBtn.disabled = disableActions;
+  confirmBtn.title = disableActions ? '신청 데이터가 아직 서버에 완전히 동기화되지 않았습니다.' : '';
+  cancelBtn.title = disableActions ? '신청 데이터가 아직 서버에 완전히 동기화되지 않았습니다.' : '';
+  confirmBtn.onclick = () => updateChStatus(id, 'confirmed');
+  cancelBtn.onclick  = () => updateChStatus(id, 'cancelled');
   document.getElementById('ch-modal').classList.add('open');
 }
 
 async function updateChStatus(id, status) {
   showLoading(true);
   const cur = GD.registrations.find(x => String(x.id) === String(id));
+  if (isPendingRegSync(cur)) {
+    showLoading(false);
+    toast('신청 데이터 동기화 후 처리해주세요');
+    return;
+  }
   let error = null;
   if (cur?.__derived) {
     const res = await db.from('registrations').upsert({
