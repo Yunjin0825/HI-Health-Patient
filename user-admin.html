@@ -907,6 +907,7 @@ let _pollTimer = null;
 let _loadInFlight = null;
 let _queuedLoadOpts = null;
 let _lastDataSignature = '';
+let _adminVisibilityBound = false;
 
 /* ══════════════════════════════════════════════
    AUTH
@@ -957,16 +958,29 @@ function changePw() {
 /* ══════════════════════════════════════════════
    SUPABASE
 ══════════════════════════════════════════════ */
+function handleAdminVisibilityChange() {
+  if (document.hidden || !db) return;
+  if (document.getElementById('admin')?.style.display === 'none') return;
+  loadAll({ silent: true });
+}
+
 function initSupabase() {
   const { createClient } = supabase;
   db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   setStatus('연결 중...', false);
   loadAll();
   setupRealtime();
+  if (!_adminVisibilityBound) {
+    document.addEventListener('visibilitychange', handleAdminVisibilityChange);
+    _adminVisibilityBound = true;
+  }
 
   // 폴링 백업: 5초마다 갱신
   if (_pollTimer) clearInterval(_pollTimer);
-  _pollTimer = setInterval(() => loadAll({ silent: true }), 5000);
+  _pollTimer = setInterval(() => {
+    if (document.hidden) return;
+    loadAll({ silent: true });
+  }, 5000);
 }
 
 let _rtChannels = [];
