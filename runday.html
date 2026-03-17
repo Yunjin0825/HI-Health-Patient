@@ -980,6 +980,8 @@
       background: rgba(255,255,255,0.15); border: none; color: #fff;
       font-size: 20px; cursor: pointer; line-height: 1;
       display: flex; align-items: center; justify-content: center;
+      z-index: 2;
+      touch-action: manipulation;
     }
     .img-preview-nav {
       position: absolute; top: 50%; transform: translateY(-50%);
@@ -1493,8 +1495,8 @@
 <div class="toasts" id="toasts"></div>
 
 <!-- ─── IMAGE PREVIEW ───────────────────────── -->
-<div class="img-preview-overlay hidden" id="img-preview" onclick="closeImgPreview()">
-  <button class="img-preview-close" onclick="closeImgPreview()">✕</button>
+<div class="img-preview-overlay hidden" id="img-preview" onclick="if(event.target===this)closeImgPreview()">
+  <button type="button" class="img-preview-close" onclick="event.stopPropagation();closeImgPreview()">✕</button>
   <button class="img-preview-nav prev" onclick="event.stopPropagation();previewNav(-1)">‹</button>
   <img class="img-preview-img" id="img-preview-img" src="" alt="">
   <div class="img-preview-gender" id="img-preview-gender"></div>
