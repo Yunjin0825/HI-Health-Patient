@@ -1227,13 +1227,28 @@ function isSyntheticDerivedDeviceId(deviceId) {
 function mergeRegistrationsWithUsers(registrations, users) {
   const rows = [...(registrations || [])].map(r => ({ ...r, __derived: false }));
   const existing = new Set(rows.map(r => String(r.id || '').trim()).filter(Boolean));
+  const activeEmpIds = new Set(
+    rows
+      .filter(r => !r.__derived && isActiveRegistration(r))
+      .map(r => String(r.empId || '').trim())
+      .filter(Boolean)
+  );
+  const activeDeviceIds = new Set(
+    rows
+      .filter(r => !r.__derived && isActiveRegistration(r))
+      .map(r => String(r.deviceId || '').trim())
+      .filter(Boolean)
+  );
   (users || []).forEach(u => {
     const regId = String(u.registrationId || u.registrationid || '').trim();
+    const empId = String(u.empId || '').trim();
+    const deviceId = String(u.deviceId || '').trim();
     if (!regId || existing.has(regId)) return;
+    if ((empId && activeEmpIds.has(empId)) || (deviceId && activeDeviceIds.has(deviceId))) return;
     rows.push({
       id: regId,
-      deviceId: u.deviceId || '',
-      empId: u.empId || '',
+      deviceId: deviceId,
+      empId: empId,
       name: u.name || '',
       dept: u.dept || '',
       phone: '',
