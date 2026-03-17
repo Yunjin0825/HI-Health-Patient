@@ -4721,6 +4721,15 @@ const SW_VERSION        = '20260316-72';
 let _db = null; // Supabase 클라이언트
 let _realLeagueUsers = null; // Supabase에서 가져온 실제 유저 목록
 let _leagueFetching = false;
+const LEAGUE_CACHE_TTL_MS = 2 * 60 * 1000;
+let _leagueCache = {
+  users: null,
+  regs: null,
+  usersFetchedAt: 0,
+  wPtsByDevice: null,
+  weeklyWeekStartTs: 0,
+  weeklyFetchedAt: 0,
+};
 
 const EX_TYPES = [
   { id:'walking',   name:'걷기',    icon:'🚶', ppm:0.5,  bg:'#DCFCE7' },
@@ -9735,17 +9744,34 @@ async function fetchAdminPosts() {
 async function fetchCommunityPosts() {
   if (!_db) return;
   try {
-    const [cp, rp, cmp] = await Promise.all([
-      _db.from('posts').select('*').order('ts', { ascending: false }).limit(100),
-      _db.from('reactions').select('*'),
-      _db.from('post_comments').select('*').order('ts', { ascending: true }),
-    ]);
+    const emptyStickers = () => ({ cheer:0, love:0, congrats:0, cool:0, together:0 });
+    const { data: postsData } = await _db.from('posts').select('*').order('ts', { ascending: false }).limit(100);
+    const remotePosts = postsData || [];
+    const localPostIds = [...(S.posts || [])]
+      .sort((a, b) => (Number(b?.id) || 0) - (Number(a?.id) || 0))
+      .slice(0, 100)
+      .map(p => String(Number(p?.id) || p?.id));
+    const targetPostIds = [...new Set([
+      ...remotePosts.map(p => String(Number(p?.id) || p?.id)),
+      ...localPostIds,
+    ])].filter(Boolean);
+    const targetPostIdSet = new Set(targetPostIds);
+
+    let reactionsData = [];
+    let commentsData = [];
+    if (targetPostIds.length) {
+      const [rp, cmp] = await Promise.all([
+        _db.from('reactions').select('*').in('postId', targetPostIds),
+        _db.from('post_comments').select('*').in('postId', targetPostIds).order('ts', { ascending: true }),
+      ]);
+      reactionsData = rp.data || [];
+      commentsData = cmp.data || [];
+    }
 
     // 스티커 카운트 집계
     const stickerMap = {};
     const myReactionMap = {};
-    if (rp.data) {
-      rp.data.forEach(r => {
+    reactionsData.forEach(r => {
         const pid = String(r.postId);
         if (!stickerMap[pid]) stickerMap[pid] = { cheer:0, love:0, congrats:0, cool:0, together:0 };
         if (r.stickerId in stickerMap[pid]) stickerMap[pid][r.stickerId]++;
@@ -9753,13 +9779,11 @@ async function fetchCommunityPosts() {
           if (!myReactionMap[pid]) myReactionMap[pid] = [];
           myReactionMap[pid].push(r.stickerId);
         }
-      });
-    }
+    });
 
     // 댓글 집계
     const commentMap = {};
-    if (cmp.data) {
-      cmp.data.forEach(c => {
+    commentsData.forEach(c => {
         const pid = String(c.postId);
         if (!commentMap[pid]) commentMap[pid] = [];
         commentMap[pid].push({
@@ -9770,20 +9794,25 @@ async function fetchCommunityPosts() {
           body: c.body || '',
           time: c.ts ? new Date(Number(c.ts)).toLocaleDateString('ko-KR') : '',
         });
-      });
-    }
+    });
 
-    // 내 포스트 스티커/댓글 업데이트
+    // 동기화 대상 포스트만 최신 스티커/댓글/내 리액션 상태로 덮어쓴다.
+    targetPostIds.forEach(pid => {
+      if (myReactionMap[pid]?.length) S.myReactions[pid] = [...myReactionMap[pid]];
+      else delete S.myReactions[pid];
+    });
     S.posts.forEach(p => {
       const pid = String(p.id);
-      if (stickerMap[pid]) p.stickers = stickerMap[pid];
-      if (commentMap[pid]) { p.commentList = commentMap[pid]; p.comments = commentMap[pid].length; }
+      if (!targetPostIdSet.has(pid)) return;
+      p.stickers = stickerMap[pid] || emptyStickers();
+      p.commentList = commentMap[pid] || [];
+      p.comments = p.commentList.length;
     });
 
     // 커뮤니티 포스트 병합
-    if (cp.data) {
+    if (remotePosts.length) {
       const myIds = new Set(S.posts.map(p => String(p.id)));
-      S.communityPosts = cp.data
+      S.communityPosts = remotePosts
         .filter(p => !myIds.has(String(p.id)))
         .map(p => {
           const pid = String(Number(p.id) || p.id);
@@ -9797,12 +9826,14 @@ async function fetchCommunityPosts() {
             exTag: p.exTag || null,
             userTags: Array.isArray(p.userTags) ? p.userTags : typeof p.userTags === 'string' ? p.userTags.split(',').filter(Boolean) : [],
             time: p.ts ? new Date(Number(p.ts)).toLocaleDateString('ko-KR') : '',
-            stickers: stickerMap[pid] || { cheer:0, love:0, congrats:0, cool:0, together:0 },
+            stickers: stickerMap[pid] || emptyStickers(),
             myReactions: myReactionMap[pid] || [],
             comments: (commentMap[pid] || []).length,
             commentList: commentMap[pid] || [],
           };
         });
+    } else {
+      S.communityPosts = [];
     }
 
     renderCommunity();
@@ -10104,9 +10135,9 @@ function renderShop() {
   const merchProducts = SHOP_PRODUCTS.filter(p => p.cat === 'merch');
 
   list.innerHTML =
+    (!_shopPurchaseEnabled ? renderShopInquiryBanner() : '') +
     `<div class="shop-section-title">영양제</div>` +
     renderProductList(suppProducts) +
-    renderShopInquiryBanner() +
     `<div class="shop-section-title">병원 제작 상품</div>` +
     renderProductList(merchProducts);
 
