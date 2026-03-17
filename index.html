@@ -10893,6 +10893,8 @@ function buildChRegistrationNote(reg) {
   const familyMemo = String(reg?.familyMemo || '').trim();
   const cruiseParticipation = reg?.cruiseParticipation === false ? false : !!reg?.cruiseParticipation;
   const eventParticipation = reg?.eventParticipation === false ? false : !!reg?.eventParticipation;
+  const shoeSize = String(reg?.shoeSize || '').trim();
+  if (shoeSize) parts.push(`신발사이즈: ${/mm$/i.test(shoeSize) ? shoeSize : shoeSize + 'mm'}`);
   if (shoePrefNote) parts.push(shoePrefNote);
   if (shoeRequestNote) parts.push(`운동화요청: ${shoeRequestNote}`);
   parts.push(`가족참여: ${familyParticipation ? '가족함께 참여' : '본인만'}`);
