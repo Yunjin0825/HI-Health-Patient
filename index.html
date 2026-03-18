@@ -2450,7 +2450,7 @@
     .podium.challenger {
       background: linear-gradient(180deg, #fef0f7 0%, #fff7fb 60%, transparent 100%);
     }
-    .podium-item { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .podium-item { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 92px; flex: 0 0 92px; }
     .podium-av-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
     .podium-bubble {
       background: linear-gradient(135deg, #fff 0%, #f5f0ff 100%);
@@ -9903,15 +9903,14 @@ function renderLeague() {
     document.getElementById('podium').innerHTML = podOrder.map((u, i) => {
       const sizeClass = i === 0 ? 'podium-first' : i === 1 ? 'podium-second' : 'podium-third';
       if (!u) return `<div class="podium-item ${sizeClass}"><div class="podium-av-wrap"><div class="podium-avatar"></div></div><div class="podium-stand ${standClass[i]}">${standLabel[i]}</div></div>`;
-      const lv = LEVELS[Math.min(u.lv - 1, LEVELS.length - 1)];
       const tags = (u.tags || []).slice(0, 2).map(t => `<span class="profile-tag" style="font-size:9px;padding:1px 5px">${t}</span>`).join('');
       return `
         <div class="podium-item ${sizeClass}">
           <div class="podium-av-wrap">
-            <div class="podium-bubble"><span class="podium-bubble-lv">${lv.icon}</span>${tags ? `<div class="podium-bubble-tags">${tags}</div>` : ''}</div>
+            ${tags ? `<div class="podium-bubble"><div class="podium-bubble-tags">${tags}</div></div>` : ''}
             <div class="podium-avatar">${avHTML(u.avatar)}</div>
           </div>
-          <div class="podium-name">${escHtmlComm(u.name)}</div>
+          <div class="podium-name">${renderMedalIcon(i + 1, { size:'12px' })} ${escHtmlComm(u.name)}</div>
           <div class="podium-pts">${u.pts}p</div>
           <div class="podium-stand ${standClass[i]}">${standLabel[i]}</div>
         </div>`;
@@ -9991,17 +9990,16 @@ function renderLeague() {
   document.getElementById('podium').innerHTML = podOrder.map((u,i) => {
     const sizeClass = i === 0 ? 'podium-first' : i === 1 ? 'podium-second' : 'podium-third';
     if (!u) return `<div class="podium-item ${sizeClass}"><div class="podium-av-wrap"><div class="podium-avatar"></div></div><div class="podium-stand ${standClass[i]}">${standLabel[i]}</div></div>`;
-    const lv = LEVELS[Math.min(u.lv - 1, LEVELS.length - 1)];
     const tags = (u.tags || []).slice(0, 2).map(t => `<span class="profile-tag" style="font-size:9px;padding:1px 5px">${t}</span>`).join('');
     const pts = currentTab === 'weekly' ? u.wPts : u.pts;
     const lv2 = LEVELS[Math.min(u.lv - 1, LEVELS.length - 1)];
     return `
       <div class="podium-item ${sizeClass}">
         <div class="podium-av-wrap">
-          <div class="podium-bubble"><span class="podium-bubble-lv">${lv.icon}</span>${tags ? `<div class="podium-bubble-tags">${tags}</div>` : ''}</div>
+          ${tags ? `<div class="podium-bubble"><div class="podium-bubble-tags">${tags}</div></div>` : ''}
           <div class="podium-avatar">${avHTML(u.avatar)}</div>
         </div>
-        <div class="podium-name">${escHtmlComm(u.name)}</div>
+        <div class="podium-name">${renderMedalIcon(i + 1, { size:'12px' })} ${escHtmlComm(u.name)}</div>
         <div class="podium-pts">${currentTab === 'level' ? lv2.name : pts + 'p'}</div>
         <div class="podium-stand ${standClass[i]}">${standLabel[i]}</div>
       </div>`;
