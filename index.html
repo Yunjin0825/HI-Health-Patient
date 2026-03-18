@@ -8981,12 +8981,11 @@ async function enablePushNotifications() {
     }
     const reg = await ensurePushServiceWorkerReady();
     let sub = await reg.pushManager.getSubscription();
-    if (!sub) {
-      sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: base64UrlToUint8Array(PUSH_PUBLIC_KEY),
-      });
-    }
+    if (sub) await sub.unsubscribe();
+    sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: base64UrlToUint8Array(PUSH_PUBLIC_KEY),
+    });
     await upsertPushSubscriptionRecord(sub, true);
     await refreshPushPreferenceUI();
     showToast('앱 알림이 켜졌어요 🔔');
