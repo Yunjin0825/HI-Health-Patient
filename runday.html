@@ -2408,6 +2408,8 @@
   const PEOPLE_CACHE_KEY = 'hi_health_people_cache_v1';
   let currentLoginAvatar = '';
   let latestPeopleList = [];
+  let lastPeopleRenderKey = '';
+  let lastSuccessRenderKey = '';
 
   function readCachedPeopleRows() {
     try {
@@ -2974,18 +2976,58 @@
     return [...byId.values(), ...anonymous].sort((a, b) => peopleRowTs(b) - peopleRowTs(a));
   }
 
+  function buildSuccessScreenRenderKey(reg, canManage, manageNotice, avatarSrc) {
+    return JSON.stringify({
+      id: String(reg?.id || '').trim(),
+      name: String(reg?.name || '').trim(),
+      empId: String(reg?.empId || '').trim().toUpperCase(),
+      dept: String(reg?.dept || '').trim(),
+      shoeSize: String(reg?.shoeSize || '').trim(),
+      shoePrefs: Array.isArray(reg?.shoePrefs) ? reg.shoePrefs.slice() : [],
+      tshirtSize: String(reg?.tshirtSize || '').trim(),
+      cgmParticipation: !!reg?.cgmParticipation,
+      familyParticipation: !!reg?.familyParticipation,
+      familyCount: Number(reg?.familyCount || 0),
+      familyMembers: normalizeFamilyMembers(reg?.familyMembers || []),
+      cruiseParticipation: !!reg?.cruiseParticipation,
+      eventParticipation: !!reg?.eventParticipation,
+      canManage: !!canManage,
+      manageNotice: String(manageNotice || ''),
+      avatarSrc: String(avatarSrc || ''),
+    });
+  }
+
   function renderPeople(list) {
     const rows = collapsePeopleRows(list);
     latestPeopleList = rows.slice();
     const active = rows.filter(r => String(r?.status || '').toLowerCase() !== 'cancelled');
     const total = active.length;
-    document.getElementById('people-count').textContent = total;
-    document.getElementById('people-donation').innerHTML = `예상 기부금 <strong>${(total * DONATION_PER_PERSON).toLocaleString('ko-KR')}원</strong>`;
+    const countEl = document.getElementById('people-count');
+    const donationEl = document.getElementById('people-donation');
+    if (countEl && countEl.textContent !== String(total)) countEl.textContent = total;
+    const donationHtml = `예상 기부금 <strong>${(total * DONATION_PER_PERSON).toLocaleString('ko-KR')}원</strong>`;
+    if (donationEl && donationEl.innerHTML !== donationHtml) donationEl.innerHTML = donationHtml;
 
     const stack = document.getElementById('av-stack');
+    if (!stack) return;
     const recent = active.slice(0, 8).reverse();
     const myEmpId = getCurrentEmpId();
     const myAvatar = getMyAvatarSrc();
+    const renderKey = JSON.stringify({
+      total,
+      recent: recent.map(r => {
+        const rowEmpId = String(r.empId || '').trim().toUpperCase();
+        const isMe = !!(myEmpId && rowEmpId && myEmpId === rowEmpId);
+        return {
+          key: peopleIdentityKey(r) || String(r?.name || '').trim(),
+          isMe,
+          isNew: !!(r.registeredAt && (Date.now() - new Date(r.registeredAt).getTime()) <= NEW_PEOPLE_WINDOW_MS),
+          avatarSrc: isMe && myAvatar ? myAvatar : (normalizeLiveAvatar(r.avatar) || `images/avatars/av${avIdx(r.empId || r.name || r.id || '')}.png`),
+        };
+      }),
+      more: total > 8 ? total - 8 : 0,
+    });
+    if (renderKey === lastPeopleRenderKey) return;
     let stackHTML = recent.map(r => {
       const rowEmpId = String(r.empId || '').trim().toUpperCase();
       const isMe = !!(myEmpId && rowEmpId && myEmpId === rowEmpId);
@@ -2996,6 +3038,7 @@
     if (total > 8) {
       stackHTML += `<div class="av-more-circle">+${total - 8}</div>`;
     }
+    lastPeopleRenderKey = renderKey;
     stack.innerHTML = stackHTML;
   }
 
@@ -3122,6 +3165,11 @@
   function renderSuccessScreen(reg) {
     const canManage = isChallengeRegistrationEditable();
     const manageNotice = getChallengeRegistrationNotice();
+    const successContent = document.getElementById('success-content');
+    if (!successContent) return;
+    const appAvatarSrc = getMyAvatarSrc() || LIVE_AVATAR_FALLBACK;
+    const renderKey = buildSuccessScreenRenderKey(reg, canManage, manageNotice, appAvatarSrc);
+    if (renderKey === lastSuccessRenderKey) return;
     const prefs = (reg.shoePrefs || [])
       .filter(Boolean).map(id => shortLabel(id));
     const familyRows = normalizeFamilyMembers(reg.familyMembers || []).filter(m => m.gender || m.tshirtSize || m.memo);
@@ -3134,7 +3182,8 @@
       ['크루즈탑승', reg.cruiseParticipation ? '탑승 희망' : '탑승 안 함'],
       ['함께 달리기', reg.eventParticipation ? '참여' : '불참'],
     ];
-    document.getElementById('success-content').innerHTML = `
+    lastSuccessRenderKey = renderKey;
+    successContent.innerHTML = `
       <div class="succ-title">신청 완료!</div>
       <p class="succ-sub">HI RUN DAY 챌린지 신청이 완료됐습니다.</p>
       <div class="succ-card">
@@ -3161,7 +3210,7 @@
       </div>
       <div class="succ-actions">
         <button type="button" class="btn-app" onclick="if(window.parent&&window.parent.navigate){window.parent.navigate('exercise')}else{window.parent.location.href='index.html'}">
-          <div class="btn-app-icon"><img src="images/avatars/av1.png" alt=""></div>
+          <div class="btn-app-icon"><img src="${appAvatarSrc}" alt="운동 기록 아바타" onerror="if(this.dataset.err)return;this.dataset.err=1;this.src='${LIVE_AVATAR_FALLBACK}'"></div>
           <div class="btn-app-body">
             <div class="btn-app-main">운동 기록 시작하기</div>
             <div class="btn-app-sub">챌린지 인증 · 혈당 기록 · 리그 참여</div>
