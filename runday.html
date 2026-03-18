@@ -2534,7 +2534,7 @@
       await fetch(SB_URL + '/rest/v1/users?or=(' + filters.join(',') + ')', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY },
-        body: JSON.stringify({ registrationId: registrationId || '', lastactiveat: new Date().toISOString() }),
+        body: JSON.stringify({ registrationId: '', lastactiveat: new Date().toISOString() }),
       });
     } catch (e) {}
   }
@@ -2826,10 +2826,7 @@
       return;
     }
     const uid = (empId || getCurrentEmpId() || '').toUpperCase();
-    if (uid) {
-      restoreChallengeBackupForEmp(uid);
-      await syncLocalRegsForEmp(uid);
-    }
+    if (uid) await syncLocalRegsForEmp(uid, { pruneMissing: true });
     const regs = JSON.parse(localStorage.getItem(CH_KEY) || '[]')
       .filter(r => r.status !== 'cancelled' && (uid ? String(r.empId || '').toUpperCase() === uid : true))
       .sort((a, b) => registrationRowTs(b) - registrationRowTs(a));

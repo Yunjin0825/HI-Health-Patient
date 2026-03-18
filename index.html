@@ -5915,7 +5915,6 @@ async function hydrateAccountFromRemote(empId, fallbackName = '') {
       totalPoints: Number(u.totalPoints || u.points) || 0,
       streak: Number(u.streak) || 0,
       tags: typeof u.tags === 'string' ? u.tags.split(',').filter(Boolean) : (u.tags || []),
-      registrationId: u.registrationId || null,
     };
     S.workouts = mergeWorkoutRecords(w.data || [], S.workouts);
     S.glucoseRecords = mergeGlucoseRecords(g.data || [], S.glucoseRecords);
@@ -9534,15 +9533,12 @@ function buildRealLeagueUsers(allUsers, allRegs, wPtsByDevice = {}) {
     return;
   }
 
-  const regIds = new Set();
   const regEmpIds = new Set();
   const regDeviceIds = new Set();
   (allRegs || []).forEach(r => {
     if (!isActiveChallengeReg(r)) return;
-    const rid = normChallengeId(r.id);
     const remp = normChallengeEmpId(r.empId);
     const rdev = normChallengeId(r.deviceId);
-    if (rid) regIds.add(rid);
     if (remp) regEmpIds.add(remp);
     if (rdev) regDeviceIds.add(rdev);
   });
@@ -9557,9 +9553,8 @@ function buildRealLeagueUsers(allUsers, allRegs, wPtsByDevice = {}) {
     change: 0,
     isMe: false,
     isChallenger:
-      regIds.has(normChallengeId(u.registrationId)) ||
       regEmpIds.has(normChallengeEmpId(u.empId)) ||
-      (!normChallengeEmpId(u.empId) && !normChallengeId(u.registrationId) && regDeviceIds.has(normChallengeId(u.deviceId))),
+      (!normChallengeEmpId(u.empId) && regDeviceIds.has(normChallengeId(u.deviceId))),
     tags: typeof u.tags === 'string' ? u.tags.split(',').filter(Boolean) : (u.tags || []),
   }));
 }
@@ -9595,7 +9590,7 @@ async function fetchLeagueData(opts = {}) {
       canReuseUsers
         ? Promise.resolve(null)
         : Promise.all([
-            _db.from('users').select('empId,name,avatar,points,tags,registrationId,deviceId'),
+            _db.from('users').select('empId,name,avatar,points,tags,deviceId'),
             _db.from('registrations').select('id,empId,deviceId,status'),
           ]),
       needWeekly && !canReuseWeekly
@@ -11609,7 +11604,7 @@ function syncRemoteChallengeRegistrationRef(registrationId = '', empId = S.user.
   }
   if (!filters.length) return;
   _db.from('users').update({
-    registrationId: registrationId || '',
+    registrationId: '',
     lastactiveat: new Date().toISOString(),
   }).or(filters.join(',')).then(({ error }) => {
     if (error) console.error('[syncRemoteChallengeRegistrationRef]', error);
@@ -12884,7 +12879,6 @@ function loadSheetsUserData(data) {
     points: Number(u.points) || 0,
     streak: Number(u.streak) || 0,
     tags: (u.tags || '').split(',').filter(Boolean),
-    registrationId: u.registrationId || null,
   };
   S.deviceId = u.deviceId;
   S.workouts = mergeWorkoutRecords(data.workouts || [], S.workouts);
