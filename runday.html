@@ -2350,8 +2350,24 @@
   /* ── 부모 로그인 정보 자동 입력 ─────────────────── */
   const LIVE_AVATAR_FALLBACK = 'images/avatars/av1.png';
   const LIVE_AVATAR_SET = new Set(Array.from({ length: 20 }, (_, i) => `images/avatars/av${i + 1}.png`));
+  const PEOPLE_CACHE_KEY = 'hi_health_people_cache_v1';
   let currentLoginAvatar = '';
   let latestPeopleList = [];
+
+  function readCachedPeopleRows() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(PEOPLE_CACHE_KEY) || '[]');
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function writeCachedPeopleRows(rows = []) {
+    try {
+      localStorage.setItem(PEOPLE_CACHE_KEY, JSON.stringify(Array.isArray(rows) ? rows : []));
+    } catch (e) {}
+  }
 
   function renderRundayProfileHeader() {
     const avatarEl = document.getElementById('hero-profile-avatar');
@@ -2844,6 +2860,21 @@
     return [...keyed.values(), ...anonymous].sort((a, b) => peopleRowTs(b) - peopleRowTs(a));
   }
 
+  function mergePeopleRows(...lists) {
+    const byId = new Map();
+    const anonymous = [];
+    lists.flat().forEach(row => {
+      if (!row || typeof row !== 'object') return;
+      const rowId = String(row?.id || '').trim();
+      if (!rowId) {
+        anonymous.push({ ...row });
+        return;
+      }
+      byId.set(rowId, { ...(byId.get(rowId) || {}), ...row });
+    });
+    return [...byId.values(), ...anonymous].sort((a, b) => peopleRowTs(b) - peopleRowTs(a));
+  }
+
   function renderPeople(list) {
     const rows = collapsePeopleRows(list);
     latestPeopleList = rows.slice();
@@ -2870,13 +2901,16 @@
   }
 
   async function loadPeople() {
-    // 로컬 데이터 먼저 렌더
+    // 재실행 직후에는 마지막으로 본 전체 목록 캐시를 우선 사용
     const local = JSON.parse(localStorage.getItem(CH_KEY) || '[]')
       .sort((a, b) => peopleRowTs(b) - peopleRowTs(a));
-    renderPeople(local);
+    const cached = readCachedPeopleRows()
+      .sort((a, b) => peopleRowTs(b) - peopleRowTs(a));
+    const initialRows = mergePeopleRows(cached, local);
+    renderPeople(initialRows);
     const shouldRenderRecoveredLocal = !document.getElementById('success-screen')?.classList.contains('show');
     setTimeout(() => {
-      tryRestoreCurrentRegistrationFromRows(local, { render: shouldRenderRecoveredLocal });
+      tryRestoreCurrentRegistrationFromRows(initialRows, { render: shouldRenderRecoveredLocal });
     }, 0);
 
     // Supabase에서 실시간 데이터 fetch
@@ -2889,14 +2923,8 @@
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
-          const byId = new Map(local.map(row => [String(row?.id || '').trim(), row]));
-          data.forEach(row => {
-            const rowId = String(row?.id || '').trim();
-            if (!rowId) return;
-            byId.set(rowId, { ...(byId.get(rowId) || {}), ...row });
-          });
-          const merged = [...byId.values()];
-          merged.sort((a, b) => peopleRowTs(b) - peopleRowTs(a));
+          const merged = mergePeopleRows(initialRows, data);
+          writeCachedPeopleRows(merged);
           renderPeople(merged);
           setTimeout(() => {
             tryRestoreCurrentRegistrationFromRows(merged);
