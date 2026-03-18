@@ -4486,7 +4486,7 @@
 
   <!-- ████  CHALLENGE  ████ -->
   <section id="page-challenge" class="page">
-    <iframe id="runday-iframe" data-src="runday.html?v=20260318-74" title="HI RUN DAY" loading="lazy"></iframe>
+    <iframe id="runday-iframe" data-src="runday.html?v=20260318-75" title="HI RUN DAY" loading="lazy"></iframe>
   </section>
 
   <!-- ████  ADMIN  ████ -->
@@ -4768,7 +4768,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const PUSH_PUBLIC_KEY   = 'BEaMexe-bw1jM31PgeQdkkZeqs29Ls1KIMY-TViYgH2dPqg_v7tRRObOpRUTGu5-ZgH13qR_ZTtxeOWh9_vnhTk';
 const PUSH_TABLE        = 'push_subscriptions';
 const PUSH_DEFAULT_URL  = './index.html#community';
-const SW_VERSION        = '20260318-80';
+const SW_VERSION        = '20260318-81';
+const CHALLENGE_PEOPLE_CACHE_KEY = 'hi_health_people_cache_v1';
 let _db = null; // Supabase 클라이언트
 let _realLeagueUsers = null; // Supabase에서 가져온 실제 유저 목록
 let _leagueFetching = false;
@@ -6651,7 +6652,7 @@ function myWeekPts() {
    NAVIGATION
 ════════════════════════════════════════ */
 const _isTouch = () => window.matchMedia('(hover: none)').matches;
-const RUNDAY_IFRAME_SRC = 'runday.html?v=20260318-74';
+const RUNDAY_IFRAME_SRC = 'runday.html?v=20260318-75';
 let _rundayIframeReady = false;
 let _rundayIframeLoadStarted = false;
 const _rundayIframeQueue = [];
@@ -6832,11 +6833,13 @@ function navigate(page) {
     }, { ensureLoaded: true });
     syncChallengeConfigToRunday();
     syncChallengeStateToRunday({ ensureLoaded: true });
+    syncChallengePeopleToRunday({ ensureLoaded: true });
     loadAppConfig().then(() => {
       renderHeader();
       renderChallenge();
       syncChallengeConfigToRunday();
       syncChallengeStateToRunday({ ensureLoaded: true });
+      syncChallengePeopleToRunday({ ensureLoaded: true });
     });
   }
   placeGuestBanner(page);
@@ -10985,6 +10988,59 @@ function syncChallengeStateToRunday(options = {}) {
   postToRunday(getChallengeSyncPayload(), options);
 }
 
+function readChallengePeopleCache() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(CHALLENGE_PEOPLE_CACHE_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function writeChallengePeopleCache(rows = []) {
+  try {
+    localStorage.setItem(CHALLENGE_PEOPLE_CACHE_KEY, JSON.stringify(Array.isArray(rows) ? rows : []));
+  } catch (e) {}
+}
+
+let _challengePeopleSyncPromise = null;
+
+async function fetchChallengePeopleRows(options = {}) {
+  if (_challengePeopleSyncPromise) return _challengePeopleSyncPromise;
+  const run = async () => {
+    try {
+      const res = await fetch(
+        SUPABASE_URL + '/rest/v1/registrations?select=id,deviceId,name,dept,empId,registeredAt,status&order=registeredAt.desc&_=' + Date.now(),
+        {
+          cache: 'no-store',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+          },
+        }
+      );
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      const rows = Array.isArray(data) ? data : [];
+      writeChallengePeopleCache(rows);
+      return rows;
+    } catch (e) {
+      if (!options.silent) console.warn('[fetchChallengePeopleRows]', e);
+      return readChallengePeopleCache();
+    } finally {
+      _challengePeopleSyncPromise = null;
+    }
+  };
+  _challengePeopleSyncPromise = run();
+  return _challengePeopleSyncPromise;
+}
+
+async function syncChallengePeopleToRunday(options = {}) {
+  const rows = await fetchChallengePeopleRows({ silent: options.silent !== false });
+  postToRunday({ type: 'CHALLENGE_PEOPLE_STATE', rows }, options);
+  return rows;
+}
+
 function handleChallengeConfigSyncPayload(payload = {}) {
   if (payload?.type !== 'CHALLENGE_CONFIG') return;
   applyChallengeDeadlineConfig(payload.deadline, { forceRefresh: true });
@@ -11817,6 +11873,7 @@ function applyRundayRegistrationSync(payload = {}) {
     reg?.deviceId || S.deviceId
   );
   syncChallengeStateToRunday();
+  syncChallengePeopleToRunday();
   renderHeader();
   if (document.getElementById('page-home')?.classList.contains('active')) renderHome();
   if (document.getElementById('page-challenge')?.classList.contains('active')) renderChallenge();
@@ -12953,6 +13010,7 @@ async function doAppLogin() {
     avatar: normalizeAvatar(S.user.avatar),
   });
   syncChallengeStateToRunday();
+  syncChallengePeopleToRunday();
   loadEl.style.display = 'none';
   btn.disabled = false;
 
@@ -13109,6 +13167,7 @@ async function init() {
       avatar: normalizeAvatar(S.user.avatar),
     });
     syncChallengeStateToRunday();
+    syncChallengePeopleToRunday();
     if (autoLoadEl) autoLoadEl.style.display = 'none';
     requestAnimationFrame(() => { window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; });
     setTimeout(() => {

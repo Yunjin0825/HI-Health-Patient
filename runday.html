@@ -2512,6 +2512,21 @@
     return changed;
   }
 
+  function applyParentChallengePeopleState(payload = {}) {
+    const rows = Array.isArray(payload?.rows) ? payload.rows : [];
+    if (!rows.length) return false;
+    writeCachedPeopleRows(rows);
+    const local = JSON.parse(localStorage.getItem(CH_KEY) || '[]');
+    const merged = mergePeopleRows(rows, local);
+    renderPeople(merged);
+    setTimeout(() => {
+      tryRestoreCurrentRegistrationFromRows(merged, {
+        render: !document.getElementById('success-screen')?.classList.contains('show'),
+      });
+    }, 0);
+    return true;
+  }
+
   function syncChallengeStateFromParent() {
     try {
       if (!window.parent || window.parent === window) return false;
@@ -2531,14 +2546,29 @@
     }
   }
 
+  function syncChallengePeopleFromParent() {
+    try {
+      if (!window.parent || window.parent === window) return false;
+      const rows = Array.isArray(window.parent.readChallengePeopleCache?.())
+        ? window.parent.readChallengePeopleCache()
+        : [];
+      return applyParentChallengePeopleState({ rows });
+    } catch (e) {
+      return false;
+    }
+  }
+
   syncInitialIdentity();
   loadChallengeConfig();
   bindChallengeConfigSync();
   syncChallengeStateFromParent();
+  syncChallengePeopleFromParent();
   setTimeout(() => syncInitialIdentity(), 100);
   setTimeout(() => syncInitialIdentity(), 500);
   setTimeout(() => syncChallengeStateFromParent(), 120);
   setTimeout(() => syncChallengeStateFromParent(), 600);
+  setTimeout(() => syncChallengePeopleFromParent(), 120);
+  setTimeout(() => syncChallengePeopleFromParent(), 600);
 
   window.addEventListener('message', (e) => {
     if (e.data?.type === 'CHALLENGE_CONFIG') {
@@ -2547,6 +2577,10 @@
     }
     if (e.data?.type === 'CHALLENGE_REGISTRATION_STATE') {
       applyParentChallengeRegistrationState(e.data);
+      return;
+    }
+    if (e.data?.type === 'CHALLENGE_PEOPLE_STATE') {
+      applyParentChallengePeopleState(e.data);
       return;
     }
     if (e.data?.type === 'LOGIN' || e.data?.type === 'AVATAR_CHANGE') {
@@ -2582,6 +2616,7 @@
       if (e.data.active !== false) {
         syncInitialIdentity();
         syncChallengeStateFromParent();
+        syncChallengePeopleFromParent();
         loadChallengeConfig();
         checkExisting();
       }
