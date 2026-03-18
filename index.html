@@ -4765,7 +4765,7 @@ function myDisplayName() { return S.user.nickname || S.user.name || ''; }
 /* ── Supabase 설정 (Supabase 콘솔 > Project Settings > API 에서 복사) ── */
 const SUPABASE_URL      = 'https://nbnmvvobehjitophkqmu.supabase.co';       // Project URL
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ibm12dm9iZWhqaXRvcGhrcW11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3Nzk4NzQsImV4cCI6MjA4ODM1NTg3NH0.iZS4JvhHUqv4ZMPxm9STit6xqVp2JA5H55M8Wmd1yjY';  // anon public key
-const PUSH_PUBLIC_KEY   = 'BLGJTMpYpyBS_TUbqZ54-x56lvRc2LULPdj_FpReD4CPsIEdHJJNX0DFx5h57aLMV3kkKz_h9mPgntTcK73GGu8';
+const PUSH_PUBLIC_KEY   = 'BEaMexe-bw1jM31PgeQdkkZeqs29Ls1KIMY-TViYgH2dPqg_v7tRRObOpRUTGu5-ZgH13qR_ZTtxeOWh9_vnhTk';
 const PUSH_TABLE        = 'push_subscriptions';
 const PUSH_DEFAULT_URL  = './index.html#community';
 const SW_VERSION        = '20260318-76';
@@ -11477,6 +11477,7 @@ async function syncMyChallengeRegistrationWithOptions(opts = {}) {
   const deviceId = normChallengeId(S.deviceId);
   const useDeviceFallback = shouldUseChallengeDeviceFallback(regId, empId);
   const pruneMissingRemote = !!opts.pruneMissingRemote;
+  const shouldPruneMissingRemote = pruneMissingRemote || !regId;
   const filters = [];
   if (regId) filters.push(`id.eq.${regId}`);
   if (empId) {
@@ -11504,7 +11505,7 @@ async function syncMyChallengeRegistrationWithOptions(opts = {}) {
       });
       next = [...byId.values()];
     }
-    if (pruneMissingRemote) {
+    if (shouldPruneMissingRemote) {
       const activeRemoteRows = (data || []).filter(isActiveChallengeReg);
       const activeRemoteIds = new Set(activeRemoteRows.map(r => normChallengeId(r?.id)).filter(Boolean));
       const activeRemoteEmpIds = new Set(activeRemoteRows.map(r => normChallengeEmpId(r?.empId)).filter(Boolean));
@@ -11566,9 +11567,17 @@ function shareChReg(id, name, dept) {
 function repairChRegNote() {
   if (!_db) return;
   const regs = getStoredChallengeRegs();
+  const currentRegId = normChallengeId(S.user.registrationId);
+  const currentEmpId = normChallengeEmpId(S.user.empId || ACTIVE_EMPID);
   let changed = false;
   regs.forEach(r => {
     if (!r?.id) return;
+    const rowId = normChallengeId(r?.id);
+    const rowEmpId = normChallengeEmpId(r?.empId);
+    const matchesCurrent = (currentRegId && rowId === currentRegId)
+      || (!currentRegId && currentEmpId && rowEmpId === currentEmpId);
+    if (!matchesCurrent) return;
+    if (!currentRegId && isActiveChallengeReg(r)) return;
     const rebuilt = buildChRegistrationNote(r);
     if (!String(r.note || '').trim() && rebuilt) {
       r.note = rebuilt;
