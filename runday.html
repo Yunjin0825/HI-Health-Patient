@@ -1885,11 +1885,90 @@
       : `수정 및 취소 기간이 ${label}에 종료되었습니다.`;
   }
 
+  const CHALLENGE_CONFIG_SYNC_KEY = 'hi_health_challenge_config_sync';
+  let challengeConfigChannel = null;
+
+  function readChallengeBackupRows(empId = getCurrentEmpId(), regId = '') {
+    const normalizedEmpId = String(empId || '').trim().toUpperCase();
+    const normalizedRegId = String(regId || '').trim();
+    if (!normalizedEmpId) return [];
+    const keys = [`hi_health_challenge_backup_${normalizedEmpId}`];
+    if (normalizedRegId) keys.push(`hi_health_challenge_backup_${normalizedEmpId}_${normalizedRegId}`);
+    const recovered = [];
+    const seen = new Set();
+    keys.forEach(key => {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(key) || 'null');
+        const normalized = normalizeStoredRegRow(parsed, normalizedEmpId);
+        if (!normalized || normalized.empId !== normalizedEmpId) return;
+        const rowId = String(normalized?.id || '').trim();
+        if (normalizedRegId && rowId && rowId !== normalizedRegId) return;
+        const dedupeKey = rowId || `${normalized.empId}:${registrationRowTs(normalized)}`;
+        if (seen.has(dedupeKey)) return;
+        seen.add(dedupeKey);
+        recovered.push(normalized);
+      } catch (e) {}
+    });
+    return recovered.sort((a, b) => registrationRowTs(b) - registrationRowTs(a));
+  }
+
+  function getCurrentRegistrationId(empId = getCurrentEmpId()) {
+    try {
+      const parentRegId = String(window.parent?.S?.user?.registrationId || '').trim();
+      if (parentRegId) return parentRegId;
+    } catch (e) {}
+
+    const normalizedEmpId = String(empId || '').trim().toUpperCase();
+    if (normalizedEmpId) {
+      const storageKeys = [`hi_health_v2_${normalizedEmpId}`, `hi_health_v2_${normalizedEmpId.toLowerCase()}`];
+      for (const key of storageKeys) {
+        try {
+          const parsed = JSON.parse(localStorage.getItem(key) || 'null');
+          const storedRegId = String(parsed?.user?.registrationId || '').trim();
+          if (storedRegId) return storedRegId;
+        } catch (e) {}
+      }
+      const backupRows = readChallengeBackupRows(normalizedEmpId);
+      if (backupRows[0]?.id) return String(backupRows[0].id).trim();
+    }
+
+    try {
+      const regs = JSON.parse(localStorage.getItem(CH_KEY) || '[]')
+        .filter(r => isActiveRegRow(r) && (!normalizedEmpId || String(r?.empId || '').trim().toUpperCase() === normalizedEmpId))
+        .sort((a, b) => registrationRowTs(b) - registrationRowTs(a));
+      return String(regs[0]?.id || '').trim();
+    } catch (e) {}
+    return '';
+  }
+
+  function getCurrentRegIdentity(overrides = {}) {
+    const empId = String(overrides.empId ?? getCurrentEmpId()).trim().toUpperCase();
+    const regId = String(overrides.registrationId || getCurrentRegistrationId(empId) || '').trim();
+    const deviceId = String(overrides.deviceId || getCurrentDeviceId()).trim();
+    return { empId, regId, deviceId };
+  }
+
+  function isCurrentRegIdentityMatch(reg, identity = getCurrentRegIdentity()) {
+    const rowId = String(reg?.id || '').trim();
+    const rowEmpId = String(reg?.empId || '').trim().toUpperCase();
+    const rowDeviceId = String(reg?.deviceId || '').trim();
+    if (identity.regId && rowId && rowId === identity.regId) return true;
+    if (identity.empId && rowEmpId && rowEmpId === identity.empId) return true;
+    if (
+      identity.deviceId &&
+      rowDeviceId &&
+      rowDeviceId === identity.deviceId &&
+      (!identity.regId || !rowId) &&
+      (!identity.empId || !rowEmpId || rowEmpId === identity.empId)
+    ) return true;
+    return false;
+  }
+
   function getLatestActiveRegistrationForCurrentEmp() {
-    const uid = String(getCurrentEmpId() || '').trim().toUpperCase();
-    if (!uid) return null;
+    const identity = getCurrentRegIdentity();
+    if (!identity.empId && !identity.regId && !identity.deviceId) return null;
     const regs = JSON.parse(localStorage.getItem(CH_KEY) || '[]')
-      .filter(r => isActiveRegRow(r) && String(r?.empId || '').trim().toUpperCase() === uid)
+      .filter(r => isActiveRegRow(r) && isCurrentRegIdentityMatch(r, identity))
       .sort((a, b) => registrationRowTs(b) - registrationRowTs(a));
     return regs[0] || null;
   }
@@ -1912,14 +1991,44 @@
 
     try {
       const res = await fetch(
-        SB_URL + '/rest/v1/app_config?select=value&key=eq.ch_deadline&limit=1',
-        { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } }
+        SB_URL + '/rest/v1/app_config?select=value&key=eq.ch_deadline&limit=1&_=' + Date.now(),
+        { cache: 'no-store', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } }
       );
       if (!res.ok) return;
       const data = await res.json();
       const nextValue = String(data?.[0]?.value || '').trim();
       if (setChallengeDeadlineValue(nextValue)) refreshDeadlineDrivenUi();
     } catch (e) {}
+  }
+
+  function handleChallengeConfigSync(payload = {}) {
+    if (payload?.type !== 'CHALLENGE_CONFIG') return;
+    if (setChallengeDeadlineValue(payload.deadline)) {
+      refreshDeadlineDrivenUi();
+      return;
+    }
+    if (String(payload.deadline || '').trim()) refreshDeadlineDrivenUi();
+  }
+
+  function bindChallengeConfigSync() {
+    if (window.__challengeConfigSyncBound) return;
+    window.__challengeConfigSyncBound = true;
+
+    window.addEventListener('storage', e => {
+      if (e.key !== CHALLENGE_CONFIG_SYNC_KEY || !e.newValue) return;
+      try {
+        handleChallengeConfigSync(JSON.parse(e.newValue));
+      } catch (err) {}
+    });
+
+    if ('BroadcastChannel' in window) {
+      try {
+        challengeConfigChannel = new BroadcastChannel('hi-health-challenge-config');
+        challengeConfigChannel.addEventListener('message', e => {
+          handleChallengeConfigSync(e.data || {});
+        });
+      } catch (e) {}
+    }
   }
 
   function ensureChallengeRegistrationEditable() {
@@ -1996,18 +2105,15 @@
   function restoreChallengeBackupForEmp(empId = getCurrentEmpId()) {
     const normalizedEmpId = String(empId || '').trim().toUpperCase();
     if (!normalizedEmpId) return null;
-    const keys = [`hi_health_challenge_backup_${normalizedEmpId}`];
-    const recovered = [];
-    keys.forEach(key => {
-      try {
-        const parsed = JSON.parse(localStorage.getItem(key) || 'null');
-        const normalized = normalizeStoredRegRow(parsed, normalizedEmpId);
-        if (normalized && normalized.empId === normalizedEmpId) recovered.push(normalized);
-      } catch (e) {}
-    });
+    const normalizedRegId = String(getCurrentRegistrationId(normalizedEmpId) || '').trim();
+    const recovered = readChallengeBackupRows(normalizedEmpId, normalizedRegId);
     if (!recovered.length) return null;
     const merged = mergeStoredRegRows(recovered);
-    return merged.find(r => String(r?.empId || '').trim().toUpperCase() === normalizedEmpId && isActiveRegRow(r)) || recovered[0] || null;
+    return merged.find(r => isActiveRegRow(r) && isCurrentRegIdentityMatch(r, {
+      empId: normalizedEmpId,
+      regId: normalizedRegId,
+      deviceId: getCurrentDeviceId(),
+    })) || recovered[0] || null;
   }
 
   function hasDup(empId, ignoreId = editingRegId) {
@@ -2026,14 +2132,27 @@
   }
 
   async function syncLocalRegsForEmp(empId = getCurrentEmpId(), opts = {}) {
-    const normalizedEmpId = String(empId || '').trim().toUpperCase();
-    if (!normalizedEmpId) return false;
+    let normalizedEmpId = String(empId || '').trim().toUpperCase();
     const pruneMissing = !!opts.pruneMissing;
+    const restored = normalizedEmpId ? restoreChallengeBackupForEmp(normalizedEmpId) : null;
+    if (!normalizedEmpId) normalizedEmpId = String(restored?.empId || '').trim().toUpperCase();
+    const identity = getCurrentRegIdentity({
+      empId: normalizedEmpId,
+      registrationId: opts.registrationId || restored?.id || '',
+      deviceId: opts.deviceId || getCurrentDeviceId(),
+    });
+    if (!identity.empId && !identity.regId && !identity.deviceId) return false;
     const local = JSON.parse(localStorage.getItem(CH_KEY) || '[]');
     let remote = [];
     try {
-      const filters = [`empId.eq.${normalizedEmpId}`];
-      if (normalizedEmpId.toLowerCase() !== normalizedEmpId) filters.push(`empId.eq.${normalizedEmpId.toLowerCase()}`);
+      const filters = [];
+      if (identity.regId) filters.push(`id.eq.${identity.regId}`);
+      if (identity.empId) {
+        filters.push(`empId.eq.${identity.empId}`);
+        if (identity.empId.toLowerCase() !== identity.empId) filters.push(`empId.eq.${identity.empId.toLowerCase()}`);
+      }
+      if (identity.deviceId) filters.push(`deviceId.eq.${identity.deviceId}`);
+      if (!filters.length) return false;
       const res = await fetch(
         SB_URL + '/rest/v1/registrations?select=*&or=(' + filters.join(',') + ')&_=' + Date.now(),
         { cache: 'no-store', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } }
@@ -2043,8 +2162,11 @@
       return false;
     }
 
+    const remoteRows = (Array.isArray(remote) ? remote : [])
+      .map(r => normalizeStoredRegRow(r, identity.empId))
+      .filter(Boolean);
     const byId = new Map(local.map(r => [String(r?.id || '').trim(), r]));
-    remote.forEach(r => {
+    remoteRows.forEach(r => {
       const id = String(r?.id || '').trim();
       if (!id) return;
       byId.set(id, { ...(byId.get(id) || {}), ...r });
@@ -2052,17 +2174,27 @@
     let next = [...byId.values()];
     if (pruneMissing) {
       const activeRemoteIds = new Set(
-        remote.filter(isActiveRegRow).map(r => String(r?.id || '').trim()).filter(Boolean)
+        remoteRows.filter(isActiveRegRow).map(r => String(r?.id || '').trim()).filter(Boolean)
+      );
+      const activeRemoteEmpIds = new Set(
+        remoteRows.filter(isActiveRegRow).map(r => String(r?.empId || '').trim().toUpperCase()).filter(Boolean)
+      );
+      const activeRemoteDeviceIds = new Set(
+        remoteRows.filter(isActiveRegRow).map(r => String(r?.deviceId || '').trim()).filter(Boolean)
       );
       next = next.filter(r => {
-        const rowEmpId = String(r?.empId || '').trim().toUpperCase();
-        if (rowEmpId !== normalizedEmpId) return true;
+        if (!isCurrentRegIdentityMatch(r, identity)) return true;
         if (!isActiveRegRow(r)) return true;
         const rowId = String(r?.id || '').trim();
-        return rowId && activeRemoteIds.has(rowId);
+        if (rowId) return activeRemoteIds.has(rowId);
+        const rowEmpId = String(r?.empId || '').trim().toUpperCase();
+        if (rowEmpId) return activeRemoteEmpIds.has(rowEmpId);
+        const rowDeviceId = String(r?.deviceId || '').trim();
+        return rowDeviceId && activeRemoteDeviceIds.has(rowDeviceId);
       });
     }
 
+    next.sort((a, b) => registrationRowTs(b) - registrationRowTs(a));
     const changed = JSON.stringify(next) !== JSON.stringify(local);
     if (changed) localStorage.setItem(CH_KEY, JSON.stringify(next));
     return changed;
@@ -2311,6 +2443,18 @@
     } catch (e) {}
   }
 
+  let restoreCheckTimer = 0;
+
+  function scheduleRegistrationRestoreCheck(empId = getCurrentEmpId(), delay = 0) {
+    const normalizedEmpId = String(empId || '').trim().toUpperCase();
+    if (!normalizedEmpId) return;
+    if (restoreCheckTimer) clearTimeout(restoreCheckTimer);
+    restoreCheckTimer = setTimeout(() => {
+      restoreCheckTimer = 0;
+      checkExisting(normalizedEmpId);
+    }, Math.max(0, Number(delay) || 0));
+  }
+
   function syncInitialIdentity() {
     let name = '';
     let empId = '';
@@ -2328,16 +2472,62 @@
       try { empId = String(sessionStorage.getItem('hi_session_empid') || localStorage.getItem('hi_keep_login_id') || '').trim(); } catch (e) {}
     }
     prefillFromLogin(name, empId, avatar);
+    scheduleRegistrationRestoreCheck(empId, 30);
+  }
+
+  function applyParentChallengeRegistrationState(payload = {}) {
+    const reg = payload?.registration && isActiveRegRow(payload.registration) ? payload.registration : null;
+    const regId = String(payload?.registrationId || reg?.id || '').trim();
+    const empId = String(payload?.empId || reg?.empId || getCurrentEmpId()).trim().toUpperCase();
+    if (!empId && !regId) return false;
+
+    let changed = false;
+    if (reg && regId) {
+      const normalized = normalizeStoredRegRow(reg, empId);
+      if (normalized) {
+        mergeStoredRegRows([normalized]);
+        changed = true;
+      }
+    }
+    scheduleRegistrationRestoreCheck(empId, changed ? 10 : 30);
+    return changed;
+  }
+
+  function syncChallengeStateFromParent() {
+    try {
+      if (!window.parent || window.parent === window) return false;
+      const directReg = typeof window.parent.getMyReg === 'function'
+        ? window.parent.getMyReg({ includeCancelled: true })
+        : null;
+      const payload = {
+        empId: String(window.parent?.S?.user?.empId || window.parent?.ACTIVE_EMPID || '').trim().toUpperCase(),
+        registrationId: String(window.parent?.S?.user?.registrationId || directReg?.id || '').trim(),
+        registration: directReg && String(directReg?.status || '').trim().toLowerCase() !== 'cancelled'
+          ? { ...directReg }
+          : null,
+      };
+      return applyParentChallengeRegistrationState(payload);
+    } catch (e) {
+      return false;
+    }
   }
 
   syncInitialIdentity();
   loadChallengeConfig();
-  setTimeout(syncInitialIdentity, 100);
-  setTimeout(syncInitialIdentity, 500);
+  bindChallengeConfigSync();
+  syncChallengeStateFromParent();
+  setTimeout(() => syncInitialIdentity(), 100);
+  setTimeout(() => syncInitialIdentity(), 500);
+  setTimeout(() => syncChallengeStateFromParent(), 120);
+  setTimeout(() => syncChallengeStateFromParent(), 600);
 
   window.addEventListener('message', (e) => {
     if (e.data?.type === 'CHALLENGE_CONFIG') {
       if (setChallengeDeadlineValue(e.data.deadline)) refreshDeadlineDrivenUi();
+      return;
+    }
+    if (e.data?.type === 'CHALLENGE_REGISTRATION_STATE') {
+      applyParentChallengeRegistrationState(e.data);
       return;
     }
     if (e.data?.type === 'LOGIN' || e.data?.type === 'AVATAR_CHANGE') {
@@ -2372,6 +2562,7 @@
       setRundayPageActive(e.data.active !== false);
       if (e.data.active !== false) {
         syncInitialIdentity();
+        syncChallengeStateFromParent();
         loadChallengeConfig();
         checkExisting();
       }
@@ -2675,7 +2866,14 @@
     }
   });
   window.addEventListener('focus', () => {
-    if (rundayPageActive && !document.hidden) loadPeople();
+    if (rundayPageActive && !document.hidden) {
+      loadChallengeConfig();
+      loadPeople();
+    }
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) loadChallengeConfig();
   });
 
   function renderSuccessScreen(reg) {
@@ -2826,9 +3024,21 @@
       return;
     }
     const uid = (empId || getCurrentEmpId() || '').toUpperCase();
-    if (uid) await syncLocalRegsForEmp(uid, { pruneMissing: true });
+    const restored = uid ? restoreChallengeBackupForEmp(uid) : null;
+    const identity = getCurrentRegIdentity({
+      empId: uid || restored?.empId || '',
+      registrationId: restored?.id || '',
+      deviceId: getCurrentDeviceId(),
+    });
+    if (identity.empId || identity.regId || identity.deviceId) {
+      await syncLocalRegsForEmp(identity.empId, {
+        pruneMissing: true,
+        registrationId: identity.regId,
+        deviceId: identity.deviceId,
+      });
+    }
     const regs = JSON.parse(localStorage.getItem(CH_KEY) || '[]')
-      .filter(r => r.status !== 'cancelled' && (uid ? String(r.empId || '').toUpperCase() === uid : true))
+      .filter(r => isActiveRegRow(r) && isCurrentRegIdentityMatch(r, identity))
       .sort((a, b) => registrationRowTs(b) - registrationRowTs(a));
     if (regs.length) {
       renderSuccessScreen(regs[0]);

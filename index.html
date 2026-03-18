@@ -4922,9 +4922,51 @@ async function loadAppConfig() {
   } catch(e) { /* app_config 테이블 없으면 기본값 유지 */ }
 }
 
+window.addEventListener('focus', () => {
+  loadAppConfig();
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) loadAppConfig();
+});
+
+function isAppConfigMissingColumnError(error) {
+  const message = String(error?.message || error || '');
+  return /column .* does not exist|Could not find the '.*' column/i.test(message);
+}
+
 async function saveAppConfig(key, value) {
   if (!_db) return;
-  await _db.from('app_config').upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+  const configKey = String(key || '').trim();
+  if (!configKey) return;
+
+  const { data: existing, error: findError } = await _db
+    .from('app_config')
+    .select('key')
+    .eq('key', configKey)
+    .maybeSingle();
+  if (findError) throw findError;
+
+  const baseValue = String(value ?? '');
+  const withTimestamp = existing
+    ? { value: baseValue, updated_at: new Date().toISOString() }
+    : { key: configKey, value: baseValue, updated_at: new Date().toISOString() };
+  const withoutTimestamp = existing
+    ? { value: baseValue }
+    : { key: configKey, value: baseValue };
+
+  const writeConfig = async payload => (
+    existing
+      ? _db.from('app_config').update(payload).eq('key', configKey)
+      : _db.from('app_config').insert(payload)
+  );
+
+  let result = await writeConfig(withTimestamp);
+  if (!result.error) return;
+  if (!isAppConfigMissingColumnError(result.error)) throw result.error;
+
+  result = await writeConfig(withoutTimestamp);
+  if (result.error) throw result.error;
 }
 
 function openAdminPanel() {
@@ -6789,10 +6831,12 @@ function navigate(page) {
       avatar: normalizeAvatar(S.user.avatar),
     }, { ensureLoaded: true });
     syncChallengeConfigToRunday();
+    syncChallengeStateToRunday({ ensureLoaded: true });
     loadAppConfig().then(() => {
       renderHeader();
       renderChallenge();
       syncChallengeConfigToRunday();
+      syncChallengeStateToRunday({ ensureLoaded: true });
     });
   }
   placeGuestBanner(page);
@@ -10872,9 +10916,11 @@ const CH_SHOE_BRANDS = [
   { id:'nb', label:'New Balance', image:'images/nb1.png', desc:'뉴발란스 러닝화로 신청할게요.' },
 ];
 const CH_SHOE_SIZES = ['215','220','225','230','235','240','245','250','255','260','265','270','275','280','285','290','295','300'];
+const CHALLENGE_CONFIG_SYNC_KEY = 'hi_health_challenge_config_sync';
 let _chShoePrefs = [''];
 let _chShoeRequestNote = '';
 let _chRouteExpanded = false;
+let _challengeConfigChannel = null;
 
 function parseChallengeDeadlineValue(value = '') {
   const raw = String(value || '').trim();
@@ -10908,12 +10954,64 @@ function formatChallengeDeadlineShort(value = getChallengeDeadlineValue()) {
   return `${Number(match[2])}/${Number(match[3])}`;
 }
 
+function applyChallengeDeadlineConfig(deadline, opts = {}) {
+  const changed = setChallengeDeadlineFromConfig(deadline);
+  const shouldRefresh = changed || !!opts.forceRefresh;
+  if (!shouldRefresh) return false;
+  renderHeader();
+  if (document.getElementById('page-challenge')?.classList.contains('active')) renderChallenge();
+  syncChallengeConfigToRunday();
+  return changed;
+}
+
 function syncChallengeConfigToRunday() {
   postToRunday({
     type: 'CHALLENGE_CONFIG',
     deadline: getChallengeDeadlineValue(),
   });
 }
+
+function getChallengeSyncPayload() {
+  const reg = getMyReg({ includeCancelled: true });
+  return {
+    type: 'CHALLENGE_REGISTRATION_STATE',
+    empId: S.user.empId || ACTIVE_EMPID || '',
+    registrationId: reg?.id || S.user.registrationId || '',
+    registration: reg && isActiveChallengeReg(reg) ? { ...reg } : null,
+  };
+}
+
+function syncChallengeStateToRunday(options = {}) {
+  postToRunday(getChallengeSyncPayload(), options);
+}
+
+function handleChallengeConfigSyncPayload(payload = {}) {
+  if (payload?.type !== 'CHALLENGE_CONFIG') return;
+  applyChallengeDeadlineConfig(payload.deadline, { forceRefresh: true });
+}
+
+function bindChallengeConfigSync() {
+  if (window.__challengeConfigSyncBound) return;
+  window.__challengeConfigSyncBound = true;
+
+  window.addEventListener('storage', e => {
+    if (e.key !== CHALLENGE_CONFIG_SYNC_KEY || !e.newValue) return;
+    try {
+      handleChallengeConfigSyncPayload(JSON.parse(e.newValue));
+    } catch (err) {}
+  });
+
+  if ('BroadcastChannel' in window) {
+    try {
+      _challengeConfigChannel = new BroadcastChannel('hi-health-challenge-config');
+      _challengeConfigChannel.addEventListener('message', e => {
+        handleChallengeConfigSyncPayload(e.data || {});
+      });
+    } catch (e) {}
+  }
+}
+
+bindChallengeConfigSync();
 
 function normChShoeModelId(v) {
   const id = String(v || '').trim().toLowerCase();
@@ -11718,6 +11816,7 @@ function applyRundayRegistrationSync(payload = {}) {
     reg?.empId || payload?.empId || currentEmpId || S.user.empId || ACTIVE_EMPID,
     reg?.deviceId || S.deviceId
   );
+  syncChallengeStateToRunday();
   renderHeader();
   if (document.getElementById('page-home')?.classList.contains('active')) renderHome();
   if (document.getElementById('page-challenge')?.classList.contains('active')) renderChallenge();
@@ -12853,6 +12952,7 @@ async function doAppLogin() {
     empId: S.user.empId || ACTIVE_EMPID,
     avatar: normalizeAvatar(S.user.avatar),
   });
+  syncChallengeStateToRunday();
   loadEl.style.display = 'none';
   btn.disabled = false;
 
@@ -13008,6 +13108,7 @@ async function init() {
       empId: S.user.empId || savedEmpId,
       avatar: normalizeAvatar(S.user.avatar),
     });
+    syncChallengeStateToRunday();
     if (autoLoadEl) autoLoadEl.style.display = 'none';
     requestAnimationFrame(() => { window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; });
     setTimeout(() => {
@@ -13628,6 +13729,7 @@ async function init() {
     if (e.data?.type === 'SHOW_COURSE_DETAIL') openRunCourseDetail(e.data.html);
     if (e.data?.type === 'CLOSE_COURSE_DETAIL') closeRunCourseDetail();
     if (e.data?.type === 'RUNDAY_REGISTRATION_SYNC') applyRundayRegistrationSync(e.data);
+    if (e.data?.type === 'CHALLENGE_CONFIG') handleChallengeConfigSyncPayload(e.data);
     if (e.data?.type === 'RUNDAY_IMAGE_PREVIEW_OPEN') {
       const hdr = document.querySelector('.app-header');
       if (hdr) hdr.classList.add('runday-preview-open');
