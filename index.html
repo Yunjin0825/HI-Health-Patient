@@ -1923,14 +1923,16 @@
       -webkit-backdrop-filter:blur(10px);
       backdrop-filter:blur(10px);
     }
-    .pm-close-btn {
+    .pm-close-btn,
+    .pm-close {
       width:34px; height:34px; border:none; border-radius:50%;
       background:#f8fafc; color:var(--text-secondary);
       font-size:18px; cursor:pointer; line-height:1; flex-shrink:0;
       display:flex; align-items:center; justify-content:center;
       transition:all 0.2s;
     }
-    .pm-close-btn:hover { color:var(--text); background:#eef2f7; }
+    .pm-close-btn:hover,
+    .pm-close:hover { color:var(--text); background:#eef2f7; }
     .pm-title { font-size:18px; font-weight:800; color:#0F172A; letter-spacing:-0.25px; }
     .pm-sub { font-size:12px; color:#64748B; line-height:1.5; margin-top:4px; }
     .pm-summary-card {
@@ -1951,6 +1953,24 @@
     .pm-summary-label {
       font-size:10px; font-weight:700; color:#6366F1;
       letter-spacing:0.06em; text-transform:uppercase; margin-bottom:3px;
+      display:flex; align-items:center; gap:7px; flex-wrap:wrap;
+    }
+    #pm-challenge-tag {
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:4px 10px;
+      border-radius:999px;
+      background:linear-gradient(135deg, #6D28D9 0%, #7C3AED 100%);
+      color:#fff;
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:0.02em;
+      line-height:1;
+      flex-shrink:0;
+      white-space:nowrap;
+      box-shadow:0 4px 10px rgba(124,58,237,0.18);
+      text-transform:none;
     }
     .pm-summary-name {
       font-size:16px; font-weight:800; color:#0F172A;
@@ -2106,8 +2126,10 @@
     .pm-delete-btn:disabled { opacity:0.55; cursor:default; }
     .pm-admin-btn {
       width:100%; padding:10px; margin-top:8px;
+      display:flex; align-items:center; justify-content:center; gap:6px;
       background:none; border:1px solid #e5e7eb; border-radius:10px;
       font-family:inherit; font-size:12px; font-weight:600; color:#6b7280;
+      line-height:1.2; white-space:nowrap;
       cursor:pointer; transition:all 0.15s;
     }
     .pm-admin-btn:hover { background:#f3f4f6; color:#374151; }
@@ -4746,7 +4768,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const PUSH_PUBLIC_KEY   = 'BLGJTMpYpyBS_TUbqZ54-x56lvRc2LULPdj_FpReD4CPsIEdHJJNX0DFx5h57aLMV3kkKz_h9mPgntTcK73GGu8';
 const PUSH_TABLE        = 'push_subscriptions';
 const PUSH_DEFAULT_URL  = './index.html#community';
-const SW_VERSION        = '20260318-75';
+const SW_VERSION        = '20260318-76';
 let _db = null; // Supabase 클라이언트
 let _realLeagueUsers = null; // Supabase에서 가져온 실제 유저 목록
 let _leagueFetching = false;
@@ -4908,6 +4930,7 @@ async function saveAppConfig(key, value) {
 function openAdminPanel() {
   const el = document.getElementById('admin-panel-overlay');
   if (!el) return;
+  hydrateStaticSvgIcons(el);
   document.getElementById('admin-shop-toggle').checked = _shopPurchaseEnabled;
   el.classList.remove('pm-hidden');
 }
@@ -7221,6 +7244,7 @@ function hydrateStaticSvgIcons(root = document) {
 }
 
 hydrateStaticSvgIcons();
+window.addEventListener('load', () => hydrateStaticSvgIcons());
 
 function renderExercise() {
   // Today stats strip
@@ -8865,8 +8889,8 @@ async function refreshPushPreferenceUI() {
     statusEl.textContent = '지원 안 됨';
     statusEl.classList.add('off');
     helpEl.textContent = '이 브라우저에서는 앱 알림을 지원하지 않아요. iPhone은 홈 화면 설치 후 Safari에서 사용할 수 있어요.';
-    enableBtn.disabled = true;
-    disableBtn.disabled = true;
+    enableBtn.hidden = false; enableBtn.disabled = true;
+    disableBtn.hidden = true;
     previewBtn.disabled = true;
     return;
   }
@@ -8875,18 +8899,23 @@ async function refreshPushPreferenceUI() {
     const reg = await navigator.serviceWorker.getRegistration();
     const sub = reg ? await reg.pushManager.getSubscription() : null;
     const enabled = Notification.permission === 'granted' && !!sub;
-    statusEl.textContent = enabled ? '알림 켜짐' : (Notification.permission === 'denied' ? '차단됨' : '알림 꺼짐');
+    const blocked = Notification.permission === 'denied';
+    statusEl.textContent = enabled ? '알림 켜짐' : (blocked ? '차단됨' : '알림 꺼짐');
     statusEl.classList.toggle('off', !enabled);
     helpEl.textContent = enabled
       ? '관리자 공지나 이벤트 안내를 앱 알림으로 받아볼 수 있어요.'
-      : '알림을 켜면 챌린지 공지와 RUN DAY 안내를 기기 알림으로 받아볼 수 있어요.';
-    enableBtn.disabled = Notification.permission === 'denied';
-    disableBtn.disabled = !sub && Notification.permission !== 'granted';
+      : (blocked ? '브라우저 설정에서 알림 권한을 허용한 뒤 다시 시도해주세요.' : '알림을 켜면 챌린지 공지와 RUN DAY 안내를 기기 알림으로 받아볼 수 있어요.');
+    enableBtn.hidden = enabled;
+    enableBtn.disabled = blocked;
+    disableBtn.hidden = !enabled;
+    disableBtn.disabled = false;
     previewBtn.disabled = !enabled;
   } catch (e) {
     statusEl.textContent = '확인 필요';
     statusEl.classList.add('off');
     helpEl.textContent = '알림 상태를 확인하는 중 문제가 생겼어요. 다시 시도해주세요.';
+    enableBtn.hidden = false; enableBtn.disabled = false;
+    disableBtn.hidden = true;
     console.warn('push ui refresh failed', e);
   }
 }
@@ -9028,6 +9057,7 @@ function openProfileModal(onboarding = false) {
   if (pmAdminBtn) pmAdminBtn.style.display = isAdminUser() ? '' : 'none';
 
   const pmOverlay = document.getElementById('profile-modal');
+  hydrateStaticSvgIcons(pmOverlay);
   pmOverlay.classList.remove('pm-hidden');
   pmOverlay.scrollTop = 0;
   const pmCard = pmOverlay.querySelector('.profile-modal');
@@ -13004,7 +13034,7 @@ async function init() {
     <div class="pm-summary-card">
       <div class="pm-summary-avatar" id="pm-avatar-preview"></div>
       <div class="pm-summary-main">
-        <div class="pm-summary-label" style="display:flex;align-items:center;gap:7px;">My Profile<span id="pm-challenge-tag" style="display:none;font-size:10px;padding:3px 9px;border-radius:20px;background:var(--purple);color:#fff;font-weight:700;letter-spacing:0.02em;flex-shrink:0;" data-svg-icon="medal" data-svg-color="#ffffff" data-svg-size="12px" data-svg-text="챌린지 참여중"></span></div>
+        <div class="pm-summary-label">My Profile<span id="pm-challenge-tag">챌린지 참여중</span></div>
         <div class="pm-summary-name" id="pm-preview-name">-</div>
         <div class="pm-summary-meta">
           <span class="pm-meta-chip"><strong>등록번호</strong><span id="pm-empid">-</span></span>
@@ -13053,11 +13083,11 @@ async function init() {
           <div class="pm-panel-title">앱 알림</div>
           <div class="pm-panel-sub">관리자 공지와 RUN DAY 안내를 기기 알림으로 받아볼 수 있어요</div>
         </div>
-        <span class="pm-push-status off" id="pm-push-status">확인 중</span>
+        <span class="pm-push-status" id="pm-push-status">알림 켜짐</span>
       </div>
-      <div class="pm-push-copy" id="pm-push-help">이 기기에서 받을 알림 설정을 준비하고 있어요.</div>
+      <div class="pm-push-copy" id="pm-push-help">관리자 공지나 이벤트 안내를 앱 알림으로 받아볼 수 있어요.</div>
       <div class="pm-push-actions">
-        <button type="button" class="pm-push-btn primary" id="pm-push-enable-btn" onclick="enablePushNotifications()">알림 켜기</button>
+        <button type="button" class="pm-push-btn primary" id="pm-push-enable-btn" onclick="enablePushNotifications()" hidden>알림 켜기</button>
         <button type="button" class="pm-push-btn" id="pm-push-disable-btn" onclick="disablePushNotifications()">알림 끄기</button>
         <button type="button" class="pm-push-btn ghost" id="pm-push-preview-btn" onclick="previewPushNotification()">미리보기</button>
       </div>
@@ -13067,7 +13097,7 @@ async function init() {
       <button type="button" class="pm-logout-btn" id="pm-logout-btn" onclick="appLogout()">로그아웃</button>
     </div>
     <button type="button" class="pm-delete-btn" id="pm-delete-data-btn" onclick="requestDeleteMyDeviceAndServerData()">모든 데이터 삭제 초기화</button>
-    <button type="button" class="pm-admin-btn" id="pm-admin-btn" onclick="openAdminPanel()" style="display:none" data-svg-icon="settings" data-svg-size="14px" data-svg-text="앱 운영 설정"></button>
+    <button type="button" class="pm-admin-btn" id="pm-admin-btn" onclick="openAdminPanel()" style="display:none">앱 운영 설정</button>
   </div>
 </div>
 
@@ -13075,7 +13105,7 @@ async function init() {
 <div id="admin-panel-overlay" class="profile-modal-overlay pm-hidden" onclick="closeAdminPanel()">
   <div class="profile-modal" style="max-width:360px" onclick="event.stopPropagation()">
     <div class="pm-header">
-      <span class="pm-title" style="display:inline-flex;align-items:center;gap:6px" data-svg-icon="settings" data-svg-size="17px" data-svg-text="앱 운영 설정"></span>
+      <span class="pm-title">앱 운영 설정</span>
       <button type="button" class="pm-close" onclick="closeAdminPanel()">✕</button>
     </div>
     <div style="padding:20px">
