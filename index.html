@@ -6746,7 +6746,20 @@ function ensureRundayIframeLoaded() {
 function postToRunday(payload, options = {}) {
   const { ensureLoaded = false } = options;
   const frame = getRundayIframe();
-  if (!frame) return;
+  if (!frame) {
+    if (window.RundayInline?.__mounted) {
+      window.dispatchEvent(new MessageEvent('message', { data: payload }));
+      return;
+    }
+    if (ensureLoaded) {
+      activateInlineChallengePage().then(() => {
+        if (window.RundayInline?.__mounted) {
+          window.dispatchEvent(new MessageEvent('message', { data: payload }));
+        }
+      }).catch(() => {});
+    }
+    return;
+  }
   bindRundayIframe(frame);
   if (ensureLoaded) ensureRundayIframeLoaded();
   if (_rundayIframeReady && frame.contentWindow) {
@@ -6883,6 +6896,9 @@ async function ensureInlineChallengeMounted() {
 async function activateInlineChallengePage() {
   try {
     await ensureInlineChallengeMounted();
+    syncChallengeConfigToRunday();
+    syncChallengeStateToRunday();
+    syncChallengePeopleToRunday({ silent: true });
     window.RundayInline?.setRundayPageActive?.(true);
     window.RundayInline?.syncInitialIdentity?.();
     window.RundayInline?.loadChallengeConfig?.();
