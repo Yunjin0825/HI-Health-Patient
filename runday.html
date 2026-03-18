@@ -2527,15 +2527,23 @@
     return true;
   }
 
+  function getChallengeSourceWindow() {
+    try {
+      return (window.parent && window.parent !== window) ? window.parent : window;
+    } catch (e) {
+      return window;
+    }
+  }
+
   function syncChallengeStateFromParent() {
     try {
-      if (!window.parent || window.parent === window) return false;
-      const directReg = typeof window.parent.getMyReg === 'function'
-        ? window.parent.getMyReg({ includeCancelled: true })
+      const sourceWindow = getChallengeSourceWindow();
+      const directReg = typeof sourceWindow.getMyReg === 'function'
+        ? sourceWindow.getMyReg({ includeCancelled: true })
         : null;
       const payload = {
-        empId: String(window.parent?.S?.user?.empId || window.parent?.ACTIVE_EMPID || '').trim().toUpperCase(),
-        registrationId: String(window.parent?.S?.user?.registrationId || directReg?.id || '').trim(),
+        empId: String(sourceWindow?.S?.user?.empId || sourceWindow?.ACTIVE_EMPID || '').trim().toUpperCase(),
+        registrationId: String(sourceWindow?.S?.user?.registrationId || directReg?.id || '').trim(),
         registration: directReg && String(directReg?.status || '').trim().toLowerCase() !== 'cancelled'
           ? { ...directReg }
           : null,
@@ -2548,9 +2556,9 @@
 
   function syncChallengePeopleFromParent() {
     try {
-      if (!window.parent || window.parent === window) return false;
-      const rows = Array.isArray(window.parent.readChallengePeopleCache?.())
-        ? window.parent.readChallengePeopleCache()
+      const sourceWindow = getChallengeSourceWindow();
+      const rows = Array.isArray(sourceWindow.readChallengePeopleCache?.())
+        ? sourceWindow.readChallengePeopleCache()
         : [];
       return applyParentChallengePeopleState({ rows });
     } catch (e) {
