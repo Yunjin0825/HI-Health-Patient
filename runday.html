@@ -2410,6 +2410,7 @@
   let latestPeopleList = [];
   let lastPeopleRenderKey = '';
   let lastSuccessRenderKey = '';
+  let lastProfileAvatarSrc = '';
 
   function readCachedPeopleRows() {
     try {
@@ -2430,6 +2431,16 @@
     const avatarEl = document.getElementById('hero-profile-avatar');
     if (!avatarEl) return;
     const avatarSrc = currentLoginAvatar || LIVE_AVATAR_FALLBACK;
+    const currentImg = avatarEl.querySelector('img');
+    if (currentImg && lastProfileAvatarSrc === avatarSrc) return;
+    lastProfileAvatarSrc = avatarSrc;
+    if (currentImg) {
+      if (currentImg.getAttribute('src') !== avatarSrc) {
+        delete currentImg.dataset.err;
+        currentImg.src = avatarSrc;
+      }
+      return;
+    }
     avatarEl.innerHTML = `<img src="${avatarSrc}" alt="프로필 아바타" onerror="if(this.dataset.err)return;this.dataset.err=1;this.src='${LIVE_AVATAR_FALLBACK}'">`;
   }
 
