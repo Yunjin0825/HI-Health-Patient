@@ -2592,10 +2592,10 @@
     peopleLoadedAt = Date.now();
     writeCachedPeopleRows(rows);
     const local = JSON.parse(localStorage.getItem(CH_KEY) || '[]');
-    const merged = mergePeopleRows(rows, local);
-    renderPeople(merged);
+    const recoveryRows = mergePeopleRows(rows, getCurrentLocalRecoveryRows(local));
+    renderPeople(rows);
     setTimeout(() => {
-      tryRestoreCurrentRegistrationFromRows(merged, {
+      tryRestoreCurrentRegistrationFromRows(recoveryRows, {
         render: !document.getElementById('success-screen')?.classList.contains('show'),
       });
     }, 0);
@@ -3011,6 +3011,15 @@
     }
   }
 
+  function getCurrentLocalRecoveryRows(rows = []) {
+    const identity = getCurrentRegIdentity();
+    if (!identity.empId && !identity.regId && !identity.deviceId) return [];
+    return (Array.isArray(rows) ? rows : [])
+      .filter(isActiveRegRow)
+      .filter(row => isCurrentRegIdentityMatch(row, identity))
+      .sort((a, b) => registrationRowTs(b) - registrationRowTs(a));
+  }
+
   function peopleRowTs(row) {
     const ts = Date.parse(String(row?.registeredAt || ''));
     return Number.isFinite(ts) ? ts : 0;
@@ -3173,14 +3182,15 @@
           const data = await res.json();
           if (Array.isArray(data)) {
             clearTimeout(fallbackTimer);
-            const merged = mergePeopleRows(initialRows, data);
+            const serverRows = data.slice();
+            const recoveryRows = mergePeopleRows(serverRows, getCurrentLocalRecoveryRows(local));
             peopleLoadedAt = Date.now();
-            writeCachedPeopleRows(merged);
-            renderPeople(merged);
+            writeCachedPeopleRows(serverRows);
+            renderPeople(serverRows);
             setTimeout(() => {
-              tryRestoreCurrentRegistrationFromRows(merged);
+              tryRestoreCurrentRegistrationFromRows(recoveryRows);
             }, 0);
-            return merged;
+            return serverRows;
           }
         }
       } catch(e) { /* 오프라인 시 로컬 데이터 유지 */ }
