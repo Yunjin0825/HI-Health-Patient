@@ -8,7 +8,8 @@ const json = (data: unknown, status = 200) =>
   new Response(JSON.stringify(data), { status, headers: { ...CORS, "Content-Type": "application/json" } });
 
 function b64u(buf: Uint8Array): string {
-  return btoa(String.fromCharCode(...buf)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=/g,"");
+  let s = ""; for (const b of buf) s += String.fromCharCode(b);
+  return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=/g,"");
 }
 function b64uDecode(s: string): Uint8Array {
   const b = s.replace(/-/g,"+").replace(/_/g,"/");
@@ -48,7 +49,6 @@ async function encryptAesGcm(plaintext: string, p256dhB64u: string, authB64u: st
   const asPublic = new Uint8Array(await crypto.subtle.exportKey("raw",ephemeral.publicKey));
   const ecdhSecret = new Uint8Array(await crypto.subtle.deriveBits({name:"ECDH",public:uaKey},ephemeral.privateKey,256));
 
-  // aesgcm key derivation (draft-ietf-webpush-encryption-08)
   const uaLen = new Uint8Array([0, uaPublic.length]);
   const asLen = new Uint8Array([0, asPublic.length]);
   const context = concat(enc.encode("P-256\0"), uaLen, uaPublic, asLen, asPublic);
@@ -58,7 +58,6 @@ async function encryptAesGcm(plaintext: string, p256dhB64u: string, authB64u: st
   const nonce = await hkdf(salt, prk, concat(enc.encode("Content-Encoding: nonce\0"), context), 12);
 
   const aesKey = await crypto.subtle.importKey("raw",cek,"AES-GCM",false,["encrypt"]);
-  // padding: 2-byte zero length prefix + plaintext
   const padded = concat(new Uint8Array(2), enc.encode(plaintext));
   const ciphertext = new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM",iv:nonce},aesKey,padded));
   return { ciphertext, asPublic, salt };
@@ -116,12 +115,12 @@ Deno.serve(async (req) => {
           headers:{
             "Content-Type":"application/octet-stream",
             "Content-Encoding":"aesgcm",
-            "Encryption":`keyid=p256dh;salt=${b64u(salt)}`,
-            "Crypto-Key":`dh=${b64u(asPublic)}`,
+            "Encryption":`salt=${b64u(salt)}`,
+            "Crypto-Key":`dh=${b64u(asPublic)};p256ecdsa=${VAPID_PUBLIC_KEY}`,
             "TTL":"60",
-            "Authorization":`vapid t=${jwt},k=${VAPID_PUBLIC_KEY}`,
+            "Authorization":`WebPush ${jwt}`,
           },
-          body:ciphertext.buffer,
+          body:new Blob([ciphertext]),
         });
         if (res.status===404||res.status===410){
           invalid++;invalidEndpoints.push(row.endpoint);
