@@ -8453,7 +8453,8 @@ async function deleteRemoteRecordById(table, id, deviceId) {
 }
 
 function deleteWorkout(id) {
-  const idx = S.workouts.findIndex(w => w.id === id);
+  const targetId = String(id ?? '').trim();
+  const idx = S.workouts.findIndex(w => String(w?.id ?? '').trim() === targetId);
   if (idx === -1) return;
   const wo = S.workouts[idx];
   const exName = getWorkoutDisplayName(wo);
@@ -8479,7 +8480,7 @@ function deleteWorkout(id) {
       updateSharePreview();
       if (_db) {
         try {
-          await deleteRemoteRecordById('workouts', id, S.deviceId);
+          await deleteRemoteRecordById('workouts', targetId, S.deviceId);
         } catch (e) {
           console.error('[deleteWorkout]', e);
           S.workouts = prevWorkouts;
