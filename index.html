@@ -11391,6 +11391,15 @@ function syncChallengeConfigToRunday() {
 }
 
 function getChallengeSyncPayload() {
+  if (IS_GUEST) {
+    return {
+      type: 'CHALLENGE_REGISTRATION_STATE',
+      empId: '',
+      registrationId: '',
+      registration: null,
+      guest: true,
+    };
+  }
   const activeReg = getMyReg();
   const fallbackReg = activeReg || getMyReg({ includeCancelled: true });
   return {
@@ -13203,57 +13212,22 @@ function buildGuestSampleState() {
     '잠은 조금 부족했어요 (6.5시간).',
     '영양제 일부만 챙겼어요 (종합비타민).',
   ].join('\n');
-  const challengeRegId = 'HC-GUEST1';
-  const challengeReg = {
-    id: challengeRegId,
-    deviceId: '',
-    empId: 'G2401',
-    name: '게스트',
-    dept: '커뮤니케이션팀',
-    phone: '010-1234-5678',
-    shoeSize: '245',
-    shoePrefs: ['nike'],
-    shoeRequestNote: '쿠션감 있는 러닝화를 선호해요.',
-    familyParticipation: false,
-    familyCount: 0,
-    familyShoeSize: '',
-    familyGender: '',
-    familyAge: '',
-    familyMemo: '',
-    cruiseParticipation: true,
-    eventParticipation: true,
-    note: buildChRegistrationNote({
-      shoePrefs: ['nike'],
-      shoeRequestNote: '쿠션감 있는 러닝화를 선호해요.',
-      familyParticipation: false,
-      familyGender: '',
-      familyAge: '',
-      familyShoeSize: '',
-      familyMemo: '',
-      cruiseParticipation: true,
-      eventParticipation: true,
-    }),
-    status: 'pending',
-    adminNote: '',
-    registeredAt: guestSampleDate(2, 9, 20).toISOString(),
-  };
-
   return {
     user: {
       name: '게스트',
       nickname: '둘러보기 게스트',
       avatar: 'images/avatars/av14.png',
-      empId: challengeReg.empId,
-      dept: challengeReg.dept,
+      empId: 'G2401',
+      dept: '커뮤니케이션팀',
       points: totalPoints,
       totalPoints,
       streak: 0,
       stickersReceived: 0,
       levelCardShares: 0,
-      registrationId: challengeRegId,
+      registrationId: null,
       tags: ['매일 걷기', 'HI RUN DAY 화이팅'],
     },
-    challengeRegs: [challengeReg],
+    challengeRegs: [],
     workouts,
     glucoseRecords,
     todayLog: {

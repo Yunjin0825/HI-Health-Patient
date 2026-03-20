@@ -1986,7 +1986,24 @@
   let peopleLoadPromise = null;
   let peopleLoadedAt = 0;
 
+  function isGuestChallengeViewer() {
+    try {
+      if (window.IS_GUEST) return true;
+    } catch (e) {}
+    try {
+      return !!window.parent?.IS_GUEST;
+    } catch (e) {}
+    return false;
+  }
+
+  function ensureGuestChallengeFormVisible() {
+    lastSuccessRenderKey = '';
+    document.getElementById('success-screen')?.classList.remove('show');
+    document.getElementById('form-screen')?.classList.remove('hide');
+  }
+
   function readChallengeBackupRows(empId = getCurrentEmpId(), regId = '') {
+    if (isGuestChallengeViewer()) return [];
     const normalizedEmpId = String(empId || '').trim().toUpperCase();
     const normalizedRegId = String(regId || '').trim();
     if (!normalizedEmpId) return [];
@@ -2011,6 +2028,7 @@
   }
 
   function getCurrentRegistrationId(empId = getCurrentEmpId()) {
+    if (isGuestChallengeViewer()) return '';
     try {
       const parentRegId = String(window.parent?.S?.user?.registrationId || '').trim();
       if (parentRegId) return parentRegId;
@@ -2040,6 +2058,7 @@
   }
 
   function getCurrentRegIdentity(overrides = {}) {
+    if (isGuestChallengeViewer()) return { empId: '', regId: '', deviceId: '' };
     const empId = String(overrides.empId ?? getCurrentEmpId()).trim().toUpperCase();
     const regId = String(overrides.registrationId || getCurrentRegistrationId(empId) || '').trim();
     const deviceId = String(overrides.deviceId || getCurrentDeviceId()).trim();
@@ -2063,6 +2082,7 @@
   }
 
   function getLatestActiveRegistrationForCurrentEmp() {
+    if (isGuestChallengeViewer()) return null;
     const identity = getCurrentRegIdentity();
     if (!identity.empId && !identity.regId && !identity.deviceId) return null;
     const regs = JSON.parse(localStorage.getItem(CH_KEY) || '[]')
@@ -2649,6 +2669,10 @@
   }
 
   function applyParentChallengeRegistrationState(payload = {}) {
+    if (isGuestChallengeViewer()) {
+      ensureGuestChallengeFormVisible();
+      return false;
+    }
     const reg = payload?.registration && isActiveRegRow(payload.registration) ? payload.registration : null;
     const regId = String(payload?.registrationId || reg?.id || '').trim();
     const empId = String(payload?.empId || reg?.empId || getCurrentEmpId()).trim().toUpperCase();
@@ -2674,14 +2698,16 @@
     if (!rows.length) return false;
     peopleLoadedAt = Date.now();
     writeCachedPeopleRows(rows);
-    const local = JSON.parse(localStorage.getItem(CH_KEY) || '[]');
+    const local = isGuestChallengeViewer() ? [] : JSON.parse(localStorage.getItem(CH_KEY) || '[]');
     const recoveryRows = mergePeopleRows(rows, getCurrentLocalRecoveryRows(local));
     renderPeople(rows);
-    setTimeout(() => {
-      tryRestoreCurrentRegistrationFromRows(recoveryRows, {
-        render: !document.getElementById('success-screen')?.classList.contains('show'),
-      });
-    }, 0);
+    if (!isGuestChallengeViewer()) {
+      setTimeout(() => {
+        tryRestoreCurrentRegistrationFromRows(recoveryRows, {
+          render: !document.getElementById('success-screen')?.classList.contains('show'),
+        });
+      }, 0);
+    }
     return true;
   }
 
@@ -2694,6 +2720,10 @@
   }
 
   function syncChallengeStateFromParent() {
+    if (isGuestChallengeViewer()) {
+      ensureGuestChallengeFormVisible();
+      return false;
+    }
     try {
       const sourceWindow = getChallengeSourceWindow();
       const directReg = typeof sourceWindow.getMyReg === 'function'
@@ -3051,6 +3081,7 @@
   }
 
   function findRecoverableRegistration(rows = []) {
+    if (isGuestChallengeViewer()) return null;
     const identity = getCurrentRegIdentity();
     const currentName = getCurrentUserName();
     const activeRows = (Array.isArray(rows) ? rows : [])
@@ -3225,8 +3256,10 @@
   async function loadPeople(options = {}) {
     const force = !!options.force;
     // 재실행 직후에는 마지막으로 본 전체 목록 캐시를 우선 사용
-    const local = JSON.parse(localStorage.getItem(CH_KEY) || '[]')
-      .sort((a, b) => peopleRowTs(b) - peopleRowTs(a));
+    const local = isGuestChallengeViewer()
+      ? []
+      : JSON.parse(localStorage.getItem(CH_KEY) || '[]')
+          .sort((a, b) => peopleRowTs(b) - peopleRowTs(a));
     const cached = readCachedPeopleRows()
       .sort((a, b) => peopleRowTs(b) - peopleRowTs(a));
     const initialRows = mergePeopleRows(cached, local);
@@ -3236,9 +3269,11 @@
       if (fallbackRendered) return;
       fallbackRendered = true;
       renderPeople(initialRows);
-      setTimeout(() => {
-        tryRestoreCurrentRegistrationFromRows(initialRows, { render: shouldRenderRecoveredLocal });
-      }, 0);
+      if (!isGuestChallengeViewer()) {
+        setTimeout(() => {
+          tryRestoreCurrentRegistrationFromRows(initialRows, { render: shouldRenderRecoveredLocal });
+        }, 0);
+      }
     };
     const fallbackDelay = countActivePeople(initialRows) > 1 ? 0 : 600;
     const fallbackTimer = setTimeout(renderFallbackPeople, fallbackDelay);
@@ -3270,9 +3305,11 @@
             peopleLoadedAt = Date.now();
             writeCachedPeopleRows(serverRows);
             renderPeople(serverRows);
-            setTimeout(() => {
-              tryRestoreCurrentRegistrationFromRows(recoveryRows);
-            }, 0);
+            if (!isGuestChallengeViewer()) {
+              setTimeout(() => {
+                tryRestoreCurrentRegistrationFromRows(recoveryRows);
+              }, 0);
+            }
             return serverRows;
           }
         }
@@ -3480,6 +3517,10 @@
   }
 
   async function checkExisting(empId) {
+    if (isGuestChallengeViewer()) {
+      ensureGuestChallengeFormVisible();
+      return;
+    }
     if (String(editingRegId || '').trim()) {
       document.getElementById('success-screen').classList.remove('show');
       document.getElementById('form-screen').classList.remove('hide');
