@@ -824,6 +824,24 @@
       color:#111827;
       line-height:1.2;
     }
+    .souvenir-name-row {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .souvenir-inline-note {
+      display:inline-flex;
+      align-items:center;
+      padding:4px 8px;
+      border-radius:999px;
+      background:#ecfeff;
+      color:#0f766e;
+      font-size:11px;
+      font-weight:700;
+      letter-spacing:-0.02em;
+      line-height:1;
+    }
     .souvenir-note {
       margin-top:8px;
       font-size:12px;
@@ -1608,7 +1626,10 @@
               <div class="souvenir-head">
                 <div class="souvenir-copy">
                   <div class="souvenir-type">혈당체크기기</div>
-                  <div class="souvenir-name">Dexcom</div>
+                  <div class="souvenir-name-row">
+                    <div class="souvenir-name">Dexcom</div>
+                    <span class="souvenir-inline-note">G7 (10일간 착용)</span>
+                  </div>
                 </div>
               </div>
               <div class="souvenir-field">
