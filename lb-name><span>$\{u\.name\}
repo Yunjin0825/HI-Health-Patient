@@ -1,0 +1,10 @@
+2526:    .podium-name { font-size: 11px; font-weight: 600; text-align: center; max-width: 70px; }
+2527:    .podium-name .ui-svg-icon { --ui-icon-size: 12px; vertical-align: -0.14em; }
+10061:    const standLabel = ['1위','2위','3위'];
+10064:      if (!u) return `<div class="podium-item ${sizeClass}"><div class="podium-av-wrap"><div class="podium-avatar"></div></div><div class="podium-stand ${standClass[i]}">${standLabel[i]}</div></div>`;
+10073:          <div class="podium-name">${escHtmlComm(u.name)}</div>
+10075:          <div class="podium-stand ${standClass[i]}">${standLabel[i]}</div>
+10149:  const standLabel = ['1위','2위','3위'];
+10152:    if (!u) return `<div class="podium-item ${sizeClass}"><div class="podium-av-wrap"><div class="podium-avatar"></div></div><div class="podium-stand ${standClass[i]}">${standLabel[i]}</div></div>`;
+10163:        <div class="podium-name">${escHtmlComm(u.name)}</div>
+10165:        <div class="podium-stand ${standClass[i]}">${standLabel[i]}</div>

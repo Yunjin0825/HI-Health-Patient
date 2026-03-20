@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>LocalStorage Dump</title>
+</head>
+<body>
+  <pre id="out">loading...</pre>
+  <script>
+    (function () {
+      const out = document.getElementById('out');
+      const url = new URL(location.href);
+      const keys = (url.searchParams.get('keys') || '')
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+      const data = {};
+
+      if (!keys.length) {
+        for (let i = 0; i < localStorage.length; i += 1) {
+          const key = localStorage.key(i);
+          data[key] = localStorage.getItem(key);
+        }
+      } else {
+        keys.forEach((key) => {
+          data[key] = localStorage.getItem(key);
+        });
+      }
+
+      out.textContent = JSON.stringify({
+        origin: location.origin,
+        keyCount: localStorage.length,
+        data
+      }, null, 2);
+    }());
+  </script>
+</body>
+</html>
