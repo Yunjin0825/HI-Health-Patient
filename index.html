@@ -504,6 +504,24 @@
     .app-header.challenge-mode .header-profile-label {
       color: rgba(30,16,71,0.82);
     }
+    .app-header.challenge-mode .header-right {
+      width: 100%;
+      justify-content: flex-end;
+    }
+    .app-header.challenge-mode .header-bell-btn {
+      position: absolute;
+      left: 20px;
+      top: calc(max(env(safe-area-inset-top), 44px) + 6px);
+      border-color: rgba(255,255,255,0.78);
+      background: rgba(255,255,255,0.72);
+      box-shadow: none;
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      z-index: 1;
+    }
+    .app-header.challenge-mode .header-bell-btn svg {
+      stroke: rgba(30,16,71,0.82);
+    }
     .app-header.challenge-mode .header-profile-trigger {
       gap: 8px;
       padding: 5px 6px 5px 12px;
