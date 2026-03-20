@@ -6832,7 +6832,7 @@ function myWeekPts() {
    NAVIGATION
 ════════════════════════════════════════ */
 const _isTouch = () => window.matchMedia('(hover: none)').matches;
-const RUNDAY_IFRAME_SRC = 'runday.html?v=20260320-86';
+const RUNDAY_IFRAME_SRC = 'runday.html?v=20260320-87';
 let _rundayIframeReady = false;
 let _rundayIframeLoadStarted = false;
 const _rundayIframeQueue = [];
@@ -11322,6 +11322,7 @@ const CH = {
 const DEFAULT_CH_DEADLINE_VALUE = '2026-03-21';
 const CH_REG_KEY = 'hi_health_registrations_v2';
 const CH_SHOE_MODELS = [
+  { id:'nb-860-v15', label:'New Balance Fresh Foam X 860 v15', image:'images/nb-860.png', genderLabel:'공용' },
   { id:'nike1', label:'Nike Vomero Plus (화이트)', image:'images/nike1.png', genderLabel:'여성' },
   { id:'nike2', label:'Nike Vomero Plus (베이지)', image:'images/nike2.png', genderLabel:'여성' },
   { id:'nike3', label:'Nike Vomero Plus (그레이)', image:'images/nike3.png', genderLabel:'남성' },
@@ -11569,7 +11570,7 @@ function getChShoePrefs(reg) {
   let prefs = raw.map(resolveChShoeModelId).filter(Boolean);
   if (!prefs.length) {
     const note = String(reg?.note || '').trim();
-    const match = note.match(/희망(?:모델|브랜드):\s*(.+)$/m);
+    const match = note.match(/(?:운동화모델|희망(?:모델|브랜드)):\s*(.+)$/m);
     if (match) {
       prefs = match[1].split('|').map(resolveChShoeModelId).filter(Boolean);
     }
@@ -11585,7 +11586,7 @@ function formatChShoePrefs(reg) {
 
 function buildChShoePrefNote(reg) {
   const prefs = getChShoePrefs(reg).filter(Boolean);
-  return prefs.length ? `희망브랜드: ${prefs.join('|')}` : '';
+  return prefs.length ? `운동화모델: ${prefs.join('|')}` : '';
 }
 
 function getChFamilyMembers(reg) {
@@ -12487,7 +12488,7 @@ function renderChallenge() {
           ${myReg.familyParticipation && familyMemo ? `<div class="ch-reg-row ch-reg-row-full"><span class="ch-reg-label">가족 메모</span><span class="ch-reg-value">${escHtmlComm(familyMemo)}</span></div>` : ''}
           <div class="ch-reg-row"><span class="ch-reg-label">크루즈 탑승</span><span class="ch-reg-value">${myReg.cruiseParticipation === false ? '탑승 안 함' : '탑승 희망'}</span></div>
           <div class="ch-reg-row"><span class="ch-reg-label">행사 참여</span><span class="ch-reg-value">${myReg.eventParticipation === false ? '불참' : '참여'}</span></div>
-          ${shoePrefSummary.length ? `<div class="ch-reg-row ch-reg-row-full"><span class="ch-reg-label">희망 브랜드</span><span class="ch-reg-value">${shoePrefSummary.join(' / ')}</span></div>` : ''}
+          ${shoePrefSummary.length ? `<div class="ch-reg-row ch-reg-row-full"><span class="ch-reg-label">운동화모델</span><span class="ch-reg-value">${shoePrefSummary.join(' / ')}</span></div>` : ''}
         </div>
         <div class="ch-reg-phase">현재 단계: ${getChallengePhaseLabel(phase)}</div>
         <div style="display:flex;align-items:center;gap:8px">

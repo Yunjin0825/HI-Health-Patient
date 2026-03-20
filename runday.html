@@ -760,6 +760,127 @@
 
     /* shoe brand 2-column grid */
     .shoe-brand-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
+    .shoe-model-guide {
+      display: grid;
+      gap: 12px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border: 1.5px solid #e5e7eb;
+      border-radius: 18px;
+      padding: 14px;
+      box-shadow: 0 10px 24px rgba(15,23,42,0.06);
+    }
+    .shoe-model-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .shoe-model-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: fit-content;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4338ca;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: -0.1px;
+      margin-bottom: 8px;
+    }
+    .shoe-model-title {
+      font-size: 17px;
+      font-weight: 900;
+      letter-spacing: -0.4px;
+      color: #111827;
+      line-height: 1.2;
+    }
+    .shoe-model-sub {
+      margin-top: 5px;
+      font-size: 12px;
+      color: #6b7280;
+      line-height: 1.5;
+    }
+    .shoe-model-chip {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 76px;
+      padding: 8px 12px;
+      border-radius: 14px;
+      background: #111827;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.35;
+      text-align: center;
+    }
+    .shoe-model-gallery {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .shoe-model-thumb {
+      border: 1.5px solid #e5e7eb;
+      background: #fff;
+      border-radius: 16px;
+      padding: 0;
+      overflow: hidden;
+      cursor: zoom-in;
+      font-family: inherit;
+      text-align: left;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+      box-shadow: 0 6px 18px rgba(15,23,42,0.06);
+    }
+    .shoe-model-thumb:hover {
+      transform: translateY(-2px);
+      border-color: #c7d2fe;
+      box-shadow: 0 12px 24px rgba(79,70,229,0.12);
+    }
+    .shoe-model-thumb img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      display: block;
+      background: #f8fafc;
+    }
+    .shoe-model-thumb-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px 12px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #111827;
+    }
+    .shoe-model-thumb-hint {
+      color: #6d28d9;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    .shoe-model-points {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 7px;
+      color: #4b5563;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .shoe-model-note {
+      font-size: 11px;
+      color: #6b7280;
+      line-height: 1.6;
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 11px 12px;
+      border: 1px solid #e5e7eb;
+    }
 
     /* nike combined card */
     .nk-card {
@@ -998,6 +1119,10 @@
       background: rgba(224,231,255,0.96);
       color: #3730a3;
     }
+    .img-preview-gender.model {
+      background: rgba(238,242,255,0.96);
+      color: #4338ca;
+    }
     .img-preview-sub {
       margin-top: 4px; font-size: 12px;
       color: rgba(255,255,255,0.45); text-align: center;
@@ -1040,6 +1165,10 @@
       }
       .img-preview-nav.prev { left: 8px; }
       .img-preview-nav.next { right: 8px; }
+      .shoe-model-guide { padding: 12px; }
+      .shoe-model-head { flex-direction: column; }
+      .shoe-model-chip { min-width: 0; width: fit-content; }
+      .shoe-model-gallery { grid-template-columns: 1fr; }
     }
 
     /* ─── TOAST ──────────────────────────────── */
@@ -1463,16 +1592,10 @@
         🔔 티셔츠와 러닝화는 커스텀 패치 부착으로 수령 후 교환 및 반품이 어려워 사이즈를 신중하게 작성해주시기 바랍니다.
       </div>
       <div class="fg">
-        <label class="lbl">희망 브랜드 <span style="font-weight:400;color:#d1d5db">탭하여 선택</span></label>
-        <div class="shoe-brand-grid">
-          <div id="nike-combo-card"></div>
-          <div id="nb-combo-card"></div>
-        </div>
-        <div style="font-size:11px;color:#6b7280;line-height:1.6;background:#f9fafb;border-radius:8px;padding:10px 12px;margin:8px 0 0;">
-          📦 Nike 또는 New Balance 중 하나를 선택해주세요. 실제 지급 모델은 재고와 사이즈 상황에 따라 안내됩니다.
-        </div>
-        <label class="lbl" for="f-shoe-note" style="margin-top:12px">요청사항 <span style="font-weight:400;color:#d1d5db">선택</span></label>
-        <textarea class="snote" id="f-shoe-note" rows="2" placeholder="원하는 색상, 발볼, 착화감, 재고문의 등 자유롭게 적어주세요"></textarea>
+        <label class="lbl">지급 운동화 안내</label>
+        <div id="shoe-model-guide"></div>
+        <label class="lbl" for="f-shoe-note" style="margin-top:12px">사이즈 요청사항 <span style="font-weight:400;color:#d1d5db">선택</span></label>
+        <textarea class="snote" id="f-shoe-note" rows="2" placeholder="발볼, 반 사이즈 고민, 착화감 메모 등 사이즈 관련 요청사항을 적어주세요"></textarea>
       </div>
       <div class="fg" style="margin-top:12px">
         <label class="lbl">혈당체크기기 신청 여부 <span class="req">*</span></label>
@@ -1561,21 +1684,30 @@
   document.body.classList.toggle('embedded-runday', IS_EMBEDDED_RUN_DAY);
   document.body.classList.toggle('standalone-runday', !IS_EMBEDDED_RUN_DAY);
 
-  const NIKE_MODELS = [
-    { id:'nike1', label:'Nike Vomero Plus (화이트)', img:'images/nike1.png', g:'f', cdot:'#f0ede8' },
-    { id:'nike2', label:'Nike Vomero Plus (베이지)', img:'images/nike2.png', g:'f', cdot:'#c9a97a' },
-    { id:'nike3', label:'Nike Vomero Plus (그레이)', img:'images/nike3.png', g:'m', cdot:'#9ca3af' },
+  const FIXED_SHOE_MODEL = {
+    id: 'nb-860-v15',
+    label: 'New Balance Fresh Foam X 860 v15',
+    shortLabel: 'NB 860 v15',
+    brandLabel: 'New Balance',
+  };
+  const MODELS = [
+    {
+      id: 'nb-860-main',
+      label: 'New Balance Fresh Foam X 860 v15',
+      img: 'images/nb-860.png',
+      badge: 'LOOK 1',
+      desc: '단일 지급 모델 전면/사이드 참고 이미지',
+    },
+    {
+      id: 'nb-860-alt',
+      label: 'New Balance Fresh Foam X 860 v15',
+      img: 'images/nb-860-1.png',
+      badge: 'LOOK 2',
+      desc: '단일 지급 모델 디테일 참고 이미지',
+    },
   ];
-  const NB_MODELS = [
-    { id:'nb1', label:'NB 860 V15 (화이트)', img:'images/nb1.png', g:'f', cdot:'#f0ede8' },
-    { id:'nb2', label:'NB 860 V15 (그레이)', img:'images/nb2.png', g:'m', cdot:'#9ca3af' },
-    { id:'nb3', label:'NB 1080 V15 (베이지)', img:'images/nb3.png', g:'f', cdot:'#c9a97a' },
-  ];
-  const MODELS = [...NIKE_MODELS, ...NB_MODELS];
   const MAX_FAMILY_MEMBERS = 3;
-  let selectedBrand = '';
-  let nikeIdx = 0;
-  let nbIdx = 0;
+  let selectedBrand = FIXED_SHOE_MODEL.id;
   let familyMembers = [];
 
   let courseDetailMode = 'inline';
@@ -1715,115 +1847,64 @@
     familyMembers[idx][key] = String(value || '').trim();
   }
 
-  function toggleBrand(brand, idx) {
-    selectedBrand = selectedBrand === brand ? '' : brand;
-    if (brand === 'nike') nikeGoTo(idx);
-    else nbGoTo(idx);
+  function toggleBrand() {
+    selectedBrand = FIXED_SHOE_MODEL.id;
+    renderShoes();
   }
 
-  function renderNikeCard() {
-    const nikeAnyOn = selectedBrand === 'nike';
-    const cur = NIKE_MODELS[nikeIdx];
-    const dots = NIKE_MODELS.map((_, i) =>
-      `<span class="nk-dot${i===nikeIdx?' active':''}" onclick="event.stopPropagation();nikeGoTo(${i})"></span>`
-    ).join('');
-    document.getElementById('nike-combo-card').innerHTML = `
-      <div class="nk-card${nikeAnyOn?' on':''}" onclick="toggleBrand('nike',${nikeIdx})">
-        <div class="nk-title">Nike</div>
-        <div class="nk-slide-wrap">
-          <div class="nk-slide-viewport" onclick="event.stopPropagation();openImgPreview(${nikeIdx})">
-            <img class="nk-slide-img" id="nk-slide-img" src="${cur.img}" alt="${cur.label}">
-          </div>
-        </div>
-        <div class="nk-dots">${dots}</div>
-        <div class="nk-divider"></div>
-        <div class="nk-rows">
-          <div class="nk-row${nikeAnyOn?' on':''}">
-            <div class="nk-cdot" style="background:${cur.cdot}"></div>
-            <span class="nk-nm">나이키 러닝화 선택</span>
-            <span style="font-size:10px;color:${nikeAnyOn?'var(--p2)':'transparent'};flex-shrink:0;margin-left:2px">✓</span>
-          </div>
-        </div>
-      </div>`;
+  function nikeGoTo(i = 0) {
+    openImgPreview(Math.max(0, Math.min(MODELS.length - 1, Number(i) || 0)));
   }
 
-  function nikeSlide(dir) {
-    nikeIdx = (nikeIdx + dir + NIKE_MODELS.length) % NIKE_MODELS.length;
-    nikeGoTo(nikeIdx);
-  }
-
-  function nikeGoTo(i) {
-    nikeIdx = i;
-    const img = document.getElementById('nk-slide-img');
-    if (img) {
-      img.style.opacity = '0';
-      setTimeout(() => {
-        renderNikeCard();
-        const newImg = document.getElementById('nk-slide-img');
-        if (newImg) { newImg.style.opacity = '0'; requestAnimationFrame(() => { newImg.style.opacity = '1'; }); }
-      }, 160);
-    } else {
-      renderNikeCard();
-    }
-  }
-
-  function renderNbCard() {
-    const nbAnyOn = selectedBrand === 'nb';
-    const cur = NB_MODELS[nbIdx];
-    const dots = NB_MODELS.map((_, i) =>
-      `<span class="nk-dot${i===nbIdx?' active':''}" onclick="event.stopPropagation();nbGoTo(${i})"></span>`
-    ).join('');
-    document.getElementById('nb-combo-card').innerHTML = `
-      <div class="nk-card${nbAnyOn?' on':''}" onclick="toggleBrand('nb',${nbIdx})">
-        <div class="nk-title">New Balance</div>
-        <div class="nk-slide-wrap">
-          <div class="nk-slide-viewport" onclick="event.stopPropagation();openImgPreview(${NIKE_MODELS.length + nbIdx})">
-            <img class="nk-slide-img" id="nb-slide-img" src="${cur.img}" alt="${cur.label}">
-          </div>
-        </div>
-        <div class="nk-dots">${dots}</div>
-        <div class="nk-divider"></div>
-        <div class="nk-rows">
-          <div class="nk-row${nbAnyOn?' on':''}">
-            <div class="nk-cdot" style="background:${cur.cdot}"></div>
-            <span class="nk-nm">뉴발란스 러닝화 선택</span>
-            <span style="font-size:10px;color:${nbAnyOn?'var(--p2)':'transparent'};flex-shrink:0;margin-left:2px">✓</span>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  function nbGoTo(i) {
-    nbIdx = i;
-    const img = document.getElementById('nb-slide-img');
-    if (img) {
-      img.style.opacity = '0';
-      setTimeout(() => {
-        renderNbCard();
-        const newImg = document.getElementById('nb-slide-img');
-        if (newImg) { newImg.style.opacity = '0'; requestAnimationFrame(() => { newImg.style.opacity = '1'; }); }
-      }, 160);
-    } else {
-      renderNbCard();
-    }
-  }
-
-  function nbSlide(dir) {
-    nbIdx = (nbIdx + dir + NB_MODELS.length) % NB_MODELS.length;
-    nbGoTo(nbIdx);
+  function nbGoTo(i = 0) {
+    openImgPreview(Math.max(0, Math.min(MODELS.length - 1, Number(i) || 0)));
   }
 
   function renderShoes() {
-    renderNikeCard();
-    renderNbCard();
+    const guide = document.getElementById('shoe-model-guide');
+    if (!guide) return;
+    selectedBrand = FIXED_SHOE_MODEL.id;
+    guide.innerHTML = `
+      <div class="shoe-model-guide">
+        <div class="shoe-model-head">
+          <div>
+            <div class="shoe-model-badge">단일 지급 모델</div>
+            <div class="shoe-model-title">${FIXED_SHOE_MODEL.label}</div>
+            <div class="shoe-model-sub">챌린지 지급 운동화는 단일 모델로 운영되며, 신청 시에는 사이즈만 선택해 주세요.</div>
+          </div>
+          <div class="shoe-model-chip">${FIXED_SHOE_MODEL.brandLabel}<br>${FIXED_SHOE_MODEL.shortLabel}</div>
+        </div>
+        <div class="shoe-model-gallery">
+          ${MODELS.map((model, idx) => `
+            <button type="button" class="shoe-model-thumb" onclick="openImgPreview(${idx})" title="${model.label} 크게 보기">
+              <img src="${model.img}" alt="${model.label}">
+              <div class="shoe-model-thumb-meta">
+                <span>${model.badge}</span>
+                <span class="shoe-model-thumb-hint">확대 보기</span>
+              </div>
+            </button>
+          `).join('')}
+        </div>
+        <ul class="shoe-model-points">
+          <li>지급 모델은 ${FIXED_SHOE_MODEL.shortLabel} 한 가지로 운영됩니다.</li>
+          <li>컬러나 브랜드 선택 없이, 실제 신청에는 러닝화 사이즈만 접수됩니다.</li>
+          <li>발볼이나 착화감 관련 요청은 아래 메모칸에 남겨주시면 운영 참고용으로 확인합니다.</li>
+        </ul>
+        <div class="shoe-model-note">참고 이미지는 지급 모델 안내용입니다. 실제 수령 일정과 세부 운영 안내는 챌린지 진행 공지에 맞춰 별도로 안내됩니다.</div>
+      </div>
+    `;
   }
 
   function shortLabel(id) {
-    if (id === 'nike') return 'Nike';
-    if (id === 'nb') return 'New Balance';
-    const m = MODELS.find(x => x.id === id);
-    if (!m) return '';
-    return m.label.replace('Nike Vomero Plus','Vomero').replace(' V15','').replace(' (','(');
+    const norm = String(id || '').trim().toLowerCase();
+    if (norm === FIXED_SHOE_MODEL.id) return FIXED_SHOE_MODEL.shortLabel;
+    if (norm === 'nike') return 'Nike';
+    if (norm === 'nb') return 'New Balance';
+    if (norm === 'nb1') return 'NB 860 V15';
+    if (norm === 'nb2') return 'NB 860 V15';
+    if (norm === 'nb3') return 'NB 1080 V15';
+    if (norm === 'nike1' || norm === 'nike2' || norm === 'nike3') return 'Nike Vomero Plus';
+    return String(id || '').trim();
   }
 
   function toggleFam(r) {
@@ -2272,7 +2353,6 @@
 
     if (!tshirt) return toast('티셔츠 사이즈를 선택해주세요');
     if (!shoe) return toast('신발 사이즈를 선택해주세요');
-    if (!selectedBrand) return toast('희망 브랜드를 선택해주세요');
     if (!cgmVal) return toast('혈당체크기기 신청 여부를 선택해주세요');
     if (!famVal) return toast('가족 참여 여부를 선택해주세요');
     if (!cruise) return toast('크루즈 탑승 여부를 선택해주세요');
@@ -2299,9 +2379,9 @@
     const parts = [];
     const members = fam ? normalizeFamilyMembers(familyMembers.length ? familyMembers : [createEmptyFamilyMember()]) : [];
     const firstMember = members[0] || createEmptyFamilyMember();
-    const pref = selectedBrand;
+    const pref = FIXED_SHOE_MODEL.id;
     if (tshirt) parts.push('티셔츠: ' + tshirt);
-    if (pref)  parts.push('희망브랜드: ' + pref);
+    if (pref)  parts.push('운동화모델: ' + FIXED_SHOE_MODEL.label);
     parts.push('혈당체크기기: ' + (cgmVal === 'yes' ? '신청' : '미신청'));
     if (shoeN) parts.push('러닝화요청: ' + shoeN);
     parts.push('가족참여: ' + (fam ? '가족함께 참여' : '본인만'));
@@ -2361,13 +2441,14 @@
   let previewIdx = 0;
 
   function setPreviewContent(idx) {
-    const m = MODELS[idx];
+    const m = MODELS[idx] || MODELS[0];
+    if (!m) return;
     document.getElementById('img-preview-img').src = m.img;
-    const genderEl = document.getElementById('img-preview-gender');
-    genderEl.textContent = m.g === 'f' ? '여성' : '남성';
-    genderEl.className = `img-preview-gender ${m.g}`;
+    const badgeEl = document.getElementById('img-preview-gender');
+    badgeEl.textContent = m.badge || FIXED_SHOE_MODEL.shortLabel;
+    badgeEl.className = 'img-preview-gender model';
     document.getElementById('img-preview-label').textContent = m.label;
-    document.getElementById('img-preview-sub').textContent = '탭하면 닫힙니다';
+    document.getElementById('img-preview-sub').textContent = m.desc || '탭하면 닫힙니다';
   }
 
   function openImgPreview(idx) {
@@ -2508,9 +2589,7 @@
       document.querySelectorAll(`input[name="${groupName}"]`).forEach(input => { input.checked = false; });
     });
 
-    selectedBrand = '';
-    nikeIdx = 0;
-    nbIdx = 0;
+    selectedBrand = FIXED_SHOE_MODEL.id;
     familyMembers = [];
     document.getElementById('fam-detail')?.classList.remove('show');
     renderFamilyMembers();
@@ -3326,10 +3405,9 @@
     document.getElementById('f-tshirt').value = reg.tshirtSize || '';
     if (document.getElementById('f-shoe-note')) document.getElementById('f-shoe-note').value = reg.shoeRequestNote || '';
 
-    // 브랜드 선택 복원
-    selectedBrand = (reg.shoePrefs && reg.shoePrefs[0]) || '';
-    renderNikeCard();
-    renderNbCard();
+    // 단일 모델 안내 카드 복원
+    selectedBrand = FIXED_SHOE_MODEL.id;
+    renderShoes();
 
     // 라디오 버튼 복원
     const cgmVal = reg.cgmParticipation ? 'yes' : 'no';
