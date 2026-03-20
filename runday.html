@@ -374,6 +374,11 @@
       z-index:1;
       flex-shrink:0;
     }
+    .prog-route-action {
+      margin-top:8px;
+      display:flex;
+      justify-content:flex-start;
+    }
     .route-focus-chip svg {
       width:12px;
       height:12px;
@@ -1409,18 +1414,18 @@
         <div class="prog-num">5</div>
         <div class="prog-body">
           <div class="prog-row">
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0;">
-              <div class="prog-title">함께 달리기 <span style="font-size:11px;font-weight:500;opacity:0.6;">약 4.3km</span></div>
-              <button type="button" class="route-focus-chip" id="route-focus-toggle" onclick="openCourseDetail()" aria-haspopup="dialog" aria-controls="route-detail-modal">
-                <span>RUN COURSE DETAIL</span>
-                <span class="route-focus-chip-sep" aria-hidden="true"></span>
-                <span>자세히 보기</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <polyline points="9 6 15 12 9 18"></polyline>
-                </svg>
-              </button>
-            </div>
+            <div class="prog-title">함께 달리기 <span style="font-size:11px;font-weight:500;opacity:0.6;">약 4.3km</span></div>
             <div class="prog-time">pm 2:30</div>
+          </div>
+          <div class="prog-route-action">
+            <button type="button" class="route-focus-chip" id="route-focus-toggle" onclick="openCourseDetail()" aria-haspopup="dialog" aria-controls="route-detail-modal">
+              <span>RUN COURSE DETAIL</span>
+              <span class="route-focus-chip-sep" aria-hidden="true"></span>
+              <span>자세히 보기</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="9 6 15 12 9 18"></polyline>
+              </svg>
+            </button>
           </div>
           <div class="prog-desc">여의도 유람선터미널 출발 → 선유도공원 · 전문 트레이너 코칭</div>
         </div>
