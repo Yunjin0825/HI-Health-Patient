@@ -3050,6 +3050,7 @@
   }
 
   bindChallengeConfigSync();
+  bindSuccessScreenActions();
   setTimeout(() => scheduleChallengeBootstrap({ reason: 'challenge-init-settled' }), 120);
   setTimeout(() => scheduleChallengeBootstrap({ reason: 'challenge-init-late', forcePeople: true }), 600);
 
@@ -3404,7 +3405,38 @@
       eventParticipation: !!reg?.eventParticipation,
       canManage: !!canManage,
       manageNotice: String(manageNotice || ''),
-      avatarSrc: String(avatarSrc || ''),
+    });
+  }
+
+  function updateSuccessActionAvatar(src = '') {
+    const img = document.getElementById('success-app-avatar-img');
+    const nextSrc = String(src || LIVE_AVATAR_FALLBACK);
+    if (!img) return false;
+    if (img.getAttribute('src') === nextSrc) return false;
+    delete img.dataset.err;
+    img.src = nextSrc;
+    img.setAttribute('src', nextSrc);
+    return true;
+  }
+
+  function bindSuccessScreenActions() {
+    if (window.__successScreenActionsBound) return;
+    window.__successScreenActionsBound = true;
+    const successContent = document.getElementById('success-content');
+    if (!successContent) return;
+    successContent.addEventListener('click', e => {
+      const actionBtn = e.target.closest('[data-success-action]');
+      if (!actionBtn) return;
+      const regId = actionBtn.getAttribute('data-reg-id') || '';
+      if (!regId) return;
+      const action = actionBtn.getAttribute('data-success-action');
+      if (action === 'edit') {
+        editReg(regId);
+        return;
+      }
+      if (action === 'cancel') {
+        cancelReg(regId);
+      }
     });
   }
 
@@ -3586,7 +3618,10 @@
     if (!successContent) return;
     const appAvatarSrc = getMyAvatarSrc() || LIVE_AVATAR_FALLBACK;
     const renderKey = buildSuccessScreenRenderKey(reg, canManage, manageNotice, appAvatarSrc);
-    if (renderKey === lastSuccessRenderKey) return;
+    if (renderKey === lastSuccessRenderKey) {
+      updateSuccessActionAvatar(appAvatarSrc);
+      return;
+    }
     const prefs = (reg.shoePrefs || [])
       .filter(Boolean).map(id => shortLabel(id));
     const familyRows = normalizeFamilyMembers(reg.familyMembers || []).filter(m => m.gender || m.tshirtSize || m.memo);
@@ -3620,14 +3655,14 @@
         <div class="succ-actions">
           <div class="succ-note">${manageNotice}</div>
           ${canManage ? `<div class="succ-btn-row">
-            <button type="button" class="btn-edit-reg" onclick="editReg('${reg.id}')">수정</button>
-            <button type="button" class="btn-cancel-reg" onclick="cancelReg('${reg.id}')">취소</button>
+            <button type="button" class="btn-edit-reg" data-success-action="edit" data-reg-id="${escAttr(reg.id)}">수정</button>
+            <button type="button" class="btn-cancel-reg" data-success-action="cancel" data-reg-id="${escAttr(reg.id)}">취소</button>
           </div>` : ''}
         </div>
       </div>
       <div class="succ-actions">
         <button type="button" class="btn-app" onclick="if(window.parent&&window.parent.navigate){window.parent.navigate('exercise')}else{window.parent.location.href='index.html'}">
-          <div class="btn-app-icon"><img src="${appAvatarSrc}" alt="운동 기록 아바타" onerror="if(this.dataset.err)return;this.dataset.err=1;this.src='${LIVE_AVATAR_FALLBACK}'"></div>
+          <div class="btn-app-icon"><img id="success-app-avatar-img" src="${appAvatarSrc}" alt="운동 기록 아바타" onerror="if(this.dataset.err)return;this.dataset.err=1;this.src='${LIVE_AVATAR_FALLBACK}'"></div>
           <div class="btn-app-body">
             <div class="btn-app-main">운동 기록 시작하기</div>
             <div class="btn-app-sub">챌린지 인증 · 혈당 기록 · 리그 참여</div>
@@ -3635,6 +3670,7 @@
           <div class="btn-app-arr">›</div>
         </button>
       </div>`;
+    updateSuccessActionAvatar(appAvatarSrc);
   }
 
   async function editReg(regId) {

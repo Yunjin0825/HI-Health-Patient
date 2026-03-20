@@ -4732,6 +4732,27 @@ function avHTML(src) {
   return `<span class="av-wrap"><img src="${s}" class="av-img" onerror="if(this.dataset.err)return;this.dataset.err=1;this.src='${fallback}'"></span>`;
 }
 
+let _lastHeaderAvatarSrc = '';
+
+function renderHeaderAvatar(src = S.user.avatar) {
+  const host = document.getElementById('header-avatar');
+  if (!host) return;
+  const normalized = normalizeAvatar(src);
+  const currentImg = host.querySelector('.av-img');
+  if (!currentImg) {
+    host.innerHTML = avHTML(normalized);
+    _lastHeaderAvatarSrc = normalized;
+    return;
+  }
+  if (_lastHeaderAvatarSrc === normalized && currentImg.getAttribute('src') === normalized) return;
+  if (currentImg.getAttribute('src') !== normalized) {
+    delete currentImg.dataset.err;
+    currentImg.src = normalized;
+    currentImg.setAttribute('src', normalized);
+  }
+  _lastHeaderAvatarSrc = normalized;
+}
+
 const PROFILE_TAGS = [
   {
     cat: '난임치료중',
@@ -6851,7 +6872,7 @@ function myWeekPts() {
    NAVIGATION
 ════════════════════════════════════════ */
 const _isTouch = () => window.matchMedia('(hover: none)').matches;
-const RUNDAY_IFRAME_SRC = 'runday.html?v=20260321-130';
+const RUNDAY_IFRAME_SRC = 'runday.html?v=20260321-131';
 let _rundayIframeReady = false;
 let _rundayIframeLoadStarted = false;
 const _rundayIframeQueue = [];
@@ -7297,7 +7318,7 @@ function placeGuestBanner(page = null) {
 
 function renderHeader() {
   document.getElementById('hpts-val').textContent = S.user.points;
-  document.getElementById('header-avatar').innerHTML = avHTML(S.user.avatar);
+  renderHeaderAvatar(S.user.avatar);
   const activePage = document.querySelector('.page.active')?.id?.replace('page-', '') || 'home';
   placeGuestBanner(activePage);
   // 챌린지 탭: 'before' 또는 'ended' 단계엔 숨김
