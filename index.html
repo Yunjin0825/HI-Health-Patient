@@ -13619,16 +13619,18 @@ async function init() {
     loadCart();
     S.user.empId = savedEmpId;
     if (!S.user.name && keepName) S.user.name = keepName;
+    // 네트워크 호출 전에 바로 숨겨서 깜박임 방지
+    document.getElementById('app-login-screen').classList.add('hidden');
+    renderHeader();
+    renderHome();
+    navigate(IS_RUN_MODE ? 'challenge' : 'home');
     const autoLoadEl = document.getElementById('login-loading');
     if (autoLoadEl) autoLoadEl.style.display = 'block';
     await hydrateAccountFromRemote(savedEmpId, keepName || S.user.name || '');
     await syncMyChallengeRegistration();
     save();
-    document.getElementById('app-login-screen').classList.add('hidden');
-  
     renderHeader();
     renderHome();
-    navigate(IS_RUN_MODE ? 'challenge' : 'home');
     window.dispatchEvent(new Event('hi:loggedin'));
     postToRunday({
       type: 'LOGIN',
