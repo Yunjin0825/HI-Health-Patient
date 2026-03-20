@@ -1584,14 +1584,14 @@
               <div class="souvenir-head">
                 <div class="souvenir-copy">
                   <div class="souvenir-type">티셔츠</div>
-                  <div class="souvenir-name">ANDAR</div>
+                  <div class="souvenir-name">Andar 에어로코튼 스탠다드핏</div>
                 </div>
               </div>
               <div class="souvenir-field">
                 <select class="fs" id="f-tshirt" title="티셔츠 사이즈" required>
                   <option value="">사이즈 선택</option>
                   <option>XS</option><option>S</option><option>M</option><option>L</option>
-                  <option>XL</option><option>2XL</option><option>3XL</option>
+                  <option>XL</option><option value="남성 2XL">남성 2XL</option><option value="남성 3XL">남성 3XL</option>
                 </select>
               </div>
             </div>
@@ -1819,9 +1819,17 @@
     if (!Array.isArray(rows)) return [];
     return rows.map(row => ({
       gender: String(row?.gender || '').trim(),
-      tshirtSize: String(row?.tshirtSize || '').trim(),
+      tshirtSize: normalizeTshirtSizeLabel(row?.tshirtSize || ''),
       memo: String(row?.memo || '').trim(),
     }));
+  }
+
+  function normalizeTshirtSizeLabel(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    if (raw === '2XL' || raw === '남성2XL' || raw.toLowerCase() === 'men 2xl') return '남성 2XL';
+    if (raw === '3XL' || raw === '남성3XL' || raw.toLowerCase() === 'men 3xl') return '남성 3XL';
+    return raw;
   }
 
   function renderFamilyMembers() {
@@ -1848,7 +1856,7 @@
             <select class="fs" onchange="updateFamilyMember(${idx}, 'tshirtSize', this.value)">
               <option value="">선택</option>
               <option${member.tshirtSize === 'XS' ? ' selected' : ''}>XS</option><option${member.tshirtSize === 'S' ? ' selected' : ''}>S</option><option${member.tshirtSize === 'M' ? ' selected' : ''}>M</option><option${member.tshirtSize === 'L' ? ' selected' : ''}>L</option>
-              <option${member.tshirtSize === 'XL' ? ' selected' : ''}>XL</option><option${member.tshirtSize === '2XL' ? ' selected' : ''}>2XL</option><option${member.tshirtSize === '3XL' ? ' selected' : ''}>3XL</option>
+              <option${member.tshirtSize === 'XL' ? ' selected' : ''}>XL</option><option value="남성 2XL"${member.tshirtSize === '남성 2XL' ? ' selected' : ''}>남성 2XL</option><option value="남성 3XL"${member.tshirtSize === '남성 3XL' ? ' selected' : ''}>남성 3XL</option>
             </select>
           </div>
         </div>
@@ -2381,7 +2389,7 @@
     const cgmVal = document.querySelector('input[name="cgm"]:checked')?.value || '';
     const ok     = document.getElementById('f-consent').checked;
     const shoeN  = (document.getElementById('f-shoe-note')?.value || '').trim();
-    const tshirt = document.getElementById('f-tshirt').value;
+    const tshirt = normalizeTshirtSizeLabel(document.getElementById('f-tshirt').value);
 
     if (!tshirt) return toast('티셔츠 사이즈를 선택해주세요');
     if (!shoe) return toast('신발 사이즈를 선택해주세요');
@@ -3399,7 +3407,7 @@
     const shoeSummary = [reg.shoeSize ? reg.shoeSize + 'mm' : '', prefs[0] || ''].filter(Boolean).join(' · ') || '-';
     const rows = [
       ['운동화', shoeSummary],
-      ['티셔츠', reg.tshirtSize || '-'],
+      ['티셔츠', normalizeTshirtSizeLabel(reg.tshirtSize) || '-'],
       ['혈당체크기기', reg.cgmParticipation ? '신청' : '미신청'],
       ['가족 참여', reg.familyParticipation ? `가족 ${reg.familyCount || familyRows.length || 1}명` : '본인만'],
       ['크루즈탑승', reg.cruiseParticipation ? '탑승 희망' : '탑승 안 함'],
@@ -3454,7 +3462,7 @@
     document.getElementById('f-dept').value = reg.dept || '';
     document.getElementById('f-phone').value = reg.phone || '';
     document.getElementById('f-shoe').value = reg.shoeSize || '';
-    document.getElementById('f-tshirt').value = reg.tshirtSize || '';
+    document.getElementById('f-tshirt').value = normalizeTshirtSizeLabel(reg.tshirtSize || '');
     if (document.getElementById('f-shoe-note')) document.getElementById('f-shoe-note').value = reg.shoeRequestNote || '';
 
     // 단일 모델 안내 카드 복원
