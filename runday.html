@@ -772,6 +772,11 @@
       gap:14px;
       align-items:start;
     }
+    .souvenir-media-stack {
+      display:grid;
+      gap:8px;
+      align-content:start;
+    }
     .souvenir-media {
       width:100%;
       border-radius:16px;
@@ -820,16 +825,21 @@
       line-height:1.2;
     }
     .souvenir-action {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:100%;
       flex-shrink:0;
-      border:none;
+      border:1px solid #d1d5db;
       border-radius:999px;
-      background:#111827;
-      color:#fff;
-      padding:10px 14px;
-      font-size:12px;
+      background:#fff;
+      color:#374151;
+      padding:8px 12px;
+      font-size:11px;
       font-weight:800;
       cursor:pointer;
       font-family:inherit;
+      letter-spacing:-0.02em;
     }
     .souvenir-field {
       display:grid;
@@ -1134,7 +1144,6 @@
       .souvenir-card { padding:12px; }
       .souvenir-body { grid-template-columns: 92px minmax(0, 1fr); gap:12px; }
       .souvenir-head { align-items:flex-start; flex-direction:column; }
-      .souvenir-action { width:100%; }
     }
 
     /* ─── TOAST ──────────────────────────────── */
@@ -1536,14 +1545,16 @@
       <div class="souvenir-grid">
         <div class="souvenir-card">
           <div class="souvenir-body">
-            <div id="shoe-model-guide"></div>
+            <div class="souvenir-media-stack">
+              <div id="shoe-model-guide"></div>
+              <button type="button" class="souvenir-action" onclick="openImgPreview(0)">상세보기</button>
+            </div>
             <div class="souvenir-side">
               <div class="souvenir-head">
                 <div class="souvenir-copy">
                   <div class="souvenir-type">러닝화</div>
                   <div class="souvenir-name">NB 860 v15</div>
                 </div>
-                <button type="button" class="souvenir-action" onclick="openImgPreview(0)">상세보기</button>
               </div>
               <div class="souvenir-field">
                 <label class="lbl" for="f-shoe">러닝화 사이즈 <span class="req">*</span></label>
