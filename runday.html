@@ -2234,6 +2234,33 @@
     return regs[0] || null;
   }
 
+  function findStoredRegistrationById(regId, rows = null) {
+    const normalizedRegId = String(regId || '').trim();
+    if (!normalizedRegId) return null;
+    const sourceRows = Array.isArray(rows)
+      ? rows
+      : (() => {
+          try {
+            const parsed = JSON.parse(localStorage.getItem(CH_KEY) || '[]');
+            return Array.isArray(parsed) ? parsed : [];
+          } catch (e) {
+            return [];
+          }
+        })();
+    return sourceRows.find(row => String(row?.id || '').trim() === normalizedRegId) || null;
+  }
+
+  function ensureStoredCurrentRegistration(regId = '') {
+    const normalizedRegId = String(regId || '').trim();
+    const current = getLatestActiveRegistrationForCurrentEmp();
+    if (!current) return null;
+    if (normalizedRegId && String(current?.id || '').trim() !== normalizedRegId) return null;
+    const normalized = normalizeStoredRegRow(current, getCurrentEmpId());
+    if (!normalized) return null;
+    mergeStoredRegRows([normalized]);
+    return normalized;
+  }
+
   function refreshDeadlineDrivenUi() {
     if (String(editingRegId || '').trim()) return;
     if (!document.getElementById('success-screen')?.classList.contains('show')) return;
@@ -3526,6 +3553,11 @@
   });
 
   function renderSuccessScreen(reg) {
+    const normalizedReg = normalizeStoredRegRow(reg, getCurrentEmpId());
+    if (normalizedReg) {
+      mergeStoredRegRows([normalizedReg]);
+      reg = normalizedReg;
+    }
     const canManage = isChallengeRegistrationEditable();
     const manageNotice = getChallengeRegistrationNotice();
     const successContent = document.getElementById('success-content');
@@ -3583,12 +3615,29 @@
       </div>`;
   }
 
-  function editReg(regId) {
+  async function editReg(regId) {
     if (!ensureChallengeRegistrationEditable()) return;
-    const regs = JSON.parse(localStorage.getItem(CH_KEY) || '[]');
-    const reg = regs.find(r => r.id === regId);
-    if (!reg) return;
-    editingRegId = String(regId || '').trim();
+    const normalizedRegId = String(regId || '').trim();
+    let regs = JSON.parse(localStorage.getItem(CH_KEY) || '[]');
+    let reg = findStoredRegistrationById(normalizedRegId, regs);
+    if (!reg) {
+      reg = ensureStoredCurrentRegistration(normalizedRegId);
+      regs = JSON.parse(localStorage.getItem(CH_KEY) || '[]');
+    }
+    if (!reg) {
+      await syncLocalRegsForEmp(getCurrentEmpId(), {
+        pruneMissing: false,
+        registrationId: normalizedRegId,
+        deviceId: getCurrentDeviceId(),
+      });
+      regs = JSON.parse(localStorage.getItem(CH_KEY) || '[]');
+      reg = findStoredRegistrationById(normalizedRegId, regs);
+    }
+    if (!reg) {
+      toast('신청 정보를 다시 불러오지 못했습니다. 잠시 후 다시 시도해주세요');
+      return;
+    }
+    editingRegId = normalizedRegId;
 
     // 기본 정보 채우기
     document.getElementById('f-dept').value = reg.dept || '';
@@ -3637,15 +3686,31 @@
   async function cancelReg(regId) {
     if (!ensureChallengeRegistrationEditable()) return;
     if (!confirm('정말 취소하시겠습니까?')) return;
-    const regs = JSON.parse(localStorage.getItem(CH_KEY) || '[]');
-    const idx = regs.findIndex(r => String(r.id) === String(regId));
-    const cancelledReg = idx >= 0 ? { ...regs[idx], status: 'cancelled' } : {
-      id: regId,
-      empId: getCurrentEmpId(),
-      deviceId: getCurrentDeviceId(),
+    const normalizedRegId = String(regId || '').trim();
+    let regs = JSON.parse(localStorage.getItem(CH_KEY) || '[]');
+    let storedReg = findStoredRegistrationById(normalizedRegId, regs);
+    if (!storedReg) {
+      storedReg = ensureStoredCurrentRegistration(normalizedRegId);
+      regs = JSON.parse(localStorage.getItem(CH_KEY) || '[]');
+    }
+    if (!storedReg) {
+      await syncLocalRegsForEmp(getCurrentEmpId(), {
+        pruneMissing: false,
+        registrationId: normalizedRegId,
+        deviceId: getCurrentDeviceId(),
+      });
+      regs = JSON.parse(localStorage.getItem(CH_KEY) || '[]');
+      storedReg = findStoredRegistrationById(normalizedRegId, regs);
+    }
+    if (!storedReg) {
+      toast('신청 정보를 다시 불러오지 못했습니다. 잠시 후 다시 시도해주세요');
+      return;
+    }
+    const idx = regs.findIndex(r => String(r?.id || '').trim() === normalizedRegId);
+    const cancelledReg = {
+      ...storedReg,
       status: 'cancelled',
-      registeredAt: new Date().toISOString(),
-      note: '취소 처리됨',
+      registeredAt: storedReg.registeredAt || new Date().toISOString(),
     };
     if (!cancelledReg.deviceId) cancelledReg.deviceId = getCurrentDeviceId();
     const { error } = await persistRegistrationToRemote(cancelledReg, {
@@ -3661,7 +3726,7 @@
     if (idx >= 0) regs[idx] = cancelledReg;
     else regs.push(cancelledReg);
     localStorage.setItem(CH_KEY, JSON.stringify(regs));
-    notifyParentRegistrationChange({ registrationId: regId, cancelled: true, empId: getCurrentEmpId(), registration: cancelledReg });
+    notifyParentRegistrationChange({ registrationId: normalizedRegId, cancelled: true, empId: getCurrentEmpId(), registration: cancelledReg });
     await syncCurrentUserRegistrationRef('', cancelledReg.empId || getCurrentEmpId(), cancelledReg.deviceId || getCurrentDeviceId());
     editingRegId = '';
     resetRegistrationForm({ preserveIdentity: true });

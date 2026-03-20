@@ -11959,6 +11959,28 @@ function getMyReg(opts = {}) {
   return includeCancelled || isActiveChallengeReg(match) ? match : null;
 }
 
+function findStoredChallengeRegById(regId, rows = getStoredChallengeRegs()) {
+  const normalizedRegId = normChallengeId(regId);
+  if (!normalizedRegId) return null;
+  return (rows || []).find(row => normChallengeId(row?.id) === normalizedRegId) || null;
+}
+
+function ensureStoredCurrentChallengeReg(regId = '') {
+  const normalizedRegId = normChallengeId(regId);
+  const current = getMyReg({ includeCancelled: true });
+  if (!current) return null;
+  if (normalizedRegId && normChallengeId(current?.id) !== normalizedRegId) return null;
+  const regs = getStoredChallengeRegs();
+  const idx = regs.findIndex(row => normChallengeId(row?.id) === normChallengeId(current?.id));
+  if (idx >= 0) {
+    regs[idx] = { ...regs[idx], ...current };
+  } else {
+    regs.push({ ...current });
+  }
+  setStoredChallengeRegs(regs);
+  return idx >= 0 ? regs[idx] : regs[regs.length - 1];
+}
+
 function hasActiveChallengeRegistration() {
   return !!getMyReg();
 }
@@ -12246,9 +12268,22 @@ function clearRemoteChallengeRegistrationRef(empId = S.user.empId || ACTIVE_EMPI
 
 async function cancelRegistration(regId) {
   if (!confirm('정말 취소하시겠습니까?')) return;
-  const regs = getStoredChallengeRegs();
-  const r = regs.find(x => x.id === regId);
-  if (!r) return;
+  const normalizedRegId = normChallengeId(regId);
+  let regs = getStoredChallengeRegs();
+  let r = findStoredChallengeRegById(normalizedRegId, regs);
+  if (!r) {
+    r = ensureStoredCurrentChallengeReg(normalizedRegId);
+    regs = getStoredChallengeRegs();
+  }
+  if (!r) {
+    await syncMyChallengeRegistrationWithOptions({ pruneMissingRemote: false });
+    regs = getStoredChallengeRegs();
+    r = findStoredChallengeRegById(normalizedRegId, regs);
+  }
+  if (!r) {
+    showToast('⚠️ 신청 정보를 다시 불러오지 못했습니다. 잠시 후 다시 시도해주세요');
+    return;
+  }
   const cancelledReg = {
     ...r,
     status: 'cancelled',
@@ -12261,7 +12296,9 @@ async function cancelRegistration(regId) {
     showToast('⚠️ 취소 저장에 실패했습니다. 잠시 후 다시 시도해주세요');
     return;
   }
-  r.status = 'cancelled';
+  const idx = regs.findIndex(row => normChallengeId(row?.id) === normalizedRegId);
+  if (idx >= 0) regs[idx] = { ...regs[idx], ...cancelledReg };
+  else regs.push(cancelledReg);
   setStoredChallengeRegs(regs);
   const activeReg = getMyReg();
   S.user.registrationId = activeReg ? activeReg.id : null;
