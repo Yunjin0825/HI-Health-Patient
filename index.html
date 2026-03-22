@@ -14792,7 +14792,7 @@ function renderChallenge() {
       status: now > CH.eventDay ? 'done' : now >= eventDayStart ? 'active' : 'future',
     },
   ];
-  document.getElementById('ch-timeline-wrap').innerHTML = `
+  const timelineHtml = `
     <div class="card">
       <div class="card-header">
         <span class="card-title">기간</span>
@@ -14813,9 +14813,18 @@ function renderChallenge() {
       </div>
     </div>
   `;
+  setChallengeSectionHtml(
+    document.getElementById('ch-timeline-wrap'),
+    timelineHtml,
+    JSON.stringify({
+      type: 'challenge-timeline',
+      phase,
+      milestones: milestones.map(m => ({ date: m.date, title: m.title, desc: m.desc, status: m.status })),
+    })
+  );
 
   /* ── Certification guide ── */
-  document.getElementById('ch-benefit-wrap').innerHTML = `
+  const benefitHtml = `
     <div class="card">
       <div class="card-header">
         <span class="card-title">인증 항목</span>
@@ -14854,13 +14863,21 @@ function renderChallenge() {
       </div>
     </div>
   `;
+  setChallengeSectionHtml(
+    document.getElementById('ch-benefit-wrap'),
+    benefitHtml,
+    JSON.stringify({
+      type: 'challenge-benefits',
+      phase,
+    })
+  );
 
   /* ── Detail info ── */
   const infoEl = document.getElementById('ch-event-info');
   if (phase === 'ended') {
-    infoEl.innerHTML = '';
+    setChallengeSectionHtml(infoEl, '', `challenge:${phase}:info:none`);
   } else {
-    infoEl.innerHTML = `
+    const infoHtml = `
       <div class="ch-donation-card">
         <div class="ch-donation-badge">HI RUN DAY WITH DONATION</div>
         <div class="ch-donation-title">RUN DAY에는 직원들이 함께 달린 거리만큼 기부가 진행됩니다</div>
@@ -15033,6 +15050,15 @@ function renderChallenge() {
         </div>
       </div>
     `;
+    setChallengeSectionHtml(
+      infoEl,
+      infoHtml,
+      JSON.stringify({
+        type: 'challenge-event-info',
+        phase,
+        routeExpanded: !!_chRouteExpanded,
+      })
+    );
   }
 }
 
