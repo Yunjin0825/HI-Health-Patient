@@ -527,7 +527,10 @@
       stroke: rgba(30,16,71,0.82);
     }
     .app-header.challenge-mode .header-profile-trigger {
+      width: auto;
+      height: auto;
       gap: 8px;
+      margin-left: 0;
       padding: 5px 6px 5px 12px;
       border-radius: 999px;
       background: rgba(255,255,255,0.72);
@@ -553,8 +556,13 @@
     .logo-img-white { height: 28px; width: auto; display: none; }
     .app-header:not(.solid) .logo-img       { display: none; }
     .app-header:not(.solid) .logo-img-white { display: block; }
-    .header-right { display: flex; align-items: center; gap: 6px; }
-    .header-profile-trigger { display:flex; align-items:center; gap:6px; cursor:pointer; }
+    .header-right { display: flex; align-items: center; gap: 1px; }
+    .header-profile-trigger {
+      width: 38px; height: 38px;
+      display:flex; align-items:center; justify-content:center;
+      gap:0; cursor:pointer; flex-shrink:0;
+      margin-left:4px;
+    }
     .header-profile-label {
       display:none;
       font-size:11px;
@@ -584,6 +592,7 @@
       position: relative; transition: transform 0.15s, border-color 0.28s;
     }
     .header-avatar:hover { transform: scale(1.07); }
+    .app-header.solid .header-avatar { border-color: rgba(203,213,225,0.95); }
     .app-header:not(.solid) .header-avatar { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.12); }
     .header-avatar,
     .podium-avatar,
@@ -626,7 +635,7 @@
     }
     .header-cart-btn {
       position: relative; background: none; border: none;
-      cursor: pointer; width: 34px; height: 34px; padding: 0;
+      cursor: pointer; width: 38px; height: 38px; padding: 0;
       display: flex; align-items: center; justify-content: center;
       border-radius: 50%; transition: background 0.18s;
     }
@@ -646,7 +655,7 @@
     .app-header:not(.solid) .header-logout { border-color: rgba(255,255,255,0.5); color: rgba(255,255,255,0.85); }
     .header-bell-btn {
       position: relative; background: none; border: none;
-      cursor: pointer; width: 34px; height: 34px; padding: 0;
+      cursor: pointer; width: 38px; height: 38px; padding: 0;
       display: flex; align-items: center; justify-content: center;
       border-radius: 50%; transition: background 0.18s;
     }
@@ -1458,7 +1467,7 @@
     .btn-record { margin-top: 10px; }
     .daily-limit-info { font-size: 11px; color: var(--text-secondary); }
     .daily-limit-info.warn { color: var(--accent); font-weight: 600; }
-    .daily-limit-info--center { text-align: center; margin-bottom: 8px; }
+    .daily-limit-info--center { text-align: center; margin-bottom: 14px; }
 
     /* ── Workout History Items ── */
     .workout-item { display: flex; align-items: center; gap: 6px; padding: 7px 0; border-bottom: 1px solid var(--border); }
@@ -1745,10 +1754,6 @@
     .hc-custom-supp input { flex:1; padding:6px 10px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-size:12px; background:var(--bg); }
     .hc-custom-supp button { padding:6px 12px; border-radius:var(--radius-sm); border:none; background:var(--primary); color:#fff; font-size:12px; font-weight:600; cursor:pointer; }
     .hc-custom-list { margin-top:6px; }
-    .hc-sleep-row { display:flex; align-items:center; justify-content:center; gap:16px; margin:8px 0 4px; }
-    .hc-sleep-val { font-size:24px; font-weight:700; color:#D1D1D6; line-height:1; transition:color 0.15s; }
-    .hc-sleep-val.active { color:var(--primary); }
-    .hc-sleep-unit { font-size:12px; color:var(--text-secondary); margin-top:2px; text-align:center; }
     .wo-health-tags { display:flex; gap:5px; flex-wrap:wrap; margin-top:5px; }
     .wo-health-tag { font-size:10px; padding:2px 7px; border-radius:10px; background:var(--primary-light); color:var(--primary); font-weight:600; }
     .wo-health-tag-muted { background:var(--border); color:var(--text-secondary); }
@@ -1853,6 +1858,20 @@
     .glucose-card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
     .glucose-badge-red { background:#FEE2E2; color:#DC2626; }
     .glucose-input-wrap-sa { display:flex; align-items:center; justify-content:center; gap:16px; margin:16px 0 10px; }
+    .sleep-time-wrap { gap:26px; margin-top:8px; }
+    .sleep-time-display {
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      gap:6px;
+      min-width:92px;
+    }
+    .sleep-time-display .glucose-val-unit {
+      margin-top:0;
+      margin-bottom:4px;
+      font-size:12px;
+      white-space:nowrap;
+    }
     .glucose-time-toggle { border-style:dashed !important; }
     .glucose-time-toggle.on { border-style:solid !important; }
     .glucose-time-expand { display:none; margin-top:8px; }
@@ -2033,7 +2052,7 @@
       box-shadow:none !important;
       border:1px solid rgba(226,232,240,0.92);
     }
-    .record-content-card .ex-hero-tabs { margin:18px 18px 14px; }
+    .record-content-card .ex-hero-tabs { margin:18px 18px 22px; }
     .record-content-card #rec-panel-exercise,
     .record-content-card #rec-panel-glucose { padding:0 18px 26px; }
     .today-log-card {
@@ -2051,14 +2070,23 @@
     .today-log-card #hc-sleep-sec,
     .today-log-card #hc-supp-sec { padding-bottom:24px; }
     .exercise-memo-inline, .glucose-memo-inline, .diet-memo-inline, .sleep-memo-inline, .supp-memo-inline { margin-top:10px; }
+    .section-label-row {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin:16px 0 6px;
+    }
     .ex-section-label {
       font-size: 12px; font-weight: 700; color: var(--text-secondary);
       margin: 16px 0 6px; letter-spacing: -0.01em;
     }
+    .section-label-row .ex-section-label { margin:0; }
     .ex-section-label:first-child { margin-top: 2px; }
     .chip-hold-tip {
       margin:-2px 0 8px;
-      font-size:11px;
+      font-size:10px;
+      font-weight:500;
       color:var(--text-muted);
       letter-spacing:-0.01em;
     }
@@ -2069,6 +2097,66 @@
       font-weight:500;
       color:var(--text-muted);
       letter-spacing:-0.01em;
+    }
+    .section-edit-btn {
+      flex-shrink:0;
+      padding:5px 10px;
+      border-radius:999px;
+      border:1px solid rgba(203,213,225,0.95);
+      background:#fff;
+      color:var(--text-secondary);
+      font-size:11px;
+      font-weight:700;
+      font-family:inherit;
+      cursor:pointer;
+      transition:all 0.18s ease;
+    }
+    .section-edit-btn.active {
+      border-color:rgba(79,70,229,0.28);
+      background:#f5f7ff;
+      color:var(--primary);
+    }
+    .ex-type-grid.is-editing { gap:8px; }
+    .ex-type-btn.is-editing {
+      gap:8px;
+      padding:6px 10px 6px 12px;
+      border-style:dashed;
+      background:#fcfcfd;
+    }
+    .ex-chip-main { display:inline-flex; align-items:center; gap:5px; min-width:0; }
+    .ex-chip-edit-tools {
+      display:none;
+      align-items:center;
+      gap:4px;
+      margin-left:2px;
+    }
+    .ex-type-btn.is-editing .ex-chip-edit-tools { display:inline-flex; }
+    .ex-chip-move,
+    .ex-chip-hide {
+      width:18px;
+      height:18px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:999px;
+      font-size:11px;
+      line-height:1;
+      cursor:pointer;
+      user-select:none;
+      -webkit-user-select:none;
+    }
+    .ex-chip-move {
+      background:#f1f5f9;
+      color:#64748b;
+    }
+    .ex-chip-move.disabled {
+      opacity:0.35;
+      cursor:default;
+    }
+    .ex-chip-hide {
+      background:#fee2e2;
+      color:#dc2626;
+      font-weight:700;
     }
     .ex-section-opt { font-size: 11px; font-weight: 500; color: var(--text-muted); margin-left: 4px; }
     .exercise-memo-inline #ex-memo {
@@ -4454,7 +4542,10 @@
           <button class="ex-hero-tab" id="rec-tab-glucose" onclick="setRecordTab('glucose')">혈당<span class="today-tab-dot" id="dot-glucose" style="display:none"></span></button>
         </div>
         <div id="rec-panel-exercise">
-          <p class="ex-section-label">운동 종류<span class="ex-section-tip">직접입력으로 추가하거나 길게 눌러 숨길 수 있어요</span></p>
+          <div class="section-label-row">
+            <p class="ex-section-label">운동 종류<span class="ex-section-tip" id="exercise-chip-tip">직접입력으로 추가, 편집에서 순서 변경/숨김</span></p>
+            <button type="button" class="section-edit-btn" id="exercise-chip-edit-btn" onclick="toggleExerciseChipEditMode()">편집</button>
+          </div>
           <div class="ex-type-grid" id="ex-type-grid"></div>
           <div id="custom-ex-wrap" class="custom-ex-wrap">
             <div style="display:flex;gap:6px">
@@ -4501,7 +4592,7 @@
         </div>
 
         <div id="rec-panel-glucose" style="display:none">
-          <p class="ex-section-label">측정 시점<span class="ex-section-tip">직접입력으로 추가하거나 길게 눌러 숨길 수 있어요</span></p>
+          <p class="ex-section-label">측정 시점<span class="ex-section-tip">직접입력으로 추가, 길게눌러 숨김</span></p>
           <div class="ex-type-grid" id="glucose-timing-grid"></div>
           <div class="custom-ex-wrap" id="sa-glucose-timing-wrap">
             <div style="display:flex;gap:6px">
@@ -4600,7 +4691,7 @@
       <!-- 식사 panel -->
       <div id="today-panel-diet">
         <div class="hc-section" id="hc-diet-sec" style="border-top:none">
-          <p class="chip-hold-tip">직접입력으로 추가하거나 길게 눌러 숨길 수 있어요</p>
+          <p class="chip-hold-tip">직접입력으로 추가, 길게눌러 숨김</p>
           <div id="meal-chips-row" class="hc-sub-chips" style="margin-bottom:10px; flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding-bottom:2px"></div>
           <div class="custom-ex-wrap" id="meal-direct-wrap">
             <div style="display:flex;gap:6px">
@@ -4650,11 +4741,11 @@
       <!-- 수면 panel -->
       <div id="today-panel-sleep" style="display:none">
         <div class="hc-section" id="hc-sleep-sec" style="border-top:none">
-          <div class="hc-sleep-row">
+          <div class="glucose-input-wrap-sa sleep-time-wrap">
             <button type="button" class="dur-btn" onclick="changeSleep(-0.5)">−</button>
-            <div>
-              <div class="hc-sleep-val" id="sleep-val">7</div>
-              <div class="hc-sleep-unit">시간</div>
+            <div class="sleep-time-display">
+              <div class="glucose-val-num" id="sleep-val">7</div>
+              <div class="glucose-val-unit">시간</div>
             </div>
             <button type="button" class="dur-btn" onclick="changeSleep(0.5)">+</button>
           </div>
@@ -4700,7 +4791,7 @@
       <!-- 영양제 panel -->
       <div id="today-panel-supp" style="display:none">
         <div class="hc-section" id="hc-supp-sec" style="border-top:none">
-          <p class="chip-hold-tip">직접입력으로 추가하거나 길게 눌러 숨길 수 있어요</p>
+          <p class="chip-hold-tip">직접입력으로 추가, 길게눌러 숨김</p>
           <div id="supp-chips-row" class="hc-sub-chips" style="flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding-bottom:2px; margin-bottom:12px"></div>
           <div class="custom-ex-wrap" id="supp-direct-wrap">
             <div style="display:flex;gap:6px">
@@ -5849,6 +5940,7 @@ function buildAccountSettingsSnapshot(empId = ACTIVE_EMPID || S.user?.empId || '
     chips: {
       customExTypes: Array.isArray(_customExTypes) ? [..._customExTypes] : [],
       hiddenExPresetTypes: Array.isArray(_hiddenExPresetTypes) ? [..._hiddenExPresetTypes] : [],
+      exerciseChipOrder: Array.isArray(_exerciseChipOrder) ? [...sanitizeExerciseChipOrder(_exerciseChipOrder)] : [],
       hiddenMealPresetTypes: Array.isArray(_hiddenMealPresetTypes) ? [..._hiddenMealPresetTypes] : [],
       hiddenSuppPresetTypes: Array.isArray(_hiddenSuppPresetTypes) ? [..._hiddenSuppPresetTypes] : [],
       customMealTypes: Array.isArray(_customMealTypes) ? [..._customMealTypes] : [],
@@ -5919,6 +6011,7 @@ function applyAccountSettingsSnapshot(snapshot, empId = ACTIVE_EMPID || S.user?.
     };
     writeScopedArray('hi_custom_ex_types', chips.customExTypes);
     writeScopedArray('hi_hidden_ex_presets', chips.hiddenExPresetTypes);
+    writeScopedArray('hi_ex_chip_order', chips.exerciseChipOrder);
     writeScopedArray('hi_hidden_meal_presets', chips.hiddenMealPresetTypes);
     writeScopedArray('hi_hidden_supp_presets', chips.hiddenSuppPresetTypes);
     writeScopedArray('hi_custom_meal_types', chips.customMealTypes);
@@ -7541,6 +7634,7 @@ function removeCustomExType(name) {
   haptic('light');
   _customExTypes = _customExTypes.filter(n => n !== name);
   writeRecordChipState('hi_custom_ex_types', _customExTypes);
+  persistExerciseChipOrder();
   if (S.selectedEx === 'custom_' + name) { S.selectedEx = null; updateRecordBtnStates(); }
   renderExercise();
 }
@@ -7560,11 +7654,54 @@ function removeExPresetType(id) {
     _hiddenExPresetTypes.push(id);
     writeRecordChipState('hi_hidden_ex_presets', _hiddenExPresetTypes);
   }
+  persistExerciseChipOrder();
   if (S.selectedEx === id) {
     S.selectedEx = null;
     updateRecordBtnStates();
   }
   renderExercise();
+}
+function toggleExerciseChipEditMode(force) {
+  _exerciseChipEditMode = typeof force === 'boolean' ? force : !_exerciseChipEditMode;
+  if (_exerciseChipEditMode && S.selectedEx === 'custom') S.selectedEx = null;
+  haptic('light');
+  updateRecordBtnStates();
+  renderExercise();
+}
+function openCustomExerciseInput() {
+  if (_exerciseChipEditMode) return;
+  selectEx('custom');
+}
+function handleExerciseChipClick(event, exId) {
+  if (_exerciseChipEditMode) {
+    event?.preventDefault?.();
+    return;
+  }
+  selectEx(exId);
+}
+function moveExerciseChip(token, direction) {
+  if (!_exerciseChipEditMode) return;
+  const order = sanitizeExerciseChipOrder(_exerciseChipOrder);
+  const currentIdx = order.indexOf(token);
+  if (currentIdx === -1) return;
+  const nextIdx = currentIdx + Number(direction || 0);
+  if (nextIdx < 0 || nextIdx >= order.length) return;
+  const [moved] = order.splice(currentIdx, 1);
+  order.splice(nextIdx, 0, moved);
+  _exerciseChipOrder = order;
+  persistExerciseChipOrder();
+  haptic('light');
+  renderExercise();
+}
+function hideExerciseChipFromEdit(token) {
+  const parsed = parseExerciseChipToken(token);
+  if (parsed.kind === 'preset') {
+    confirmRemoveExPresetType(parsed.value);
+    return;
+  }
+  if (parsed.kind === 'custom') {
+    confirmRemoveCustomExType(parsed.value);
+  }
 }
 function confirmRemoveCustomMealType(name) {
   showConfirm({
@@ -8542,12 +8679,14 @@ const SUPP_PRESET_TYPES = ['비타민','엽산','오메가','아르기닌'];
 let _recordChipScope = '';
 let _customExTypes = [];
 let _hiddenExPresetTypes = [];
+let _exerciseChipOrder = [];
 let _hiddenMealPresetTypes = [];
 let _hiddenSuppPresetTypes = [];
 let _customMealTypes = [];
 let _customSuppTypes = [];
 let _hiddenGlucoseTimingTypes = [];
 let _customGlucoseTimingTypes = [];
+let _exerciseChipEditMode = false;
 
 function getRecordChipScope() {
   return normalizeEmpIdValue(ACTIVE_EMPID || S.user?.empId || '') || 'guest';
@@ -8567,12 +8706,47 @@ function writeRecordChipState(baseKey, value) {
   localStorage.setItem(getRecordChipStorageKey(baseKey), JSON.stringify(value));
   markAccountSettingsDirty();
 }
+function getExerciseChipToken(kind, value) {
+  return `${String(kind || '').trim()}:${encodeURIComponent(String(value || '').trim())}`;
+}
+function parseExerciseChipToken(token) {
+  const raw = String(token || '').trim();
+  const sepIdx = raw.indexOf(':');
+  if (sepIdx === -1) return { kind:'', value:'' };
+  return {
+    kind: raw.slice(0, sepIdx),
+    value: decodeURIComponent(raw.slice(sepIdx + 1)),
+  };
+}
+function getVisibleExercisePresetTypes() {
+  return EX_TYPES.filter(item => item.id !== 'custom' && !_hiddenExPresetTypes.includes(item.id));
+}
+function sanitizeExerciseChipOrder(order = _exerciseChipOrder) {
+  const presetTokens = getVisibleExercisePresetTypes().map(item => getExerciseChipToken('preset', item.id));
+  const customTokens = _customExTypes.map(name => getExerciseChipToken('custom', name));
+  const allowed = new Set([...presetTokens, ...customTokens]);
+  const next = [];
+  (Array.isArray(order) ? order : []).forEach(token => {
+    if (!allowed.has(token) || next.includes(token)) return;
+    next.push(token);
+  });
+  [...presetTokens, ...customTokens].forEach(token => {
+    if (!next.includes(token)) next.push(token);
+  });
+  return next;
+}
+function persistExerciseChipOrder() {
+  _exerciseChipOrder = sanitizeExerciseChipOrder(_exerciseChipOrder);
+  writeRecordChipState('hi_ex_chip_order', _exerciseChipOrder);
+}
 function hydrateRecordChipState(force = false) {
   const nextScope = getRecordChipScope();
   if (!force && _recordChipScope === nextScope) return;
   _recordChipScope = nextScope;
+  _exerciseChipEditMode = false;
   _customExTypes = readRecordChipState('hi_custom_ex_types');
   _hiddenExPresetTypes = readRecordChipState('hi_hidden_ex_presets');
+  _exerciseChipOrder = readRecordChipState('hi_ex_chip_order');
   _hiddenMealPresetTypes = readRecordChipState('hi_hidden_meal_presets');
   _hiddenSuppPresetTypes = readRecordChipState('hi_hidden_supp_presets');
   _customMealTypes = readRecordChipState('hi_custom_meal_types');
@@ -8598,6 +8772,8 @@ function addCustomExType() {
   haptic('light');
   _customExTypes.push(name);
   writeRecordChipState('hi_custom_ex_types', _customExTypes);
+  _exerciseChipOrder = [...sanitizeExerciseChipOrder(_exerciseChipOrder), getExerciseChipToken('custom', name)];
+  persistExerciseChipOrder();
   input.value = '';
   S.selectedEx = 'custom_' + name;
   document.getElementById('custom-ex-wrap')?.classList.remove('show');
@@ -8883,28 +9059,48 @@ function renderExercise() {
   if (minsEl) minsEl.textContent = todayMins + '분';
   if (ptsEl)  ptsEl.textContent  = '+' + todayPts + 'p';
   renderGlucoseTimingButtons();
+  const exerciseChipTip = document.getElementById('exercise-chip-tip');
+  if (exerciseChipTip) exerciseChipTip.textContent = '직접입력으로 추가, 편집에서 순서 변경/숨김';
+  const exerciseChipEditBtn = document.getElementById('exercise-chip-edit-btn');
+  if (exerciseChipEditBtn) {
+    exerciseChipEditBtn.textContent = _exerciseChipEditMode ? '완료' : '편집';
+    exerciseChipEditBtn.classList.toggle('active', _exerciseChipEditMode);
+  }
 
   // Exercise type buttons (including custom at end of scroll row)
-  const isCustomInput = S.selectedEx === 'custom';
-  const customBtns = _customExTypes.map(name => {
-    const id = 'custom_' + name;
-    const selected = S.selectedEx === id;
-    const custom = parseCustomExerciseName(name);
-    return `<button class="ex-type-btn ${selected ? 'selected' : ''}" data-ex-id="${escHtmlComm(id)}" data-chip-delete-action="ex-custom" data-chip-delete-value="${escHtmlComm(name)}" onclick="selectEx(this.dataset.exId)">
-      <span class="ex-type-icon">${renderExerciseIcon(id, { size:'15px' })}</span>
-      <span class="ex-type-name">${escHtmlComm(custom.label || name)}</span>
+  const isCustomInput = S.selectedEx === 'custom' && !_exerciseChipEditMode;
+  _exerciseChipOrder = sanitizeExerciseChipOrder(_exerciseChipOrder);
+  const orderedChipTokens = [..._exerciseChipOrder];
+  const chipsHtml = orderedChipTokens.map((token, idx) => {
+    const parsed = parseExerciseChipToken(token);
+    const isPreset = parsed.kind === 'preset';
+    const exId = isPreset ? parsed.value : `custom_${parsed.value}`;
+    const preset = isPreset ? getVisibleExercisePresetTypes().find(item => item.id === parsed.value) : null;
+    const custom = !isPreset ? parseCustomExerciseName(parsed.value) : null;
+    const label = preset?.name || custom?.label || parsed.value;
+    const selected = S.selectedEx === exId;
+    return `<button type="button" class="ex-type-btn ${selected ? 'selected' : ''}${_exerciseChipEditMode ? ' is-editing' : ''}" data-ex-id="${escHtmlComm(exId)}" data-chip-token="${escHtmlComm(token)}" onclick="handleExerciseChipClick(event, this.dataset.exId)">
+      <span class="ex-chip-main">
+        <span class="ex-type-icon">${renderExerciseIcon(exId, { size:'15px' })}</span>
+        <span class="ex-type-name">${escHtmlComm(label)}</span>
+      </span>
+      ${_exerciseChipEditMode ? `
+      <span class="ex-chip-edit-tools">
+        <span class="ex-chip-move ${idx === 0 ? 'disabled' : ''}" onclick="event.stopPropagation();moveExerciseChip(this.closest('.ex-type-btn').dataset.chipToken, -1)">‹</span>
+        <span class="ex-chip-move ${idx === orderedChipTokens.length - 1 ? 'disabled' : ''}" onclick="event.stopPropagation();moveExerciseChip(this.closest('.ex-type-btn').dataset.chipToken, 1)">›</span>
+        <span class="ex-chip-hide" onclick="event.stopPropagation();hideExerciseChipFromEdit(this.closest('.ex-type-btn').dataset.chipToken)">×</span>
+      </span>` : ''}
     </button>`;
   }).join('');
-  document.getElementById('ex-type-grid').innerHTML =
-    EX_TYPES.filter(e => e.id !== 'custom' && !_hiddenExPresetTypes.includes(e.id)).map(e => `
-      <button class="ex-type-btn ${S.selectedEx === e.id ? 'selected' : ''}" data-chip-delete-action="ex-preset" data-chip-delete-value="${e.id}"
-              onclick="selectEx('${e.id}')"><span class="ex-type-icon">${renderExerciseIcon(e.id, { size:'15px' })}</span><span class="ex-type-name">${e.name}</span></button>
-    `).join('')
-    + customBtns
-    + `<button class="custom-ex-link ${isCustomInput ? 'selected' : ''}" onclick="selectEx('custom')">${renderNamedSvgIcon('pencil', { size:'14px', color:'currentColor' })}<span>직접 입력</span></button>`;
+  const exTypeGrid = document.getElementById('ex-type-grid');
+  if (exTypeGrid) {
+    exTypeGrid.classList.toggle('is-editing', _exerciseChipEditMode);
+    exTypeGrid.innerHTML = chipsHtml
+      + `<button type="button" class="custom-ex-link ${isCustomInput ? 'selected' : ''}" onclick="openCustomExerciseInput()">${renderNamedSvgIcon('pencil', { size:'14px', color:'currentColor' })}<span>직접 입력</span></button>`;
+  }
 
   const cw = document.getElementById('custom-ex-wrap');
-  if (cw) cw.classList.toggle('show', isCustomInput);
+  if (cw) cw.classList.toggle('show', isCustomInput && !_exerciseChipEditMode);
 
   const durEl = document.getElementById('dur-val');
   if (durEl) durEl.value = S.duration;
@@ -9454,7 +9650,7 @@ function updatePtsPreview() {
     infoEl.textContent = `오늘 포인트 한도(${DAILY_POINTS_LIMIT}p) 도달`;
     infoEl.className = 'daily-limit-info daily-limit-info--center warn';
   } else {
-    infoEl.textContent = `오늘 ${todayWo.length}회 기록 · 남은 횟수: ${remCount}회 · 1분당 +${getExType(S.selectedEx).ppm}p`;
+    infoEl.textContent = `오늘 ${todayWo.length}회 기록 · 1분당 +${getExType(S.selectedEx).ppm}p`;
     infoEl.className = 'daily-limit-info daily-limit-info--center';
   }
 }
@@ -10409,7 +10605,7 @@ function renderGlucose() {
       infoEl.textContent = `오늘 혈당 기록 한도(${DAILY_GLUCOSE_LIMIT}회) 도달 · +${todayGl.length * GLUCOSE_POINTS}p 획득`;
       infoEl.classList.add('warn');
     } else {
-      infoEl.textContent = `오늘 ${todayGl.length}회 기록 · 남은 횟수: ${rem}회 · 기록당 +${GLUCOSE_POINTS}p`;
+      infoEl.textContent = `오늘 ${todayGl.length}회 기록 · 기록당 +${GLUCOSE_POINTS}p`;
       infoEl.classList.remove('warn');
     }
   }
@@ -11004,6 +11200,7 @@ function cleanupLocalUserKeys({ empIds = [], deviceIds = [], registrationIds = [
     [
       'hi_custom_ex_types',
       'hi_hidden_ex_presets',
+      'hi_ex_chip_order',
       'hi_hidden_meal_presets',
       'hi_hidden_supp_presets',
       'hi_custom_meal_types',
