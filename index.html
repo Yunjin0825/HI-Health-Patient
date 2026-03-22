@@ -5274,7 +5274,14 @@ let SHOP_CART_KEY   = 'hi_health_cart';
 let ACTIVE_EMPID = '';
 let STORAGE_KEY  = 'hi_health_v2'; // 로그인 시 'hi_health_v2_사번'으로 변경
 // 닉네임 우선, 없으면 이름
-function myDisplayName() { return S.user.nickname || S.user.name || ''; }
+function myDisplayName() {
+  const identityName = String(
+    localStorage.getItem('hi_keep_login_name') ||
+    document.getElementById('login-name-input')?.value ||
+    ''
+  ).trim();
+  return S.user.nickname || S.user.name || identityName || '';
+}
 /* ── Supabase 설정 (Supabase 콘솔 > Project Settings > API 에서 복사) ── */
 const SUPABASE_URL      = 'https://nbnmvvobehjitophkqmu.supabase.co';       // Project URL
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ibm12dm9iZWhqaXRvcGhrcW11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3Nzk4NzQsImV4cCI6MjA4ODM1NTg3NH0.iZS4JvhHUqv4ZMPxm9STit6xqVp2JA5H55M8Wmd1yjY';  // anon public key
@@ -8103,7 +8110,7 @@ function navigate(page) {
     });
   }
   placeGuestBanner(page);
-  window.scrollTo({top:0, behavior:'smooth'});
+  window.scrollTo(0, 0);
 }
 
 /* ════════════════════════════════════════
@@ -8149,6 +8156,27 @@ function renderHeader() {
   }
 }
 
+function resetEntryUiState() {
+  closeNotifPanel?.();
+  closeCartPanel?.();
+  closeShopOrder?.();
+  closeComments?.();
+  closeEditPost?.();
+  closeConfirm?.();
+  closeInstallGuide?.();
+  closeProductDetail?.();
+  document.getElementById('profile-modal')?.classList.add('pm-hidden');
+  document.getElementById('admin-panel-overlay')?.classList.add('pm-hidden');
+  document.getElementById('app-intro')?.classList.add('hidden');
+  document.body.style.overflow = '';
+  document.documentElement.style.overflow = '';
+  requestAnimationFrame(() => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  });
+}
+
 /* ════════════════════════════════════════
    RENDER: HOME
 ════════════════════════════════════════ */
@@ -8189,8 +8217,9 @@ function renderHome() {
       '오늘 하루도 고생하셨어요',
     ];
   }
+  const displayName = myDisplayName() || getProfileIdentity().name || 'HI Health';
   document.getElementById('hero-greeting').textContent = greetings[Math.floor(Math.random() * greetings.length)];
-  document.getElementById('hero-name').textContent = myDisplayName() + '님';
+  document.getElementById('hero-name').textContent = displayName + '님';
   const tagsEl = document.getElementById('hero-tags');
   if (tagsEl) {
     const challengeTag = hasActiveChallengeRegistration() ? `<span class="hero-tag" style="background:var(--purple);color:#fff">${renderNamedSvgIcon('medal', { size:'11px', color:'#fff' })}<span>챌린지 참여중</span></span>` : '';
@@ -10884,6 +10913,8 @@ function resetToLoggedOutState() {
   document.getElementById('login-info').style.display = 'none';
   document.getElementById('guest-banner')?.style.setProperty('display', 'none');
   document.getElementById('app-intro')?.classList.add('hidden');
+  document.body.style.overflow = '';
+  document.documentElement.style.overflow = '';
   configureLoginFields();
 
   renderHeader();
@@ -14537,10 +14568,10 @@ function applyGuestSampleState() {
 function doGuestLogin() {
   IS_GUEST = true;
   applyGuestSampleState();
+  resetEntryUiState();
   document.getElementById('app-login-screen').classList.add('hidden');
   renderHeader();
   navigate('home');
-  setTimeout(() => showIntro(), 400);
 }
 
 function doGuestLogout() {
@@ -14657,6 +14688,7 @@ async function doAppLogin() {
 
   document.getElementById('app-login-screen').classList.add('hidden');
   document.getElementById('guest-banner')?.style.setProperty('display', 'none');
+  resetEntryUiState();
   window.dispatchEvent(new Event('hi:loggedin'));
   loadCart();
   loadNotifList();
@@ -14814,6 +14846,7 @@ async function init() {
     if (!S.user.name && keepName) S.user.name = keepName;
     // 네트워크 호출 전에 바로 숨겨서 깜박임 방지
     document.getElementById('app-login-screen').classList.add('hidden');
+    resetEntryUiState();
     renderHeader();
     renderHome();
     navigate(IS_RUN_MODE ? 'challenge' : 'home');
