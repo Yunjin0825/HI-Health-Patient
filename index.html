@@ -3028,9 +3028,10 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     .post-head { display: flex; align-items: center; gap: 10px; margin-bottom: 11px; }
     .post-av { width:38px; height:38px; border-radius:50%; overflow:hidden; flex-shrink:0; background:var(--bg); }
-    .post-info { display: flex; flex-direction: column; gap: 2px; justify-content: center; }
+    .post-info { display:flex; align-items:center; min-width:0; flex:1; }
+    .post-title-line { display:flex; align-items:center; gap:6px; flex-wrap:wrap; min-width:0; }
     .post-uname { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.2; }
-    .post-meta { font-size: 11px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; line-height: 1; }
+    .post-meta { font-size: 11px; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 4px; line-height: 1; flex-wrap:wrap; }
     .post-lv-icon { font-size: 14px; display: inline-flex; align-items: center; vertical-align: middle; }
     .post-del { margin-left:auto; background:none; border:none; cursor:pointer; font-size:15px; opacity:0.35; transition:opacity 0.2s; padding:4px; line-height:1; flex-shrink:0; }
     .post-del:hover { opacity:1; color:#ef4444; }
@@ -3060,20 +3061,22 @@
     .sticker-btn:active { transform: scale(0.93); }
     .sticker-btn.on { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
     .sticker-btn.fx-pop {
-      animation: stickerBtnPop 240ms cubic-bezier(.2,.8,.2,1);
+      border-color: rgba(79,70,229,0.36);
+      background: rgba(238,242,255,0.96);
+      animation: stickerBtnPop 340ms cubic-bezier(.2,.8,.2,1);
     }
     .sticker-btn.fx-pop::after {
       content: '';
       position: absolute;
-      inset: -20% auto -20% -32%;
-      width: 42%;
-      background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.65), rgba(255,255,255,0));
+      inset: -24% auto -24% -38%;
+      width: 52%;
+      background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.92), rgba(255,255,255,0));
       transform: skewX(-20deg);
-      animation: stickerBtnShine 320ms ease-out forwards;
+      animation: stickerBtnShine 420ms ease-out forwards;
       pointer-events: none;
     }
     .sticker-btn.fx-pop .sticker-emoji {
-      animation: stickerBtnIconPop 240ms cubic-bezier(.2,.8,.2,1);
+      animation: stickerBtnIconPop 340ms cubic-bezier(.2,.8,.2,1);
     }
     .sticker-emoji { display:inline-flex; align-items:center; color: #9CA3AF; }
     .sticker-emoji svg { width:13px; height:13px; }
@@ -3082,18 +3085,18 @@
     .sticker-btn.on .sticker-cnt { color: var(--primary); }
     @keyframes stickerBtnPop {
       0% { transform: scale(1); box-shadow: 0 0 0 rgba(79,70,229,0); }
-      45% { transform: scale(1.11); box-shadow: 0 8px 18px rgba(79,70,229,0.16); }
+      42% { transform: scale(1.16); box-shadow: 0 10px 22px rgba(79,70,229,0.22); }
       100% { transform: scale(1); box-shadow: 0 0 0 rgba(79,70,229,0); }
     }
     @keyframes stickerBtnIconPop {
       0% { transform: scale(1); }
-      45% { transform: scale(1.18); }
+      42% { transform: scale(1.24); }
       100% { transform: scale(1); }
     }
     @keyframes stickerBtnShine {
-      0% { opacity: 0; transform: translateX(-8px) skewX(-20deg); }
-      25% { opacity: 0.9; }
-      100% { opacity: 0; transform: translateX(170%) skewX(-20deg); }
+      0% { opacity: 0; transform: translateX(-12px) skewX(-20deg); }
+      24% { opacity: 0.95; }
+      100% { opacity: 0; transform: translateX(190%) skewX(-20deg); }
     }
     .sticker-burst {
       position: fixed;
@@ -5733,7 +5736,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const PUSH_PUBLIC_KEY   = 'BEaMexe-bw1jM31PgeQdkkZeqs29Ls1KIMY-TViYgH2dPqg_v7tRRObOpRUTGu5-ZgH13qR_ZTtxeOWh9_vnhTk';
 const PUSH_TABLE        = 'push_subscriptions';
 const PUSH_DEFAULT_URL  = './index.html#community';
-const SW_VERSION        = '20260322-88';
+const SW_VERSION        = '20260322-90';
 const CHALLENGE_PEOPLE_CACHE_KEY = 'hi_health_people_cache_v1';
 let _db = null; // Supabase 클라이언트
 let _realLeagueUsers = null; // Supabase에서 가져온 실제 유저 목록
@@ -8345,7 +8348,7 @@ function myWeekPts() {
    NAVIGATION
 ════════════════════════════════════════ */
 const _isTouch = () => window.matchMedia('(hover: none)').matches;
-const RUNDAY_IFRAME_SRC = 'runday.html?v=20260322-202';
+const RUNDAY_IFRAME_SRC = 'runday.html?v=20260322-204';
 let _rundayIframeReady = false;
 let _rundayIframeLoadStarted = false;
 const _rundayIframeQueue = [];
@@ -12269,12 +12272,14 @@ function renderCommunity() {
         <div class="post-head">
           <div class="post-av">${avHTML(p.avatar)}</div>
           <div class="post-info">
-            <span class="post-uname">${p.name}</span>
-            <div class="post-meta">
-              <span class="post-lv-icon">${lv.icon}</span>
-              <span>${lv.name}</span>
-              <span>·</span>
-              <span>${p.time}</span>
+            <div class="post-title-line">
+              <span class="post-uname">${p.name}</span>
+              <div class="post-meta">
+                <span class="post-lv-icon">${lv.icon}</span>
+                <span>${lv.name}</span>
+                <span>·</span>
+                <span>${p.time}</span>
+              </div>
             </div>
           </div>
           ${p.userId === 0 ? `<button type="button" class="post-edit" onclick="editPost(${p.id})" title="게시물 수정">${_editSvgSm}</button><button type="button" class="post-del" style="margin-left:2px" onclick="deletePost(${p.id})" title="게시물 삭제">${_trashSvgSm}</button>` : ''}
@@ -12511,9 +12516,10 @@ function submitComment() {
   if (!post.commentList) post.commentList = [];
   const lv = getLevel(S.user.points);
   const commentId = String(Date.now());
+  const displayName = myDisplayName();
   post.commentList.push({
     id: commentId,
-    name: S.user.name,
+    name: displayName,
     avatar: S.user.avatar,
     lv: lv.lv,
     body,
@@ -12525,7 +12531,7 @@ function submitComment() {
     id: commentId,
     postId: String(_commentPostId),
     deviceId: S.deviceId,
-    userName: S.user.name,
+    userName: displayName,
     body,
     ts: commentId,
   }, { onConflict: 'id' }).then(() => {});
@@ -12564,15 +12570,31 @@ function playStickerButtonFeedback(buttonEl) {
   buttonEl.classList.remove('fx-pop');
   void buttonEl.offsetWidth;
   buttonEl.classList.add('fx-pop');
-  setTimeout(() => buttonEl.classList.remove('fx-pop'), 280);
-  return 180;
+  setTimeout(() => buttonEl.classList.remove('fx-pop'), 420);
+  return 320;
+}
+
+function updateStickerButtonUi(buttonEl, count, isActive) {
+  if (!buttonEl) return;
+  buttonEl.classList.toggle('on', !!isActive);
+  let countEl = buttonEl.querySelector('.sticker-cnt');
+  if (count > 0) {
+    if (!countEl) {
+      countEl = document.createElement('span');
+      countEl.className = 'sticker-cnt';
+      buttonEl.appendChild(countEl);
+    }
+    countEl.textContent = String(count);
+  } else if (countEl) {
+    countEl.remove();
+  }
 }
 
 function react(buttonEl, postId, stickerId) {
   haptic('light');
   const post = S.posts.find(p => p.id === postId) || (S.communityPosts || []).find(p => p.id === postId);
   if (!post) return;
-  const feedbackDelay = playStickerButtonFeedback(buttonEl);
+  playStickerButtonFeedback(buttonEl);
   if (!S.myReactions[postId]) S.myReactions[postId] = [];
   const myR = S.myReactions[postId];
   const idx = myR.indexOf(stickerId);
@@ -12592,8 +12614,8 @@ function react(buttonEl, postId, stickerId) {
       { onConflict: 'postId,deviceId,stickerId' }
     ).then(() => {});
   }
+  updateStickerButtonUi(buttonEl, post.stickers[stickerId] || 0, myR.includes(stickerId));
   save();
-  setTimeout(() => renderCommunity(), feedbackDelay);
 }
 
 const _trashSvgSm = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>`;
@@ -12692,10 +12714,11 @@ function submitPost() {
   const body  = input.value.trim();
   if (!body) { haptic('error'); showToast('내용을 입력해주세요 ✏️'); return; }
   const lv = getLevel(S.user.points);
+  const displayName = myDisplayName();
   const newPost = {
     id: Date.now(),
     userId: 0,
-    name: S.user.name,
+    name: displayName,
     avatar: S.user.avatar,
     lv: lv.lv,
     body,
@@ -12713,7 +12736,7 @@ function submitPost() {
   apiSync('addPost', {
     id: String(newPost.id),
     deviceId: S.deviceId,
-    userName: S.user.name,
+    userName: displayName,
     body: newPost.body,
     exTag: newPost.exTag || '',
     userTags: Array.isArray(newPost.userTags) ? newPost.userTags.join(',') : (newPost.userTags || ''),
@@ -14187,6 +14210,7 @@ function repairChRegNote() {
 function syncRemoteChallengeRegistrationRef(registrationId = '', empId = S.user.empId || ACTIVE_EMPID, deviceId = S.deviceId) {
   if (!_db) return;
   const filters = [];
+  const normalizedRegId = normChallengeId(registrationId);
   const normalizedEmpId = normChallengeEmpId(empId);
   const normalizedDeviceId = normChallengeId(deviceId);
   if (normalizedEmpId) {
@@ -14197,7 +14221,7 @@ function syncRemoteChallengeRegistrationRef(registrationId = '', empId = S.user.
   }
   if (!filters.length) return;
   _db.from('users').update({
-    registrationId: '',
+    registrationId: normalizedRegId,
     lastactiveat: new Date().toISOString(),
   }).or(filters.join(',')).then(({ error }) => {
     if (error) console.error('[syncRemoteChallengeRegistrationRef]', error);
@@ -14232,23 +14256,31 @@ async function cancelRegistration(regId) {
     note: r.note || buildChRegistrationNote(r) || '취소 처리됨',
     registeredAt: r.registeredAt || new Date().toISOString(),
   };
-  const { error } = await persistChallengeRegistrationToRemote(cancelledReg);
-  if (error) {
-    console.error('[cancelRegistration]', error);
-    showToast('⚠️ 취소 저장에 실패했습니다. 잠시 후 다시 시도해주세요');
-    return;
-  }
+  const prevRegs = JSON.parse(JSON.stringify(regs));
+  const prevRegistrationId = S.user.registrationId;
   const idx = regs.findIndex(row => normChallengeId(row?.id) === normalizedRegId);
   if (idx >= 0) regs[idx] = { ...regs[idx], ...cancelledReg };
   else regs.push(cancelledReg);
   setStoredChallengeRegs(regs);
   const activeReg = getMyReg();
   S.user.registrationId = activeReg ? activeReg.id : null;
-  clearRemoteChallengeRegistrationRef(r.empId || S.user.empId || ACTIVE_EMPID, r.deviceId || S.deviceId);
   save();
   renderHeader();
   if (document.getElementById('page-home')?.classList.contains('active')) renderHome();
   renderChallenge();
+  const { error } = await persistChallengeRegistrationToRemote(cancelledReg);
+  if (error) {
+    console.error('[cancelRegistration]', error);
+    setStoredChallengeRegs(prevRegs);
+    S.user.registrationId = prevRegistrationId;
+    save();
+    renderHeader();
+    if (document.getElementById('page-home')?.classList.contains('active')) renderHome();
+    renderChallenge();
+    showToast('⚠️ 취소 저장에 실패했습니다. 잠시 후 다시 시도해주세요');
+    return;
+  }
+  clearRemoteChallengeRegistrationRef(r.empId || S.user.empId || ACTIVE_EMPID, r.deviceId || S.deviceId);
   showToast('신청이 취소됐습니다');
 }
 
@@ -14341,6 +14373,15 @@ function scrollToExerciseForm() {
   }, 100);
 }
 
+function setChallengeSectionHtml(el, html, renderKey = html) {
+  if (!el) return false;
+  const nextKey = String(renderKey ?? '');
+  if (el.dataset.renderKey === nextKey) return false;
+  el.dataset.renderKey = nextKey;
+  el.innerHTML = String(html ?? '');
+  return true;
+}
+
 function renderChallenge() {
   if (document.getElementById('page-challenge') && !document.getElementById('ch-hero')) {
     queueActivateInlineChallengePage();
@@ -14364,7 +14405,7 @@ function renderChallenge() {
           : `워밍업 D-${warmupDday}`;
 
   /* ── Hero ── */
-  document.getElementById('ch-hero').innerHTML = `
+  const heroHtml = `
     <div class="ch-hero">
       <div class="ch-hero-eyebrow">HI HEALTH CHALLENGE</div>
       <div class="ch-hero-title">HI RUN DAY</div>
@@ -14373,6 +14414,7 @@ function renderChallenge() {
       <div class="ch-hero-badge">${heroBadge}</div>
     </div>
   `;
+  setChallengeSectionHtml(document.getElementById('ch-hero'), heroHtml, `challenge:${phase}:hero:${heroBadge}`);
 
   /* ── Phase card ── */
   const phaseMap = {
@@ -14455,7 +14497,7 @@ function renderChallenge() {
     },
   };
   const p = phaseMap[phase] || phaseMap.registration;
-  document.getElementById('ch-phase-card').innerHTML = `
+  const phaseCardHtml = `
     <div class="ch-phase-card" style="background:${p.grad}">
       <div class="ch-phase-badge">${p.badge}</div>
       <div class="ch-phase-title">${p.title}</div>
@@ -14463,6 +14505,14 @@ function renderChallenge() {
       ${p.stats.length ? `<div class="ch-phase-stats">${p.stats.map(s => `<div class="ch-phase-stat"><div class="ch-phase-val">${s.v}</div><div class="ch-phase-lbl">${s.l}</div></div>`).join('')}</div>` : ''}
     </div>
   `;
+  setChallengeSectionHtml(document.getElementById('ch-phase-card'), phaseCardHtml, JSON.stringify({
+    type: 'challenge-phase-card',
+    phase,
+    badge: p.badge,
+    title: p.title,
+    desc: p.desc,
+    stats: p.stats,
+  }));
 
   const myReg = getMyReg();
   const doneEl = document.getElementById('ch-reg-done');
@@ -14471,12 +14521,17 @@ function renderChallenge() {
   const shoeRequestNote = getChShoeRequestNote(myReg);
   const familyMemo = getChFamilyMemo(myReg);
   const familySummary = getChFamilySummary(myReg);
+  let doneHtml = '';
+  let formHtml = '';
+  let doneRenderKey = `challenge:${phase}:done:empty`;
+  let formRenderKey = `challenge:${phase}:form:empty`;
+  let shouldRenderFormControls = false;
 
   if (myReg && myReg.status !== 'cancelled') {
     const statusLbl = { pending:'검토 중', confirmed:'선정 완료', cancelled:'미선정' }[myReg.status] || myReg.status;
     const statusColor = myReg.status === 'confirmed' ? '#166534' : myReg.status === 'cancelled' ? '#991b1b' : '#92400e';
     const canCancelReg = myReg.status === 'pending' && now <= CH.deadline;
-    doneEl.innerHTML = `
+    doneHtml = `
       <div class="ch-reg-card">
         <div class="ch-reg-badge">${renderNamedSvgIcon('medal', { size:'12px', color:'#b45309' })}<span>HI RUN DAY 신청 완료</span></div>
         <div class="ch-reg-person">
@@ -14502,11 +14557,26 @@ function renderChallenge() {
         <button type="button" class="btn btn-primary btn-full ch-workout-btn" style="margin-top:8px;padding:8px;font-size:11px" onclick="scrollToExerciseForm()">오늘 운동 기록하기</button>
       </div>
     `;
-    formEl.innerHTML = '';
+    formHtml = '';
+    doneRenderKey = JSON.stringify({
+      type: 'challenge-reg-done',
+      phase,
+      regId: normChallengeId(myReg.id),
+      name: String(myReg.name || ''),
+      dept: String(myReg.dept || ''),
+      status: String(myReg.status || ''),
+      shoeSize: String(myReg.shoeSize || ''),
+      familyParticipation: !!myReg.familyParticipation,
+      familySummary,
+      shoeRequestNote,
+      familyMemo,
+      shoePrefSummary,
+      avatar: String(S.user.avatar || ''),
+      canCancelReg,
+    });
+    formRenderKey = `challenge:${phase}:form:none`;
   } else if (phase === 'registration') {
-    _chShoePrefs = [''];
-    _chShoeRequestNote = '';
-    doneEl.innerHTML = `
+    doneHtml = `
       <div class="card">
         <div class="card-header">
           <span class="card-title">챌린지 소개</span>
@@ -14519,7 +14589,7 @@ function renderChallenge() {
         </div>
       </div>
     `;
-    formEl.innerHTML = `
+    formHtml = `
       <div class="card">
         <div class="card-header">
           <span class="card-title">챌린지 신청</span>
@@ -14565,19 +14635,39 @@ function renderChallenge() {
         </form>
       </div>
     `;
-    renderChShoePrefSection();
-    updateChSubmitState();
+    doneRenderKey = `challenge:${phase}:intro:${getChallengePhaseLabel(phase)}`;
+    formRenderKey = JSON.stringify({
+      type: 'challenge-reg-form',
+      phase,
+      deadline: formatChallengeDeadlineShort(),
+      name: String(S.user.name || ''),
+      empId: String(S.user.empId || ACTIVE_EMPID || ''),
+    });
+    shouldRenderFormControls = true;
   } else if (phase === 'before') {
-    doneEl.innerHTML = `
+    doneHtml = `
       <div class="card" style="text-align:center;padding:24px 20px">
         <div style="font-size:13px;font-weight:700;margin-bottom:4px">챌린지 안내 준비 중</div>
         <div style="font-size:12px;color:var(--text-secondary)">워밍업 시작 전까지 챌린지 내용을 먼저 확인해 주세요.</div>
       </div>
     `;
-    formEl.innerHTML = '';
+    formHtml = '';
+    doneRenderKey = `challenge:${phase}:before`;
+    formRenderKey = `challenge:${phase}:form:none`;
   } else {
-    doneEl.innerHTML = '';
-    formEl.innerHTML = '';
+    doneHtml = '';
+    formHtml = '';
+    doneRenderKey = `challenge:${phase}:done:none`;
+    formRenderKey = `challenge:${phase}:form:none`;
+  }
+
+  const formChanged = setChallengeSectionHtml(formEl, formHtml, formRenderKey);
+  setChallengeSectionHtml(doneEl, doneHtml, doneRenderKey);
+  if (shouldRenderFormControls && formChanged) {
+    _chShoePrefs = [''];
+    _chShoeRequestNote = '';
+    renderChShoePrefSection();
+    updateChSubmitState();
   }
 
   /* ── Timeline ── */
@@ -15018,6 +15108,7 @@ function showIntro() {
   if (IS_RUN_MODE) return;
   _introIdx = 0;
   document.getElementById('app-intro').classList.remove('hidden');
+  hydrateStaticSvgIcons(document.getElementById('app-intro'));
   updateIntroUI();
   initIntroSwipe();
 }
@@ -15245,6 +15336,19 @@ function buildGuestSampleState() {
     ...post,
     comments: post.commentList.length,
   }));
+  const sampleNotifPost = samplePosts[0];
+  const sampleNotifComment = sampleNotifPost?.commentList?.[0] || null;
+  const sampleNotifItems = sampleNotifPost && sampleNotifComment ? [{
+    id: `comment_${sampleNotifPost.id}_${sampleNotifComment.id}`,
+    title: '내 글에 새 댓글',
+    body: `${sampleNotifComment.name}: ${sampleNotifComment.body}`,
+    url: './index.html#community',
+    sent_at: guestSampleDate(0, 21, 8).toISOString(),
+    type: 'comment_reply',
+    postId: String(sampleNotifPost.id),
+    commentId: String(sampleNotifComment.id),
+  }] : [];
+  const commentSeenIds = samplePosts.flatMap(post => (post.commentList || []).map(comment => String(comment.id)));
   return {
     user: {
       name: '박하이',
@@ -15262,6 +15366,8 @@ function buildGuestSampleState() {
     },
     challengeRegs: [sampleRegistration],
     posts: samplePosts,
+    localNotifItems: sampleNotifItems,
+    commentSeenIds,
     workouts,
     glucoseRecords,
     todayLog: {
@@ -15309,6 +15415,19 @@ function applyGuestSampleState() {
   S.adminPosts = [];
   S.glucoseRecords = sample.glucoseRecords;
   S.todayLog = sample.todayLog;
+  const sampleEmpId = normalizeEmpIdValue(sample.user?.empId || '');
+  if (sampleEmpId) {
+    localStorage.setItem(
+      getAccountScopedStorageKey(LOCAL_NOTIF_ITEMS_KEY, sampleEmpId),
+      JSON.stringify(Array.isArray(sample.localNotifItems) ? sample.localNotifItems.slice(0, 80) : [])
+    );
+    localStorage.setItem(
+      getAccountScopedStorageKey(MY_POST_COMMENT_SEEN_KEY, sampleEmpId),
+      JSON.stringify(Array.isArray(sample.commentSeenIds) ? sample.commentSeenIds.slice(-400) : [])
+    );
+    localStorage.setItem(getAccountScopedStorageKey(NOTIF_READ_KEY, sampleEmpId), JSON.stringify([]));
+    localStorage.setItem(getAccountScopedStorageKey(NOTIF_DELETED_KEY, sampleEmpId), JSON.stringify([]));
+  }
   S.selectedEx = null;
   S.durationTouched = false;
   S.duration = 30;
@@ -15369,6 +15488,7 @@ function doGuestLogin() {
   document.getElementById('app-login-screen').classList.add('hidden');
   renderHeader();
   navigate('home');
+  loadNotifList();
 }
 
 function doGuestLogout() {

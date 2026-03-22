@@ -1456,7 +1456,7 @@
     </div>
     <div class="prog-guest-card">
       <div class="prog-guest-layout">
-        <img src="images/Eun-joo.png" alt="권은주 선수" class="prog-guest-media">
+        <img src="images/Eun-joo.png?v=20260322-1" alt="권은주 선수" class="prog-guest-media" onerror="if(this.dataset.err)return;this.dataset.err=1;this.src='images/Eun-joo.png'">
         <div class="prog-guest-copy">
           <div class="prog-guest-head">
             <div class="prog-guest-title">권은주 선수</div>
@@ -3262,6 +3262,7 @@
   }
 
   async function syncCurrentUserRegistrationRef(registrationId = '', empId = getCurrentEmpId(), deviceId = getCurrentDeviceId()) {
+    const normalizedRegId = String(registrationId || '').trim();
     const normalizedEmpId = String(empId || '').trim().toUpperCase();
     const normalizedDeviceId = String(deviceId || '').trim();
     const filters = [];
@@ -3276,7 +3277,7 @@
       await fetch(SB_URL + '/rest/v1/users?or=(' + filters.join(',') + ')', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY },
-        body: JSON.stringify({ registrationId: '', lastactiveat: new Date().toISOString() }),
+        body: JSON.stringify({ registrationId: normalizedRegId, lastactiveat: new Date().toISOString() }),
       });
     } catch (e) {}
   }
@@ -3780,21 +3781,11 @@
       registeredAt: storedReg.registeredAt || new Date().toISOString(),
     };
     if (!cancelledReg.deviceId) cancelledReg.deviceId = getCurrentDeviceId();
-    const { error } = await persistRegistrationToRemote(cancelledReg, {
-      note: cancelledReg.note || '취소 처리됨',
-      status: 'cancelled',
-      registeredAt: cancelledReg.registeredAt || new Date().toISOString(),
-    });
-    if (error) {
-      console.error('[challenge-registration/cancel]', error);
-      toast('취소 저장에 실패했습니다. 잠시 후 다시 시도해주세요');
-      return;
-    }
+    const prevRegs = JSON.parse(JSON.stringify(regs));
+    const prevEditingRegId = editingRegId;
     if (idx >= 0) regs[idx] = cancelledReg;
     else regs.push(cancelledReg);
     localStorage.setItem(CH_KEY, JSON.stringify(regs));
-    notifyParentRegistrationChange({ registrationId: normalizedRegId, cancelled: true, empId: getCurrentEmpId(), registration: cancelledReg });
-    await syncCurrentUserRegistrationRef('', cancelledReg.empId || getCurrentEmpId(), cancelledReg.deviceId || getCurrentDeviceId());
     if (restoreCheckTimer) {
       clearTimeout(restoreCheckTimer);
       restoreCheckTimer = 0;
@@ -3804,6 +3795,23 @@
     loadPeople();
     document.getElementById('success-screen').classList.remove('show');
     document.getElementById('form-screen').classList.remove('hide');
+    const { error } = await persistRegistrationToRemote(cancelledReg, {
+      note: cancelledReg.note || '취소 처리됨',
+      status: 'cancelled',
+      registeredAt: cancelledReg.registeredAt || new Date().toISOString(),
+    });
+    if (error) {
+      console.error('[challenge-registration/cancel]', error);
+      localStorage.setItem(CH_KEY, JSON.stringify(prevRegs));
+      editingRegId = prevEditingRegId;
+      renderSuccessScreen(storedReg);
+      document.getElementById('form-screen').classList.add('hide');
+      document.getElementById('success-screen').classList.add('show');
+      toast('취소 저장에 실패했습니다. 잠시 후 다시 시도해주세요');
+      return;
+    }
+    notifyParentRegistrationChange({ registrationId: normalizedRegId, cancelled: true, empId: getCurrentEmpId(), registration: cancelledReg });
+    await syncCurrentUserRegistrationRef('', cancelledReg.empId || getCurrentEmpId(), cancelledReg.deviceId || getCurrentDeviceId());
   }
 
   async function checkExisting(empId) {
