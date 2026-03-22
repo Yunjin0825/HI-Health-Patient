@@ -648,7 +648,7 @@
     .app-header:not(.solid) .header-cart-btn:hover { background: rgba(255,255,255,0.15); }
     .app-header:not(.solid) .header-cart-btn svg { stroke: rgba(255,255,255,0.9); }
     .header-cart-badge {
-      position: absolute; top: -2px; right: -2px;
+      position: absolute; top: -5px; right: -5px;
       background: var(--primary); color: #fff;
       font-size: 9px; font-weight: 700; min-width: 16px; height: 16px;
       border-radius: 8px; display: flex; align-items: center; justify-content: center;
@@ -668,7 +668,7 @@
     .app-header:not(.solid) .header-bell-btn svg { stroke: rgba(255,255,255,0.9); }
     .header-bell-badge {
       position: absolute; top: -5px; right: -5px;
-      background: #EF4444; color: #fff;
+      background: var(--primary); color: #fff;
       font-size: 9px; font-weight: 700; min-width: 16px; height: 16px;
       border-radius: 8px; display: flex; align-items: center; justify-content: center;
       padding: 0 3px; border: 1.5px solid #fff;
@@ -2025,6 +2025,34 @@
       font-size:13px; color:var(--text-secondary); cursor:pointer; transition:all 0.15s;
     }
     .load-more-btn:hover { border-color:var(--primary); color:var(--primary); background:var(--primary-light); }
+    .wo-load-more-btn {
+      width:100%;
+      margin-top:8px;
+      padding:12px 0 2px;
+      border:none;
+      border-top:1px solid rgba(226,232,240,0.9);
+      background:transparent;
+      color:#64748b;
+      font-size:12px;
+      font-weight:600;
+      letter-spacing:-0.01em;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:5px;
+      transition:color 0.15s ease, border-color 0.15s ease;
+    }
+    .wo-load-more-btn::after {
+      content:'›';
+      font-size:14px;
+      line-height:1;
+      opacity:0.7;
+    }
+    .wo-load-more-btn:hover {
+      color:var(--primary);
+      border-top-color:rgba(37,99,235,0.22);
+    }
     .glucose-history-list { margin-top:14px; }
     #wo-history,
     .glucose-history-list {
@@ -2347,6 +2375,15 @@
       object-fit:cover; display:block;
       border:1px solid rgba(15,23,42,0.08);
       box-shadow:0 6px 14px rgba(15,23,42,0.12);
+    }
+    .dn-thumb-btn {
+      padding:0; border:none; background:none;
+      border-radius:12px; flex-shrink:0; cursor:zoom-in;
+      display:block;
+    }
+    .dn-thumb-btn:focus-visible {
+      outline:2px solid var(--primary);
+      outline-offset:2px;
     }
     .dn-thumb-date { font-size:11px; line-height:1.1; }
     .dn-thumb-day { font-size:10px; opacity:0.7; margin-top:3px; }
@@ -9301,7 +9338,7 @@ function renderExerciseHistory() {
     const visible  = reversed.slice(0, _woShowCount);
     const remain   = reversed.length - visible.length;
     wo.innerHTML = visible.map(w => workoutItemHTML(w)).join('')
-      + (remain > 0 ? `<button class="load-more-btn" onclick="_woShowCount+=5;renderExerciseHistory()">더보기 (${remain}개 남음)</button>` : '');
+      + (remain > 0 ? `<button type="button" class="wo-load-more-btn" onclick="_woShowCount+=5;renderExerciseHistory()">기록 ${remain}개 더보기</button>` : '');
     renderInlineRouteMaps(visible);
     return;
   }
@@ -9608,7 +9645,9 @@ function renderDnList() {
     const day = dayNames[d.getDay()];
     const preview = note.replace(/\s*\n+\s*/g, ' ').replace(/\s{2,}/g, ' ').trim();
     const thumb = photo
-      ? `<img class="dn-thumb-img" src="${photo}" alt="기록 사진">`
+      ? `<button type="button" class="dn-thumb-btn" onclick="openDayNotePhoto('${dk}')" aria-label="${month}월 ${date}일 기록 사진 원본 보기">
+          <img class="dn-thumb-img" src="${photo}" alt="기록 사진">
+        </button>`
       : `<div class="dn-thumb">
           <div class="dn-thumb-date">${month}/${date}</div>
           <div class="dn-thumb-day">${day}</div>
@@ -11044,11 +11083,29 @@ function clearPhoto(e) {
 function viewPhoto(id) {
   const w = S.workouts.find(w => w.id === id);
   if (!w || !w.photo) return;
+  openPhotoLightbox(w.photo, '운동 인증');
+}
+
+function openDayNotePhoto(dayKey) {
+  const note = _dayNotes && dayKey ? _dayNotes[dayKey] : null;
+  if (!note || !note.photo) return;
+  openPhotoLightbox(note.photo, '저장된 기록 사진');
+}
+
+function openPhotoLightbox(src, alt = '이미지 원본') {
+  if (!src) return;
   const box = document.createElement('div');
   box.className = 'photo-lightbox';
   box.onclick = (e) => { if (e.target === box) box.remove(); };
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'photo-lightbox-close';
+  closeBtn.innerHTML = '✕';
+  closeBtn.onclick = (e) => { e.stopPropagation(); box.remove(); };
   const img = document.createElement('img');
-  img.src = w.photo; img.alt = '운동 인증';
+  img.src = src;
+  img.alt = alt;
+  box.appendChild(closeBtn);
   box.appendChild(img);
   document.body.appendChild(box);
 }
@@ -13888,21 +13945,7 @@ function setChShoeRequestNote(v) {
 }
 
 function openShoeLightbox(src, alt) {
-  if (!src) return;
-  const box = document.createElement('div');
-  box.className = 'photo-lightbox';
-  box.onclick = (e) => { if (e.target === box) box.remove(); };
-  const closeBtn = document.createElement('button');
-  closeBtn.type = 'button';
-  closeBtn.className = 'photo-lightbox-close';
-  closeBtn.innerHTML = '✕';
-  closeBtn.onclick = (e) => { e.stopPropagation(); box.remove(); };
-  const img = document.createElement('img');
-  img.src = src;
-  img.alt = alt || '운동화 이미지';
-  box.appendChild(closeBtn);
-  box.appendChild(img);
-  document.body.appendChild(box);
+  openPhotoLightbox(src, alt || '운동화 이미지');
 }
 
 function getStoredChallengeRegs() {
