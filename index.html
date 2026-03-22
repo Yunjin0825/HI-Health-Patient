@@ -1673,6 +1673,99 @@
       text-align: center;
     }
     .avatar-preview-select { min-width: 180px; }
+    .dexcom-import-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 5200;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 16px 16px 0;
+      background: rgba(15,23,42,0.46);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .dexcom-import-overlay.pm-hidden { display: none !important; }
+    .dexcom-import-sheet {
+      width: 100%;
+      max-width: 420px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      border-radius: 24px 24px 0 0;
+      box-shadow: 0 -10px 40px rgba(15,23,42,0.18);
+      padding: 18px 18px calc(24px + env(safe-area-inset-bottom));
+      animation: slideUp 0.24s ease;
+    }
+    .dexcom-import-kicker {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #e0f2fe;
+      color: #0369a1;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .dexcom-import-title {
+      margin-top: 12px;
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.03em;
+    }
+    .dexcom-import-sub {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.55;
+    }
+    .dexcom-import-reading {
+      margin-top: 16px;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      color: #0c4a6e;
+    }
+    .dexcom-import-value {
+      font-size: 42px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.06em;
+    }
+    .dexcom-import-unit {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 5px;
+      color: #0369a1;
+    }
+    .dexcom-import-meta {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #64748b;
+    }
+    .dexcom-import-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 18px;
+    }
+    .dexcom-import-btn {
+      flex: 1;
+      border: none;
+      border-radius: 14px;
+      padding: 13px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .dexcom-import-btn.primary {
+      background: #0369a1;
+      color: #fff;
+    }
+    .dexcom-import-btn.secondary {
+      background: #eef2f7;
+      color: #475569;
+    }
     #photo-input { display:none; }
     #photo-preview-img { display:none; }
     #photo-del-wrap { display:none; }
@@ -2070,18 +2163,10 @@
     .today-log-card #hc-sleep-sec,
     .today-log-card #hc-supp-sec { padding-bottom:24px; }
     .exercise-memo-inline, .glucose-memo-inline, .diet-memo-inline, .sleep-memo-inline, .supp-memo-inline { margin-top:10px; }
-    .section-label-row {
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin:16px 0 6px;
-    }
     .ex-section-label {
       font-size: 12px; font-weight: 700; color: var(--text-secondary);
       margin: 16px 0 6px; letter-spacing: -0.01em;
     }
-    .section-label-row .ex-section-label { margin:0; }
     .ex-section-label:first-child { margin-top: 2px; }
     .chip-hold-tip {
       margin:-2px 0 8px;
@@ -2097,76 +2182,6 @@
       font-weight:500;
       color:var(--text-muted);
       letter-spacing:-0.01em;
-    }
-    .section-edit-btn {
-      flex-shrink:0;
-      padding:5px 10px;
-      border-radius:999px;
-      border:1px solid rgba(203,213,225,0.95);
-      background:#fff;
-      color:var(--text-secondary);
-      font-size:11px;
-      font-weight:700;
-      font-family:inherit;
-      cursor:pointer;
-      transition:all 0.18s ease;
-    }
-    .section-edit-btn.active {
-      border-color:rgba(79,70,229,0.28);
-      background:#f5f7ff;
-      color:var(--primary);
-    }
-    .ex-type-grid.is-editing { gap:8px; }
-    .ex-type-btn.is-editing {
-      gap:8px;
-      padding:6px 10px 6px 12px;
-      border-style:dashed;
-      background:#fcfcfd;
-    }
-    .ex-chip-main { display:inline-flex; align-items:center; gap:5px; min-width:0; }
-    .ex-chip-edit-tools {
-      display:none;
-      align-items:center;
-      gap:4px;
-      margin-left:2px;
-    }
-    .ex-type-btn.is-editing .ex-chip-edit-tools { display:inline-flex; }
-    .ex-chip-grab,
-    .ex-chip-hide {
-      width:18px;
-      height:18px;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      border-radius:999px;
-      font-size:11px;
-      line-height:1;
-      cursor:pointer;
-      user-select:none;
-      -webkit-user-select:none;
-    }
-    .ex-chip-grab {
-      background:#f8fafc;
-      color:#94a3b8;
-      cursor:grab;
-      touch-action:none;
-    }
-    .ex-chip-grab:active { cursor:grabbing; }
-    .ex-type-btn.is-editing[data-drag-ready="1"] {
-      box-shadow:0 0 0 1px rgba(79,70,229,0.14);
-    }
-    .ex-type-btn.is-editing.ex-chip-dragging {
-      z-index:3;
-      box-shadow:0 0 0 1px rgba(79,70,229,0.18);
-      border-style:solid;
-      border-color:rgba(79,70,229,0.22);
-      background:#fff;
-      opacity:0.98;
-    }
-    .ex-chip-hide {
-      background:#fee2e2;
-      color:#dc2626;
-      font-weight:700;
     }
     .ex-section-opt { font-size: 11px; font-weight: 500; color: var(--text-muted); margin-left: 4px; }
     .exercise-memo-inline #ex-memo {
@@ -4552,10 +4567,7 @@
           <button class="ex-hero-tab" id="rec-tab-glucose" onclick="setRecordTab('glucose')">혈당<span class="today-tab-dot" id="dot-glucose" style="display:none"></span></button>
         </div>
         <div id="rec-panel-exercise">
-          <div class="section-label-row">
-            <p class="ex-section-label">운동 종류<span class="ex-section-tip" id="exercise-chip-tip">직접입력으로 추가, 편집에서 길게눌러 순서 변경/숨김</span></p>
-            <button type="button" class="section-edit-btn" id="exercise-chip-edit-btn" onclick="toggleExerciseChipEditMode()">편집</button>
-          </div>
+          <p class="ex-section-label">운동 종류<span class="ex-section-tip" id="exercise-chip-tip">직접입력으로 추가, 길게눌러 숨김</span></p>
           <div class="ex-type-grid" id="ex-type-grid"></div>
           <div id="custom-ex-wrap" class="custom-ex-wrap">
             <div style="display:flex;gap:6px">
@@ -4647,7 +4659,7 @@
         <!-- 덱스콤 연동 카드 -->
         <div id="dexcom-card" style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:16px;padding:14px 16px;margin-top:14px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-            <div style="font-size:13px;font-weight:700;color:#0369a1">덱스콤 G7 실시간 연동</div>
+            <div style="font-size:13px;font-weight:700;color:#0369a1">덱스콤 G7 연동</div>
             <button id="dexcom-setup-btn" onclick="openDexcomSetup()" style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;border:none;background:#0369a1;color:#fff;cursor:pointer">연동하기</button>
           </div>
           <div id="dexcom-live" style="display:none">
@@ -4657,12 +4669,13 @@
               <span id="dexcom-arrow" style="font-size:28px;color:#0369a1">—</span>
             </div>
             <div style="font-size:11px;color:#64748b;margin-top:2px" id="dexcom-time">—</div>
+            <div style="font-size:11px;color:#64748b;margin-top:6px">불러오기를 누르면 혈당 수치에 자동 입력돼요.</div>
             <div style="display:flex;gap:8px;margin-top:8px">
-              <button onclick="fetchDexcom()" style="font-size:11px;padding:4px 10px;border-radius:999px;border:1.5px solid #bae6fd;background:#fff;color:#0369a1;font-weight:700;cursor:pointer">새로고침</button>
+              <button onclick="importDexcomReading()" style="font-size:11px;padding:4px 10px;border-radius:999px;border:1.5px solid #bae6fd;background:#fff;color:#0369a1;font-weight:700;cursor:pointer">불러오기</button>
               <button onclick="disconnectDexcom()" style="font-size:11px;padding:4px 10px;border-radius:999px;border:1.5px solid #e5e7eb;background:#fff;color:#94a3b8;cursor:pointer">연동 해제</button>
             </div>
           </div>
-          <div id="dexcom-idle" style="font-size:12px;color:#64748b">덱스콤 앱 계정을 연동하면 혈당이 자동으로 불러와져요.</div>
+          <div id="dexcom-idle" style="font-size:12px;color:#64748b">덱스콤 앱 계정을 연동하면 최신 혈당을 불러와 입력할 수 있어요.</div>
         </div>
 
         <!-- 덱스콤 설정 모달 -->
@@ -4675,6 +4688,22 @@
             <div id="dexcom-modal-err" style="display:none;font-size:12px;color:#ef4444;margin-bottom:10px;text-align:center"></div>
             <button onclick="connectDexcom()" style="width:100%;padding:14px;border-radius:14px;border:none;background:#0369a1;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px" id="dexcom-connect-btn">연동하기</button>
             <button onclick="closeDexcomSetup()" style="width:100%;padding:10px;border-radius:14px;border:none;background:none;color:#94a3b8;font-size:14px;cursor:pointer">취소</button>
+          </div>
+        </div>
+        <div id="dexcom-import-overlay" class="dexcom-import-overlay pm-hidden" onclick="if(event.target===this)closeDexcomImportSheet()">
+          <div class="dexcom-import-sheet" onclick="event.stopPropagation()">
+            <div class="dexcom-import-kicker">DEXCOM</div>
+            <div class="dexcom-import-title">최신 혈당을 불러왔어요</div>
+            <div class="dexcom-import-sub">혈당 수치에 자동으로 입력했어요. 필요한 경우 측정 시점만 선택해서 바로 기록하면 됩니다.</div>
+            <div class="dexcom-import-reading">
+              <span class="dexcom-import-value" id="dexcom-import-value">--</span>
+              <span class="dexcom-import-unit">mg/dL</span>
+            </div>
+            <div class="dexcom-import-meta" id="dexcom-import-meta">최근 측정값</div>
+            <div class="dexcom-import-actions">
+              <button type="button" class="dexcom-import-btn secondary" onclick="closeDexcomImportSheet()">닫기</button>
+              <button type="button" class="dexcom-import-btn primary" onclick="closeDexcomImportSheet()">확인</button>
+            </div>
           </div>
         </div>
       </div>
@@ -5950,7 +5979,6 @@ function buildAccountSettingsSnapshot(empId = ACTIVE_EMPID || S.user?.empId || '
     chips: {
       customExTypes: Array.isArray(_customExTypes) ? [..._customExTypes] : [],
       hiddenExPresetTypes: Array.isArray(_hiddenExPresetTypes) ? [..._hiddenExPresetTypes] : [],
-      exerciseChipOrder: Array.isArray(_exerciseChipOrder) ? [...sanitizeExerciseChipOrder(_exerciseChipOrder)] : [],
       hiddenMealPresetTypes: Array.isArray(_hiddenMealPresetTypes) ? [..._hiddenMealPresetTypes] : [],
       hiddenSuppPresetTypes: Array.isArray(_hiddenSuppPresetTypes) ? [..._hiddenSuppPresetTypes] : [],
       customMealTypes: Array.isArray(_customMealTypes) ? [..._customMealTypes] : [],
@@ -6021,7 +6049,6 @@ function applyAccountSettingsSnapshot(snapshot, empId = ACTIVE_EMPID || S.user?.
     };
     writeScopedArray('hi_custom_ex_types', chips.customExTypes);
     writeScopedArray('hi_hidden_ex_presets', chips.hiddenExPresetTypes);
-    writeScopedArray('hi_ex_chip_order', chips.exerciseChipOrder);
     writeScopedArray('hi_hidden_meal_presets', chips.hiddenMealPresetTypes);
     writeScopedArray('hi_hidden_supp_presets', chips.hiddenSuppPresetTypes);
     writeScopedArray('hi_custom_meal_types', chips.customMealTypes);
@@ -7644,7 +7671,6 @@ function removeCustomExType(name) {
   haptic('light');
   _customExTypes = _customExTypes.filter(n => n !== name);
   writeRecordChipState('hi_custom_ex_types', _customExTypes);
-  persistExerciseChipOrder();
   if (S.selectedEx === 'custom_' + name) { S.selectedEx = null; updateRecordBtnStates(); }
   renderExercise();
 }
@@ -7664,150 +7690,14 @@ function removeExPresetType(id) {
     _hiddenExPresetTypes.push(id);
     writeRecordChipState('hi_hidden_ex_presets', _hiddenExPresetTypes);
   }
-  persistExerciseChipOrder();
   if (S.selectedEx === id) {
     S.selectedEx = null;
     updateRecordBtnStates();
   }
   renderExercise();
 }
-function toggleExerciseChipEditMode(force) {
-  cancelExerciseChipDrag();
-  _exerciseChipEditMode = typeof force === 'boolean' ? force : !_exerciseChipEditMode;
-  if (_exerciseChipEditMode && S.selectedEx === 'custom') S.selectedEx = null;
-  haptic('light');
-  updateRecordBtnStates();
-  renderExercise();
-}
 function openCustomExerciseInput() {
-  if (_exerciseChipEditMode) return;
   selectEx('custom');
-}
-function handleExerciseChipClick(event, exId) {
-  if (_exerciseChipEditMode) {
-    event?.preventDefault?.();
-    return;
-  }
-  selectEx(exId);
-}
-function hideExerciseChipFromEdit(token) {
-  const parsed = parseExerciseChipToken(token);
-  if (parsed.kind === 'preset') {
-    confirmRemoveExPresetType(parsed.value);
-    return;
-  }
-  if (parsed.kind === 'custom') {
-    confirmRemoveCustomExType(parsed.value);
-  }
-}
-function getExerciseChipButtons() {
-  return Array.from(document.querySelectorAll('#ex-type-grid .ex-type-btn[data-chip-token]'));
-}
-function getExerciseChipScroller() {
-  return document.getElementById('ex-type-grid');
-}
-function cancelExerciseChipDrag() {
-  const state = _exerciseChipDragState;
-  if (!state) return;
-  if (state.timer) clearTimeout(state.timer);
-  if (state.el) {
-    state.el.classList.remove('ex-chip-dragging');
-    delete state.el.dataset.dragReady;
-    state.el.style.transform = '';
-  }
-  _exerciseChipDragState = null;
-}
-function bindExerciseChipDrag(el, token) {
-  if (!el || el.dataset.dragBound === '1') return;
-  el.dataset.dragBound = '1';
-  el.addEventListener('pointerdown', event => {
-    if (!_exerciseChipEditMode || event.button !== 0) return;
-    if (event.target.closest('.ex-chip-hide')) return;
-    cancelExerciseChipDrag();
-    const state = {
-      token,
-      el,
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      currentX: event.clientX,
-      startScrollLeft: getExerciseChipScroller()?.scrollLeft || 0,
-      dragging: false,
-      timer: setTimeout(() => {
-        if (_exerciseChipDragState !== state) return;
-        state.dragging = true;
-        el.dataset.dragReady = '1';
-        el.classList.add('ex-chip-dragging');
-        el.setPointerCapture?.(event.pointerId);
-        haptic('light');
-      }, 260),
-    };
-    _exerciseChipDragState = state;
-  });
-  el.addEventListener('pointermove', event => {
-    const state = _exerciseChipDragState;
-    if (!state || state.pointerId !== event.pointerId || state.el !== el) return;
-    state.currentX = event.clientX;
-    const pointerDeltaX = event.clientX - state.startX;
-    if (!state.dragging && Math.abs(pointerDeltaX) > 8) {
-      cancelExerciseChipDrag();
-      return;
-    }
-    if (!state.dragging) return;
-    event.preventDefault();
-    const grid = getExerciseChipScroller();
-    if (grid) {
-      const rect = grid.getBoundingClientRect();
-      const edgeGap = 44;
-      if (event.clientX > rect.right - edgeGap) {
-        const proximity = edgeGap - (rect.right - event.clientX);
-        grid.scrollLeft += Math.min(18, Math.max(4, (proximity / 2) + 4));
-      } else if (event.clientX < rect.left + edgeGap) {
-        const proximity = edgeGap - (event.clientX - rect.left);
-        grid.scrollLeft -= Math.min(18, Math.max(4, (proximity / 2) + 4));
-      }
-    }
-    const scrollDelta = (grid?.scrollLeft || 0) - (state.startScrollLeft || 0);
-    el.style.transform = `translateX(${pointerDeltaX + scrollDelta}px)`;
-  });
-  const finishDrag = event => {
-    const state = _exerciseChipDragState;
-    if (!state || state.pointerId !== event.pointerId || state.el !== el) return;
-    if (state.timer) clearTimeout(state.timer);
-    const wasDragging = state.dragging;
-    el.releasePointerCapture?.(event.pointerId);
-    el.classList.remove('ex-chip-dragging');
-    delete el.dataset.dragReady;
-    el.style.transform = '';
-    _exerciseChipDragState = null;
-    if (!wasDragging) return;
-    const buttons = getExerciseChipButtons();
-    const sourceIndex = buttons.findIndex(btn => btn.dataset.chipToken === state.token);
-    if (sourceIndex === -1) return;
-    const centers = buttons.map(btn => {
-      const rect = btn.getBoundingClientRect();
-      return rect.left + (rect.width / 2);
-    });
-    const dropCenter = event.clientX || state.currentX || centers[sourceIndex];
-    let targetIndex = sourceIndex;
-    let closestGap = Infinity;
-    centers.forEach((center, idx) => {
-      const gap = Math.abs(center - dropCenter);
-      if (gap < closestGap) {
-        closestGap = gap;
-        targetIndex = idx;
-      }
-    });
-    if (targetIndex === sourceIndex) return;
-    const order = sanitizeExerciseChipOrder(_exerciseChipOrder);
-    const [moved] = order.splice(sourceIndex, 1);
-    order.splice(targetIndex, 0, moved);
-    _exerciseChipOrder = order;
-    persistExerciseChipOrder();
-    haptic('light');
-    renderExercise();
-  };
-  el.addEventListener('pointerup', finishDrag);
-  el.addEventListener('pointercancel', finishDrag);
 }
 function confirmRemoveCustomMealType(name) {
   showConfirm({
@@ -8785,15 +8675,12 @@ const SUPP_PRESET_TYPES = ['비타민','엽산','오메가','아르기닌'];
 let _recordChipScope = '';
 let _customExTypes = [];
 let _hiddenExPresetTypes = [];
-let _exerciseChipOrder = [];
 let _hiddenMealPresetTypes = [];
 let _hiddenSuppPresetTypes = [];
 let _customMealTypes = [];
 let _customSuppTypes = [];
 let _hiddenGlucoseTimingTypes = [];
 let _customGlucoseTimingTypes = [];
-let _exerciseChipEditMode = false;
-let _exerciseChipDragState = null;
 
 function getRecordChipScope() {
   return normalizeEmpIdValue(ACTIVE_EMPID || S.user?.empId || '') || 'guest';
@@ -8813,47 +8700,15 @@ function writeRecordChipState(baseKey, value) {
   localStorage.setItem(getRecordChipStorageKey(baseKey), JSON.stringify(value));
   markAccountSettingsDirty();
 }
-function getExerciseChipToken(kind, value) {
-  return `${String(kind || '').trim()}:${encodeURIComponent(String(value || '').trim())}`;
-}
-function parseExerciseChipToken(token) {
-  const raw = String(token || '').trim();
-  const sepIdx = raw.indexOf(':');
-  if (sepIdx === -1) return { kind:'', value:'' };
-  return {
-    kind: raw.slice(0, sepIdx),
-    value: decodeURIComponent(raw.slice(sepIdx + 1)),
-  };
-}
 function getVisibleExercisePresetTypes() {
   return EX_TYPES.filter(item => item.id !== 'custom' && !_hiddenExPresetTypes.includes(item.id));
-}
-function sanitizeExerciseChipOrder(order = _exerciseChipOrder) {
-  const presetTokens = getVisibleExercisePresetTypes().map(item => getExerciseChipToken('preset', item.id));
-  const customTokens = _customExTypes.map(name => getExerciseChipToken('custom', name));
-  const allowed = new Set([...presetTokens, ...customTokens]);
-  const next = [];
-  (Array.isArray(order) ? order : []).forEach(token => {
-    if (!allowed.has(token) || next.includes(token)) return;
-    next.push(token);
-  });
-  [...presetTokens, ...customTokens].forEach(token => {
-    if (!next.includes(token)) next.push(token);
-  });
-  return next;
-}
-function persistExerciseChipOrder() {
-  _exerciseChipOrder = sanitizeExerciseChipOrder(_exerciseChipOrder);
-  writeRecordChipState('hi_ex_chip_order', _exerciseChipOrder);
 }
 function hydrateRecordChipState(force = false) {
   const nextScope = getRecordChipScope();
   if (!force && _recordChipScope === nextScope) return;
   _recordChipScope = nextScope;
-  _exerciseChipEditMode = false;
   _customExTypes = readRecordChipState('hi_custom_ex_types');
   _hiddenExPresetTypes = readRecordChipState('hi_hidden_ex_presets');
-  _exerciseChipOrder = readRecordChipState('hi_ex_chip_order');
   _hiddenMealPresetTypes = readRecordChipState('hi_hidden_meal_presets');
   _hiddenSuppPresetTypes = readRecordChipState('hi_hidden_supp_presets');
   _customMealTypes = readRecordChipState('hi_custom_meal_types');
@@ -8879,8 +8734,6 @@ function addCustomExType() {
   haptic('light');
   _customExTypes.push(name);
   writeRecordChipState('hi_custom_ex_types', _customExTypes);
-  _exerciseChipOrder = [...sanitizeExerciseChipOrder(_exerciseChipOrder), getExerciseChipToken('custom', name)];
-  persistExerciseChipOrder();
   input.value = '';
   S.selectedEx = 'custom_' + name;
   document.getElementById('custom-ex-wrap')?.classList.remove('show');
@@ -9167,49 +9020,28 @@ function renderExercise() {
   if (ptsEl)  ptsEl.textContent  = '+' + todayPts + 'p';
   renderGlucoseTimingButtons();
   const exerciseChipTip = document.getElementById('exercise-chip-tip');
-  if (exerciseChipTip) exerciseChipTip.textContent = '직접입력으로 추가, 편집에서 길게눌러 순서 변경/숨김';
-  const exerciseChipEditBtn = document.getElementById('exercise-chip-edit-btn');
-  if (exerciseChipEditBtn) {
-    exerciseChipEditBtn.textContent = _exerciseChipEditMode ? '완료' : '편집';
-    exerciseChipEditBtn.classList.toggle('active', _exerciseChipEditMode);
-  }
+  if (exerciseChipTip) exerciseChipTip.textContent = '직접입력으로 추가, 길게눌러 숨김';
 
   // Exercise type buttons (including custom at end of scroll row)
-  const isCustomInput = S.selectedEx === 'custom' && !_exerciseChipEditMode;
-  _exerciseChipOrder = sanitizeExerciseChipOrder(_exerciseChipOrder);
-  const orderedChipTokens = [..._exerciseChipOrder];
-  const chipsHtml = orderedChipTokens.map((token, idx) => {
-    const parsed = parseExerciseChipToken(token);
-    const isPreset = parsed.kind === 'preset';
-    const exId = isPreset ? parsed.value : `custom_${parsed.value}`;
-    const preset = isPreset ? getVisibleExercisePresetTypes().find(item => item.id === parsed.value) : null;
-    const custom = !isPreset ? parseCustomExerciseName(parsed.value) : null;
-    const label = preset?.name || custom?.label || parsed.value;
-    const selected = S.selectedEx === exId;
-    return `<button type="button" class="ex-type-btn ${selected ? 'selected' : ''}${_exerciseChipEditMode ? ' is-editing' : ''}" data-ex-id="${escHtmlComm(exId)}" data-chip-token="${escHtmlComm(token)}" onclick="handleExerciseChipClick(event, this.dataset.exId)">
-      <span class="ex-chip-main">
-        <span class="ex-type-icon">${renderExerciseIcon(exId, { size:'15px' })}</span>
-        <span class="ex-type-name">${escHtmlComm(label)}</span>
-      </span>
-      ${_exerciseChipEditMode ? `
-      <span class="ex-chip-edit-tools">
-        <span class="ex-chip-grab">⋮⋮</span>
-        <span class="ex-chip-hide" onclick="event.stopPropagation();hideExerciseChipFromEdit(this.closest('.ex-type-btn').dataset.chipToken)">×</span>
-      </span>` : ''}
+  const isCustomInput = S.selectedEx === 'custom';
+  const chipsHtml = getVisibleExercisePresetTypes().map(ex => `
+    <button type="button" class="ex-type-btn ${S.selectedEx===ex.id ? 'selected' : ''}" data-ex-id="${escHtmlComm(ex.id)}" data-chip-delete-action="ex-preset" data-chip-delete-value="${escHtmlComm(ex.id)}" onclick="selectEx(this.dataset.exId)">
+      <span class="ex-type-icon">${renderExerciseIcon(ex.id, { size:'15px' })}</span><span class="ex-type-name">${ex.name}</span>
+    </button>
+  `).join('') + _customExTypes.map(name => {
+    const custom = parseCustomExerciseName(name);
+    return `<button type="button" class="ex-type-btn ${S.selectedEx===('custom_' + name) ? 'selected' : ''}" data-ex-id="${escHtmlComm('custom_' + name)}" data-chip-delete-action="ex-custom" data-chip-delete-value="${escHtmlComm(name)}" onclick="selectEx(this.dataset.exId)">
+      <span class="ex-type-icon">${renderExerciseIcon('custom_' + name, { size:'15px', customName:name })}</span><span class="ex-type-name">${escHtmlComm(custom.label || name)}</span>
     </button>`;
   }).join('');
   const exTypeGrid = document.getElementById('ex-type-grid');
   if (exTypeGrid) {
-    exTypeGrid.classList.toggle('is-editing', _exerciseChipEditMode);
     exTypeGrid.innerHTML = chipsHtml
       + `<button type="button" class="custom-ex-link ${isCustomInput ? 'selected' : ''}" onclick="openCustomExerciseInput()">${renderNamedSvgIcon('pencil', { size:'14px', color:'currentColor' })}<span>직접 입력</span></button>`;
-    exTypeGrid.querySelectorAll('.ex-type-btn[data-chip-token]').forEach(btn => {
-      bindExerciseChipDrag(btn, btn.dataset.chipToken);
-    });
   }
 
   const cw = document.getElementById('custom-ex-wrap');
-  if (cw) cw.classList.toggle('show', isCustomInput && !_exerciseChipEditMode);
+  if (cw) cw.classList.toggle('show', isCustomInput);
 
   const durEl = document.getElementById('dur-val');
   if (durEl) durEl.value = S.duration;
@@ -9236,7 +9068,7 @@ function updateMemoPlaceholder() {
 function updateRecordBtnStates() {
   const canLogExercise = !!S.selectedEx && !!S.durationTouched;
   document.getElementById('log-exercise-btn')?.classList.toggle('btn-inactive', !canLogExercise);
-  const canLogGlucose = !!_glucoseValTouched && !!_glucoseTiming;
+  const canLogGlucose = !!_glucoseValTouched;
   document.getElementById('log-glucose-btn')?.classList.toggle('btn-inactive', !canLogGlucose);
   const durHint = document.getElementById('dur-hint');
   if (durHint) durHint.style.display = canLogExercise ? 'none' : '';
@@ -9244,7 +9076,6 @@ function updateRecordBtnStates() {
 function selectEx(id) {
   haptic('light');
   S.selectedEx = id;
-  S.durationTouched = false;
   renderExercise();
   updateMemoPlaceholder();
   updateSharePreview();
@@ -10511,13 +10342,11 @@ function todayGlucoseRecords() {
 
 function logGlucoseStandalone() {
   if (IS_GUEST) { flashGuestBanner(); return; }
-  if (!_glucoseValTouched || !_glucoseTiming) {
+  if (!_glucoseValTouched) {
     haptic('error');
     const hint = document.getElementById('log-glucose-hint');
     if (hint) {
-      hint.textContent = !_glucoseTiming
-        ? '혈당 시점을 선택하거나 입력해주세요'
-        : '혈당 수치를 입력해주세요';
+      hint.textContent = '혈당 수치를 입력해주세요';
       hint.style.display = 'block';
       clearTimeout(hint._t);
       hint._t = setTimeout(() => { hint.style.display = 'none'; }, 2500);
@@ -11309,7 +11138,6 @@ function cleanupLocalUserKeys({ empIds = [], deviceIds = [], registrationIds = [
     [
       'hi_custom_ex_types',
       'hi_hidden_ex_presets',
-      'hi_ex_chip_order',
       'hi_hidden_meal_presets',
       'hi_hidden_supp_presets',
       'hi_custom_meal_types',
@@ -15078,7 +14906,7 @@ function applyGuestSampleState() {
   const dexSetupBtn = document.getElementById('dexcom-setup-btn');
   if (dexVal) dexVal.textContent = '108';
   if (dexArrow) dexArrow.textContent = '→';
-  if (dexTime) dexTime.textContent = '5분 전 업데이트';
+  if (dexTime) dexTime.textContent = '최근 불러온 값';
   if (dexLive) dexLive.style.display = '';
   if (dexIdle) dexIdle.style.display = 'none';
   if (dexSetupBtn) dexSetupBtn.style.display = 'none';
@@ -15941,6 +15769,51 @@ async function init() {
   // ── Dexcom G7 Integration ──
   const DEXCOM_FN = 'https://nbnmvvobehjitophkqmu.supabase.co/functions/v1/dexcom-proxy';
   let _dexTimer = null;
+  function parseDexcomReadingTime(rawTime) {
+    const raw = String(rawTime || '').trim();
+    if (!raw) return null;
+    const matched = raw.match(/\/Date\((\d+)\)\//);
+    const ms = matched ? Number(matched[1]) : Number(raw);
+    if (!Number.isFinite(ms) || ms <= 0) return null;
+    const date = new Date(ms);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  function formatDexcomReadingTime(rawTime) {
+    const time = parseDexcomReadingTime(rawTime);
+    return time ? `측정: ${time.toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' })}` : '최근 측정값';
+  }
+  function closeDexcomImportSheet() {
+    document.getElementById('dexcom-import-overlay')?.classList.add('pm-hidden');
+  }
+  function openDexcomImportSheet(reading) {
+    const overlay = document.getElementById('dexcom-import-overlay');
+    if (!overlay || !reading) return;
+    const valueEl = document.getElementById('dexcom-import-value');
+    const metaEl = document.getElementById('dexcom-import-meta');
+    if (valueEl) valueEl.textContent = String(reading.value ?? '--');
+    if (metaEl) metaEl.textContent = formatDexcomReadingTime(reading.time);
+    overlay.classList.remove('pm-hidden');
+  }
+  function applyDexcomReadingToGlucose(reading) {
+    const value = Number(reading?.value);
+    if (!Number.isFinite(value)) return false;
+    _glucoseVal = Math.max(40, Math.min(400, Math.round(value)));
+    _glucoseValTouched = true;
+    const measuredAt = parseDexcomReadingTime(reading?.time);
+    if (measuredAt) {
+      _glucoseTime = `${String(measuredAt.getHours()).padStart(2,'0')}:${String(measuredAt.getMinutes()).padStart(2,'0')}`;
+      const timeInput = document.getElementById('sa-glucose-time');
+      if (timeInput) timeInput.value = _glucoseTime;
+      document.getElementById('sa-glucose-time-wrap')?.classList.add('show');
+    }
+    document.getElementById('log-glucose-hint')?.style.setProperty('display', 'none');
+    syncGlucoseUI();
+    updateRecordBtnStates();
+    return true;
+  }
+  function importDexcomReading() {
+    fetchDexcom({ applyToInput: true, openSheet: true });
+  }
 
   function openDexcomSetup() {
     const m = document.getElementById('dexcom-modal');
@@ -15974,21 +15847,22 @@ async function init() {
       closeDexcomSetup();
       if (data.readings?.length) {
         _dexRenderReading(data.readings[0]);
-        toast('덱스콤 G7 연동 완료! 5분마다 자동 갱신돼요 🩸');
+        toast('덱스콤 G7 연동 완료! 필요할 때 불러와 사용할 수 있어요 🩸');
       } else {
         document.getElementById('dexcom-live').style.display = '';
         document.getElementById('dexcom-idle').style.display = 'none';
         document.getElementById('dexcom-setup-btn').style.display = 'none';
         document.getElementById('dexcom-val').textContent = '--';
         document.getElementById('dexcom-time').textContent = 'G7 센서 데이터 없음' + (data.debug ? ' [' + data.debug + ']' : '');
-        toast('연동됐어요. G7 센서가 활성화되면 자동으로 불러와요.');
+        toast('연동됐어요. G7 센서가 활성화되면 불러올 수 있어요.');
       }
       _dexStartTimer();
     } catch(e) {
       err.textContent = '연결 오류가 발생했어요. 다시 시도해주세요.'; err.style.display = '';
     } finally { btn.textContent = '연동하기'; btn.disabled = false; }
   }
-  async function fetchDexcom() {
+  async function fetchDexcom(options = {}) {
+    const { applyToInput = false, openSheet = false, silent = false } = options || {};
     const u = localStorage.getItem(getAccountScopedStorageKey('dexcom_user'));
     const p = localStorage.getItem(getAccountScopedStorageKey('dexcom_pass'));
     if (!u || !p) return;
@@ -15999,15 +15873,28 @@ async function init() {
         body: JSON.stringify({ username: u, password: atob(p) })
       });
       const data = await res.json();
-      if (data.readings?.[0]) _dexRenderReading(data.readings[0]);
-    } catch(e) {}
+      const reading = data.readings?.[0];
+      if (!reading) {
+        if (!silent) showToast('불러올 혈당 데이터가 없어요');
+        return;
+      }
+      _dexRenderReading(reading);
+      if (applyToInput) {
+        const applied = applyDexcomReadingToGlucose(reading);
+        if (applied) {
+          if (openSheet) openDexcomImportSheet(reading);
+          else if (!silent) showToast('덱스콤 혈당을 입력했어요');
+        }
+      }
+    } catch(e) {
+      if (!silent) showToast('덱스콤 불러오기에 실패했어요');
+    }
   }
   function _dexRenderReading(r) {
     if (!r) return;
     document.getElementById('dexcom-val').textContent = r.value ?? '--';
     document.getElementById('dexcom-arrow').textContent = r.trendArrow ?? '—';
-    const t = r.time ? new Date(parseInt(r.time.replace(/\/Date\((\d+)\)\//, '$1'))) : null;
-    document.getElementById('dexcom-time').textContent = t ? `측정: ${t.toLocaleTimeString('ko-KR', {hour:'2-digit',minute:'2-digit'})}` : '';
+    document.getElementById('dexcom-time').textContent = formatDexcomReadingTime(r.time);
     document.getElementById('dexcom-live').style.display = '';
     document.getElementById('dexcom-idle').style.display = 'none';
     document.getElementById('dexcom-setup-btn').style.display = 'none';
