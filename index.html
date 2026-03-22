@@ -648,7 +648,7 @@
     .app-header:not(.solid) .header-cart-btn:hover { background: rgba(255,255,255,0.15); }
     .app-header:not(.solid) .header-cart-btn svg { stroke: rgba(255,255,255,0.9); }
     .header-cart-badge {
-      position: absolute; top: -5px; right: -5px;
+      position: absolute; top: -3px; right: -3px;
       background: var(--primary); color: #fff;
       font-size: 9px; font-weight: 700; min-width: 16px; height: 16px;
       border-radius: 8px; display: flex; align-items: center; justify-content: center;
@@ -667,7 +667,7 @@
     .app-header:not(.solid) .header-bell-btn:hover { background: rgba(255,255,255,0.15); }
     .app-header:not(.solid) .header-bell-btn svg { stroke: rgba(255,255,255,0.9); }
     .header-bell-badge {
-      position: absolute; top: -5px; right: -5px;
+      position: absolute; top: -3px; right: -3px;
       background: var(--primary); color: #fff;
       font-size: 9px; font-weight: 700; min-width: 16px; height: 16px;
       border-radius: 8px; display: flex; align-items: center; justify-content: center;
@@ -14528,6 +14528,14 @@ function scrollToExerciseForm() {
   }, 100);
 }
 
+function goToFamilyCert() {
+  navigate('challenge');
+  setTimeout(() => {
+    queueRundayMessage({ type: 'SCROLL_TO_CERT' });
+    flushRundayMessageQueue();
+  }, 400);
+}
+
 function setChallengeSectionHtml(el, html, renderKey = html) {
   if (!el) return false;
   const nextKey = String(renderKey ?? '');
@@ -14710,6 +14718,7 @@ function renderChallenge() {
           ${canCancelReg ? `<button type="button" class="ch-cancel-reg-btn" onclick="cancelRegistration('${myReg.id}')">신청 취소</button>` : ''}
         </div>
         <button type="button" class="btn btn-primary btn-full ch-workout-btn" style="margin-top:8px;padding:8px;font-size:11px" onclick="scrollToExerciseForm()">오늘 운동 기록하기</button>
+        ${myReg.familyParticipation ? `<button type="button" class="btn btn-primary btn-full ch-workout-btn" style="margin-top:8px;padding:8px;font-size:11px" onclick="goToFamilyCert()">가족 함께 운동 인증하기</button>` : ''}
       </div>
     `;
     formHtml = '';

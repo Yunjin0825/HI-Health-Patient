@@ -3195,6 +3195,11 @@
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
     }
+    if (e.data?.type === 'SCROLL_TO_CERT') {
+      const certCard = document.querySelector('.cert-card');
+      if (certCard) certCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
     if (e.data?.type === 'PAGE_VISIBILITY') {
       setRundayPageActive(e.data.active !== false, { reason: 'page-visibility-message' });
       return;
