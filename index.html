@@ -4340,7 +4340,7 @@
           <div id="custom-ex-wrap" class="custom-ex-wrap">
             <div style="display:flex;gap:6px">
               <input type="text" class="ch-form-input dashed" id="custom-ex-name"
-                     placeholder="운동 이름을 입력하세요 (예: 줄넘기, 스키...)"
+                     placeholder="운동 이름을 입력하세요 (예: 🏓 탁구, ⛷️ 스키...)"
                      maxlength="20" oninput="updatePtsPreview();updateMemoPlaceholder();updateSharePreview()"
                      onkeydown="if(event.key==='Enter')addCustomExType()">
               <button type="button" onclick="addCustomExType()" style="padding:8px 14px;border-radius:var(--radius-sm);border:none;background:var(--primary);color:#fff;font-size:13px;cursor:pointer;white-space:nowrap">추가</button>
@@ -4385,14 +4385,7 @@
 
         <div id="rec-panel-glucose" style="display:none">
           <p class="ex-section-label">측정 시점</p>
-          <div class="ex-type-grid">
-            <button type="button" class="ex-type-btn" id="sa-gt-fasting"  onclick="setGlucoseTiming('공복')">공복</button>
-            <button type="button" class="ex-type-btn" id="sa-gt-after"    onclick="setGlucoseTiming('식후')">식후</button>
-            <button type="button" class="ex-type-btn" id="sa-gt-after2h"  onclick="setGlucoseTiming('식후2h')">식후 2h</button>
-            <button type="button" class="ex-type-btn" id="sa-gt-before"   onclick="setGlucoseTiming('식전')">식전</button>
-            <button type="button" class="ex-type-btn" id="sa-gt-bedtime"  onclick="setGlucoseTiming('취침전')">취침 전</button>
-            <button type="button" class="custom-ex-link" id="sa-gt-time" onclick="toggleGlucoseTimeInput()"><span data-svg-icon="pencil" data-svg-size="14px"></span><span>측정시간 직접입력</span></button>
-          </div>
+          <div class="ex-type-grid" id="glucose-timing-grid"></div>
           <div class="custom-ex-wrap" id="sa-glucose-time-wrap">
             <input type="time" id="sa-glucose-time" class="glucose-time-input"
                    oninput="_glucoseTime=this.value;_glucoseValTouched=false;document.getElementById('sa-glucose-num')?.classList.remove('active');updateRecordBtnStates()">
@@ -7165,6 +7158,16 @@ function removeCustomExType(name) {
   if (S.selectedEx === 'custom_' + name) { S.selectedEx = null; updateRecordBtnStates(); }
   renderExercise();
 }
+function confirmRemoveExPresetType(id) {
+  const ex = EX_TYPES.find(item => item.id === id);
+  if (!ex) return;
+  showConfirm({
+    title: '운동 종목을 숨길까요?',
+    msg: `${ex.name} 항목을 이 기기에서 목록에서 숨깁니다.`,
+    okLabel: '숨기기',
+    onOk: () => removeExPresetType(id),
+  });
+}
 function removeExPresetType(id) {
   haptic('light');
   if (!_hiddenExPresetTypes.includes(id)) {
@@ -7177,10 +7180,64 @@ function removeExPresetType(id) {
   }
   renderExercise();
 }
+function inferCustomExerciseEmoji(value) {
+  const raw = String(value || '').trim().toLowerCase();
+  if (!raw) return '🏃';
+  const normalized = raw.replace(/\s+/g, '');
+  const rules = [
+    { emoji:'🏃', patterns:[/러닝/, /달리기/, /런\b/, /run/, /조깅/] },
+    { emoji:'🚶', patterns:[/걷기/, /워킹/, /산책/, /walk/] },
+    { emoji:'🏊', patterns:[/수영/, /swim/, /아쿠아/] },
+    { emoji:'🚴', patterns:[/자전거/, /사이클/, /cycling/, /bike/, /스피닝/] },
+    { emoji:'🧘', patterns:[/요가/, /yoga/, /명상/] },
+    { emoji:'💪', patterns:[/근력/, /웨이트/, /헬스/, /pt/, /피티/, /weight/, /gym/, /보디빌딩/] },
+    { emoji:'🤸', patterns:[/스트레칭/, /mobility/, /유연성/, /맨손체조/] },
+    { emoji:'🥾', patterns:[/등산/, /트레킹/, /hiking/, /trail/] },
+    { emoji:'🎾', patterns:[/테니스/, /tennis/] },
+    { emoji:'🧎', patterns:[/필라테스/, /pilates/] },
+    { emoji:'🪢', patterns:[/플라잉요가/, /aerial/] },
+    { emoji:'🧗', patterns:[/클라이밍/, /암벽/, /볼더링/, /climbing/] },
+    { emoji:'🥋', patterns:[/검도/, /유도/, /주짓수/, /태권도/, /무술/, /martial/] },
+    { emoji:'⚽', patterns:[/축구/, /풋살/, /soccer/, /football/] },
+    { emoji:'🥊', patterns:[/복싱/, /킥복싱/, /boxing/, /무에타이/] },
+    { emoji:'🏸', patterns:[/배드민턴/, /badminton/] },
+    { emoji:'🏓', patterns:[/탁구/, /pingpong/, /tabletennis/] },
+    { emoji:'🏀', patterns:[/농구/, /basketball/] },
+    { emoji:'🏐', patterns:[/배구/, /volleyball/] },
+    { emoji:'⚾', patterns:[/야구/, /baseball/, /캐치볼/] },
+    { emoji:'⛳', patterns:[/골프/, /golf/, /스크린골프/] },
+    { emoji:'⛷️', patterns:[/스키/, /ski/, /보드/, /snowboard/] },
+    { emoji:'🛼', patterns:[/인라인/, /롤러/, /스케이트/, /skate/] },
+    { emoji:'🕺', patterns:[/댄스/, /춤/, /dance/, /줌바/] },
+    { emoji:'🧘', patterns:[/발레핏/, /barre/] },
+    { emoji:'🤿', patterns:[/다이빙/, /프리다이빙/, /diving/] },
+    { emoji:'🤺', patterns:[/펜싱/, /fencing/] },
+    { emoji:'🏇', patterns:[/승마/, /horse/] },
+    { emoji:'🛶', patterns:[/카약/, /카누/, /조정/, /rowing/] },
+    { emoji:'🏋️', patterns:[/크로스핏/, /deadlift/, /squat/, /벤치프레스/, /역도/] },
+  ];
+  const found = rules.find(rule => rule.patterns.some(pattern => pattern.test(normalized)));
+  return found ? found.emoji : '🏃';
+}
+function parseCustomExerciseName(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return { raw: '', label: '', emoji: '🏃' };
+  if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+    const parts = Array.from(new Intl.Segmenter('ko', { granularity: 'grapheme' }).segment(raw));
+    const first = parts[0]?.segment || '';
+    const rest = raw.slice(first.length).trim();
+    if (first && /\p{Extended_Pictographic}/u.test(first)) {
+      return { raw, label: rest || raw, emoji: first };
+    }
+  }
+  const match = raw.match(/^([\p{Extended_Pictographic}\uFE0F\u200D]+)\s*(.+)$/u);
+  if (match) return { raw, label: match[2].trim() || raw, emoji: match[1] };
+  return { raw, label: raw, emoji: inferCustomExerciseEmoji(raw) };
+}
 function getExType(id) {
   if (id && id.startsWith('custom_')) {
-    const name = id.slice(7);
-    return { id, name, icon: '🏃', ppm: 0.8, bg: '#F3F4F6' };
+    const custom = parseCustomExerciseName(id.slice(7));
+    return { id, name: custom.label, icon: custom.emoji, ppm: 0.8, bg: '#F3F4F6' };
   }
   return EX_TYPES.find(e => e.id === id) || EX_TYPES[0];
 }
@@ -8064,6 +8121,9 @@ function getWorkoutDisplayName(workout) {
   const ex = getExType(workout?.exId);
   const fallbackName = ex?.name || '운동';
   const name = sanitizeWorkoutTextValue(workout?.customName || '', workout?.id);
+  if (name && (workout?.exId === 'custom' || String(workout?.exId || '').startsWith('custom_'))) {
+    return parseCustomExerciseName(name).label || fallbackName;
+  }
   return name || fallbackName;
 }
 
@@ -8075,7 +8135,7 @@ function workoutItemHTML(w) {
   return `
     <div class="wo-item-wrap">
       <div class="workout-item">
-        <span class="wo-icon">${renderExerciseIcon(w.exId, { size:'16px' })}</span>
+        <span class="wo-icon">${renderExerciseIcon(w.exId, { size:'16px', customName: w.customName || ex?.name || '' })}</span>
         <span class="wo-name">${name}</span>
         <span class="wo-meta">${w.duration}분${memo ? ' · ' + escHtmlComm(memo) : ''} · ${fmtTime(w.ts)}</span>
         ${hasRoute ? `<button type="button" class="wo-map-btn" onclick="openWorkoutRouteMap('${w.id}')">지도</button>` : ''}
@@ -8220,6 +8280,11 @@ function renderNamedSvgIcon(key, opts = {}) {
 }
 
 function renderExerciseIcon(exId, opts = {}) {
+  if (exId === 'custom' || String(exId || '').startsWith('custom_')) {
+    const sourceName = opts.customName || (String(exId || '').startsWith('custom_') ? String(exId).slice(7) : '');
+    const custom = parseCustomExerciseName(sourceName);
+    return renderSvgIcon(custom.emoji, { ...opts, className: ['exercise-svg-icon', opts.className].filter(Boolean).join(' ') });
+  }
   const key = EX_NATIVE_ICONS[exId] ? exId : 'custom';
   return renderNamedSvgIcon(key, { ...opts, className: ['exercise-svg-icon', opts.className].filter(Boolean).join(' ') });
 }
@@ -8270,21 +8335,24 @@ function renderExercise() {
   if (cntEl)  cntEl.textContent  = todayW.length + '회';
   if (minsEl) minsEl.textContent = todayMins + '분';
   if (ptsEl)  ptsEl.textContent  = '+' + todayPts + 'p';
+  renderGlucoseTimingButtons();
 
   // Exercise type buttons (including custom at end of scroll row)
   const isCustomInput = S.selectedEx === 'custom';
   const customBtns = _customExTypes.map(name => {
     const id = 'custom_' + name;
     const selected = S.selectedEx === id;
-    return `<button class="ex-type-btn ${selected ? 'selected' : ''}" onclick="selectEx('${id}')">
-      <span class="ex-type-name">${name}</span>
-      <span class="hc-chip-remove" onclick="event.stopPropagation();removeCustomExType('${name}')">×</span>
+    const custom = parseCustomExerciseName(name);
+    return `<button class="ex-type-btn ${selected ? 'selected' : ''}" data-ex-id="${escHtmlComm(id)}" onclick="selectEx(this.dataset.exId)">
+      <span class="ex-type-icon">${renderExerciseIcon(id, { size:'15px' })}</span>
+      <span class="ex-type-name">${escHtmlComm(custom.label || name)}</span>
+      <span class="hc-chip-remove" data-ex-name="${escHtmlComm(name)}" onclick="event.stopPropagation();removeCustomExType(this.dataset.exName)">×</span>
     </button>`;
   }).join('');
   document.getElementById('ex-type-grid').innerHTML =
     EX_TYPES.filter(e => e.id !== 'custom' && !_hiddenExPresetTypes.includes(e.id)).map(e => `
       <button class="ex-type-btn ${S.selectedEx === e.id ? 'selected' : ''}"
-              onclick="selectEx('${e.id}')"><span class="ex-type-icon">${renderExerciseIcon(e.id, { size:'15px' })}</span><span class="ex-type-name">${e.name}</span><span class="hc-chip-remove" onclick="event.stopPropagation();removeExPresetType('${e.id}')">×</span></button>
+              onclick="selectEx('${e.id}')"><span class="ex-type-icon">${renderExerciseIcon(e.id, { size:'15px' })}</span><span class="ex-type-name">${e.name}</span><span class="hc-chip-remove" onclick="event.stopPropagation();confirmRemoveExPresetType('${e.id}')">×</span></button>
     `).join('')
     + customBtns
     + `<button class="custom-ex-link ${isCustomInput ? 'selected' : ''}" onclick="selectEx('custom')">${renderNamedSvgIcon('pencil', { size:'14px', color:'currentColor' })}<span>직접 입력</span></button>`;
@@ -8793,13 +8861,13 @@ function updateSharePreview() {
 
   if (!_shareOn) return; // 이하 시각적 요소는 공유 ON일 때만
 
-  const ex = EX_TYPES.find(e => e.id === S.selectedEx);
-  if (!ex) return;
+  const rawCustomName = document.getElementById('custom-ex-name')?.value.trim() || '';
   const name = S.selectedEx === 'custom'
-    ? (document.getElementById('custom-ex-name')?.value.trim() || '기타 운동')
-    : ex.name;
+    ? (parseCustomExerciseName(rawCustomName).label || '기타 운동')
+    : (getExType(S.selectedEx)?.name || '');
+  if (!name) return;
   const tagEl = document.getElementById('share-ex-tag');
-  if (tagEl) tagEl.innerHTML = `${renderExerciseIcon(S.selectedEx, { size:'13px' })}<span>${escHtmlComm(name)} ${S.duration}분</span>`;
+  if (tagEl) tagEl.innerHTML = `${renderExerciseIcon(S.selectedEx, { size:'13px', customName: rawCustomName || name })}<span>${escHtmlComm(name)} ${S.duration}분</span>`;
 
   renderShareOptions();
 }
@@ -9068,6 +9136,7 @@ let _sleepNote  = '';
 let _suppTaken  = null;
 let _suppList   = [];
 let _suppMemo   = '';
+let _hiddenGlucoseTimingTypes = JSON.parse(localStorage.getItem('hi_hidden_glucose_timings') || '[]');
 
 function toggleHC(type) {
   haptic('light');
@@ -9234,7 +9303,7 @@ function renderMealChips() {
   const isDirectOpen = document.getElementById('meal-direct-wrap')?.classList.contains('show');
   const presetBtns = MEAL_PRESET_TYPES.filter(name => !_hiddenMealPresetTypes.includes(name)).map(name => {
     const on = _mealTypes.includes(name);
-    return `<button type="button" class="hc-sub-chip hc-meal-chip${on?' on':''}" data-name="${name}" onclick="toggleMeal('${name}')">${name}<span class="hc-chip-remove" onclick="event.stopPropagation();removeMealPresetType('${name}')">×</span></button>`;
+    return `<button type="button" class="hc-sub-chip hc-meal-chip${on?' on':''}" data-name="${name}" onclick="toggleMeal('${name}')">${name}<span class="hc-chip-remove" onclick="event.stopPropagation();confirmRemoveMealPresetType('${name}')">×</span></button>`;
   }).join('');
   const customBtns = _customMealTypes.map(name => {
     const on = _mealTypes.includes(name);
@@ -9249,7 +9318,7 @@ function renderSuppChips() {
   const isDirectOpen = document.getElementById('supp-direct-wrap')?.classList.contains('show');
   const presetBtns = SUPP_PRESET_TYPES.filter(name => !_hiddenSuppPresetTypes.includes(name)).map(name => {
     const on = _suppList.includes(name);
-    return `<button type="button" class="hc-sub-chip hc-supp-preset${on?' on':''}" data-name="${name}" onclick="toggleSuppItem('${name}')">${name}<span class="hc-chip-remove" onclick="event.stopPropagation();removeSuppPresetType('${name}')">×</span></button>`;
+    return `<button type="button" class="hc-sub-chip hc-supp-preset${on?' on':''}" data-name="${name}" onclick="toggleSuppItem('${name}')">${name}<span class="hc-chip-remove" onclick="event.stopPropagation();confirmRemoveSuppPresetType('${name}')">×</span></button>`;
   }).join('');
   const customBtns = _customSuppTypes.map(name => {
     const on = _suppList.includes(name);
@@ -9257,6 +9326,14 @@ function renderSuppChips() {
   }).join('');
   const directBtn = `<button type="button" id="supp-direct-btn" class="chip-direct-btn${isDirectOpen?' selected':''}" onclick="toggleSuppDirect()">${renderNamedSvgIcon('pencil', { size:'14px', color:'currentColor' })}<span>직접 입력</span></button>`;
   row.innerHTML = presetBtns + customBtns + directBtn;
+}
+function confirmRemoveMealPresetType(name) {
+  showConfirm({
+    title: '식사 종류를 숨길까요?',
+    msg: `${name} 항목을 이 기기에서 목록에서 숨깁니다.`,
+    okLabel: '숨기기',
+    onOk: () => removeMealPresetType(name),
+  });
 }
 function removeMealPresetType(name) {
   haptic('light');
@@ -9271,6 +9348,14 @@ function removeMealPresetType(name) {
     saveTodayLog();
   }
   renderMealChips();
+}
+function confirmRemoveSuppPresetType(name) {
+  showConfirm({
+    title: '영양제 종류를 숨길까요?',
+    msg: `${name} 항목을 이 기기에서 목록에서 숨깁니다.`,
+    okLabel: '숨기기',
+    onOk: () => removeSuppPresetType(name),
+  });
 }
 function removeSuppPresetType(name) {
   haptic('light');
@@ -9390,6 +9475,21 @@ let _glucoseTime   = '';
 
 const GLUCOSE_TIMINGS = ['공복','식후','식후2h','식전','취침전'];
 const TIMING_ID_MAP = { '공복':'fasting', '식후':'after', '식후2h':'after2h', '식전':'before', '취침전':'bedtime' };
+function renderGlucoseTimingButtons() {
+  const row = document.getElementById('glucose-timing-grid');
+  if (!row) return;
+  const timingBtns = GLUCOSE_TIMINGS
+    .filter(timing => !_hiddenGlucoseTimingTypes.includes(timing))
+    .map(timing => `
+      <button type="button" class="ex-type-btn ${_glucoseTiming === timing ? 'selected' : ''}" id="sa-gt-${TIMING_ID_MAP[timing]}" onclick="setGlucoseTiming('${timing}')">
+        <span class="ex-type-name">${timing === '취침전' ? '취침 전' : timing}</span>
+        <span class="hc-chip-remove" onclick="event.stopPropagation();confirmRemoveGlucoseTimingType('${timing}')">×</span>
+      </button>
+    `).join('');
+  const directBtn = `<button type="button" class="custom-ex-link" id="sa-gt-time" onclick="toggleGlucoseTimeInput()"><span data-svg-icon="pencil" data-svg-size="14px"></span><span>측정시간 직접입력</span></button>`;
+  row.innerHTML = timingBtns + directBtn;
+  hydrateStaticSvgIcons(row);
+}
 function toggleGlucoseTimeInput() {
   haptic('light');
   const wrap = document.getElementById('sa-glucose-time-wrap');
@@ -9434,6 +9534,7 @@ function syncGlucoseUI() {
     numEl.textContent = _glucoseVal;
     numEl.classList.toggle('active', active);
   }
+  renderGlucoseTimingButtons();
   GLUCOSE_TIMINGS.forEach(t => {
     const el = document.getElementById('sa-gt-' + TIMING_ID_MAP[t]);
     if (el) el.classList.toggle('selected', _glucoseTiming === t);
@@ -9457,6 +9558,26 @@ function setGlucoseTiming(timing) {
   document.getElementById('sa-glucose-num')?.classList.remove('active');
   syncGlucoseUI();
   updateRecordBtnStates();
+}
+function confirmRemoveGlucoseTimingType(timing) {
+  showConfirm({
+    title: '측정 시점을 숨길까요?',
+    msg: `${timing === '취침전' ? '취침 전' : timing} 항목을 이 기기에서 목록에서 숨깁니다.`,
+    okLabel: '숨기기',
+    onOk: () => removeGlucoseTimingType(timing),
+  });
+}
+function removeGlucoseTimingType(timing) {
+  haptic('light');
+  if (!_hiddenGlucoseTimingTypes.includes(timing)) {
+    _hiddenGlucoseTimingTypes.push(timing);
+    localStorage.setItem('hi_hidden_glucose_timings', JSON.stringify(_hiddenGlucoseTimingTypes));
+  }
+  if (_glucoseTiming === timing) {
+    _glucoseTiming = null;
+    updateRecordBtnStates();
+  }
+  syncGlucoseUI();
 }
 
 function todayGlucoseRecords() {
