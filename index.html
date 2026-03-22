@@ -2131,7 +2131,7 @@
       margin-left:2px;
     }
     .ex-type-btn.is-editing .ex-chip-edit-tools { display:inline-flex; }
-    .ex-chip-move,
+    .ex-chip-grab,
     .ex-chip-hide {
       width:18px;
       height:18px;
@@ -2145,13 +2145,22 @@
       user-select:none;
       -webkit-user-select:none;
     }
-    .ex-chip-move {
-      background:#f1f5f9;
-      color:#64748b;
+    .ex-chip-grab {
+      background:#f8fafc;
+      color:#94a3b8;
+      cursor:grab;
+      touch-action:none;
     }
-    .ex-chip-move.disabled {
-      opacity:0.35;
-      cursor:default;
+    .ex-chip-grab:active { cursor:grabbing; }
+    .ex-type-btn.is-editing[data-drag-ready="1"] {
+      box-shadow:0 0 0 1px rgba(79,70,229,0.14);
+    }
+    .ex-type-btn.is-editing.ex-chip-dragging {
+      z-index:3;
+      box-shadow:0 10px 24px rgba(15,23,42,0.14);
+      border-style:solid;
+      border-color:rgba(79,70,229,0.22);
+      background:#fff;
     }
     .ex-chip-hide {
       background:#fee2e2;
@@ -4543,7 +4552,7 @@
         </div>
         <div id="rec-panel-exercise">
           <div class="section-label-row">
-            <p class="ex-section-label">운동 종류<span class="ex-section-tip" id="exercise-chip-tip">직접입력으로 추가, 편집에서 순서 변경/숨김</span></p>
+            <p class="ex-section-label">운동 종류<span class="ex-section-tip" id="exercise-chip-tip">직접입력으로 추가, 편집에서 길게눌러 순서 변경/숨김</span></p>
             <button type="button" class="section-edit-btn" id="exercise-chip-edit-btn" onclick="toggleExerciseChipEditMode()">편집</button>
           </div>
           <div class="ex-type-grid" id="ex-type-grid"></div>
@@ -7662,6 +7671,7 @@ function removeExPresetType(id) {
   renderExercise();
 }
 function toggleExerciseChipEditMode(force) {
+  cancelExerciseChipDrag();
   _exerciseChipEditMode = typeof force === 'boolean' ? force : !_exerciseChipEditMode;
   if (_exerciseChipEditMode && S.selectedEx === 'custom') S.selectedEx = null;
   haptic('light');
@@ -7679,20 +7689,6 @@ function handleExerciseChipClick(event, exId) {
   }
   selectEx(exId);
 }
-function moveExerciseChip(token, direction) {
-  if (!_exerciseChipEditMode) return;
-  const order = sanitizeExerciseChipOrder(_exerciseChipOrder);
-  const currentIdx = order.indexOf(token);
-  if (currentIdx === -1) return;
-  const nextIdx = currentIdx + Number(direction || 0);
-  if (nextIdx < 0 || nextIdx >= order.length) return;
-  const [moved] = order.splice(currentIdx, 1);
-  order.splice(nextIdx, 0, moved);
-  _exerciseChipOrder = order;
-  persistExerciseChipOrder();
-  haptic('light');
-  renderExercise();
-}
 function hideExerciseChipFromEdit(token) {
   const parsed = parseExerciseChipToken(token);
   if (parsed.kind === 'preset') {
@@ -7702,6 +7698,115 @@ function hideExerciseChipFromEdit(token) {
   if (parsed.kind === 'custom') {
     confirmRemoveCustomExType(parsed.value);
   }
+}
+function getExerciseChipButtons() {
+  return Array.from(document.querySelectorAll('#ex-type-grid .ex-type-btn[data-chip-token]'));
+}
+function getExerciseChipScroller() {
+  return document.getElementById('ex-type-grid');
+}
+function cancelExerciseChipDrag() {
+  const state = _exerciseChipDragState;
+  if (!state) return;
+  if (state.timer) clearTimeout(state.timer);
+  if (state.el) {
+    state.el.classList.remove('ex-chip-dragging');
+    delete state.el.dataset.dragReady;
+    state.el.style.transform = '';
+  }
+  _exerciseChipDragState = null;
+}
+function bindExerciseChipDrag(el, token) {
+  if (!el || el.dataset.dragBound === '1') return;
+  el.dataset.dragBound = '1';
+  el.addEventListener('pointerdown', event => {
+    if (!_exerciseChipEditMode || event.button !== 0) return;
+    if (event.target.closest('.ex-chip-hide')) return;
+    cancelExerciseChipDrag();
+    const state = {
+      token,
+      el,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      currentX: event.clientX,
+      startScrollLeft: getExerciseChipScroller()?.scrollLeft || 0,
+      dragging: false,
+      timer: setTimeout(() => {
+        if (_exerciseChipDragState !== state) return;
+        state.dragging = true;
+        el.dataset.dragReady = '1';
+        el.classList.add('ex-chip-dragging');
+        el.setPointerCapture?.(event.pointerId);
+        haptic('light');
+      }, 260),
+    };
+    _exerciseChipDragState = state;
+  });
+  el.addEventListener('pointermove', event => {
+    const state = _exerciseChipDragState;
+    if (!state || state.pointerId !== event.pointerId || state.el !== el) return;
+    state.currentX = event.clientX;
+    const pointerDeltaX = event.clientX - state.startX;
+    if (!state.dragging && Math.abs(pointerDeltaX) > 8) {
+      cancelExerciseChipDrag();
+      return;
+    }
+    if (!state.dragging) return;
+    event.preventDefault();
+    const grid = getExerciseChipScroller();
+    if (grid) {
+      const rect = grid.getBoundingClientRect();
+      const edgeGap = 44;
+      if (event.clientX > rect.right - edgeGap) {
+        const proximity = edgeGap - (rect.right - event.clientX);
+        grid.scrollLeft += Math.min(18, Math.max(4, (proximity / 2) + 4));
+      } else if (event.clientX < rect.left + edgeGap) {
+        const proximity = edgeGap - (event.clientX - rect.left);
+        grid.scrollLeft -= Math.min(18, Math.max(4, (proximity / 2) + 4));
+      }
+    }
+    const scrollDelta = (grid?.scrollLeft || 0) - (state.startScrollLeft || 0);
+    el.style.transform = `translateX(${pointerDeltaX + scrollDelta}px)`;
+  });
+  const finishDrag = event => {
+    const state = _exerciseChipDragState;
+    if (!state || state.pointerId !== event.pointerId || state.el !== el) return;
+    if (state.timer) clearTimeout(state.timer);
+    const wasDragging = state.dragging;
+    el.releasePointerCapture?.(event.pointerId);
+    el.classList.remove('ex-chip-dragging');
+    delete el.dataset.dragReady;
+    el.style.transform = '';
+    _exerciseChipDragState = null;
+    if (!wasDragging) return;
+    const buttons = getExerciseChipButtons();
+    const sourceIndex = buttons.findIndex(btn => btn.dataset.chipToken === state.token);
+    if (sourceIndex === -1) return;
+    const centers = buttons.map(btn => {
+      const rect = btn.getBoundingClientRect();
+      return rect.left + (rect.width / 2);
+    });
+    const dropCenter = event.clientX || state.currentX || centers[sourceIndex];
+    let targetIndex = sourceIndex;
+    let closestGap = Infinity;
+    centers.forEach((center, idx) => {
+      const gap = Math.abs(center - dropCenter);
+      if (gap < closestGap) {
+        closestGap = gap;
+        targetIndex = idx;
+      }
+    });
+    if (targetIndex === sourceIndex) return;
+    const order = sanitizeExerciseChipOrder(_exerciseChipOrder);
+    const [moved] = order.splice(sourceIndex, 1);
+    order.splice(targetIndex, 0, moved);
+    _exerciseChipOrder = order;
+    persistExerciseChipOrder();
+    haptic('light');
+    renderExercise();
+  };
+  el.addEventListener('pointerup', finishDrag);
+  el.addEventListener('pointercancel', finishDrag);
 }
 function confirmRemoveCustomMealType(name) {
   showConfirm({
@@ -8687,6 +8792,7 @@ let _customSuppTypes = [];
 let _hiddenGlucoseTimingTypes = [];
 let _customGlucoseTimingTypes = [];
 let _exerciseChipEditMode = false;
+let _exerciseChipDragState = null;
 
 function getRecordChipScope() {
   return normalizeEmpIdValue(ACTIVE_EMPID || S.user?.empId || '') || 'guest';
@@ -9060,7 +9166,7 @@ function renderExercise() {
   if (ptsEl)  ptsEl.textContent  = '+' + todayPts + 'p';
   renderGlucoseTimingButtons();
   const exerciseChipTip = document.getElementById('exercise-chip-tip');
-  if (exerciseChipTip) exerciseChipTip.textContent = '직접입력으로 추가, 편집에서 순서 변경/숨김';
+  if (exerciseChipTip) exerciseChipTip.textContent = '직접입력으로 추가, 편집에서 길게눌러 순서 변경/숨김';
   const exerciseChipEditBtn = document.getElementById('exercise-chip-edit-btn');
   if (exerciseChipEditBtn) {
     exerciseChipEditBtn.textContent = _exerciseChipEditMode ? '완료' : '편집';
@@ -9086,8 +9192,7 @@ function renderExercise() {
       </span>
       ${_exerciseChipEditMode ? `
       <span class="ex-chip-edit-tools">
-        <span class="ex-chip-move ${idx === 0 ? 'disabled' : ''}" onclick="event.stopPropagation();moveExerciseChip(this.closest('.ex-type-btn').dataset.chipToken, -1)">‹</span>
-        <span class="ex-chip-move ${idx === orderedChipTokens.length - 1 ? 'disabled' : ''}" onclick="event.stopPropagation();moveExerciseChip(this.closest('.ex-type-btn').dataset.chipToken, 1)">›</span>
+        <span class="ex-chip-grab">⋮⋮</span>
         <span class="ex-chip-hide" onclick="event.stopPropagation();hideExerciseChipFromEdit(this.closest('.ex-type-btn').dataset.chipToken)">×</span>
       </span>` : ''}
     </button>`;
@@ -9097,6 +9202,9 @@ function renderExercise() {
     exTypeGrid.classList.toggle('is-editing', _exerciseChipEditMode);
     exTypeGrid.innerHTML = chipsHtml
       + `<button type="button" class="custom-ex-link ${isCustomInput ? 'selected' : ''}" onclick="openCustomExerciseInput()">${renderNamedSvgIcon('pencil', { size:'14px', color:'currentColor' })}<span>직접 입력</span></button>`;
+    exTypeGrid.querySelectorAll('.ex-type-btn[data-chip-token]').forEach(btn => {
+      bindExerciseChipDrag(btn, btn.dataset.chipToken);
+    });
   }
 
   const cw = document.getElementById('custom-ex-wrap');
