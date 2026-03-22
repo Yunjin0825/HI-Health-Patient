@@ -564,7 +564,7 @@
       width: 38px; height: 38px;
       display:flex; align-items:center; justify-content:center;
       gap:0; cursor:pointer; flex-shrink:0;
-      margin-left:4px;
+      margin-left:6px;
     }
     .header-profile-label {
       display:none;
@@ -15989,7 +15989,7 @@ async function init() {
   }
   function _dexStartTimer() {
     if (_dexTimer) clearInterval(_dexTimer);
-    _dexTimer = setInterval(fetchDexcom, 5 * 60 * 1000);
+    _dexTimer = setInterval(() => fetchDexcom({ silent: true }), 5 * 60 * 1000);
   }
   function disconnectDexcom() {
     if (!confirm('덱스콤 연동을 해제할까요?')) return;
@@ -16003,7 +16003,7 @@ async function init() {
   // 앱 시작 시 저장된 계정 있으면 자동 연동
   window.addEventListener('hi:loggedin', () => {
     if (localStorage.getItem(getAccountScopedStorageKey('dexcom_user')) && localStorage.getItem(getAccountScopedStorageKey('dexcom_pass'))) {
-      fetchDexcom(); _dexStartTimer();
+      fetchDexcom({ silent: true }); _dexStartTimer();
     }
   });
 
