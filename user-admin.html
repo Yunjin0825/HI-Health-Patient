@@ -747,6 +747,20 @@
           <span id="admin-shop-label2" style="font-size:13px;font-weight:600;color:var(--t3)">로딩중...</span>
         </div>
       </div>
+      <!-- 챌린지 보상 모드 ON/OFF -->
+      <div class="shop-config-bar">
+        <div>
+          <div class="shop-config-title">🏆 챌린지 보상 모드</div>
+          <div id="challenge-reward-status" style="font-size:11px;color:var(--t3);margin-top:2px"></div>
+        </div>
+        <div class="shop-toggle-wrap">
+          <input type="checkbox" id="admin-challenge-reward-toggle" style="display:none" onchange="applyChallengeRewardToggle()">
+          <div class="shop-toggle-track" id="admin-challenge-reward-track" onclick="document.getElementById('admin-challenge-reward-toggle').click()">
+            <div class="shop-toggle-thumb" id="admin-challenge-reward-thumb"></div>
+          </div>
+          <span id="admin-challenge-reward-label" style="font-size:13px;font-weight:600;color:var(--t3)">로딩중...</span>
+        </div>
+      </div>
     </div>
   </div><!-- /adm-body -->
 </div><!-- /admin -->
@@ -3610,6 +3624,14 @@ async function loadSettingsTab() {
     const status = document.getElementById('shop-config-status2');
     if (status) status.textContent = formatAppConfigError(e);
   }
+  try {
+    const { data, error } = await db.from('app_config').select('key,value').eq('key','challenge_reward_mode').maybeSingle();
+    if (error) throw error;
+    renderChallengeRewardUI(data?.value === 'true');
+  } catch(e) {
+    const status = document.getElementById('challenge-reward-status');
+    if (status) status.textContent = formatAppConfigError(e);
+  }
 }
 
 async function saveChDeadline() {
@@ -3653,6 +3675,35 @@ async function applyShopPurchaseToggle2() {
     const t = document.getElementById('admin-shop-toggle');
     if (t) { t.checked = enabled; renderShopConfigUI(enabled); }
     toast(enabled ? '✅ 구매 기능 활성화' : '🔒 구매 기능 비활성화');
+  } catch(e) {
+    toast('저장 실패: ' + formatAppConfigError(e));
+  }
+}
+
+function renderChallengeRewardUI(enabled) {
+  const track  = document.getElementById('admin-challenge-reward-track');
+  const thumb  = document.getElementById('admin-challenge-reward-thumb');
+  const toggle = document.getElementById('admin-challenge-reward-toggle');
+  const label  = document.getElementById('admin-challenge-reward-label');
+  const status = document.getElementById('challenge-reward-status');
+  if (!track) return;
+  if (toggle) toggle.checked = enabled;
+  track.classList.toggle('on', enabled);
+  thumb?.classList.toggle('on', enabled);
+  if (label) label.textContent = enabled ? '운영 중' : '비활성화';
+  if (status) status.textContent = enabled
+    ? '🟢 챌린지 기간 — 포인트 달성 시 차감 없이 신청 가능 (직원 전용)'
+    : '🔴 일반 모드 — 포인트 차감 방식으로 운영됩니다';
+}
+
+async function applyChallengeRewardToggle() {
+  const enabled = document.getElementById('admin-challenge-reward-toggle').checked;
+  renderChallengeRewardUI(enabled);
+  if (!db) return;
+  try {
+    const { error } = await saveAdminAppConfigValue('challenge_reward_mode', String(enabled));
+    if (error) throw error;
+    toast(enabled ? '✅ 챌린지 보상 모드 활성화' : '🔒 챌린지 보상 모드 비활성화');
   } catch(e) {
     toast('저장 실패: ' + formatAppConfigError(e));
   }

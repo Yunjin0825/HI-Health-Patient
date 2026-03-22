@@ -677,14 +677,25 @@
     .notif-item {
       padding: 12px 16px; border-bottom: 1px solid var(--border);
       cursor: pointer; transition: background 0.15s;
+      display: flex; align-items: flex-start; gap: 12px;
     }
     .notif-item:last-child { border-bottom: none; }
     .notif-item:hover { background: #F8F9FA; }
     .notif-item.unread { background: #FAF5FF; }
     .notif-item.unread:hover { background: #F3E8FF; }
+    .notif-item-main { flex: 1; min-width: 0; }
     .notif-item-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
     .notif-item-body { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
     .notif-item-time { font-size: 11px; color: #94A3B8; margin-top: 4px; }
+    .notif-item-delete {
+      width: 28px; height: 28px; border: none; border-radius: 999px;
+      background: transparent; color: #94A3B8; cursor: pointer; flex: none;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 15px; line-height: 1; transition: background 0.15s, color 0.15s;
+    }
+    .notif-item-delete:hover {
+      background: #F1F5F9; color: #475569;
+    }
     .cart-panel-backdrop { position:fixed; inset:0; z-index:199; }
     .cart-panel-backdrop.hidden { display:none; }
     .cart-panel {
@@ -808,6 +819,14 @@
       font-size: 12px;
       font-weight: 700;
       cursor: pointer;
+    }
+    #page-challenge .challenge-iframe {
+      display: block;
+      width: 100%;
+      min-height: calc(100vh - var(--nav-height) - env(safe-area-inset-bottom));
+      min-height: calc(100dvh - var(--nav-height) - env(safe-area-inset-bottom));
+      border: none;
+      background: #fdfcf0;
     }
     @keyframes pageIn {
       from { opacity: 0; transform: translateY(14px); }
@@ -1367,8 +1386,9 @@
     .custom-ex-wrap { display:none; margin-top:8px; width:100%; min-width:0; }
     .custom-ex-wrap.show { display:block; width:100%; }
     .ex-type-btn {
+      position: relative;
       display: flex; flex-direction: row; align-items: center;
-      gap: 5px; padding: 6px 12px; border-radius: 999px;
+      gap: 5px; padding: 6px 22px 6px 12px; border-radius: 999px;
       border: 1.5px solid var(--border); background: #fff;
       cursor: pointer; transition: all 0.18s; font-family: inherit; font-size: 13px;
       flex-shrink: 0; white-space: nowrap;
@@ -1675,11 +1695,31 @@
     .hc-sub-chips { display:flex; gap:5px; flex-wrap:wrap; }
     .hc-sub-chip {
       display:flex; align-items:center;
-      padding:6px 12px; border-radius:999px; border:1.5px solid var(--border);
+      position:relative;
+      padding:6px 22px 6px 12px; border-radius:999px; border:1.5px solid var(--border);
       background:#fff; font-size:13px; font-family:inherit; cursor:pointer;
       white-space:nowrap; flex-shrink:0; transition:all 0.18s;
     }
     .hc-sub-chip.on { border-color:var(--primary); background:#EEF2FF; color:var(--primary); }
+    .hc-chip-remove {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:14px;
+      height:14px;
+      position:absolute;
+      top:-4px;
+      right:-4px;
+      border-radius:999px;
+      background:#fff;
+      border:1px solid rgba(203,213,225,0.9);
+      color:#64748b;
+      font-size:9px;
+      font-weight:700;
+      line-height:1;
+      opacity:0.9;
+      box-shadow:0 1px 2px rgba(15,23,42,0.08);
+    }
     .hc-supp-detail { margin-top:10px; padding-top:10px; border-top:1px solid var(--border); display:none; }
     .hc-supp-detail.show { display:block; }
     .hc-custom-supp { margin-top:7px; display:flex; gap:6px; }
@@ -1731,7 +1771,7 @@
     .share-expand-inner {
       margin:10px 14px 14px;
       background:rgba(255,255,255,0.82);
-      border:1px solid rgba(226,232,240,0.9);
+      border:none;
       border-radius:18px;
       padding:14px;
       box-shadow:inset 0 1px 0 rgba(255,255,255,0.9);
@@ -1839,14 +1879,26 @@
 /* ── Exercise Hero Card + Tabs ── */
     .ex-hero-card { display:none; }
     #page-exercise { padding-top: 0; }
-    .ex-hero-tabs { display:flex; padding:0 22px; }
+    .ex-hero-tabs {
+      display:flex;
+      gap:8px;
+      padding:0;
+      background:none;
+      border:none;
+      border-radius:0;
+    }
     .ex-hero-tab {
-      flex:1; padding:13px 0 15px; background:none; border:none;
-      border-bottom:2px solid transparent;
-      color:var(--text-secondary); font-size:15px; font-weight:700;
+      flex:1; padding:10px 0; background:#f8fafc; border:1px solid transparent;
+      border-radius:12px;
+      color:#64748b; font-size:14px; font-weight:600;
       cursor:pointer; font-family:inherit; transition:all 0.18s;
     }
-    .ex-hero-tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+    .ex-hero-tab.active {
+      color:#0f172a;
+      background:#fff;
+      border-color:rgba(226,232,240,0.95);
+      box-shadow:0 4px 12px rgba(15,23,42,0.05);
+    }
     .rec-switch-btn {
       flex:1; padding:13px 8px; border-radius:14px; border:2px solid var(--border);
       background:var(--card); font-size:14px; font-weight:700; color:var(--text-secondary);
@@ -1855,14 +1907,91 @@
     }
     .rec-switch-btn.active { border-color:var(--primary); background:var(--primary-light); color:var(--primary); }
     .today-tab-dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--primary); margin-left:3px; vertical-align:middle; flex-shrink:0; }
-    .record-content-card { border-radius:0 0 20px 20px !important; margin:0 -18px 20px !important; }
-    .today-log-card { margin-left:-18px !important; margin-right:-18px !important; border-radius:20px !important; padding:0 !important; }
-    .today-log-card .ex-hero-tabs { padding-left:18px; padding-right:18px; }
+    .exercise-section-shell {
+      margin-top: 24px;
+      padding: 0;
+    }
+    .exercise-section-shell--record {
+      background: none;
+      box-shadow: none;
+      border: none;
+    }
+    .exercise-section-shell--daily {
+      background: none;
+      box-shadow: none;
+      border: none;
+      padding-top: 0;
+      margin-top: 42px;
+    }
+    .exercise-section-head {
+      margin: 0 2px 10px;
+    }
+    .exercise-section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+    .record-entry-guide {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 0 14px;
+      padding: 0 2px;
+    }
+    .record-entry-guide-copy {
+      min-width: 0;
+    }
+    .record-entry-guide-text {
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.4;
+    }
+    .reg-reset-btn {
+      flex-shrink: 0;
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      background: #fff;
+      border: 1px solid rgba(203,213,225,0.9);
+      border-radius: 10px;
+      padding: 5px 11px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .exercise-section-shell .record-entry-guide { margin-top: 0; }
+    .record-content-card {
+      border-radius:20px !important;
+      margin:0 -18px 28px !important;
+      padding:0 !important;
+      box-shadow:none !important;
+      border:1px solid rgba(241,245,249,0.9);
+    }
+    .record-content-card .ex-hero-tabs { margin:18px 18px 14px; }
+    .record-content-card #rec-panel-exercise,
+    .record-content-card #rec-panel-glucose { padding:0 18px 18px; }
+    .today-log-card {
+      margin-left:-18px !important;
+      margin-right:-18px !important;
+      border-radius:20px !important;
+      padding:0 !important;
+      box-shadow:none !important;
+      border:1px solid rgba(241,245,249,0.9);
+    }
+    .today-log-card .ex-hero-tabs { margin:18px 18px 14px; }
     .today-log-card .hc-section { padding-left:18px; padding-right:18px; padding-top:18px; }
     .today-log-card #hc-diet-sec,
     .today-log-card #hc-sleep-sec,
     .today-log-card #hc-supp-sec { padding-bottom:24px; }
     .exercise-memo-inline, .glucose-memo-inline, .diet-memo-inline, .sleep-memo-inline, .supp-memo-inline { margin-top:10px; }
+    .ex-section-label {
+      font-size: 12px; font-weight: 700; color: var(--text-secondary);
+      margin: 16px 0 6px; letter-spacing: -0.01em;
+    }
+    .ex-section-label:first-child { margin-top: 2px; }
+    .ex-section-opt { font-size: 11px; font-weight: 500; color: var(--text-muted); margin-left: 4px; }
     .exercise-memo-inline #ex-memo {
       width:100%; min-height:44px; padding:10px 12px;
       border-radius:12px; box-sizing:border-box; background:#fff;
@@ -2335,6 +2464,21 @@
     .rt-stat-val { font-size:28px; font-weight:700; color:#fff; letter-spacing:-0.5px; }
     .rt-stat-label { font-size:11px; color:rgba(255,255,255,0.4); font-weight:600; margin-top:2px; }
     .rt-gps { font-size:11px; color:rgba(255,255,255,0.35); margin-top:12px; }
+    .rt-prev-map-btn {
+      margin-top:14px;
+      padding:9px 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.16);
+      background:rgba(255,255,255,0.08);
+      color:rgba(255,255,255,0.86);
+      font-size:12px;
+      font-weight:700;
+      font-family:inherit;
+      cursor:pointer;
+      transition:background 0.15s, border-color 0.15s, transform 0.15s;
+    }
+    .rt-prev-map-btn:hover { background:rgba(255,255,255,0.12); border-color:rgba(255,255,255,0.24); }
+    .rt-prev-map-btn:active { transform:scale(0.98); }
     .rt-btns { display:flex; align-items:center; gap:20px; }
     .rt-btn-main { width:80px; height:80px; border-radius:50%; border:none; background:#fff; font-size:28px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.15s; -webkit-appearance:none; appearance:none; }
     .rt-btn-main:active { transform:scale(0.93); }
@@ -3092,6 +3236,10 @@
     .order-card-img-wrap { margin-top: 8px; border-radius: 8px; overflow: hidden; }
     .order-card-img { width: 100%; max-height: 120px; object-fit: cover; display: block; }
     .ch-cancel-reg-btn { padding: 8px 14px; font-size: 12px; font-weight: 700; border-radius: 20px; border: 1.5px solid #d1d5db; background: transparent; color: #6b7280; cursor: pointer; }
+    .reward-locked-notice { text-align:center; padding:48px 20px; color:var(--text-secondary); }
+    .reward-locked-icon { font-size:36px; margin-bottom:12px; }
+    .reward-locked-title { font-size:15px; font-weight:700; color:var(--text-primary); margin-bottom:6px; }
+    .reward-locked-desc { font-size:13px; }
     .reward-history { margin: 20px 0 8px; }
     .reward-history-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
     .reward-hist-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--card); border-radius: var(--radius-sm); margin-bottom: 8px; box-shadow: var(--shadow); }
@@ -3866,8 +4014,8 @@
   <div class="app-login-bg-circle bg-two"></div>
   <div class="app-login-hero" id="login-run-hero" style="display:none">
     <div class="app-login-run">HI RUN DAY!</div>
-    <div class="app-login-date">2026년 4월 15일 (수) &nbsp;<span style="opacity:0.7;font-weight:500">PM 2:30</span></div>
-    <div class="app-login-route">여의도 유람선터미널 → 선유도공원 입구, 함께 달려요~!</div>
+    <div class="app-login-date">2026년 4월 15일 (수)</div>
+    <div class="app-login-route">선유도공원 → 여의도공원, 함께 달려요~!</div>
   </div>
   <div class="app-login-card">
     <img src="images/avatars/hi_health_home_2.png?v=20260316-1" alt="HI Health" class="app-login-logo">
@@ -4171,61 +4319,115 @@
   <!-- ████  EXERCISE  ████ -->
   <section id="page-exercise" class="page">
 
-    <div style="display:flex;border-bottom:2px solid var(--border);margin:0 -18px;background:#fff">
-      <button class="ex-hero-tab active" id="rec-tab-exercise" onclick="setRecordTab('exercise')" style="flex:1;padding:18px 0 20px;font-size:15px">운동 기록<span class="today-tab-dot" id="dot-exercise" style="display:none"></span></button>
-      <button class="ex-hero-tab" id="rec-tab-glucose" onclick="setRecordTab('glucose')" style="flex:1;padding:18px 0 20px;font-size:15px">혈당 기록<span class="today-tab-dot" id="dot-glucose" style="display:none"></span></button>
-    </div>
+    <div class="exercise-section-shell exercise-section-shell--record">
+      <div class="exercise-section-head">
+        <div class="exercise-section-title">운동 혈당 기록</div>
+      </div>
+      <div class="record-entry-guide">
+        <div class="record-entry-guide-copy">
+          <div class="record-entry-guide-text" id="record-entry-guide-text">운동은 하루 3회, 혈당은 하루 4회까지 기록하고 포인트를 받을 수 있어요</div>
+        </div>
+      </div>
 
-    <div class="card record-content-card">
-      <div id="rec-panel-exercise">
-        <div class="ex-type-grid" id="ex-type-grid"></div>
-        <div id="custom-ex-wrap" class="custom-ex-wrap">
-          <div style="display:flex;gap:6px">
-            <input type="text" class="ch-form-input dashed" id="custom-ex-name"
-                   placeholder="운동 이름을 입력하세요 (예: 줄넘기, 스키...)"
-                   maxlength="20" oninput="updatePtsPreview();updateMemoPlaceholder();updateSharePreview()"
-                   onkeydown="if(event.key==='Enter')addCustomExType()">
-            <button type="button" onclick="addCustomExType()" style="padding:8px 14px;border-radius:var(--radius-sm);border:none;background:var(--primary);color:#fff;font-size:13px;cursor:pointer;white-space:nowrap">추가</button>
-          </div>
+      <div class="card record-content-card">
+        <div class="ex-hero-tabs">
+          <button class="ex-hero-tab active" id="rec-tab-exercise" onclick="setRecordTab('exercise')">운동<span class="today-tab-dot" id="dot-exercise" style="display:none"></span></button>
+          <button class="ex-hero-tab" id="rec-tab-glucose" onclick="setRecordTab('glucose')">혈당<span class="today-tab-dot" id="dot-glucose" style="display:none"></span></button>
         </div>
-        <div class="glucose-input-wrap-sa">
-          <button type="button" class="dur-btn" onclick="changeDur(-5)">−</button>
+        <div id="rec-panel-exercise">
+          <p class="ex-section-label">운동 종류</p>
+          <div class="ex-type-grid" id="ex-type-grid"></div>
+          <div id="custom-ex-wrap" class="custom-ex-wrap">
+            <div style="display:flex;gap:6px">
+              <input type="text" class="ch-form-input dashed" id="custom-ex-name"
+                     placeholder="운동 이름을 입력하세요 (예: 줄넘기, 스키...)"
+                     maxlength="20" oninput="updatePtsPreview();updateMemoPlaceholder();updateSharePreview()"
+                     onkeydown="if(event.key==='Enter')addCustomExType()">
+              <button type="button" onclick="addCustomExType()" style="padding:8px 14px;border-radius:var(--radius-sm);border:none;background:var(--primary);color:#fff;font-size:13px;cursor:pointer;white-space:nowrap">추가</button>
+            </div>
+          </div>
+          <p class="ex-section-label">운동 시간</p>
+          <div class="glucose-input-wrap-sa">
+            <button type="button" class="dur-btn" onclick="changeDur(-5)">−</button>
+            <div class="glucose-val-display">
+              <input type="number" class="dur-val" id="dur-val" value="30" min="5" max="180"
+                     inputmode="numeric"
+                     oninput="S.duration=Math.max(5,Math.min(180,parseInt(this.value)||5));S.durationTouched=true;document.getElementById('dur-val')?.classList.add('active');updatePtsPreview();updateMemoPlaceholder();updateSharePreview();updateRecordBtnStates()">
+              <span class="glucose-val-unit">분</span>
+            </div>
+            <button type="button" class="dur-btn" onclick="changeDur(5)">+</button>
+          </div>
+          <p id="dur-hint" style="text-align:center;font-size:12px;color:#B0B4BC;margin:0 0 4px">버튼을 눌러 운동시간을 기록해주세요</p>
+          <p class="ex-section-label">메모</p>
+          <div class="exercise-memo-inline" style="margin-top:0">
+            <textarea class="form-textarea" id="ex-memo" rows="1" maxlength="40" placeholder="운동 메모를 남겨보세요(예: 퇴근 후 5km 러닝)" oninput="updateMemoPlaceholder(); updateSharePreview()"></textarea>
+          </div>
+          <button class="btn btn-primary btn-full btn-record btn-inactive" id="log-exercise-btn" onclick="logExercise()">운동 기록하기</button>
+          <div id="log-exercise-hint" style="display:none;text-align:center;font-size:12px;color:var(--primary);margin-top:6px;animation:fadeIn 0.15s ease"></div>
+          <div id="daily-limit-info" class="daily-limit-info daily-limit-info--center" style="margin-top:6px;margin-bottom:8px"></div>
+          <hr style="border:none;border-top:1px solid var(--border);margin:14px 0 10px">
+          <div class="card-header" style="padding-top:0;justify-content:center">
+            <div class="card-header-right">
+              <span class="badge badge-success" id="wo-total-badge">총 0회</span>
+              <div class="wo-view-tabs">
+                <button type="button" class="wo-view-tab active" id="wo-tab-recent" onclick="setWoView('recent')">최근</button>
+                <button type="button" class="wo-view-tab" id="wo-tab-monthly" onclick="setWoView('monthly')">월별</button>
+              </div>
+            </div>
+          </div>
+          <div class="wo-month-nav" id="wo-month-nav">
+            <button type="button" class="wo-month-btn" id="wo-prev-btn" onclick="changeWoMonth(-1)">‹</button>
+            <span class="wo-month-lbl" id="wo-month-label">-</span>
+            <button type="button" class="wo-month-btn" id="wo-next-btn" onclick="changeWoMonth(1)">›</button>
+          </div>
+          <div id="wo-history"></div>
+        </div>
+
+        <div id="rec-panel-glucose" style="display:none">
+          <p class="ex-section-label">측정 시점</p>
+          <div class="ex-type-grid">
+            <button type="button" class="ex-type-btn" id="sa-gt-fasting"  onclick="setGlucoseTiming('공복')">공복</button>
+            <button type="button" class="ex-type-btn" id="sa-gt-after"    onclick="setGlucoseTiming('식후')">식후</button>
+            <button type="button" class="ex-type-btn" id="sa-gt-after2h"  onclick="setGlucoseTiming('식후2h')">식후 2h</button>
+            <button type="button" class="ex-type-btn" id="sa-gt-before"   onclick="setGlucoseTiming('식전')">식전</button>
+            <button type="button" class="ex-type-btn" id="sa-gt-bedtime"  onclick="setGlucoseTiming('취침전')">취침 전</button>
+            <button type="button" class="custom-ex-link" id="sa-gt-time" onclick="toggleGlucoseTimeInput()"><span data-svg-icon="pencil" data-svg-size="14px"></span><span>측정시간 직접입력</span></button>
+          </div>
+          <div class="custom-ex-wrap" id="sa-glucose-time-wrap">
+            <input type="time" id="sa-glucose-time" class="glucose-time-input"
+                   oninput="_glucoseTime=this.value;_glucoseValTouched=false;document.getElementById('sa-glucose-num')?.classList.remove('active');updateRecordBtnStates()">
+          </div>
+        <p class="ex-section-label">혈당 수치</p>
+        <div class="glucose-input-wrap-sa" style="margin-top:6px">
+          <button type="button" class="dur-btn" onclick="changeGlucoseVal(-5)">−</button>
           <div class="glucose-val-display">
-            <input type="number" class="dur-val" id="dur-val" value="30" min="5" max="180"
-                   inputmode="numeric"
-                   oninput="S.duration=Math.max(5,Math.min(180,parseInt(this.value)||5));S.durationTouched=true;document.getElementById('dur-val')?.classList.add('active');updatePtsPreview();updateMemoPlaceholder();updateSharePreview();updateRecordBtnStates()">
-            <span class="glucose-val-unit">분</span>
+            <span class="glucose-val-num" id="sa-glucose-num">100</span>
+            <span class="glucose-val-unit">mg/dL</span>
           </div>
-          <button type="button" class="dur-btn" onclick="changeDur(5)">+</button>
+          <button type="button" class="dur-btn" onclick="changeGlucoseVal(5)">+</button>
         </div>
-        <p id="dur-hint" style="text-align:center;font-size:12px;color:#B0B4BC;margin:0 0 6px">버튼을 눌러 운동시간을 기록해주세요</p>
-        <div class="exercise-memo-inline">
-          <textarea class="form-textarea" id="ex-memo" rows="1" maxlength="40" placeholder="운동 메모를 남겨보세요(예: 퇴근 후 5km 러닝)" oninput="updateMemoPlaceholder(); updateSharePreview()"></textarea>
+        <p id="glucose-hint" style="text-align:center;font-size:12px;color:#B0B4BC;margin:0 0 4px">버튼을 눌러 혈당수치를 기록해주세요</p>
+        <p class="ex-section-label">메모</p>
+        <div class="glucose-memo-inline" style="margin-top:0">
+          <textarea class="form-textarea" id="glucose-memo" rows="1" maxlength="40" placeholder="혈당 메모를 남겨보세요(예: 아침 공복 측정)"></textarea>
         </div>
-        <button class="btn btn-primary btn-full btn-record btn-inactive" id="log-exercise-btn" onclick="logExercise()">운동 기록하기</button>
-        <div id="log-exercise-hint" style="display:none;text-align:center;font-size:12px;color:var(--primary);margin-top:6px;animation:fadeIn 0.15s ease"></div>
-        <div id="daily-limit-info" class="daily-limit-info daily-limit-info--center" style="margin-top:6px;margin-bottom:16px"></div>
-        <hr style="border:none;border-top:1px solid var(--border);margin:28px 0 18px">
+        <button class="btn btn-primary btn-full glucose-log-btn btn-inactive" id="log-glucose-btn" onclick="logGlucoseStandalone()">혈당 기록하기</button>
+        <div id="log-glucose-hint" style="display:none;text-align:center;font-size:12px;color:var(--primary);margin-top:6px;animation:fadeIn 0.15s ease"></div>
+        <div id="glucose-daily-info" class="daily-limit-info daily-limit-info--center" style="margin-top:6px;margin-bottom:8px"></div>
+        <hr style="border:none;border-top:1px solid var(--border);margin:14px 0 10px">
         <div class="card-header" style="padding-top:0;justify-content:center">
           <div class="card-header-right">
-            <span class="badge badge-success" id="wo-total-badge">총 0회</span>
+            <span class="badge glucose-badge-red" id="glucose-total-badge">총 0회</span>
             <div class="wo-view-tabs">
-              <button type="button" class="wo-view-tab active" id="wo-tab-recent" onclick="setWoView('recent')">최근</button>
-              <button type="button" class="wo-view-tab" id="wo-tab-monthly" onclick="setWoView('monthly')">월별</button>
+              <button type="button" class="wo-view-tab active" id="gl-tab-list" onclick="setGlucoseView('list')">목록</button>
+              <button type="button" class="wo-view-tab" id="gl-tab-graph" onclick="setGlucoseView('graph')">그래프</button>
             </div>
           </div>
         </div>
-        <div class="wo-month-nav" id="wo-month-nav">
-          <button type="button" class="wo-month-btn" id="wo-prev-btn" onclick="changeWoMonth(-1)">‹</button>
-          <span class="wo-month-lbl" id="wo-month-label">-</span>
-          <button type="button" class="wo-month-btn" id="wo-next-btn" onclick="changeWoMonth(1)">›</button>
-        </div>
-        <div id="wo-history"></div>
-      </div>
+        <div class="glucose-history-list" id="glucose-history"></div>
 
-      <div id="rec-panel-glucose" style="display:none">
         <!-- 덱스콤 연동 카드 -->
-        <div id="dexcom-card" style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:16px;padding:14px 16px;margin-bottom:14px">
+        <div id="dexcom-card" style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:16px;padding:14px 16px;margin-top:14px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
             <div style="font-size:13px;font-weight:700;color:#0369a1">덱스콤 G7 실시간 연동</div>
             <button id="dexcom-setup-btn" onclick="openDexcomSetup()" style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;border:none;background:#0369a1;color:#fff;cursor:pointer">연동하기</button>
@@ -4257,61 +4459,26 @@
             <button onclick="closeDexcomSetup()" style="width:100%;padding:10px;border-radius:14px;border:none;background:none;color:#94a3b8;font-size:14px;cursor:pointer">취소</button>
           </div>
         </div>
-
-        <div class="ex-type-grid">
-          <button type="button" class="ex-type-btn" id="sa-gt-fasting"  onclick="setGlucoseTiming('공복')">공복</button>
-          <button type="button" class="ex-type-btn" id="sa-gt-after"    onclick="setGlucoseTiming('식후')">식후</button>
-          <button type="button" class="ex-type-btn" id="sa-gt-after2h"  onclick="setGlucoseTiming('식후2h')">식후 2h</button>
-          <button type="button" class="ex-type-btn" id="sa-gt-before"   onclick="setGlucoseTiming('식전')">식전</button>
-          <button type="button" class="ex-type-btn" id="sa-gt-bedtime"  onclick="setGlucoseTiming('취침전')">취침 전</button>
-          <button type="button" class="custom-ex-link" id="sa-gt-time" onclick="toggleGlucoseTimeInput()"><span data-svg-icon="pencil" data-svg-size="14px"></span><span>측정시간 직접입력</span></button>
-        </div>
-        <div class="custom-ex-wrap" id="sa-glucose-time-wrap">
-          <input type="time" id="sa-glucose-time" class="glucose-time-input"
-                 oninput="_glucoseTime=this.value;_glucoseValTouched=false;document.getElementById('sa-glucose-num')?.classList.remove('active');updateRecordBtnStates()">
-        </div>
-        <div class="glucose-input-wrap-sa">
-          <button type="button" class="dur-btn" onclick="changeGlucoseVal(-5)">−</button>
-          <div class="glucose-val-display">
-            <span class="glucose-val-num" id="sa-glucose-num">100</span>
-            <span class="glucose-val-unit">mg/dL</span>
-          </div>
-          <button type="button" class="dur-btn" onclick="changeGlucoseVal(5)">+</button>
-        </div>
-        <p id="glucose-hint" style="text-align:center;font-size:12px;color:#B0B4BC;margin:0 0 6px">버튼을 눌러 혈당수치를 기록해주세요</p>
-        <div class="glucose-memo-inline">
-          <textarea class="form-textarea" id="glucose-memo" rows="1" maxlength="40" placeholder="혈당 메모를 남겨보세요(예: 아침 공복 측정)"></textarea>
-        </div>
-        <button class="btn btn-primary btn-full glucose-log-btn btn-inactive" id="log-glucose-btn" onclick="logGlucoseStandalone()">혈당 기록하기</button>
-        <div id="log-glucose-hint" style="display:none;text-align:center;font-size:12px;color:var(--primary);margin-top:6px;animation:fadeIn 0.15s ease"></div>
-        <div id="glucose-daily-info" class="daily-limit-info daily-limit-info--center" style="margin-top:6px;margin-bottom:16px"></div>
-        <hr style="border:none;border-top:1px solid var(--border);margin:28px 0 18px">
-        <div class="card-header" style="padding-top:0;justify-content:center">
-          <div class="card-header-right">
-            <span class="badge glucose-badge-red" id="glucose-total-badge">총 0회</span>
-            <div class="wo-view-tabs">
-              <button type="button" class="wo-view-tab active" id="gl-tab-list" onclick="setGlucoseView('list')">목록</button>
-              <button type="button" class="wo-view-tab" id="gl-tab-graph" onclick="setGlucoseView('graph')">그래프</button>
-            </div>
-          </div>
-        </div>
-        <div class="glucose-history-list" id="glucose-history"></div>
       </div>
     </div>
 
-    <div class="card today-log-card">
-      <div style="padding:14px 18px 0;display:flex;align-items:center;justify-content:space-between">
-        <p class="card-title" style="margin:0">오늘 하루는 어땠나요?</p>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:10px;color:var(--text-muted)">기록은 자정에 초기화돼요</span>
-          <button type="button" onclick="resetTodayLogNow()" style="font-size:11px;color:var(--text-muted);background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:3px 8px">지금 초기화</button>
+    <div class="exercise-section-shell exercise-section-shell--daily">
+      <div class="exercise-section-head">
+        <div class="exercise-section-title">오늘 하루</div>
+      </div>
+      <div class="record-entry-guide">
+        <div class="record-entry-guide-copy">
+          <div class="record-entry-guide-text">식사, 수면, 영양제 기록은 자정에 초기화돼요</div>
         </div>
+        <button type="button" class="reg-reset-btn" onclick="resetTodayLogNow()">지금 초기화</button>
       </div>
-      <div class="ex-hero-tabs" style="margin-top:10px;border-bottom:1px solid var(--border)">
-        <button class="ex-hero-tab active" id="today-tab-diet"  onclick="setTodayTab('diet')">식사<span class="today-tab-dot" id="dot-diet" style="display:none"></span></button>
-        <button class="ex-hero-tab"        id="today-tab-sleep" onclick="setTodayTab('sleep')">수면<span class="today-tab-dot" id="dot-sleep" style="display:none"></span></button>
-        <button class="ex-hero-tab"        id="today-tab-supp"  onclick="setTodayTab('supp')">영양제<span class="today-tab-dot" id="dot-supp" style="display:none"></span></button>
-      </div>
+
+      <div class="card today-log-card">
+        <div class="ex-hero-tabs">
+          <button class="ex-hero-tab active" id="today-tab-diet"  onclick="setTodayTab('diet')">식사<span class="today-tab-dot" id="dot-diet" style="display:none"></span></button>
+          <button class="ex-hero-tab"        id="today-tab-sleep" onclick="setTodayTab('sleep')">수면<span class="today-tab-dot" id="dot-sleep" style="display:none"></span></button>
+          <button class="ex-hero-tab"        id="today-tab-supp"  onclick="setTodayTab('supp')">영양제<span class="today-tab-dot" id="dot-supp" style="display:none"></span></button>
+        </div>
 
       <!-- 식사 panel -->
       <div id="today-panel-diet">
@@ -4480,6 +4647,7 @@
           </div>
         </div>
         <input type="file" id="photo-input" accept="image/*" onchange="handlePhotoInput(this)">
+      </div>
       </div>
     </div>
 
@@ -4735,14 +4903,13 @@
       <div class="bal-left">
         <p class="bal-label">보유 포인트</p>
         <p class="bal-amt"><span id="bal-display">0</span><span class="bal-unit">p</span></p>
-        <p class="bal-sub">포인트로 다양한 혜택을 누리세요</p>
+        <p class="bal-sub" id="bal-sub">포인트로 다양한 혜택을 누리세요</p>
       </div>
       <img src="icons/HI_icon_29.png" style="width:48px;height:48px;object-fit:contain;opacity:0.18" alt="">
     </div>
 
     <div class="reward-section-head">
       <div class="reward-section-copy">
-        <div class="reward-section-sub">챌린지 기간 동안 교환할 수 있는 보상입니다</div>
         <p class="section-title">교환 가능한 보상</p>
       </div>
       <span class="badge badge-warning">챌린지 운영중</span>
@@ -4753,18 +4920,17 @@
     <div class="reward-guide-card">
       <p class="reward-guide-title">선물 수령 안내</p>
       <div class="reward-guide-row">
-        <span class="reward-guide-icon"><img src="icons/HI_icon_14.png" class="rg-icon" alt="직접수령"></span>
+        <span class="reward-guide-icon"><img src="icons/HI_icon_14.png" class="rg-icon" alt="모바일 전송"></span>
         <div>
-          <span class="reward-guide-label">직접 수령</span>
-          <span class="reward-guide-desc">평일 08:00 – 16:00 · 1층 라운지</span>
+          <span class="reward-guide-label">모바일 전송 <span class="reward-guide-only">스타벅스 · 안다르 교환권</span></span>
+          <span class="reward-guide-desc">신청 확인 후 등록된 연락처로 모바일 쿠폰을 전송해드립니다</span>
         </div>
       </div>
       <div class="reward-guide-row">
-        <span class="reward-guide-icon"><img src="icons/HI_icon_12.png" class="rg-icon" alt="우편"></span>
+        <span class="reward-guide-icon"><img src="icons/HI_icon_12.png" class="rg-icon" alt="직접 수령"></span>
         <div>
-          <span class="reward-guide-label">우편 신청 <span class="reward-guide-only">아르기닌 1box만 가능</span></span>
-          <span class="reward-guide-desc">신청서 작성 후 제출</span>
-          <button type="button" class="reward-form-btn" onclick="openRewardForm()">신청서 작성하기 →</button>
+          <span class="reward-guide-label">라운지 직접 수령 <span class="reward-guide-only">아몬드브리즈 · 킨토 물병 · 아르기닌 젤리</span></span>
+          <span class="reward-guide-desc">신청 후 1층 라운지에서 직원 확인을 받고 수령하세요</span>
         </div>
       </div>
     </div>
@@ -5160,11 +5326,11 @@ const STICKERS = [
 ];
 
 const REWARDS_DATA = [
-  { id:'r1', name:'스타벅스 아메리카노 교환권', cost:300,  desc:'스타벅스 아메리카노 1잔 교환권' },
-  { id:'r2', name:'아몬드브리즈 24팩',          cost:500,  desc:'아몬드브리즈 24팩 세트' },
-  { id:'r3', name:'킨토 물병 500ml',            cost:800,  desc:'킨토 워터보틀 500ml' },
-  { id:'r4', name:'안다르 3만원 교환권',        cost:1200, desc:'안다르 3만원 교환권' },
-  { id:'r5', name:'아르기닌(젤리) 1박스',       cost:1500, desc:'아르기닌 젤리 1박스' },
+  { id:'r1', name:'스타벅스 교환권',   cost:300,  desc:'스타벅스 아메리카노 1잔 교환권' },
+  { id:'r2', name:'아몬드브리즈 24팩', cost:500,  desc:'아몬드브리즈 무가당 오트 24팩 세트' },
+  { id:'r3', name:'킨토 물병',         cost:800,  desc:'킨토 워터보틀 500ml' },
+  { id:'r4', name:'안다르 교환권',     cost:1200, desc:'안다르 3만원 상품권' },
+  { id:'r5', name:'아르기닌 젤리',     cost:1500, desc:'아르기닌 젤리 1박스' },
 ];
 
 const SUPP_SVG = {
@@ -5236,6 +5402,8 @@ const SHOP_PRODUCTS = [
 
 // 구매 기능 활성화 여부 — Supabase app_config 테이블에서 로드
 let _shopPurchaseEnabled = false;
+// 챌린지 보상 모드 — 포인트 차감 없이 달성 시 신청 (직원 전용)
+let _challengeRewardMode = false;
 const SHOP_PURCHASE_NOTICE = '현재 구매 기능이 비활성화되어 있어요. 직접 구매를 원하시면 커뮤니케이션에 문의해주세요.';
 const SHOP_PURCHASE_TOAST = '현재 구매 기능이 비활성화되어 있어요.';
 
@@ -5258,6 +5426,8 @@ async function loadAppConfig() {
     data.forEach(row => {
       if (row.key === 'shop_purchase_enabled') {
         _shopPurchaseEnabled = row.value === 'true';
+      } else if (row.key === 'challenge_reward_mode') {
+        _challengeRewardMode = row.value === 'true';
       } else if (row.key === 'ch_deadline') {
         challengeConfigChanged = setChallengeDeadlineFromConfig(row.value) || challengeConfigChanged;
       }
@@ -5516,13 +5686,42 @@ function renderPdCartRow(id) {
 
 // ── 알림 패널 ──────────────────────────────────────────
 const NOTIF_READ_KEY = 'hi_notif_read_ids';
+const NOTIF_DELETED_KEY = 'hi_notif_deleted_ids';
+function getNotifStorageKey(baseKey) {
+  const identity = getPushIdentity();
+  const scope = String(identity.empId || identity.deviceId || 'guest').trim().toUpperCase() || 'guest';
+  return `${baseKey}_${scope}`;
+}
+function getNotifIdSet(baseKey, allowLegacy = false) {
+  try {
+    const scoped = localStorage.getItem(getNotifStorageKey(baseKey));
+    const fallback = allowLegacy ? localStorage.getItem(baseKey) : null;
+    return new Set(JSON.parse(scoped || fallback || '[]'));
+  } catch {
+    return new Set();
+  }
+}
+function saveNotifIdSet(baseKey, ids) {
+  localStorage.setItem(getNotifStorageKey(baseKey), JSON.stringify([...new Set(ids)].slice(-200)));
+}
 function getReadNotifIds() {
-  try { return new Set(JSON.parse(localStorage.getItem(NOTIF_READ_KEY) || '[]')); } catch { return new Set(); }
+  return getNotifIdSet(NOTIF_READ_KEY, true);
 }
 function markNotifRead(ids) {
   const read = getReadNotifIds();
   ids.forEach(id => read.add(id));
-  localStorage.setItem(NOTIF_READ_KEY, JSON.stringify([...read].slice(-200)));
+  saveNotifIdSet(NOTIF_READ_KEY, read);
+}
+function getDeletedNotifIds() {
+  return getNotifIdSet(NOTIF_DELETED_KEY);
+}
+function markNotifDeleted(ids) {
+  const deleted = getDeletedNotifIds();
+  ids.forEach(id => deleted.add(id));
+  saveNotifIdSet(NOTIF_DELETED_KEY, deleted);
+  const read = getReadNotifIds();
+  ids.forEach(id => read.delete(id));
+  saveNotifIdSet(NOTIF_READ_KEY, read);
 }
 
 async function loadNotifList() {
@@ -5538,25 +5737,31 @@ async function loadNotifList() {
     if (identity.empId) orParts.push(`target_emp_id.eq.${identity.empId.toUpperCase()}`);
     query = query.or(orParts.join(','));
     const { data } = await query;
-    if (!data?.length) {
+    const deletedIds = getDeletedNotifIds();
+    const visibleData = (data || []).filter(n => !deletedIds.has(n.id));
+    if (!visibleData.length) {
       listEl.innerHTML = '<div class="cart-panel-empty" style="padding:20px">알림이 없어요</div>';
+      updateNotifBadge([], getReadNotifIds());
       return;
     }
     const readIds = getReadNotifIds();
-    const rows = data.map(n => {
+    const rows = visibleData.map(n => {
       const isUnread = !readIds.has(n.id);
       const dt = new Date(n.sent_at);
       const now = new Date();
       const diff = Math.floor((now - dt) / 60000);
       const timeStr = diff < 60 ? `${diff}분 전` : diff < 1440 ? `${Math.floor(diff/60)}시간 전` : `${Math.floor(diff/1440)}일 전`;
-      return `<div class="notif-item${isUnread ? ' unread' : ''}" onclick="onNotifClick('${n.id}','${n.url || './index.html#community'}')">
-        <div class="notif-item-title">${n.title}</div>
-        <div class="notif-item-body">${n.body}</div>
-        <div class="notif-item-time">${timeStr}</div>
+      return `<div class="notif-item${isUnread ? ' unread' : ''}" data-notif-id="${escHtmlComm(n.id)}" data-notif-url="${escHtmlComm(n.url || './index.html#community')}" onclick="onNotifClick(this.dataset.notifId, this.dataset.notifUrl)">
+        <div class="notif-item-main">
+          <div class="notif-item-title">${escHtmlComm(n.title)}</div>
+          <div class="notif-item-body">${escHtmlComm(n.body)}</div>
+          <div class="notif-item-time">${timeStr}</div>
+        </div>
+        <button type="button" class="notif-item-delete" onclick="deleteNotifItem(event, '${n.id}')" aria-label="알림 삭제" title="알림 삭제">✕</button>
       </div>`;
     }).join('');
     listEl.innerHTML = rows;
-    updateNotifBadge(data, readIds);
+    updateNotifBadge(visibleData, readIds);
   } catch(e) {
     listEl.innerHTML = '<div class="cart-panel-empty" style="padding:20px">불러오기 실패</div>';
   }
@@ -5580,6 +5785,13 @@ function onNotifClick(id, url) {
     if (page) navigate(page);
   }
 }
+async function deleteNotifItem(event, id) {
+  event?.stopPropagation?.();
+  if (!id) return;
+  markNotifDeleted([id]);
+  await loadNotifList();
+  showToast('알림이 삭제되었습니다');
+}
 
 function openNotifPanel() {
   closeCartPanel?.();
@@ -5592,11 +5804,9 @@ function openNotifPanel() {
     // 패널 열면 모두 읽음 처리
     const listEl = document.getElementById('notif-list');
     if (!listEl) return;
-    const ids = [...listEl.querySelectorAll('.notif-item')].map(el => {
-      const onclick = el.getAttribute('onclick') || '';
-      const m = onclick.match(/'([a-f0-9-]{36})'/);
-      return m ? m[1] : null;
-    }).filter(Boolean);
+    const ids = [...listEl.querySelectorAll('.notif-item')]
+      .map(el => el.dataset.notifId)
+      .filter(Boolean);
     if (ids.length) {
       markNotifRead(ids);
       document.getElementById('header-bell-badge')?.classList.add('hidden');
@@ -6317,20 +6527,52 @@ function openWorkoutRouteMap(id) {
   });
 }
 
+function getLatestTrackedRunWorkout() {
+  return [...(S.workouts || [])]
+    .filter(workout => workout?.exId === 'running' && compressRoutePath(workout.routePath || [], 2).length > 1)
+    .sort((a, b) => (Number(b?.ts) || 0) - (Number(a?.ts) || 0))[0] || null;
+}
+
+function updatePreviousRunMapButton() {
+  const btn = document.getElementById('rt-prev-map-btn');
+  if (!btn) return;
+  const latestWorkout = getLatestTrackedRunWorkout();
+  if (!latestWorkout) {
+    btn.style.display = 'none';
+    btn.removeAttribute('title');
+    return;
+  }
+  btn.style.display = '';
+  const routeSubtitle = formatWorkoutRouteSubtitle(latestWorkout);
+  btn.textContent = '이전 맵 보기';
+  if (routeSubtitle) btn.title = routeSubtitle;
+  else btn.removeAttribute('title');
+}
+
+function openPreviousRunRouteMap() {
+  const latestWorkout = getLatestTrackedRunWorkout();
+  if (!latestWorkout) {
+    showToast('아직 저장된 러닝 경로가 없어요.');
+    return;
+  }
+  openWorkoutRouteMap(latestWorkout.id);
+}
+
 function openCurrentRunRouteMap() {
   const routePath = compressRoutePath(_rt.positions || [], 180);
+  const elapsed = rtGetElapsedSeconds();
   if (routePath.length < 2) {
     showToast('아직 경로를 그릴 만큼 GPS 좌표가 충분하지 않아요.');
     return;
   }
   openRouteMapSheet({
     title: '방금 달린 경로',
-    subtitle: `${(_rt.dist / 1000).toFixed(2)} km · ${formatDurationMinutesLabel(Math.max(1, Math.round(_rt.elapsed / 60)))}`,
+    subtitle: `${(_rt.dist / 1000).toFixed(2)} km · ${formatDurationMinutesLabel(Math.max(1, Math.round(elapsed / 60)))}`,
     routePoints: routePath,
     stats: [
       { label: '거리', value: `${(_rt.dist / 1000).toFixed(2)} km` },
-      { label: '시간', value: rtFmtTime(_rt.elapsed) },
-      { label: '페이스', value: fmtPace(_rt.dist / 1000, _rt.elapsed) },
+      { label: '시간', value: rtFmtTime(elapsed) },
+      { label: '페이스', value: fmtPace(_rt.dist / 1000, elapsed) },
     ],
     note: 'GPS 오차가 큰 구간은 자동으로 제외될 수 있어요.',
   });
@@ -6923,6 +7165,18 @@ function removeCustomExType(name) {
   if (S.selectedEx === 'custom_' + name) { S.selectedEx = null; updateRecordBtnStates(); }
   renderExercise();
 }
+function removeExPresetType(id) {
+  haptic('light');
+  if (!_hiddenExPresetTypes.includes(id)) {
+    _hiddenExPresetTypes.push(id);
+    localStorage.setItem('hi_hidden_ex_presets', JSON.stringify(_hiddenExPresetTypes));
+  }
+  if (S.selectedEx === id) {
+    S.selectedEx = null;
+    updateRecordBtnStates();
+  }
+  renderExercise();
+}
 function getExType(id) {
   if (id && id.startsWith('custom_')) {
     const name = id.slice(7);
@@ -7094,7 +7348,7 @@ function myWeekPts() {
    NAVIGATION
 ════════════════════════════════════════ */
 const _isTouch = () => window.matchMedia('(hover: none)').matches;
-const RUNDAY_IFRAME_SRC = 'runday.html?v=20260321-134';
+const RUNDAY_IFRAME_SRC = 'runday.html?v=20260322-202';
 let _rundayIframeReady = false;
 let _rundayIframeLoadStarted = false;
 const _rundayIframeQueue = [];
@@ -7162,6 +7416,22 @@ function ensureRundayIframeLoaded() {
     _rundayIframeLoadStarted = true;
   }
   return frame;
+}
+
+function mountChallengeIframeFallback(page) {
+  if (!page) return null;
+  page.innerHTML = `<iframe id="runday-iframe" class="challenge-iframe" title="HI RUN DAY 챌린지" loading="eager"></iframe>`;
+  const frame = getRundayIframe();
+  if (!frame) return null;
+  frame.dataset.src = RUNDAY_IFRAME_SRC;
+  frame.dataset.ready = '0';
+  frame.dataset.loadStarted = '0';
+  _rundayIframeReady = false;
+  _rundayIframeLoadStarted = false;
+  bindRundayIframe(frame);
+  ensureRundayIframeLoaded();
+  page.dataset.challengeMounted = 'iframe';
+  return page;
 }
 
 function postToRunday(payload, options = {}) {
@@ -7335,6 +7605,10 @@ function warmInlineChallengeHtml(options = {}) {
 async function ensureInlineChallengeMounted() {
   const page = document.getElementById('page-challenge');
   if (!page) return null;
+  if (page.dataset.challengeMounted === 'iframe' && getRundayIframe()) {
+    ensureRundayIframeLoaded();
+    return page;
+  }
   if (window.RundayInline?.__mounted && page.dataset.challengeMounted === '1') return page;
   if (_rundayInlineMountPromise) return _rundayInlineMountPromise;
 
@@ -7353,6 +7627,8 @@ async function ensureInlineChallengeMounted() {
       throw new Error('empty challenge html');
     } catch (error) {
       console.error('[ensureInlineChallengeMounted]', error);
+      const fallbackPage = mountChallengeIframeFallback(page);
+      if (fallbackPage) return fallbackPage;
       page.innerHTML = `
         <div class="challenge-inline-error">
           <div>챌린지 화면을 불러오지 못했습니다.</div>
@@ -7396,6 +7672,8 @@ function deactivateInlineChallengePage() {
 
 window.retryInlineChallengeMount = function retryInlineChallengeMount() {
   delete window.RundayInline;
+  _rundayIframeReady = false;
+  _rundayIframeLoadStarted = false;
   const page = document.getElementById('page-challenge');
   if (page) delete page.dataset.challengeMounted;
   return activateInlineChallengePage();
@@ -7545,11 +7823,11 @@ function renderHeader() {
   renderHeaderAvatar(S.user.avatar);
   const activePage = document.querySelector('.page.active')?.id?.replace('page-', '') || 'home';
   placeGuestBanner(activePage);
-  // 챌린지 탭: 'before' 또는 'ended' 단계엔 숨김
+  // 챌린지 탭은 종료 전까지 노출하고, 내부 화면에서 단계별 안내를 보여준다.
   const phase = getChPhase();
   const challengeNavBtn = document.querySelector('.nav-btn[data-page="challenge"]');
   if (challengeNavBtn) {
-    challengeNavBtn.style.display = (phase === 'before' || phase === 'ended') ? 'none' : '';
+    challengeNavBtn.style.display = phase === 'ended' ? 'none' : '';
   }
 }
 
@@ -7692,9 +7970,12 @@ function renderHome() {
 ════════════════════════════════════════ */
 /* ── Custom exercise types (user-added) ── */
 let _customExTypes  = JSON.parse(localStorage.getItem('hi_custom_ex_types')  || '[]');
+let _hiddenExPresetTypes = JSON.parse(localStorage.getItem('hi_hidden_ex_presets') || '[]');
 
 const MEAL_PRESET_TYPES = ['아침','점심','저녁','간식','야식'];
 const SUPP_PRESET_TYPES = ['종합비타민','아르기닌','코큐텐','엽산'];
+let _hiddenMealPresetTypes = JSON.parse(localStorage.getItem('hi_hidden_meal_presets') || '[]');
+let _hiddenSuppPresetTypes = JSON.parse(localStorage.getItem('hi_hidden_supp_presets') || '[]');
 let _customMealTypes = JSON.parse(localStorage.getItem('hi_custom_meal_types') || '[]');
 let _customSuppTypes = JSON.parse(localStorage.getItem('hi_custom_supp_types') || '[]');
 
@@ -7971,7 +8252,14 @@ function hydrateStaticSvgIcons(root = document) {
 hydrateStaticSvgIcons();
 window.addEventListener('load', () => hydrateStaticSvgIcons());
 
+function renderRecordEntryGuide() {
+  const textEl = document.getElementById('record-entry-guide-text');
+  if (!textEl) return;
+  textEl.textContent = `운동은 하루 ${DAILY_WORKOUT_LIMIT}회, 혈당은 하루 ${DAILY_GLUCOSE_LIMIT}회까지 기록하고 포인트를 받을 수 있어요`;
+}
+
 function renderExercise() {
+  renderRecordEntryGuide();
   // Today stats strip
   const todayW = todayWorkouts();
   const todayMins = todayW.reduce((s,w) => s + w.duration, 0);
@@ -7990,13 +8278,13 @@ function renderExercise() {
     const selected = S.selectedEx === id;
     return `<button class="ex-type-btn ${selected ? 'selected' : ''}" onclick="selectEx('${id}')">
       <span class="ex-type-name">${name}</span>
-      <span onclick="event.stopPropagation();removeCustomExType('${name}')" style="margin-left:3px;opacity:0.4;font-size:10px;line-height:1">✕</span>
+      <span class="hc-chip-remove" onclick="event.stopPropagation();removeCustomExType('${name}')">×</span>
     </button>`;
   }).join('');
   document.getElementById('ex-type-grid').innerHTML =
-    EX_TYPES.filter(e => e.id !== 'custom').map(e => `
+    EX_TYPES.filter(e => e.id !== 'custom' && !_hiddenExPresetTypes.includes(e.id)).map(e => `
       <button class="ex-type-btn ${S.selectedEx === e.id ? 'selected' : ''}"
-              onclick="selectEx('${e.id}')"><span class="ex-type-icon">${renderExerciseIcon(e.id, { size:'15px' })}</span><span class="ex-type-name">${e.name}</span></button>
+              onclick="selectEx('${e.id}')"><span class="ex-type-icon">${renderExerciseIcon(e.id, { size:'15px' })}</span><span class="ex-type-name">${e.name}</span><span class="hc-chip-remove" onclick="event.stopPropagation();removeExPresetType('${e.id}')">×</span></button>
     `).join('')
     + customBtns
     + `<button class="custom-ex-link ${isCustomInput ? 'selected' : ''}" onclick="selectEx('custom')">${renderNamedSvgIcon('pencil', { size:'14px', color:'currentColor' })}<span>직접 입력</span></button>`;
@@ -8944,13 +9232,13 @@ function renderMealChips() {
   const row = document.getElementById('meal-chips-row');
   if (!row) return;
   const isDirectOpen = document.getElementById('meal-direct-wrap')?.classList.contains('show');
-  const presetBtns = MEAL_PRESET_TYPES.map(name => {
+  const presetBtns = MEAL_PRESET_TYPES.filter(name => !_hiddenMealPresetTypes.includes(name)).map(name => {
     const on = _mealTypes.includes(name);
-    return `<button type="button" class="hc-sub-chip hc-meal-chip${on?' on':''}" data-name="${name}" onclick="toggleMeal('${name}')">${name}</button>`;
+    return `<button type="button" class="hc-sub-chip hc-meal-chip${on?' on':''}" data-name="${name}" onclick="toggleMeal('${name}')">${name}<span class="hc-chip-remove" onclick="event.stopPropagation();removeMealPresetType('${name}')">×</span></button>`;
   }).join('');
   const customBtns = _customMealTypes.map(name => {
     const on = _mealTypes.includes(name);
-    return `<button type="button" class="hc-sub-chip hc-meal-chip${on?' on':''}" data-name="${name}" onclick="toggleMeal('${name}')">${name}<span onclick="event.stopPropagation();removeCustomMealType('${name}')" style="margin-left:3px;opacity:0.4;font-size:10px;line-height:1">✕</span></button>`;
+    return `<button type="button" class="hc-sub-chip hc-meal-chip${on?' on':''}" data-name="${name}" onclick="toggleMeal('${name}')">${name}<span class="hc-chip-remove" onclick="event.stopPropagation();removeCustomMealType('${name}')">×</span></button>`;
   }).join('');
   const directBtn = `<button type="button" id="meal-direct-btn" class="chip-direct-btn${isDirectOpen?' selected':''}" onclick="toggleMealDirect()">${renderNamedSvgIcon('pencil', { size:'14px', color:'currentColor' })}<span>직접 입력</span></button>`;
   row.innerHTML = presetBtns + customBtns + directBtn;
@@ -8959,16 +9247,43 @@ function renderSuppChips() {
   const row = document.getElementById('supp-chips-row');
   if (!row) return;
   const isDirectOpen = document.getElementById('supp-direct-wrap')?.classList.contains('show');
-  const presetBtns = SUPP_PRESET_TYPES.map(name => {
+  const presetBtns = SUPP_PRESET_TYPES.filter(name => !_hiddenSuppPresetTypes.includes(name)).map(name => {
     const on = _suppList.includes(name);
-    return `<button type="button" class="hc-sub-chip hc-supp-preset${on?' on':''}" data-name="${name}" onclick="toggleSuppItem('${name}')">${name}</button>`;
+    return `<button type="button" class="hc-sub-chip hc-supp-preset${on?' on':''}" data-name="${name}" onclick="toggleSuppItem('${name}')">${name}<span class="hc-chip-remove" onclick="event.stopPropagation();removeSuppPresetType('${name}')">×</span></button>`;
   }).join('');
   const customBtns = _customSuppTypes.map(name => {
     const on = _suppList.includes(name);
-    return `<button type="button" class="hc-sub-chip hc-supp-preset${on?' on':''}" data-name="${name}" onclick="toggleSuppItem('${name}')">${name}<span onclick="event.stopPropagation();removeCustomSuppType('${name}')" style="margin-left:3px;opacity:0.4;font-size:10px;line-height:1">✕</span></button>`;
+    return `<button type="button" class="hc-sub-chip hc-supp-preset${on?' on':''}" data-name="${name}" onclick="toggleSuppItem('${name}')">${name}<span class="hc-chip-remove" onclick="event.stopPropagation();removeCustomSuppType('${name}')">×</span></button>`;
   }).join('');
   const directBtn = `<button type="button" id="supp-direct-btn" class="chip-direct-btn${isDirectOpen?' selected':''}" onclick="toggleSuppDirect()">${renderNamedSvgIcon('pencil', { size:'14px', color:'currentColor' })}<span>직접 입력</span></button>`;
   row.innerHTML = presetBtns + customBtns + directBtn;
+}
+function removeMealPresetType(name) {
+  haptic('light');
+  if (!_hiddenMealPresetTypes.includes(name)) {
+    _hiddenMealPresetTypes.push(name);
+    localStorage.setItem('hi_hidden_meal_presets', JSON.stringify(_hiddenMealPresetTypes));
+  }
+  if (_mealTypes.includes(name)) {
+    _mealTypes = _mealTypes.filter(n => n !== name);
+    updateSharePreview();
+    renderTodayTabDots();
+    saveTodayLog();
+  }
+  renderMealChips();
+}
+function removeSuppPresetType(name) {
+  haptic('light');
+  if (!_hiddenSuppPresetTypes.includes(name)) {
+    _hiddenSuppPresetTypes.push(name);
+    localStorage.setItem('hi_hidden_supp_presets', JSON.stringify(_hiddenSuppPresetTypes));
+  }
+  if (_suppList.includes(name)) {
+    _suppList = _suppList.filter(n => n !== name);
+    updateSharePreview();
+    saveTodayLog();
+  }
+  renderSuppChips();
 }
 function removeCustomMealType(name) {
   haptic('light');
@@ -9337,6 +9652,7 @@ function glucoseGraphHTML() {
 }
 
 function renderGlucose() {
+  renderRecordEntryGuide();
   const el = document.getElementById('glucose-history');
   const badge = document.getElementById('glucose-total-badge');
   if (!el) return;
@@ -11409,6 +11725,10 @@ function submitShopOrder() {
 function renderRewards() {
   const points = Number(S.user.points || 0);
   document.getElementById('bal-display').textContent = points;
+  const balSub = document.getElementById('bal-sub');
+  if (balSub) balSub.textContent = _challengeRewardMode
+    ? '목표 포인트 달성 시 보상을 신청할 수 있어요'
+    : '포인트로 다양한 혜택을 누리세요';
   const availableCount = REWARDS_DATA.filter(r => !S.redeemedRewards.includes(r.id) && !S.pendingRewards.includes(r.id) && points >= r.cost).length;
   const doneCount = REWARDS_DATA.filter(r => S.redeemedRewards.includes(r.id)).length;
   const nextReward = [...REWARDS_DATA]
@@ -11453,8 +11773,7 @@ function renderRewards() {
         svg: `<svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg"><rect width="72" height="72" rx="16" fill="#edf5ff"/><ellipse cx="36" cy="58" rx="16" ry="4" fill="rgba(0,0,0,.06)"/><rect x="28" y="14" width="16" height="10" rx="4" fill="#9ec5f8"/><rect x="24" y="21" width="24" height="32" rx="8" fill="#dbeafe" stroke="#9cc3f5"/><rect x="27" y="27" width="18" height="13" rx="4" fill="#ffffff" opacity=".95"/><path d="M31 45c3-4 7-4 10 0" fill="none" stroke="#7aa7e8" stroke-width="2.4" stroke-linecap="round"/></svg>`
       },
       r4: {
-        img: 'images/andar.png',
-        alt: '안다르 3만원 교환권'
+        svg: `<svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg"><rect width="72" height="72" rx="16" fill="#f3f0fb"/><ellipse cx="36" cy="61" rx="17" ry="3.5" fill="rgba(0,0,0,.07)"/><path d="M28,21 Q36,15 44,21 L52,21 L60,30 L55,38 L50,32 L50,57 Q50,59 36,59 Q22,59 22,57 L22,32 L17,38 L12,30 L20,21 Z" fill="#fff" stroke="#cdbfec" stroke-width="1.5" stroke-linejoin="round"/><path d="M30,23 Q36,19 42,23" fill="none" stroke="#b8a2e0" stroke-width="2" stroke-linecap="round"/><rect x="29" y="38" width="14" height="2.5" rx="1.25" fill="#e0d4f8"/><rect x="31" y="43" width="10" height="2" rx="1" fill="#ecdcff"/></svg>`
       },
       r5: {
         svg: SUPP_SVG.jelly_arg
@@ -11466,6 +11785,14 @@ function renderRewards() {
   }
 
   // Rewards list
+  if (_challengeRewardMode && !S.user.empId) {
+    document.getElementById('reward-grid').innerHTML = `
+      <div class="reward-locked-notice">
+        <div class="reward-locked-icon">🏆</div>
+        <div class="reward-locked-title">직원 전용 챌린지 보상</div>
+        <div class="reward-locked-desc">임직원 로그인 후 이용 가능합니다</div>
+      </div>`;
+  } else {
   document.getElementById('reward-grid').innerHTML = REWARDS_DATA.map(r => {
     const done    = S.redeemedRewards.includes(r.id);
     const pending = !done && S.pendingRewards.includes(r.id);
@@ -11477,31 +11804,28 @@ function renderRewards() {
     else if (pending) cardClass += ' pending';
     else if (can)     cardClass += ' can';
     const onclick = !done && !pending ? `onclick="redeemReward('${r.id}')"` : '';
+    const badge = done
+      ? `<span class="reward-cost reward-done-badge">수령완료</span>`
+      : pending
+      ? `<span class="reward-cost reward-pending-badge">처리중</span>
+         <button class="reward-confirm-btn" style="margin-left:6px" onclick="event.stopPropagation();confirmReward('${r.id}')">직원 확인</button>`
+      : can
+      ? `<span class="reward-cost">${_challengeRewardMode ? '달성 · 신청 가능' : `${r.cost}p · 교환 가능`}</span>`
+      : `<span class="reward-cost" style="background:#f3f4f6;color:#9ca3af">${r.cost}p · ${shortfall}p 남음</span>`;
     return `
       <div class="${cardClass}" ${onclick}>
         <div class="reward-thumb">${visual.img ? `<img src="${visual.img}" alt="${visual.alt || r.name}">` : visual.svg}</div>
         <div class="reward-info">
-          <div class="reward-top">
-            <div class="reward-name">${r.name}</div>
-            <div class="reward-pts">${r.cost}p</div>
-          </div>
-          <div class="reward-desc">${r.desc}</div>
-          <div class="reward-progress-label">${done ? '완료' : pending ? '처리중' : can ? '도전 가능' : `${shortfall}p 남음`}</div>
+          <div class="reward-name">${r.name}</div>
+          <div class="reward-desc">${_challengeRewardMode ? `${r.cost}p 달성 시 신청` : r.desc}</div>
         </div>
         <div class="reward-status-wrap">
-          ${done
-            ? `<span class="reward-cost reward-done-badge">교환완료</span>`
-            : pending
-            ? `<span class="reward-cost reward-pending-badge">처리중</span>
-               <button class="reward-confirm-btn" style="margin-left:6px" onclick="event.stopPropagation();confirmReward('${r.id}')">직원 확인</button>`
-            : can
-            ? `<span class="reward-cost">교환 가능</span>`
-            : `<span class="reward-cost" style="background:#f3f4f6;color:#9ca3af">${r.cost}p 필요</span>`
-          }
+          ${badge}
         </div>
       </div>
     `;
   }).join('');
+  } // end else (challenge reward mode guest check)
 
   // Achievements list
   const earned = earnedAchs();
@@ -11574,23 +11898,23 @@ function renderRewards() {
 function redeemReward(id) {
   const r = REWARDS_DATA.find(x => x.id === id);
   if (!r) return;
-  if (S.redeemedRewards.includes(id)) { haptic('error'); showToast('이미 교환한 보상이에요'); return; }
-  if (S.pendingRewards.includes(id))  { haptic('error'); showToast('이미 교환 요청 중이에요'); return; }
+  if (S.redeemedRewards.includes(id)) { haptic('error'); showToast('이미 신청한 보상이에요'); return; }
+  if (S.pendingRewards.includes(id))  { haptic('error'); showToast('이미 신청 처리 중이에요'); return; }
   if (S.user.points < r.cost) { haptic('error'); showToast('⚠️ 포인트가 부족해요 (필요: ' + r.cost + 'p)'); return; }
-  showConfirm(
-    `"${r.name}"을(를) ${r.cost}p로 교환 요청할까요?`,
-    () => {
-      S.user.points -= r.cost;
-      S.pendingRewards.push(id);
-      if (!S.rewardHistory) S.rewardHistory = [];
-      S.rewardHistory.unshift({ id, name: r.name, cost: r.cost, status: 'pending', ts: Date.now() });
-      save();
-      renderHeader();
-      haptic('success');
-      showToast('📋 교환 요청 완료! 직원 확인 후 수령하세요');
-      renderRewards();
-    }
-  );
+  const confirmMsg = _challengeRewardMode
+    ? `"${r.name}" 보상을 신청할까요?\n달성 포인트는 차감되지 않습니다.`
+    : `"${r.name}"을(를) ${r.cost}p로 교환 요청할까요?`;
+  showConfirm(confirmMsg, () => {
+    if (!_challengeRewardMode) S.user.points -= r.cost;
+    S.pendingRewards.push(id);
+    if (!S.rewardHistory) S.rewardHistory = [];
+    S.rewardHistory.unshift({ id, name: r.name, cost: r.cost, status: 'pending', ts: Date.now() });
+    save();
+    renderHeader();
+    haptic('success');
+    showToast(_challengeRewardMode ? '🎁 신청 완료! 직원 확인 후 수령하세요' : '📋 교환 요청 완료! 직원 확인 후 수령하세요');
+    renderRewards();
+  });
 }
 
 function confirmReward(id) {
@@ -12864,8 +13188,6 @@ function renderChallenge() {
           <div class="ch-reg-row"><span class="ch-reg-label">가족 참여</span><span class="ch-reg-value">${myReg.familyParticipation ? familySummary : '본인만'}</span></div>
           ${shoeRequestNote ? `<div class="ch-reg-row ch-reg-row-full"><span class="ch-reg-label">운동화 요청</span><span class="ch-reg-value">${escHtmlComm(shoeRequestNote)}</span></div>` : ''}
           ${myReg.familyParticipation && familyMemo ? `<div class="ch-reg-row ch-reg-row-full"><span class="ch-reg-label">가족 메모</span><span class="ch-reg-value">${escHtmlComm(familyMemo)}</span></div>` : ''}
-          <div class="ch-reg-row"><span class="ch-reg-label">크루즈 탑승</span><span class="ch-reg-value">${myReg.cruiseParticipation === false ? '탑승 안 함' : '탑승 희망'}</span></div>
-          <div class="ch-reg-row"><span class="ch-reg-label">행사 참여</span><span class="ch-reg-value">${myReg.eventParticipation === false ? '불참' : '참여'}</span></div>
           ${shoePrefSummary.length ? `<div class="ch-reg-row ch-reg-row-full"><span class="ch-reg-label">운동화모델</span><span class="ch-reg-value">${shoePrefSummary.join(' / ')}</span></div>` : ''}
         </div>
         <div class="ch-reg-phase">현재 단계: ${getChallengePhaseLabel(phase)}</div>
@@ -12889,7 +13211,7 @@ function renderChallenge() {
         <div style="font-size:13px;line-height:1.72;color:var(--text-secondary)">
           HI RUN DAY 챌린지가 시작됩니다.<br><br>
           워밍업기간에는 운동으로 루틴을 만들고, 페이스업 기간에는 운동과 혈당 기록을 함께 진행합니다.<br>
-          스페셜 인증 미션도 참여해 주세요.
+          RUN DAY 프로그램과 코스도 아래에서 함께 확인해 주세요.
         </div>
       </div>
     `;
@@ -12928,20 +13250,7 @@ function renderChallenge() {
             </div>
           </div>
           <div id="ch-shoe-pref-section" class="ch-shoe-pref-wrap"></div>
-          <div class="ch-form-group">
-            <label class="form-label">한강 크루즈 탑승 <span style="font-size:11px;font-weight:400;color:var(--text-secondary)">(김포→여의도, 약 90분 · 직원만 참여 가능)</span> <span style="color:var(--accent)">*</span></label>
-            <div class="ch-radio-group">
-              <label class="ch-radio-label"><input type="radio" name="ch-cruise" value="yes" onchange="updateChSubmitState()"> 탑승 희망</label>
-              <label class="ch-radio-label"><input type="radio" name="ch-cruise" value="no" onchange="updateChSubmitState()"> 탑승 안 함</label>
-            </div>
-          </div>
-          <div class="ch-form-group">
-            <label class="form-label">RUN DAY 행사 참여 <span style="font-size:11px;font-weight:400;color:var(--text-secondary)">(직원만 참여)</span> <span style="color:var(--accent)">*</span></label>
-            <div class="ch-radio-group">
-              <label class="ch-radio-label"><input type="radio" name="ch-event" value="yes" onchange="updateChSubmitState()"> 참여</label>
-              <label class="ch-radio-label"><input type="radio" name="ch-event" value="no" onchange="updateChSubmitState()"> 불참</label>
-            </div>
-          </div>
+          <div style="margin-top:8px;font-size:11px;line-height:1.5;color:var(--text-secondary)">크루즈 일정은 취소되었고, 러닝 코스는 선유도공원에서 출발해 여의도공원으로 이동하는 방향으로 운영됩니다.</div>
           <div class="ch-consent">
             <p class="ch-consent-text">수집된 개인정보는 챌린지 운영 및 기념품 지급 목적으로만 활용되며, 챌린지 종료 후 즉시 파기됩니다.</p>
             <label class="ch-consent-check">
@@ -12984,7 +13293,7 @@ function renderChallenge() {
     {
       date: '4/15(수)',
       title: 'HI RUN DAY 행사',
-      desc: 'HI 개원 8주년 기념 · 함께 달리기 여의도→선유도공원',
+      desc: 'HI 개원 8주년 기념 · 선유도공원 → 여의도공원 함께 달리기',
       status: now > CH.eventDay ? 'done' : now >= eventDayStart ? 'active' : 'future',
     },
   ];
@@ -13104,30 +13413,10 @@ function renderChallenge() {
             <div class="ch-program-num">3</div>
             <div style="flex:1">
               <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
-                <div class="ch-program-title">점심식사 <span style="font-size:11px;font-weight:500;opacity:0.6;">h'654 현대프리미엄아울렛</span></div>
-                <div style="font-size:11px;font-weight:700;color:var(--primary);white-space:nowrap">am 11:30</div>
+                <div class="ch-program-title">함께 달리기 <span style="font-size:11px;font-weight:500;opacity:0.6;">약 4.3km</span></div>
+                <div style="font-size:11px;font-weight:700;color:var(--primary);white-space:nowrap">현장 안내</div>
               </div>
-              <div class="ch-program-desc">현대에서 운영하는 이탈리안 레스토랑, 아라뱃길 경치를 즐길수 있어요</div>
-            </div>
-          </div>
-          <div class="ch-program-step">
-            <div class="ch-program-num">4</div>
-            <div style="flex:1">
-              <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
-                <div class="ch-program-title">크루즈 탑승 · 김포 → 여의도</div>
-                <div style="font-size:11px;font-weight:700;color:var(--primary);white-space:nowrap">pm 1:00</div>
-              </div>
-              <div class="ch-program-desc">한강 크루즈로 이동 (약 90분) · 선택 참여</div>
-            </div>
-          </div>
-          <div class="ch-program-step">
-            <div class="ch-program-num">5</div>
-            <div style="flex:1">
-              <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
-                <div class="ch-program-title">함께 달리기</div>
-                <div style="font-size:11px;font-weight:700;color:var(--primary);white-space:nowrap">pm 2:30</div>
-              </div>
-              <div class="ch-program-desc">여의도 유람선터미널 출발 → 선유도공원 · 자율 참여 <span style="font-size:10px;color:var(--text-secondary)">(상황에 따라 변경될 수 있음)</span></div>
+              <div class="ch-program-desc">선유도 공원 -> 여의도 공원, 전문 트레이너 코칭</div>
             </div>
           </div>
         </div>
@@ -13135,9 +13424,9 @@ function renderChallenge() {
       <div class="ch-route-card">
         <div class="ch-route-head">
           <div>
-            <div class="ch-route-title">여의도 유람선터미널에서 선유도공원 입구까지 달려요</div>
+            <div class="ch-route-title">선유도공원에서 여의도공원까지 달려요</div>
             <div class="ch-route-kicker">RUN COURSE DETAIL</div>
-            <div class="ch-route-sub">여의도에서 서쪽으로 서강대교를 지나 양화대교 남단 선유도공원 입구까지 약 4.3km 평지로 달리는 코스입니다.</div>
+            <div class="ch-route-sub">선유도공원에서 출발해 여의도공원까지 약 4.3km 평지 위주의 한강변 포장로를 함께 달릴 예정입니다.</div>
           </div>
           <button type="button" class="ch-route-toggle" id="ch-route-toggle" onclick="toggleChRouteDetail()" aria-expanded="${_chRouteExpanded ? 'true' : 'false'}">
             <span id="ch-route-toggle-label">${_chRouteExpanded ? '접기' : '자세히 보기'}</span>
@@ -13147,8 +13436,8 @@ function renderChallenge() {
           </button>
         </div>
         <div class="ch-route-badges">
-          <span class="ch-route-badge">출발 · 여의도 유람선터미널</span>
-          <span class="ch-route-badge">도착 · 선유도공원 입구</span>
+          <span class="ch-route-badge">출발 · 선유도공원</span>
+          <span class="ch-route-badge">도착 · 여의도공원</span>
           <span class="ch-route-badge">평지 위주</span>
           <span class="ch-route-badge">한강변 포장로</span>
         </div>
@@ -13162,12 +13451,12 @@ function renderChallenge() {
             <div class="ch-route-stat-value">40-60분</div>
           </div>
           <div class="ch-route-stat">
-            <div class="ch-route-stat-label">FACE</div>
-            <div class="ch-route-stat-value">8분이상</div>
+            <div class="ch-route-stat-label">Pace</div>
+            <div class="ch-route-stat-value">8분 이상</div>
           </div>
           <div class="ch-route-stat">
             <div class="ch-route-stat-label">Finish</div>
-            <div class="ch-route-stat-value">공원 입구 집결</div>
+            <div class="ch-route-stat-value">여의도공원</div>
           </div>
         </div>
         <div class="ch-route-detail${_chRouteExpanded ? ' show' : ''}" id="ch-route-detail">
@@ -13207,45 +13496,45 @@ function renderChallenge() {
                 </g>
               </g>
               <rect x="21" y="68" width="54" height="20" rx="10" fill="rgba(22,163,74,0.92)"></rect>
-              <text x="48" y="81" text-anchor="middle" font-size="9.2" fill="#ffffff" font-family="sans-serif" font-weight="800">FINISH</text>
+              <text x="48" y="81" text-anchor="middle" font-size="9.2" fill="#ffffff" font-family="sans-serif" font-weight="800">START</text>
               <rect x="188" y="78" width="80" height="24" rx="9" fill="#0284c7"></rect>
-              <text x="228" y="93" text-anchor="middle" font-size="10.5" fill="#ffffff" font-family="sans-serif" font-weight="700">여의도 한강공원</text>
+              <text x="228" y="93" text-anchor="middle" font-size="10.5" fill="#ffffff" font-family="sans-serif" font-weight="700">여의도공원</text>
               <rect x="233" y="96" width="54" height="20" rx="10" fill="rgba(2,132,199,0.92)"></rect>
-              <text x="260" y="109" text-anchor="middle" font-size="9.2" fill="#ffffff" font-family="sans-serif" font-weight="800">START</text>
+              <text x="260" y="109" text-anchor="middle" font-size="9.2" fill="#ffffff" font-family="sans-serif" font-weight="800">FINISH</text>
               </g>
               </g>
               </g>
             </svg>
             <div class="ch-route-meta">
-              <span class="ch-route-meta-chip">집결 pm 2:20</span>
-              <span class="ch-route-meta-chip">출발 pm 2:30</span>
-              <span class="ch-route-meta-chip">급수/포토 포인트 1회</span>
+              <span class="ch-route-meta-chip">선유도공원 집결</span>
+              <span class="ch-route-meta-chip">스트레칭 후 출발</span>
+              <span class="ch-route-meta-chip">사진 포인트 운영</span>
               <span class="ch-route-meta-chip">단체 페이스 기준 운영</span>
             </div>
           </div>
           <div class="ch-route-points">
             <div class="ch-route-point">
               <div class="ch-route-point-dist">0.0KM</div>
-              <div class="ch-route-point-title">여의도 유람선터미널 출발</div>
-              <div class="ch-route-point-desc">터미널 앞 집결 후 가벼운 스트레칭과 안내를 마치고 한강변 주로로 진입합니다.</div>
+              <div class="ch-route-point-title">선유도공원 출발</div>
+              <div class="ch-route-point-desc">출발 전 가벼운 스트레칭과 안내를 마친 뒤 한강변 주로로 진입합니다.</div>
             </div>
             <div class="ch-route-point">
-              <div class="ch-route-point-dist">1.0KM</div>
-              <div class="ch-route-point-title">서강대교 부근</div>
-              <div class="ch-route-point-desc">출발 후 서쪽으로 직선 주로를 따라 달리면 서강대교가 가까워지는 지점으로, 초반 리듬을 안정적으로 잡기 좋은 구간입니다.</div>
-            </div>
-            <div class="ch-route-point">
-              <div class="ch-route-point-dist">2.2KM</div>
+              <div class="ch-route-point-dist">2.1KM</div>
               <div class="ch-route-point-title">보행로 진입 구간</div>
-              <div class="ch-route-point-desc">여의도 서울 마리나를 지나 작은 다리 밑으로 내려가면 양화공원 쪽으로 이어지는 보행로가 나타나며, 흐름을 유지해 부드럽게 이어 달리기 좋습니다.</div>
+              <div class="ch-route-point-desc">작은 다리 밑을 지나 여의도 방향으로 이어지는 보행로 구간으로, 흐름을 유지해 부드럽게 이어 달리기 좋습니다.</div>
+            </div>
+            <div class="ch-route-point">
+              <div class="ch-route-point-dist">3.4KM</div>
+              <div class="ch-route-point-title">서강대교 부근</div>
+              <div class="ch-route-point-desc">직선 주로를 따라 달리면 서강대교가 가까워지는 지점으로, 리듬을 안정적으로 잡기 좋은 구간입니다.</div>
             </div>
             <div class="ch-route-point">
               <div class="ch-route-point-dist">4.3KM</div>
-              <div class="ch-route-point-title">선유도공원 입구 도착</div>
-              <div class="ch-route-point-desc">도착 후 재정비와 마무리 스트레칭을 진행하기 편한 최종 집결 지점입니다.</div>
+              <div class="ch-route-point-title">여의도공원 도착</div>
+              <div class="ch-route-point-desc">도착 후 재정비와 마무리 스트레칭을 진행한 뒤 다음 프로그램으로 이동합니다.</div>
             </div>
           </div>
-          <div class="ch-route-note">실제 운영 시간은 단체 출발, 포토타임, 보행 혼합 여부에 따라 달라질 수 있습니다. 노면은 대부분 평탄하지만 바람이 강할 수 있어 가벼운 겉옷을 챙기면 좋아요.</div>
+          <div class="ch-route-note">직선 주로가 많아 쾌적하지만 주로가 좁아지거나 자전거 주행과 겹치는 구간이 발생하여 주의가 필요합니다. 햇살이 강할수 있어 선캡이나 선글라스 착용을 추천합니다.</div>
         </div>
       </div>
     `;
@@ -13283,12 +13572,10 @@ function updateChSubmitState() {
   const dept = String(document.getElementById('ch-dept')?.value || '').trim();
   const phone = String(document.getElementById('ch-phone')?.value || '').trim();
   const shoe = String(document.getElementById('ch-shoe')?.value || '').trim();
-  const cruiseChoice = document.querySelector('input[name="ch-cruise"]:checked')?.value || '';
-  const eventChoice = document.querySelector('input[name="ch-event"]:checked')?.value || '';
   const consent = !!document.getElementById('ch-consent')?.checked;
   const shoePrefsReady = !!String(_chShoePrefs[0] || '').trim();
   const dup = hasDuplicateChallengeReg(empId);
-  const ready = !!(name && empId && phone && shoe && cruiseChoice && eventChoice && consent && shoePrefsReady && !dup);
+  const ready = !!(name && empId && phone && shoe && consent && shoePrefsReady && !dup);
   if (dup) queueChallengeDuplicateRefresh(empId);
 
   if (warnEl) warnEl.classList.toggle('show', !!empId && dup);
@@ -13296,7 +13583,7 @@ function updateChSubmitState() {
     submitBtn.disabled = !ready;
     submitBtn.classList.toggle('btn-inactive', !ready);
   }
-  return { ready, dup, cruiseChoice, eventChoice, shoePrefsReady };
+  return { ready, dup, shoePrefsReady };
 }
 
 async function submitChReg(e) {
@@ -13306,8 +13593,6 @@ async function submitChReg(e) {
   const dept  = document.getElementById('ch-dept').value;
   const phone = (document.getElementById('ch-phone').value || '').trim();
   const shoe  = document.getElementById('ch-shoe').value;
-  const cruiseVal = document.querySelector('input[name="ch-cruise"]:checked')?.value || '';
-  const eventVal = document.querySelector('input[name="ch-event"]:checked')?.value || '';
   const ok    = document.getElementById('ch-consent').checked;
 
   if (!name)  { showToast('⚠️ 이름을 입력해주세요'); return; }
@@ -13315,8 +13600,6 @@ async function submitChReg(e) {
   if (!phone) { showToast('⚠️ 연락처를 입력해주세요'); return; }
   if (!shoe)  { showToast('⚠️ 신발 사이즈를 선택해주세요'); return; }
   if (!_chShoePrefs[0]) { showToast('⚠️ 희망 러닝화 브랜드를 선택해주세요'); return; }
-  if (!cruiseVal) { showToast('⚠️ 크루즈 탑승 여부를 선택해주세요'); return; }
-  if (!eventVal) { showToast('⚠️ 행사 참여 여부를 선택해주세요'); return; }
   if (!ok) { showToast('⚠️ 개인정보 동의가 필요합니다'); return; }
 
   await syncMyChallengeRegistrationWithOptions({ pruneMissingRemote: true });
@@ -13332,8 +13615,8 @@ async function submitChReg(e) {
     familyAge: '',
     familyShoeSize: '',
     familyMemo: '',
-    cruiseParticipation: cruiseVal === 'yes',
-    eventParticipation: eventVal === 'yes',
+    cruiseParticipation: false,
+    eventParticipation: true,
   });
   const id = 'HC-' + String(Date.now()).slice(-6);
   const nextReg = {
@@ -13346,8 +13629,8 @@ async function submitChReg(e) {
     familyGender: '',
     familyAge: '',
     familyMemo: '',
-    cruiseParticipation: cruiseVal === 'yes',
-    eventParticipation: eventVal === 'yes',
+    cruiseParticipation: false,
+    eventParticipation: true,
     note: regNote, status:'pending', adminNote:'',
     registeredAt: new Date().toISOString(),
   };
@@ -14200,6 +14483,7 @@ async function init() {
       <div class="rt-stat"><div class="rt-stat-val" id="rt-pace">--'--"</div><div class="rt-stat-label">페이스 /km</div></div>
     </div>
     <div class="rt-gps" id="rt-gps">GPS 준비 중...</div>
+    <button type="button" class="rt-prev-map-btn" id="rt-prev-map-btn" onclick="openPreviousRunRouteMap()" style="display:none">이전 맵 보기</button>
   </div>
   <div class="rt-summary" id="rt-summary">
     <div class="rt-summary-title">🎉 달리기 완료!</div>
@@ -14241,7 +14525,10 @@ async function init() {
 
 <script>
   // ── Run Tracker ──
-  let _rt = { state:'idle', watchId:null, timer:null, elapsed:0, dist:0, lastPos:null, positions:[] };
+  function createRunTrackerState() {
+    return { state:'idle', watchId:null, timer:null, elapsedMs:0, startedAt:null, dist:0, lastPos:null, positions:[] };
+  }
+  let _rt = createRunTrackerState();
 
   function haversine(a, b) {
     const R = 6371000, r = Math.PI/180;
@@ -14255,17 +14542,30 @@ async function init() {
   }
   function fmtPace(distKm, secs) {
     if (distKm < 0.05 || secs < 10) return "--'--\"";
-    const secPerKm = secs / distKm;
-    const pm = Math.floor(secPerKm/60), ps = Math.round(secPerKm%60);
+    const secPerKm = Math.round(secs / distKm);
+    const pm = Math.floor(secPerKm/60), ps = secPerKm % 60;
     return `${pm}'${String(ps).padStart(2,'0')}"`;
   }
+  function rtGetElapsedSeconds() {
+    const activeMs = _rt.startedAt ? Math.max(0, Date.now() - _rt.startedAt) : 0;
+    return Math.max(0, Math.round((_rt.elapsedMs + activeMs) / 1000));
+  }
+  function rtFreezeElapsed() {
+    if (_rt.startedAt) {
+      _rt.elapsedMs += Math.max(0, Date.now() - _rt.startedAt);
+      _rt.startedAt = null;
+    }
+    return rtGetElapsedSeconds();
+  }
   function rtUpdateUI() {
+    const elapsed = rtGetElapsedSeconds();
     document.getElementById('rt-dist').textContent = (_rt.dist/1000).toFixed(2);
-    document.getElementById('rt-time').textContent = rtFmtTime(_rt.elapsed);
-    document.getElementById('rt-pace').textContent = fmtPace(_rt.dist/1000, _rt.elapsed);
+    document.getElementById('rt-time').textContent = rtFmtTime(elapsed);
+    document.getElementById('rt-pace').textContent = fmtPace(_rt.dist/1000, elapsed);
   }
   function openRunTracker() {
-    _rt = { state:'idle', watchId:null, timer:null, elapsed:0, dist:0, lastPos:null, positions:[] };
+    _rtStop(false);
+    _rt = createRunTrackerState();
     const ov = document.getElementById('run-tracker-overlay');
     ov.classList.add('show');
     document.getElementById('rt-main').style.display = '';
@@ -14280,6 +14580,7 @@ async function init() {
     if (routeMap) routeMap.innerHTML = '';
     document.getElementById('rt-route-card').style.display = 'none';
     document.getElementById('rt-route-empty').style.display = 'none';
+    updatePreviousRunMapButton();
     rtUpdateUI();
     if (!navigator.geolocation) {
       document.getElementById('rt-gps').textContent = 'GPS를 지원하지 않는 기기예요';
@@ -14312,12 +14613,15 @@ async function init() {
     el._t = setTimeout(() => { el.style.opacity = '0'; }, 1800);
   }
   function _rtStart() {
+    if (_rt.timer) { clearInterval(_rt.timer); _rt.timer = null; }
+    if (_rt.watchId !== null) { navigator.geolocation.clearWatch(_rt.watchId); _rt.watchId = null; }
     _rt.state = 'running';
-    _rtToast('달리기를 시작합니다 🏃');
+    _rt.startedAt = null;
+    _rtToast('GPS를 연결하는 중이에요');
     document.getElementById('rt-btn-main').className = 'rt-btn-main rt-btn-pause';
     document.getElementById('rt-btn-main').innerHTML = '<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="3" width="4" height="18" rx="1"/><rect x="15" y="3" width="4" height="18" rx="1"/></svg>';
     document.getElementById('rt-status').className = 'rt-status running';
-    document.getElementById('rt-status').textContent = '측정 중';
+    document.getElementById('rt-status').textContent = 'GPS 연결 중';
     // Show stop button
     let stopBtn = document.getElementById('rt-stop-btn');
     if (!stopBtn) {
@@ -14329,11 +14633,16 @@ async function init() {
       document.getElementById('rt-btns').prepend(stopBtn);
     }
     stopBtn.style.display = '';
-    _rt.timer = setInterval(() => { _rt.elapsed++; rtUpdateUI(); }, 1000);
+    _rt.timer = setInterval(() => { rtUpdateUI(); }, 1000);
     _rt.watchId = navigator.geolocation.watchPosition(
       p => {
         if (p.coords.accuracy > 40) return;
         const cur = { lat: p.coords.latitude, lon: p.coords.longitude };
+        if (!_rt.startedAt) {
+          _rt.startedAt = Date.now();
+          document.getElementById('rt-status').className = 'rt-status running';
+          document.getElementById('rt-status').textContent = '측정 중';
+        }
         if (_rt.lastPos) _rt.dist += haversine(_rt.lastPos, cur);
         _rt.lastPos = cur;
         _rt.positions.push(cur);
@@ -14346,6 +14655,7 @@ async function init() {
   }
   function _rtPause() {
     _rt.state = 'paused';
+    rtFreezeElapsed();
     clearInterval(_rt.timer); _rt.timer = null;
     if (_rt.watchId !== null) { navigator.geolocation.clearWatch(_rt.watchId); _rt.watchId = null; }
     _rt.lastPos = null;
@@ -14355,9 +14665,11 @@ async function init() {
     document.getElementById('rt-status').textContent = '일시정지';
   }
   function _rtStop(showSummary) {
+    const elapsed = rtFreezeElapsed();
     clearInterval(_rt.timer); _rt.timer = null;
     if (_rt.watchId !== null) { navigator.geolocation.clearWatch(_rt.watchId); _rt.watchId = null; }
     _rt.state = 'stopped';
+    _rt.lastPos = null;
     const stopBtn = document.getElementById('rt-stop-btn');
     if (stopBtn) stopBtn.style.display = 'none';
     if (!showSummary) return;
@@ -14366,8 +14678,8 @@ async function init() {
     document.getElementById('rt-status').className = 'rt-status';
     document.getElementById('rt-status').textContent = '완료';
     document.getElementById('rts-dist').textContent = (_rt.dist/1000).toFixed(2);
-    document.getElementById('rts-time').textContent = rtFmtTime(_rt.elapsed);
-    document.getElementById('rts-pace').textContent = fmtPace(_rt.dist/1000, _rt.elapsed);
+    document.getElementById('rts-time').textContent = rtFmtTime(elapsed);
+    document.getElementById('rts-pace').textContent = fmtPace(_rt.dist/1000, elapsed);
     document.getElementById('rt-summary').classList.add('show');
     renderCurrentRunRoutePreview();
     _rtConfetti();
@@ -14467,7 +14779,8 @@ async function init() {
   }
   function saveRunRecord() {
     const distKm = _rt.dist / 1000;
-    const mins = Math.max(1, Math.round(_rt.elapsed / 60));
+    const elapsed = rtGetElapsedSeconds();
+    const mins = Math.max(1, Math.round(elapsed / 60));
     const memoPrefix = `러닝 ${distKm.toFixed(2)}km`;
     const trackedRunToken = `run_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     _pendingTrackedRun = {
@@ -14494,7 +14807,7 @@ async function init() {
         const memo = document.getElementById('ex-memo');
         if (memo) {
           memo.dataset.trackedRunToken = trackedRunToken;
-          memo.value = `${memoPrefix} · ${rtFmtTime(_rt.elapsed)} · 페이스 ${fmtPace(distKm, _rt.elapsed)}`;
+          memo.value = `${memoPrefix} · ${rtFmtTime(elapsed)} · 페이스 ${fmtPace(distKm, elapsed)}`;
           memo.scrollIntoView({ behavior: 'smooth', block: 'center' });
           memo.focus();
         }
@@ -14535,13 +14848,23 @@ async function init() {
         body: JSON.stringify({ username: u, password: p })
       });
       const data = await res.json();
-      if (data.error) { err.textContent = data.error; err.style.display = ''; return; }
+      if (data.error) { err.textContent = data.error + (data.debug ? ' | ' + data.debug : ''); err.style.display = ''; return; }
+      if (data.debug) console.log('[dexcom debug]', data.debug);
       localStorage.setItem('dexcom_user', u);
       localStorage.setItem('dexcom_pass', btoa(p));
       closeDexcomSetup();
-      _dexRenderReading(data.readings[0]);
+      if (data.readings?.length) {
+        _dexRenderReading(data.readings[0]);
+        toast('덱스콤 G7 연동 완료! 5분마다 자동 갱신돼요 🩸');
+      } else {
+        document.getElementById('dexcom-live').style.display = '';
+        document.getElementById('dexcom-idle').style.display = 'none';
+        document.getElementById('dexcom-setup-btn').style.display = 'none';
+        document.getElementById('dexcom-val').textContent = '--';
+        document.getElementById('dexcom-time').textContent = 'G7 센서 데이터 없음' + (data.debug ? ' [' + data.debug + ']' : '');
+        toast('연동됐어요. G7 센서가 활성화되면 자동으로 불러와요.');
+      }
       _dexStartTimer();
-      toast('덱스콤 G7 연동 완료! 5분마다 자동 갱신돼요 🩸');
     } catch(e) {
       err.textContent = '연결 오류가 발생했어요. 다시 시도해주세요.'; err.style.display = '';
     } finally { btn.textContent = '연동하기'; btn.disabled = false; }
