@@ -2818,7 +2818,12 @@
     if (!raw) return '';
     const cleaned = raw.replace(/[?#].*$/, '');
     if (LIVE_AVATAR_SET.has(cleaned)) return cleaned;
-    const runMatch = cleaned.match(/images\/avatars\/run(\d+)\.png$/i);
+    const avatarMatch = cleaned.match(/(?:^|\/)images\/avatars\/av(\d+)\.png$/i) || cleaned.match(/(?:^|\/)av(\d+)\.png$/i);
+    if (avatarMatch) {
+      const mapped = `images/avatars/av${Math.max(1, Math.min(20, Number(avatarMatch[1]) || 1))}.png`;
+      return LIVE_AVATAR_SET.has(mapped) ? mapped : LIVE_AVATAR_FALLBACK;
+    }
+    const runMatch = cleaned.match(/(?:^|\/)images\/avatars\/run(\d+)\.png$/i) || cleaned.match(/(?:^|\/)run(\d+)\.png$/i);
     if (runMatch) {
       const mapped = `images/avatars/av${Math.max(1, Math.min(20, Number(runMatch[1]) || 1))}.png`;
       return LIVE_AVATAR_SET.has(mapped) ? mapped : LIVE_AVATAR_FALLBACK;
@@ -3356,9 +3361,10 @@
       const parentAvatar = normalizeLiveAvatar(window.parent?.S?.user?.avatar || '');
       if (parentAvatar) return parentAvatar;
     } catch (e) {}
+    if (currentLoginAvatar) return currentLoginAvatar;
     const storedAvatar = normalizeLiveAvatar(getLatestActiveRegistrationForCurrentEmp()?.avatar || '');
     if (storedAvatar) return storedAvatar;
-    return currentLoginAvatar || LIVE_AVATAR_FALLBACK;
+    return LIVE_AVATAR_FALLBACK;
   }
 
   function getRegistrationMatchScore(reg, identity = getCurrentRegIdentity(), currentName = getCurrentUserName()) {
@@ -3530,7 +3536,18 @@
   }
 
   function renderPeople(list) {
-    const rows = collapsePeopleRows(list);
+    const myIdentity = getCurrentRegIdentity();
+    const myEmpId = getCurrentEmpId();
+    const myDeviceId = getCurrentDeviceId();
+    const myAvatar = getMyAvatarSrc();
+    const rows = collapsePeopleRows(list).map(row => {
+      const rowEmpId = String(row?.empId || '').trim().toUpperCase();
+      const rowDeviceId = String(row?.deviceId || '').trim();
+      const isCurrentUserRow = isCurrentRegIdentityMatch(row, myIdentity)
+        || !!(myEmpId && rowEmpId && myEmpId === rowEmpId)
+        || !!(myDeviceId && rowDeviceId && myDeviceId === rowDeviceId);
+      return isCurrentUserRow && myAvatar ? { ...row, avatar: myAvatar } : row;
+    });
     latestPeopleList = rows.slice();
     const active = rows.filter(r => String(r?.status || '').toLowerCase() !== 'cancelled');
     const total = active.length;
@@ -3543,9 +3560,6 @@
     const stack = document.getElementById('av-stack');
     if (!stack) return;
     const recent = active.slice(0, 8).reverse();
-    const myEmpId = getCurrentEmpId();
-    const myIdentity = getCurrentRegIdentity();
-    const myAvatar = getMyAvatarSrc();
     const renderKey = JSON.stringify({
       total,
       recent: recent.map(r => {
