@@ -2977,10 +2977,10 @@
     const rows = Array.isArray(payload?.rows) ? payload.rows : [];
     if (!rows.length) return false;
     peopleLoadedAt = Date.now();
-    writeCachedPeopleRows(rows);
     const local = isGuestChallengeViewer() ? [] : JSON.parse(localStorage.getItem(CH_KEY) || '[]');
     const recoveryRows = mergePeopleRows(rows, getCurrentLocalRecoveryRows(local));
-    renderPeople(rows);
+    writeCachedPeopleRows(recoveryRows);
+    renderPeople(recoveryRows);
     if (!isGuestChallengeViewer()) {
       setTimeout(() => {
         tryRestoreCurrentRegistrationFromRows(recoveryRows, {
@@ -3602,28 +3602,38 @@
 
     // Supabase에서 실시간 데이터 fetch
     const loadPromise = (async () => {
-      try {
-        const peopleFetchUrl = SB_URL + '/rest/v1/registrations?select=id,deviceId,name,dept,empId,registeredAt,status&order=registeredAt.desc&_=' + Date.now();
+      const selectWithAvatar = 'id,deviceId,name,dept,empId,avatar,registeredAt,status';
+      const selectFallback = 'id,deviceId,name,dept,empId,registeredAt,status';
+      const fetchRows = async (selectClause) => {
         const res = await fetch(
-          peopleFetchUrl,
+          SB_URL + '/rest/v1/registrations?select=' + encodeURIComponent(selectClause) + '&order=registeredAt.desc&_=' + Date.now(),
           { cache: 'no-store', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } }
         );
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data)) {
-            clearTimeout(fallbackTimer);
-            const serverRows = data.slice();
-            const recoveryRows = mergePeopleRows(serverRows, getCurrentLocalRecoveryRows(local));
-            peopleLoadedAt = Date.now();
-            writeCachedPeopleRows(serverRows);
-            renderPeople(serverRows);
-            if (!isGuestChallengeViewer()) {
-              setTimeout(() => {
-                tryRestoreCurrentRegistrationFromRows(recoveryRows);
-              }, 0);
-            }
-            return serverRows;
+        if (res.ok) return { rows: await res.json(), missingAvatarColumn: false };
+        let errorPayload = null;
+        try { errorPayload = await res.json(); } catch (e) {}
+        return {
+          rows: null,
+          missingAvatarColumn: selectClause === selectWithAvatar && isRegistrationSchemaError(errorPayload),
+        };
+      };
+      try {
+        let result = await fetchRows(selectWithAvatar);
+        if (result.missingAvatarColumn) result = await fetchRows(selectFallback);
+        const data = result.rows;
+        if (Array.isArray(data)) {
+          clearTimeout(fallbackTimer);
+          const serverRows = data.slice();
+          const recoveryRows = mergePeopleRows(serverRows, getCurrentLocalRecoveryRows(local));
+          peopleLoadedAt = Date.now();
+          writeCachedPeopleRows(recoveryRows);
+          renderPeople(recoveryRows);
+          if (!isGuestChallengeViewer()) {
+            setTimeout(() => {
+              tryRestoreCurrentRegistrationFromRows(recoveryRows);
+            }, 0);
           }
+          return recoveryRows;
         }
       } catch(e) { /* 오프라인 시 로컬 데이터 유지 */ }
       clearTimeout(fallbackTimer);
