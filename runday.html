@@ -2432,7 +2432,7 @@
   }
 
   function normalizeStoredRegRow(reg = {}, fallbackEmpId = '') {
-    const normalizedEmpId = String(reg?.empId || fallbackEmpId || '').trim().toUpperCase();
+    const normalizedEmpId = String(reg?.empId ?? reg?.empid ?? fallbackEmpId ?? '').trim().toUpperCase();
     const normalizedId = String(reg?.id || '').trim();
     if (!normalizedId && !normalizedEmpId) return null;
     const normalizedAvatar = normalizeLiveAvatar(reg?.avatar || '');
@@ -2440,7 +2440,7 @@
       ...reg,
       id: normalizedId,
       empId: normalizedEmpId,
-      deviceId: String(reg?.deviceId || '').trim(),
+      deviceId: String(reg?.deviceId ?? reg?.deviceid ?? '').trim(),
       name: String(reg?.name || '').trim(),
       avatar: normalizedAvatar || '',
       dept: String(reg?.dept || '').trim(),
@@ -2465,7 +2465,7 @@
       note: String(reg?.note || '').trim(),
       adminNote: String(reg?.adminNote || '').trim(),
       status: String(reg?.status || 'pending').trim() || 'pending',
-      registeredAt: reg?.registeredAt || reg?.createdAt || new Date().toISOString(),
+      registeredAt: reg?.registeredAt ?? reg?.registeredat ?? reg?.createdAt ?? new Date().toISOString(),
     };
   }
 
@@ -2546,10 +2546,10 @@
         const filters = [];
         if (identity.regId) filters.push(`id.eq.${identity.regId}`);
         if (identity.empId) {
-          filters.push(`empId.eq.${identity.empId}`);
-          if (identity.empId.toLowerCase() !== identity.empId) filters.push(`empId.eq.${identity.empId.toLowerCase()}`);
+          filters.push(`empid.eq.${identity.empId}`);
+          if (identity.empId.toLowerCase() !== identity.empId) filters.push(`empid.eq.${identity.empId.toLowerCase()}`);
         }
-        if (identity.deviceId) filters.push(`deviceId.eq.${identity.deviceId}`);
+        if (identity.deviceId) filters.push(`deviceid.eq.${identity.deviceId}`);
         if (!filters.length) return false;
         const res = await fetch(
           SB_URL + '/rest/v1/registrations?select=*&or=(' + filters.join(',') + ')&_=' + Date.now(),
@@ -3329,10 +3329,10 @@
     const normalizedDeviceId = String(deviceId || '').trim();
     const filters = [];
     if (normalizedEmpId) {
-      filters.push(`empId.eq.${normalizedEmpId}`);
-      if (normalizedEmpId.toLowerCase() !== normalizedEmpId) filters.push(`empId.eq.${normalizedEmpId.toLowerCase()}`);
+      filters.push(`empid.eq.${normalizedEmpId}`);
+      if (normalizedEmpId.toLowerCase() !== normalizedEmpId) filters.push(`empid.eq.${normalizedEmpId.toLowerCase()}`);
     } else if (normalizedDeviceId) {
-      filters.push(`deviceId.eq.${normalizedDeviceId}`);
+      filters.push(`deviceid.eq.${normalizedDeviceId}`);
     }
     if (!filters.length) return;
     try {
@@ -3609,16 +3609,18 @@
 
     // Supabase에서 실시간 데이터 fetch
     const loadPromise = (async () => {
-      const selectWithAvatar = 'id,deviceId,name,dept,empId,avatar,registeredAt,status';
-      const selectFallback = 'id,deviceId,name,dept,empId,registeredAt,status';
+      const selectWithAvatar = 'id,deviceid,name,dept,empid,avatar,status';
+      const selectFallback = 'id,deviceid,name,dept,empid,status';
+      const normalizeRegRow = r => ({ ...r, empId: r.empId ?? r.empid ?? '', deviceId: r.deviceId ?? r.deviceid ?? '' });
       const fetchRows = async (selectClause) => {
         const res = await fetch(
-          SB_URL + '/rest/v1/registrations?select=' + encodeURIComponent(selectClause) + '&order=registeredAt.desc&_=' + Date.now(),
+          SB_URL + '/rest/v1/registrations?select=' + encodeURIComponent(selectClause) + '&order=id.desc&_=' + Date.now(),
           { cache: 'no-store', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } }
         );
-        if (res.ok) return { rows: await res.json(), missingAvatarColumn: false };
+        if (res.ok) return { rows: (await res.json()).map(normalizeRegRow), missingAvatarColumn: false };
         let errorPayload = null;
         try { errorPayload = await res.json(); } catch (e) {}
+        console.warn('[loadPeople fetchRows] 400 error:', errorPayload);
         return {
           rows: null,
           missingAvatarColumn: selectClause === selectWithAvatar && isRegistrationSchemaError(errorPayload),
