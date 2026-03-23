@@ -14146,11 +14146,13 @@ let _challengeDupRefreshInFlight = null;
 let _challengeDupRefreshKey = '';
 
 function buildChallengeRegistrationPayload(reg = {}) {
+  const avatar = normalizeAvatar(reg?.avatar || S.user.avatar);
   return {
     id: normChallengeId(reg?.id),
     deviceId: normChallengeId(reg?.deviceId || S.deviceId),
     empId: normChallengeEmpId(reg?.empId || S.user.empId || ACTIVE_EMPID),
     name: String(reg?.name || S.user.name || '').trim(),
+    avatar,
     dept: String(reg?.dept || S.user.dept || '').trim(),
     phone: String(reg?.phone || '').trim(),
     shoeSize: String(reg?.shoeSize || '').trim(),
@@ -14250,6 +14252,7 @@ function backupChallengeRegistrationLocally(reg = {}) {
     ...reg,
     empId: normChallengeEmpId(reg?.empId || S.user.empId || ACTIVE_EMPID),
     id: normChallengeId(reg?.id),
+    avatar: normalizeAvatar(reg?.avatar || S.user.avatar),
     savedAt: new Date().toISOString(),
   };
   getChallengeRegistrationStorageKeys(payload).forEach(key => {
@@ -14490,6 +14493,7 @@ function applyRundayRegistrationSync(payload = {}) {
       deviceId: reg?.deviceId || (idx >= 0 ? regs[idx]?.deviceId : '') || S.deviceId || '',
       empId: reg?.empId || (idx >= 0 ? regs[idx]?.empId : '') || currentEmpId || S.user.empId || ACTIVE_EMPID || '',
       name: reg?.name || (idx >= 0 ? regs[idx]?.name : '') || S.user.name || '',
+      avatar: normalizeAvatar(reg?.avatar || (idx >= 0 ? regs[idx]?.avatar : '') || S.user.avatar),
       dept: reg?.dept || (idx >= 0 ? regs[idx]?.dept : '') || S.user.dept || '',
       phone: reg?.phone || (idx >= 0 ? regs[idx]?.phone : '') || '',
       shoeSize: reg?.shoeSize || (idx >= 0 ? regs[idx]?.shoeSize : '') || '',

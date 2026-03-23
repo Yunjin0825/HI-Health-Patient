@@ -2435,12 +2435,14 @@
     const normalizedEmpId = String(reg?.empId || fallbackEmpId || '').trim().toUpperCase();
     const normalizedId = String(reg?.id || '').trim();
     if (!normalizedId && !normalizedEmpId) return null;
+    const normalizedAvatar = normalizeLiveAvatar(reg?.avatar || '');
     return {
       ...reg,
       id: normalizedId,
       empId: normalizedEmpId,
       deviceId: String(reg?.deviceId || '').trim(),
       name: String(reg?.name || '').trim(),
+      avatar: normalizedAvatar || '',
       dept: String(reg?.dept || '').trim(),
       phone: String(reg?.phone || '').trim(),
       shoeSize: String(reg?.shoeSize || '').trim(),
@@ -3219,11 +3221,13 @@
   }
 
   function buildRegistrationPayload(reg, overrides = {}) {
+    const avatar = normalizeLiveAvatar(reg?.avatar || getMyAvatarSrc() || '');
     return {
       id: reg?.id || '',
       deviceId: reg?.deviceId || getCurrentDeviceId() || '',
       empId: reg?.empId || getCurrentEmpId() || '',
       name: reg?.name || '',
+      avatar: avatar || LIVE_AVATAR_FALLBACK,
       dept: reg?.dept || '',
       phone: reg?.phone || '',
       shoeSize: reg?.shoeSize || '',
@@ -3345,6 +3349,8 @@
       const parentAvatar = normalizeLiveAvatar(window.parent?.S?.user?.avatar || '');
       if (parentAvatar) return parentAvatar;
     } catch (e) {}
+    const storedAvatar = normalizeLiveAvatar(getLatestActiveRegistrationForCurrentEmp()?.avatar || '');
+    if (storedAvatar) return storedAvatar;
     return currentLoginAvatar || LIVE_AVATAR_FALLBACK;
   }
 
@@ -3531,12 +3537,13 @@
     if (!stack) return;
     const recent = active.slice(0, 8).reverse();
     const myEmpId = getCurrentEmpId();
+    const myIdentity = getCurrentRegIdentity();
     const myAvatar = getMyAvatarSrc();
     const renderKey = JSON.stringify({
       total,
       recent: recent.map(r => {
         const rowEmpId = String(r.empId || '').trim().toUpperCase();
-        const isMe = !!(myEmpId && rowEmpId && myEmpId === rowEmpId);
+        const isMe = isCurrentRegIdentityMatch(r, myIdentity) || !!(myEmpId && rowEmpId && myEmpId === rowEmpId);
         return {
           key: peopleIdentityKey(r) || String(r?.name || '').trim(),
           isMe,
@@ -3549,7 +3556,7 @@
     if (renderKey === lastPeopleRenderKey) return;
     let stackHTML = recent.map(r => {
       const rowEmpId = String(r.empId || '').trim().toUpperCase();
-      const isMe = !!(myEmpId && rowEmpId && myEmpId === rowEmpId);
+      const isMe = isCurrentRegIdentityMatch(r, myIdentity) || !!(myEmpId && rowEmpId && myEmpId === rowEmpId);
       const avatarSrc = isMe && myAvatar ? myAvatar : (normalizeLiveAvatar(r.avatar) || `images/avatars/av${avIdx(r.empId || r.name || r.id || '')}.png`);
       const isNew = !!(r.registeredAt && (Date.now() - new Date(r.registeredAt).getTime()) <= NEW_PEOPLE_WINDOW_MS);
       return `<div class="av${isMe ? ' me' : ''}">${isNew ? '<span class="av-new">NEW</span>' : ''}<img src="${avatarSrc}" alt="${isMe ? '내 아바타' : ''}" onerror="if(this.dataset.err)return;this.dataset.err=1;this.src='${LIVE_AVATAR_FALLBACK}'"></div>`;
