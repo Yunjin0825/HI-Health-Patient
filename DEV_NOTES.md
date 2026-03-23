@@ -15,6 +15,18 @@
 **관련 파일**: 파일명:라인
 -->
 
+### [2026-03-23] runday 참여자 목록 0건 표시 (400 Bad Request)
+**증상**: user-admin에서 5건 확인되는데 runday에서 참여자 목록이 빈 화면
+**원인**: `fetchChallengePeopleRows`에서 `select=...,registeredAt,...&order=registeredAt.desc` 쿼리 시 400 반환. DB 실제 컬럼명이 `registeredAt`(camelCase)이 아님. avatar 컬럼 없을 때 재시도 로직이 있지만 재시도에도 `registeredAt`이 남아있어 또 400 → 결국 rows = null
+**해결**: `registrations` 테이블의 컬럼명이 camelCase가 아닌 소문자(`empid`, `deviceid`, `registeredat`)임을 확인. select/order/filter 전체를 소문자로 수정, 데이터 수신 후 camelCase로 정규화. `normalizeStoredRegRow`도 소문자 폴백 추가
+**관련 파일**: `index.html:13606-13610`, `runday.html:3612-3616`, `runday.html:2434(normalizeStoredRegRow)`
+
+### [2026-03-23] CHALLENGE_CONFIG 무한 루프 (Maximum call stack size exceeded)
+**증상**: 챌린지 탭 진입 시 콘솔에 Maximum call stack size exceeded 폭발
+**원인**: 인라인 모드에서 `postToRunday`가 `window.dispatchEvent(MessageEvent)`로 메시지를 보내면, `runday.html` 리스너 외에 `index.html`의 message 리스너도 `CHALLENGE_CONFIG`를 수신 → `handleChallengeConfigSyncPayload` 재진입 → 무한루프
+**해결**: `index.html`의 `window.addEventListener('message', ...)` 에서 `CHALLENGE_CONFIG` 처리 라인 제거. runday.html은 CHALLENGE_CONFIG를 부모에게 보내지 않으므로 cross-tab 동기화(storage 이벤트)에 영향 없음
+**관련 파일**: `index.html:16855`
+
 ### [2026-03-20] workout 삭제 시 string id 비교 오류
 **증상**: 특정 운동 기록이 삭제되지 않음
 **원인**: `workouts.id`가 문자열인데 `===` 엄격 비교로 숫자와 매칭 실패
@@ -34,7 +46,19 @@
 **관련 파일**: 파일명
 -->
 
-_등록된 작업 없음_
+### #1 🔵 진행중 [2026-03-23] runday 참여자 목록 표시 버그 수정
+**목표**: user-admin에서 5건 확인되는 챌린지 신청이 runday 화면에도 정상 표시되게 하기
+**현재 상태**:
+- `CHALLENGE_CONFIG` 무한루프 수정 완료 (index.html 메시지 리스너)
+- SELECT/filter 컬럼명 소문자 수정 완료 (`empid`, `deviceid`)
+- `normalizeStoredRegRow` 소문자 폴백 추가 완료
+- **아직 실제 브라우저에서 목록 표시 여부 미확인** — 오늘 세션 종료 전 테스트 못함
+**다음 단계**:
+1. 브라우저에서 챌린지 탭 진입 → 콘솔에 400 에러 사라졌는지 확인
+2. 참여자 아바타/카운트가 정상 표시되는지 확인
+3. 만약 아직 400이면 콘솔에 `[fetchChallengePeopleRows] 400 error:` 로그 내용 확인 → 남은 문제 컬럼 파악
+4. Supabase 대시보드에서 `registrations` 테이블 컬럼명 직접 확인 권장 (다른 camelCase 컬럼 있을 수 있음)
+**관련 파일**: `index.html`, `runday.html`
 
 ---
 
@@ -49,6 +73,7 @@ _등록된 작업 없음_
 - `workouts.id`는 항상 문자열로 취급 (`String(id)` 변환 후 비교)
 - Supabase 조회 시 `push_subscriptions` 알림 필터: `enabled = true OR permission = 'granted'`
 - 챌린지 인원 수는 클라이언트 캐시 무시, 서버 응답을 권위적 소스로 사용
+- `registrations` 테이블 컬럼명은 소문자(`empid`, `deviceid`, `registeredat`). JS에서 camelCase로 정규화해서 사용. 필터/select 쿼리 문자열에도 소문자로 작성할 것
 
 ### 백엔드 선택 기준
 - 신규 기능: Supabase 우선

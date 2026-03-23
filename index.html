@@ -7499,7 +7499,7 @@ async function hydrateAccountFromRemote(empId, fallbackName = '') {
   try {
     const { data: rows, error } = await _db.from('users')
       .select('*')
-      .or(`empId.eq.${normalizedEmpId},empId.eq.${normalizedEmpId.toLowerCase()}`)
+      .or(`empid.eq.${normalizedEmpId},empid.eq.${normalizedEmpId.toLowerCase()}`)
       .limit(1);
     if (error) throw error;
 
@@ -11828,20 +11828,20 @@ async function deleteMyDeviceAndServerData() {
     const userFilters = [];
     const regFilters = [];
     [...deviceIds].forEach(deviceId => {
-      userFilters.push(`deviceId.eq.${deviceId}`);
-      regFilters.push(`deviceId.eq.${deviceId}`);
+      userFilters.push(`deviceid.eq.${deviceId}`);
+      regFilters.push(`deviceid.eq.${deviceId}`);
     });
     [...registrationIds].forEach(registrationId => {
       userFilters.push(`registrationId.eq.${registrationId}`);
       regFilters.push(`id.eq.${registrationId}`);
     });
     empIds.forEach(empId => {
-      userFilters.push(`empId.eq.${empId}`);
-      regFilters.push(`empId.eq.${empId}`);
+      userFilters.push(`empid.eq.${empId}`);
+      regFilters.push(`empid.eq.${empId}`);
     });
     lowerEmpIds.forEach(empId => {
-      userFilters.push(`empId.eq.${empId}`);
-      regFilters.push(`empId.eq.${empId}`);
+      userFilters.push(`empid.eq.${empId}`);
+      regFilters.push(`empid.eq.${empId}`);
     });
 
     const [relatedUsersRes, relatedRegsRes] = await Promise.all([
@@ -11903,8 +11903,8 @@ async function deleteMyDeviceAndServerData() {
     if (empIds.length || lowerEmpIds.length) {
       await runDeleteByIds('user_client_settings(emp_id)', ACCOUNT_SETTINGS_TABLE, 'emp_id', [...empIds, ...lowerEmpIds]);
       const empDeleteFilters = [...new Set([
-        ...empIds.map(empId => `empId.eq.${empId}`),
-        ...lowerEmpIds.map(empId => `empId.eq.${empId}`),
+        ...empIds.map(empId => `empid.eq.${empId}`),
+        ...lowerEmpIds.map(empId => `empid.eq.${empId}`),
       ])];
       if (empDeleteFilters.length) {
         await runDelete('users(empId)', () => _db.from('users').delete().or(empDeleteFilters.join(',')));
@@ -13603,11 +13603,12 @@ let _challengePeopleSyncPromise = null;
 async function fetchChallengePeopleRows(options = {}) {
   if (_challengePeopleSyncPromise) return _challengePeopleSyncPromise;
   const run = async () => {
-    const selectWithAvatar = 'id,deviceId,name,dept,empId,avatar,registeredAt,status';
-    const selectFallback = 'id,deviceId,name,dept,empId,registeredAt,status';
+    const selectWithAvatar = 'id,deviceid,name,dept,empid,avatar,status';
+    const selectFallback = 'id,deviceid,name,dept,empid,status';
+    const normalizeRegRow = r => ({ ...r, empId: r.empId ?? r.empid ?? '', deviceId: r.deviceId ?? r.deviceid ?? '' });
     const fetchRows = async (selectClause) => {
       const res = await fetch(
-        SUPABASE_URL + '/rest/v1/registrations?select=' + encodeURIComponent(selectClause) + '&order=registeredAt.desc&_=' + Date.now(),
+        SUPABASE_URL + '/rest/v1/registrations?select=' + encodeURIComponent(selectClause) + '&order=id.desc&_=' + Date.now(),
         {
           cache: 'no-store',
           headers: {
@@ -13616,9 +13617,10 @@ async function fetchChallengePeopleRows(options = {}) {
           },
         }
       );
-      if (res.ok) return { rows: await res.json(), missingAvatarColumn: false };
+      if (res.ok) return { rows: (await res.json()).map(normalizeRegRow), missingAvatarColumn: false };
       let errorPayload = null;
       try { errorPayload = await res.json(); } catch (e) {}
+      console.warn('[fetchChallengePeopleRows] 400 error:', errorPayload);
       return {
         rows: null,
         missingAvatarColumn: selectClause === selectWithAvatar && isChallengeRegistrationSchemaError(errorPayload),
@@ -14283,10 +14285,10 @@ async function syncMyChallengeRegistrationWithOptions(opts = {}) {
   const filters = [];
   if (regId) filters.push(`id.eq.${regId}`);
   if (empId) {
-    filters.push(`empId.eq.${empId}`);
-    filters.push(`empId.eq.${empId.toLowerCase()}`);
+    filters.push(`empid.eq.${empId}`);
+    filters.push(`empid.eq.${empId.toLowerCase()}`);
   }
-  if (!filters.length && useDeviceFallback && deviceId) filters.push(`deviceId.eq.${deviceId}`);
+  if (!filters.length && useDeviceFallback && deviceId) filters.push(`deviceid.eq.${deviceId}`);
   if (!filters.length) return getMyReg();
 
   try {
@@ -14405,10 +14407,10 @@ function syncRemoteChallengeRegistrationRef(registrationId = '', empId = S.user.
   const normalizedEmpId = normChallengeEmpId(empId);
   const normalizedDeviceId = normChallengeId(deviceId);
   if (normalizedEmpId) {
-    filters.push(`empId.eq.${normalizedEmpId}`);
-    if (normalizedEmpId.toLowerCase() !== normalizedEmpId) filters.push(`empId.eq.${normalizedEmpId.toLowerCase()}`);
+    filters.push(`empid.eq.${normalizedEmpId}`);
+    if (normalizedEmpId.toLowerCase() !== normalizedEmpId) filters.push(`empid.eq.${normalizedEmpId.toLowerCase()}`);
   } else if (normalizedDeviceId) {
-    filters.push(`deviceId.eq.${normalizedDeviceId}`);
+    filters.push(`deviceid.eq.${normalizedDeviceId}`);
   }
   if (!filters.length) return;
   _db.from('users').update({
@@ -15855,7 +15857,7 @@ async function doAppLogin() {
   if (_db) {
     const { data: existing } = await _db.from('users')
       .select('name')
-      .or(`empId.eq.${regId},empId.eq.${regId.toLowerCase()}`)
+      .or(`empid.eq.${regId},empid.eq.${regId.toLowerCase()}`)
       .limit(1)
       .maybeSingle();
     if (existing && existing.name) {
@@ -16852,7 +16854,8 @@ async function init() {
     if (e.data?.type === 'SHOW_COURSE_DETAIL') openRunCourseDetail(e.data.html);
     if (e.data?.type === 'CLOSE_COURSE_DETAIL') closeRunCourseDetail();
     if (e.data?.type === 'RUNDAY_REGISTRATION_SYNC') applyRundayRegistrationSync(e.data);
-    if (e.data?.type === 'CHALLENGE_CONFIG') handleChallengeConfigSyncPayload(e.data);
+    // CHALLENGE_CONFIG는 부모→runday 방향 전용. runday.html은 이 메시지를 부모에 보내지 않으며,
+    // 인라인 모드에서 postToRunday가 window에 dispatch 시 자기 자신이 수신해 무한루프가 생기므로 제거.
     if (e.data?.type === 'RUNDAY_IMAGE_PREVIEW_OPEN') setChallengePreviewHeader(true);
     if (e.data?.type === 'RUNDAY_IMAGE_PREVIEW_CLOSE') setChallengePreviewHeader(false);
   });
