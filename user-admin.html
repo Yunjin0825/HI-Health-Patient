@@ -26,7 +26,7 @@
     /* ── LOGIN ── */
     .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1e1b4b,#4338ca);padding:20px;}
     .login-card{background:#fff;border-radius:20px;padding:44px 36px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.25);text-align:center;}
-    .login-logo{height:52px;margin-bottom:18px;}
+    .login-logo{height:76px;margin-bottom:20px;}
     .login-title{font-size:20px;font-weight:700;margin-bottom:4px;}
     .login-sub{font-size:12px;color:var(--t3);margin-bottom:28px;}
     .login-inp{width:100%;padding:13px 16px;border:1.5px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:15px;outline:none;text-align:center;letter-spacing:6px;margin-bottom:12px;transition:border-color .2s;}
@@ -231,10 +231,10 @@
 <!-- ── LOGIN ── -->
 <div class="login-wrap" id="login-screen">
   <div class="login-card">
-    <img src="images/Hi_health_home.png" class="login-logo" alt="HI Health">
+    <img src="images/4x/run_day_bla.png" class="login-logo" alt="RUN DAY">
     <div class="login-title">관리자 페이지</div>
-    <div class="login-sub">관리자 비밀번호 또는 사번으로 로그인</div>
-    <input type="password" id="pw-input" class="login-inp" placeholder="관리자 비밀번호 또는 사번 입력"
+    <div class="login-sub">비밀번호 입력</div>
+    <input type="password" id="pw-input" class="login-inp" placeholder="비밀번호 입력"
       onkeydown="if(event.key==='Enter')doLogin()" autocomplete="current-password" autocapitalize="off">
     <button class="login-btn" onclick="doLogin()">로그인</button>
     <div class="login-err" id="login-err"></div>
@@ -277,6 +277,7 @@
       <button class="tab-btn" onclick="switchTab('rewards',this)">🎁 보상</button>
       <button class="tab-btn" onclick="switchTab('content',this)">📝 콘텐츠 작성</button>
       <button class="tab-btn" onclick="switchTab('settings',this)">⚙️ 설정</button>
+      <button class="tab-btn" onclick="switchTab('famcert',this)">📸 가족인증</button>
     </div>
 
     <!-- ── PANEL: USERS ── -->
@@ -512,7 +513,7 @@
         <div class="ch-s-pill"><div class="ch-s-val" id="ch-event">-</div><div class="ch-s-lbl">행사참여</div></div>
       </div>
       <div class="ctrl-bar">
-        <input class="ctrl-inp" id="ch-search" placeholder="신청번호·이름·계정 ID·티셔츠·혈당체크기기·희망브랜드 검색" oninput="renderChallenge()">
+        <input class="ctrl-inp" id="ch-search" placeholder="신청번호·이름·계정 ID·티셔츠·혈당체크기기·운동화모델 검색" oninput="renderChallenge()">
         <select class="ctrl-sel" id="ch-sfilter" onchange="renderChallenge()">
           <option value="">전체 상태</option>
           <option value="pending">대기</option>
@@ -532,7 +533,7 @@
               <th>본인신발</th>
               <th>티셔츠</th>
               <th>혈당체크기기</th>
-              <th>희망브랜드</th>
+              <th>운동화모델</th>
               <th>가족 정보</th>
               <th>참여 옵션</th>
               <th>요청사항</th>
@@ -747,6 +748,56 @@
           <span id="admin-shop-label2" style="font-size:13px;font-weight:600;color:var(--t3)">로딩중...</span>
         </div>
       </div>
+      <!-- 챌린지 보상 모드 ON/OFF -->
+      <div class="shop-config-bar">
+        <div>
+          <div class="shop-config-title">🏆 챌린지 보상 모드</div>
+          <div id="challenge-reward-status" style="font-size:11px;color:var(--t3);margin-top:2px"></div>
+        </div>
+        <div class="shop-toggle-wrap">
+          <input type="checkbox" id="admin-challenge-reward-toggle" style="display:none" onchange="applyChallengeRewardToggle()">
+          <div class="shop-toggle-track" id="admin-challenge-reward-track" onclick="document.getElementById('admin-challenge-reward-toggle').click()">
+            <div class="shop-toggle-thumb" id="admin-challenge-reward-thumb"></div>
+          </div>
+          <span id="admin-challenge-reward-label" style="font-size:13px;font-weight:600;color:var(--t3)">로딩중...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PANEL: FAMILY CERT ── -->
+    <div class="panel" id="panel-famcert">
+      <div class="ch-status-bar">
+        <div class="ch-s-pill"><div class="ch-s-val" id="fc-total">-</div><div class="ch-s-lbl">전체</div></div>
+        <div class="ch-s-pill"><div class="ch-s-val" id="fc-pend">-</div><div class="ch-s-lbl">대기</div></div>
+        <div class="ch-s-pill"><div class="ch-s-val" id="fc-ok">-</div><div class="ch-s-lbl">승인</div></div>
+        <div class="ch-s-pill"><div class="ch-s-val" id="fc-rej">-</div><div class="ch-s-lbl">반려</div></div>
+      </div>
+      <div class="ctrl-bar">
+        <input class="ctrl-inp" id="fc-search" placeholder="이름·사번 검색" oninput="renderFamCert()">
+        <select class="ctrl-sel" id="fc-sfilter" onchange="renderFamCert()">
+          <option value="">전체 상태</option>
+          <option value="pending">대기</option>
+          <option value="approved">승인</option>
+          <option value="rejected">반려</option>
+        </select>
+        <span class="ctrl-count" id="fc-count">0건</span>
+      </div>
+      <div class="tbl-wrap">
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr>
+              <th>제출일</th>
+              <th>이름</th>
+              <th>사번</th>
+              <th>메모</th>
+              <th>미디어</th>
+              <th>상태</th>
+              <th>관리</th>
+            </tr></thead>
+            <tbody id="fc-tbody"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div><!-- /adm-body -->
 </div><!-- /admin -->
@@ -824,7 +875,7 @@
 const SUPABASE_URL = 'https://nbnmvvobehjitophkqmu.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ibm12dm9iZWhqaXRvcGhrcW11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3Nzk4NzQsImV4cCI6MjA4ODM1NTg3NH0.iZS4JvhHUqv4ZMPxm9STit6xqVp2JA5H55M8Wmd1yjY';
 const CH_REG_KEY = 'hi_health_registrations_v2';
-const CHALLENGE_DONATION_PER_PERSON = 3000;
+const CHALLENGE_DONATION_PER_PERSON = 43000;
 const SEND_PUSH_FN = SUPABASE_URL + '/functions/v1/send-push';
 
 const EX_MAP = {
@@ -840,6 +891,7 @@ const EX_ICON = {
   badminton:'🏸', custom:'✏️'
 };
 const CH_SHOE_LABELS = {
+  'nb-860-v15':'New Balance 860 v15',
   nike:'Nike',
   nb:'New Balance',
   nike1:'Nike Vomero Plus (화이트)',
@@ -861,7 +913,7 @@ function getRegShoePrefText(r) {
     .filter(Boolean);
   if (localText.length) return localText.join(' / ');
   const note = String(r?.note || '').trim();
-  const match = note.match(/희망(?:모델|브랜드):\s*(.+)$/m);
+  const match = note.match(/(?:운동화모델|희망(?:모델|브랜드)):\s*(.+)$/m);
   if (!match) return '';
   return match[1]
     .split('|')
@@ -1101,7 +1153,7 @@ function doLogin() {
   } else {
     inp.classList.add('err');
     inp.value = '';
-    err.textContent = raw ? '관리자 비밀번호 또는 사번이 올바르지 않습니다' : '관리자 비밀번호 또는 사번을 입력해주세요';
+    err.textContent = raw ? '비밀번호가 올바르지 않습니다' : '비밀번호를 입력해주세요';
     setTimeout(() => { inp.classList.remove('err'); err.textContent = ''; }, 2500);
   }
 }
@@ -2730,7 +2782,7 @@ function showChDetail(id) {
     ['신발(본인)', getRegDisplayText(r, withMm(r.shoeSize) || withMm(getRegNoteLine(r, '신발사이즈')))],
     ['티셔츠', tshirtText],
     ['혈당체크기기', cgmText],
-    ['희망브랜드', shoePrefText],
+    ['운동화모델', shoePrefText],
     ['운동화요청', shoeRequestText],
     ['가족참여', familyParticipation === true ? '가족함께 참여' : familyParticipation === false ? '본인만' : getRegChoiceText(familyParticipation, '가족함께 참여', '본인만', r)],
     ['가족정보', familySummary],
@@ -2872,7 +2924,7 @@ async function deleteChallengeRegistration(id) {
 }
 
 function exportChallengeCsv() {
-  const rows = [['신청번호','이름','계정 ID','부서','연락처','본인신발','티셔츠','혈당체크기기','희망브랜드','운동화요청','가족참여','가족정보','가족메모','크루즈','행사','상태','신청일']];
+  const rows = [['신청번호','이름','계정 ID','부서','연락처','본인신발','티셔츠','혈당체크기기','운동화모델','운동화요청','가족참여','가족정보','가족메모','크루즈','행사','상태','신청일']];
   getEffectiveChallengeRegistrations().forEach(r => rows.push([
     r.id, r.name, r.empId, r.dept, r.phone,
     getRegDisplayText(r, withMm(r.shoeSize) || withMm(getRegNoteLine(r, '신발사이즈')), ''),
@@ -3457,6 +3509,84 @@ function switchTab(name, btn) {
   if (name === 'rewards') renderRewards();
   if (name === 'orders') loadShopConfig();
   if (name === 'settings') loadSettingsTab();
+  if (name === 'famcert') loadFamCerts();
+}
+
+/* ══════════════════════════════════════════════
+   FAMILY CERTIFICATION
+══════════════════════════════════════════════ */
+let GD_famcert = [];
+
+async function loadFamCerts() {
+  const { data, error } = await db
+    .from('family_certifications')
+    .select('*')
+    .order('submitted_at', { ascending: false });
+  if (error) { toast('가족인증 로드 실패: ' + error.message); return; }
+  GD_famcert = data || [];
+  renderFamCert();
+}
+
+function renderFamCert() {
+  const search = (document.getElementById('fc-search')?.value || '').toLowerCase();
+  const sfilter = document.getElementById('fc-sfilter')?.value || '';
+  const rows = GD_famcert.filter(r => {
+    if (sfilter && r.status !== sfilter) return false;
+    if (search) {
+      const hay = ((r.name || '') + ' ' + (r.emp_id || '')).toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+  document.getElementById('fc-total').textContent = GD_famcert.length;
+  document.getElementById('fc-pend').textContent = GD_famcert.filter(r => r.status === 'pending').length;
+  document.getElementById('fc-ok').textContent = GD_famcert.filter(r => r.status === 'approved').length;
+  document.getElementById('fc-rej').textContent = GD_famcert.filter(r => r.status === 'rejected').length;
+  document.getElementById('fc-count').textContent = rows.length + '건';
+  const tbody = document.getElementById('fc-tbody');
+  if (!tbody) return;
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--t3);padding:32px">제출된 인증이 없습니다.</td></tr>';
+    return;
+  }
+  const statusLabel = { pending: '대기', approved: '승인', rejected: '반려' };
+  const statusColor = { pending: 'amb', approved: 'grn', rejected: 'dan' };
+  tbody.innerHTML = rows.map(r => {
+    const dt = r.submitted_at ? new Date(r.submitted_at).toLocaleString('ko') : '-';
+    const mediaIcon = r.media_type === 'video' ? '🎬' : '🖼️';
+    const mediaLink = r.media_url
+      ? `<a href="${escHtml(r.media_url)}" target="_blank" style="color:var(--p);text-decoration:underline">${mediaIcon} 보기</a>`
+      : '-';
+    const st = r.status || 'pending';
+    return `<tr>
+      <td style="white-space:nowrap;font-size:12px">${escHtml(dt)}</td>
+      <td style="font-weight:700">${escHtml(r.name || '-')}</td>
+      <td style="font-size:12px;color:var(--t3)">${escHtml(r.emp_id || '-')}</td>
+      <td style="font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(r.memo || '')}</td>
+      <td>${mediaLink}</td>
+      <td><span class="cbtn ${statusColor[st]}" style="pointer-events:none;font-size:11px;padding:4px 10px">${statusLabel[st] || st}</span></td>
+      <td>
+        <div style="display:flex;gap:4px">
+          ${st !== 'approved' ? `<button class="cbtn grn" onclick="reviewFamCert('${escHtml(r.id)}','approved')">승인</button>` : ''}
+          ${st !== 'rejected' ? `<button class="cbtn dan" onclick="reviewFamCert('${escHtml(r.id)}','rejected')">반려</button>` : ''}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function reviewFamCert(id, status) {
+  const label = status === 'approved' ? '승인' : '반려';
+  if (!confirm(`이 인증을 ${label} 처리할까요?`)) return;
+  const { error } = await db
+    .from('family_certifications')
+    .update({ status, reviewed_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) { toast('처리 실패: ' + error.message); return; }
+  const row = GD_famcert.find(r => r.id === id);
+  if (row) row.status = status;
+  renderFamCert();
+  toast(`인증 ${label} 완료 ✓`);
 }
 
 /* ── 구매 기능 설정 ── */
@@ -3609,6 +3739,14 @@ async function loadSettingsTab() {
     const status = document.getElementById('shop-config-status2');
     if (status) status.textContent = formatAppConfigError(e);
   }
+  try {
+    const { data, error } = await db.from('app_config').select('key,value').eq('key','challenge_reward_mode').maybeSingle();
+    if (error) throw error;
+    renderChallengeRewardUI(data?.value === 'true');
+  } catch(e) {
+    const status = document.getElementById('challenge-reward-status');
+    if (status) status.textContent = formatAppConfigError(e);
+  }
 }
 
 async function saveChDeadline() {
@@ -3652,6 +3790,35 @@ async function applyShopPurchaseToggle2() {
     const t = document.getElementById('admin-shop-toggle');
     if (t) { t.checked = enabled; renderShopConfigUI(enabled); }
     toast(enabled ? '✅ 구매 기능 활성화' : '🔒 구매 기능 비활성화');
+  } catch(e) {
+    toast('저장 실패: ' + formatAppConfigError(e));
+  }
+}
+
+function renderChallengeRewardUI(enabled) {
+  const track  = document.getElementById('admin-challenge-reward-track');
+  const thumb  = document.getElementById('admin-challenge-reward-thumb');
+  const toggle = document.getElementById('admin-challenge-reward-toggle');
+  const label  = document.getElementById('admin-challenge-reward-label');
+  const status = document.getElementById('challenge-reward-status');
+  if (!track) return;
+  if (toggle) toggle.checked = enabled;
+  track.classList.toggle('on', enabled);
+  thumb?.classList.toggle('on', enabled);
+  if (label) label.textContent = enabled ? '운영 중' : '비활성화';
+  if (status) status.textContent = enabled
+    ? '🟢 챌린지 기간 — 포인트 달성 시 차감 없이 신청 가능 (직원 전용)'
+    : '🔴 일반 모드 — 포인트 차감 방식으로 운영됩니다';
+}
+
+async function applyChallengeRewardToggle() {
+  const enabled = document.getElementById('admin-challenge-reward-toggle').checked;
+  renderChallengeRewardUI(enabled);
+  if (!db) return;
+  try {
+    const { error } = await saveAdminAppConfigValue('challenge_reward_mode', String(enabled));
+    if (error) throw error;
+    toast(enabled ? '✅ 챌린지 보상 모드 활성화' : '🔒 챌린지 보상 모드 비활성화');
   } catch(e) {
     toast('저장 실패: ' + formatAppConfigError(e));
   }
