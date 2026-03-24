@@ -173,29 +173,16 @@
     .pg-info{font-size:11px;color:var(--t3);margin-left:8px;}
 
     /* ── USER DETAIL PANEL ── */
-    .detail-panel{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:20px;margin-bottom:20px;}
-    .dp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border);}
-    .dp-user-summary{display:flex;align-items:center;gap:12px;}
-    .dp-avatar-preview{width:48px;height:48px;border-radius:50%;background:var(--pl);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;border:2px solid var(--border);}
-    .dp-title{font-size:16px;font-weight:700;}
-    .dp-meta{font-size:12px;color:var(--t3);margin-top:2px;}
-    .dp-body{display:grid;grid-template-columns:1fr 1.4fr;gap:16px;margin-bottom:16px;}
-    .dp-section-title{font-size:11px;font-weight:700;color:var(--t3);margin-bottom:10px;letter-spacing:.5px;text-transform:uppercase;}
-    .dp-info-grid{display:flex;flex-direction:column;}
-    .dp-info-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);}
-    .dp-info-row:last-child{border-bottom:none;}
-    .dp-info-label{font-size:11px;color:var(--t3);font-weight:600;min-width:68px;flex-shrink:0;}
-    .dp-info-val{font-size:13px;color:var(--t1);font-weight:500;word-break:break-all;}
-    .dp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:0;}
-    .dp-field label{font-size:11px;color:var(--t3);font-weight:600;display:block;margin-bottom:4px;}
     .dp-inp{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none;}
     .dp-inp:focus{border-color:var(--p);}
-    .dp-pts-section{background:var(--bg);border-radius:var(--rs);padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
-    .dp-pts-current{display:flex;align-items:center;gap:10px;}
-    .dp-pts-label{font-size:12px;color:var(--t3);font-weight:600;white-space:nowrap;}
-    .dp-pts-adj{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
-    .dp-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--border);}
-    @media(max-width:600px){.dp-body{grid-template-columns:1fr;}}
+    /* 포인트 팝업 */
+    .pts-popup{position:fixed;z-index:9999;background:var(--card);border-radius:var(--r);box-shadow:0 8px 32px rgba(0,0,0,.18);padding:18px 20px;min-width:260px;display:none;}
+    .pts-popup-name{font-size:13px;font-weight:700;margin-bottom:2px;}
+    .pts-popup-cur{font-size:22px;font-weight:800;color:var(--p);margin-bottom:14px;}
+    .pts-popup-row{display:flex;gap:6px;align-items:center;}
+    .pts-popup-close{position:absolute;top:10px;right:12px;background:none;border:none;font-size:16px;cursor:pointer;color:var(--t3);}
+    .badge.pts{cursor:pointer;transition:opacity .15s;}
+    .badge.pts:hover{opacity:.75;}
 
     /* ── MODAL ── */
     .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;padding:20px;}
@@ -391,42 +378,6 @@
         <div class="pagination" id="u-pager"></div>
       </div>
 
-      <!-- USER DETAIL -->
-      <div class="detail-panel" id="u-detail" style="display:none">
-        <div class="dp-header">
-          <div class="dp-user-summary">
-            <div class="dp-avatar-preview" id="dp-avatar-preview">👤</div>
-            <div>
-              <div class="dp-title" id="u-detail-title">이용자 상세</div>
-              <div class="dp-meta" id="dp-meta"></div>
-            </div>
-          </div>
-          <button class="cbtn" style="background:var(--bg);color:var(--t2)" onclick="hideDetail()">✕ 닫기</button>
-        </div>
-
-        <div class="dp-body" style="display:block;">
-          <div class="dp-info-grid">
-            <div class="dp-info-row"><span class="dp-info-label">계정 ID</span><span class="dp-info-val" id="di-empid">-</span></div>
-            <div class="dp-info-row"><span class="dp-info-label">부서</span><span class="dp-info-val" id="di-dept">-</span></div>
-          </div>
-        </div>
-
-        <!-- 포인트 조정 -->
-        <div class="dp-pts-section">
-          <div class="dp-pts-current">
-            <span class="dp-pts-label">포인트</span>
-            <span id="d-points" style="font-size:22px;font-weight:800;color:var(--p)">-</span>
-          </div>
-          <div class="dp-pts-adj">
-            <input class="dp-inp" type="number" id="adj-val" placeholder="조정값" style="width:100px">
-            <button class="cbtn grn" onclick="adjPoints(1)">+ 추가</button>
-            <button class="cbtn dan" onclick="adjPoints(-1)">− 차감</button>
-          </div>
-          <div style="display:flex;gap:8px;margin-left:auto;">
-            <button class="cbtn sky" onclick="openUserWorkouts()">운동기록 보기</button>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- ── PANEL: WORKOUTS ── -->
@@ -892,6 +843,18 @@
 <!-- TOAST -->
 <div class="toast-wrap" id="toast-wrap"></div>
 
+<!-- 포인트 조정 팝업 -->
+<div class="pts-popup" id="pts-popup">
+  <button class="pts-popup-close" onclick="closePtsPopup()">✕</button>
+  <div class="pts-popup-name" id="pts-popup-name"></div>
+  <div class="pts-popup-cur" id="pts-popup-cur"></div>
+  <div class="pts-popup-row">
+    <input class="dp-inp" type="number" id="adj-val" placeholder="조정값" style="width:88px;padding:7px 10px">
+    <button class="cbtn grn" onclick="adjPoints(1)">+ 추가</button>
+    <button class="cbtn dan" onclick="adjPoints(-1)">− 차감</button>
+  </div>
+</div>
+
 <!-- WORKOUT DETAIL MODAL -->
 <div class="modal-bg" id="wo-modal">
   <div class="modal">
@@ -1288,6 +1251,12 @@ function initSupabase() {
   setupRealtime();
   if (!_adminVisibilityBound) {
     document.addEventListener('visibilitychange', handleAdminVisibilityChange);
+    document.addEventListener('click', e => {
+      const popup = document.getElementById('pts-popup');
+      if (popup && popup.style.display !== 'none' && !popup.contains(e.target) && !e.target.classList.contains('pts')) {
+        closePtsPopup();
+      }
+    });
     _adminVisibilityBound = true;
   }
 
@@ -1809,7 +1778,6 @@ async function loadAll(opts = {}) {
 function renderAll() {
   renderStats();
   renderUsers();
-  syncSelectedUserDetail();
   renderWorkouts();
   renderPosts();
   renderChallenge();
@@ -1993,15 +1961,12 @@ function renderUsers() {
       <td style="color:var(--t2)">${u.nickname||'-'}</td>
       <td>${u.empId||'-'}</td>
       <td>${u.dept||'-'}</td>
-      <td><span class="badge pts">+${(Number(u.points)||0).toLocaleString()}p</span></td>
+      <td><span class="badge pts" onclick="openPtsPopup('${safeId}',event)">+${(Number(u.points)||0).toLocaleString()}p</span></td>
       <td>${woCnt[u.deviceId]||0}</td>
       <td>${Number(u.streak)||0}일</td>
       <td>${actCell}</td>
       <td>
-        <div style="display:flex;gap:4px">
-          <button class="abtn det" onclick="selectUser('${safeId}','${safeName}')" title="상세보기">↗</button>
-          <button class="abtn del" onclick="deleteUser('${safeId}','${safeName}')" title="삭제">✕</button>
-        </div>
+        <button class="abtn del" onclick="deleteUser('${safeId}','${safeName}')" title="삭제">✕</button>
       </td>
     </tr>`;
   }).join('');
@@ -2013,79 +1978,43 @@ function selectUser(deviceId, name) {
   selDeviceId = deviceId;
   const u = GD.users.find(x => x.deviceId === deviceId);
   if (!u) return;
-  renderPushTargetHint();
-
   document.getElementById('sel-bar').style.display = '';
   document.getElementById('sel-bar-name').textContent = u.name || name;
-  fillUserDetailForm(u, name);
-  document.getElementById('u-detail').style.display = '';
-  document.getElementById('u-detail').scrollIntoView({ behavior:'smooth', block:'start' });
-}
-
-function markUserDetailDirty() {
-  _userDetailDirty = true;
-}
-
-function fillUserDetailForm(u, fallbackName = '') {
-  if (!u) return;
-  const name = u.name || fallbackName || '이용자';
-  document.getElementById('d-points').textContent = Number(u.points) || 0;
-  // 읽기전용 계정 정보
-  document.getElementById('di-empid').textContent  = u.empId  || '-';
-  document.getElementById('di-dept').textContent   = u.dept   || '-';
-  // 헤더 요약
-  document.getElementById('u-detail-title').textContent = name;
-  const meta = [u.empId, u.dept].filter(Boolean).join(' · ');
-  document.getElementById('dp-meta').textContent = meta || '';
-  // 아바타 프리뷰
-  const av = u.avatar || '';
-  const avatarSrc = normalizeAdminAvatarPath(av);
-  const avEl = document.getElementById('dp-avatar-preview');
-  if (avatarSrc) {
-    avEl.innerHTML = `<img src="${avatarSrc}" alt="이용자 아바타" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="if(this.dataset.err)return;this.dataset.err=1;this.closest('#dp-avatar-preview').textContent='${(name.charAt(0) || '👤').replace(/'/g, "\\'")}'">`;
-  } else {
-    avEl.textContent = av || name.charAt(0) || '👤';
-  }
-  _userDetailDirty = false;
-}
-
-function syncSelectedUserDetail() {
-  if (!selDeviceId) return;
-  const u = GD.users.find(x => x.deviceId === selDeviceId);
-  if (!u) return;
-  fillUserDetailForm(u, u.name || '');
+  renderPushTargetHint();
 }
 
 function clearSel() {
   selDeviceId = '';
-  _userDetailDirty = false;
   const pushSel = document.getElementById('push-user-sel');
   if (pushSel) pushSel.value = '';
   renderPushTargetHint();
   document.getElementById('sel-bar').style.display = 'none';
-  document.getElementById('u-detail').style.display = 'none';
+  closePtsPopup();
 }
 
-function hideDetail() { clearSel(); }
+function openPtsPopup(deviceId, e) {
+  selDeviceId = deviceId;
+  const u = GD.users.find(x => x.deviceId === deviceId);
+  if (!u) return;
+  selectUser(deviceId, u.name || '');
+  const popup = document.getElementById('pts-popup');
+  document.getElementById('pts-popup-name').textContent = u.name || '(이름없음)';
+  document.getElementById('pts-popup-cur').textContent = (Number(u.points)||0).toLocaleString() + 'p';
+  document.getElementById('adj-val').value = '';
+  popup.style.display = 'block';
+  // 클릭 위치 기준으로 팝업 위치 결정
+  const margin = 8;
+  const pw = 280, ph = 140;
+  let x = e.clientX + margin, y = e.clientY + margin;
+  if (x + pw > window.innerWidth) x = e.clientX - pw - margin;
+  if (y + ph > window.innerHeight) y = e.clientY - ph - margin;
+  popup.style.left = x + 'px';
+  popup.style.top  = y + 'px';
+  setTimeout(() => document.getElementById('adj-val').focus(), 50);
+}
 
-async function saveUserDetail() {
-  if (!selDeviceId) { toast('이용자를 먼저 선택해주세요'); return; }
-  const cur = GD.users.find(x => x.deviceId === selDeviceId);
-  if (cur?.__derived) { toast('임시 이용자는 수정할 수 없습니다. 앱 로그인 후 users가 생성되면 수정해주세요.'); return; }
-  const name   = document.getElementById('d-name').value.trim();
-  const nickname = document.getElementById('d-nickname').value.trim();
-  const avatar = document.getElementById('d-avatar').value.trim();
-  const points = Math.max(0, parseInt(document.getElementById('d-points').value)||0);
-  const streak = Math.max(0, parseInt(document.getElementById('d-streak').value)||0);
-  showLoading(true);
-  const { error } = await db.from('users').update({ name, nickname, avatar, points, streak }).eq('deviceId', selDeviceId);
-  showLoading(false);
-  if (error) { toast('저장 실패: ' + error.message); return; }
-  const u = GD.users.find(x => x.deviceId === selDeviceId);
-  if (u) Object.assign(u, { name, nickname, avatar, points, streak });
-  fillUserDetailForm(u || { name, nickname, avatar, points, streak }, name);
-  renderStats(); renderUsers();
-  toast('이용자 정보 저장 완료 ✓');
+function closePtsPopup() {
+  document.getElementById('pts-popup').style.display = 'none';
 }
 
 async function adjPoints(sign) {
@@ -2101,7 +2030,8 @@ async function adjPoints(sign) {
   showLoading(false);
   if (error) { toast('실패: ' + error.message); return; }
   u.points = newPts;
-  document.getElementById('d-points').textContent = newPts;
+  document.getElementById('pts-popup-cur').textContent = newPts.toLocaleString() + 'p';
+  document.getElementById('adj-val').value = '';
   renderStats(); renderUsers();
   toast((sign > 0 ? '+' : '') + (sign * v) + 'p 조정 완료');
 }
