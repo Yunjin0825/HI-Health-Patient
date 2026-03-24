@@ -76,6 +76,8 @@
     /* ── STAT GRID ── */
     .stat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px;}
     .stat-card{background:var(--card);border-radius:var(--rs);padding:12px 14px;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px;}
+    .stat-card[onclick]{cursor:pointer;transition:box-shadow .15s,transform .1s;}
+    .stat-card[onclick]:hover{box-shadow:0 4px 16px rgba(0,0,0,.13);transform:translateY(-2px);}
     .sc-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
     .sc-blue{background:var(--pl);}
     .sc-green{background:var(--gl);}
@@ -293,7 +295,7 @@
       <button class="sb-item" id="tab-btn-glucose" data-tab="glucose" onclick="switchTab('glucose',this)"><span class="sb-icon">🩸</span>혈당기록</button>
       <button class="sb-item" id="tab-btn-posts" data-tab="posts" onclick="switchTab('posts',this)"><span class="sb-icon">💬</span>커뮤니티</button>
       <button class="sb-item" id="tab-btn-challenge" data-tab="challenge" onclick="switchTab('challenge',this)"><span class="sb-icon">🏆</span>챌린지</button>
-      <button class="sb-item" id="tab-btn-famcert" data-tab="famcert" onclick="switchTab('famcert',this)"><span class="sb-icon">📸</span>가족인증</button>
+      <button class="sb-item" id="tab-btn-famcert" data-tab="famcert" onclick="switchTab('famcert',this)"><span class="sb-icon">📸</span>가족인증<span class="sb-badge" id="famcert-badge" style="display:none"></span></button>
       <div class="sb-section" style="margin-top:4px">운영</div>
       <button class="sb-item" id="tab-btn-orders" data-tab="orders" onclick="switchTab('orders',this)"><span class="sb-icon">🛒</span>구매<span class="sb-badge" id="orders-badge" style="display:none"></span></button>
       <button class="sb-item" id="tab-btn-content" data-tab="content" onclick="switchTab('content',this)"><span class="sb-icon">📝</span>콘텐츠 작성</button>
@@ -319,12 +321,12 @@
     <div class="adm-content">
     <!-- STATS -->
     <div class="stat-grid">
-      <div class="stat-card"><div class="sc-icon sc-blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="sc-body"><div class="s-val" id="st-users">-</div><div class="s-lbl">전체 이용자</div></div></div>
-      <div class="stat-card"><div class="sc-icon sc-green"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="sc-body"><div class="s-val" id="st-regs">-</div><div class="s-lbl">챌린지 신청</div></div></div>
-      <div class="stat-card"><div class="sc-icon sc-amber"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div><div class="sc-body"><div class="s-val" id="st-wo">-</div><div class="s-lbl">운동기록</div></div></div>
-      <div class="stat-card"><div class="sc-icon sc-red"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="sc-body"><div class="s-val" id="st-glc">-</div><div class="s-lbl">혈당기록</div></div></div>
-      <div class="stat-card"><div class="sc-icon sc-purple"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="sc-body"><div class="s-val" id="st-posts">-</div><div class="s-lbl">커뮤니티</div></div></div>
-      <div class="stat-card"><div class="sc-icon sc-sky"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0EA5E9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="sc-body"><div class="s-val" id="st-donation">-</div><div class="s-lbl">예상기부액</div></div></div>
+      <div class="stat-card" onclick="switchTab('users',document.getElementById('tab-btn-users'))"><div class="sc-icon sc-blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="sc-body"><div class="s-val" id="st-users">-</div><div class="s-lbl">전체 이용자</div></div></div>
+      <div class="stat-card" onclick="switchTab('challenge',document.getElementById('tab-btn-challenge'))"><div class="sc-icon sc-green"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="sc-body"><div class="s-val" id="st-regs">-</div><div class="s-lbl">챌린지 신청</div></div></div>
+      <div class="stat-card" onclick="switchTab('workouts',document.getElementById('tab-btn-workouts'))"><div class="sc-icon sc-amber"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div><div class="sc-body"><div class="s-val" id="st-wo">-</div><div class="s-lbl">운동기록</div></div></div>
+      <div class="stat-card" onclick="switchTab('glucose',document.getElementById('tab-btn-glucose'))"><div class="sc-icon sc-red"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="sc-body"><div class="s-val" id="st-glc">-</div><div class="s-lbl">혈당기록</div></div></div>
+      <div class="stat-card" onclick="switchTab('posts',document.getElementById('tab-btn-posts'))"><div class="sc-icon sc-purple"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="sc-body"><div class="s-val" id="st-posts">-</div><div class="s-lbl">커뮤니티</div></div></div>
+      <div class="stat-card" onclick="switchTab('challenge',document.getElementById('tab-btn-challenge'))"><div class="sc-icon sc-sky"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0EA5E9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="sc-body"><div class="s-val" id="st-donation">-</div><div class="s-lbl">예상기부액</div></div></div>
     </div>
 
     <!-- ── PANEL: USERS ── -->
@@ -507,7 +509,6 @@
         <div class="stat-card a"><div class="s-lbl">오늘 혈당</div><div class="s-val" id="glc-sum-today">-</div><div class="s-sub">건</div></div>
         <div class="stat-card g"><div class="s-lbl">최근 7일</div><div class="s-val" id="glc-sum-week">-</div><div class="s-sub">건</div></div>
         <div class="stat-card pu"><div class="s-lbl">기록 이용자</div><div class="s-val" id="glc-sum-users">-</div><div class="s-sub">명</div></div>
-        <div class="stat-card sk"><div class="s-lbl">평균 혈당</div><div class="s-val" id="glc-sum-avg">-</div><div class="s-sub">mg/dL</div></div>
       </div>
       <div class="wo-guide" id="glc-guide">
         전체 혈당기록을 한 번에 나열하지 않고, 먼저 활동 요약과 최근 활동 이용자 상위 목록을 보여줍니다. 특정 이용자를 선택하면 그 사람 기록만 자세히 볼 수 있습니다.
@@ -548,7 +549,6 @@
               <th>최근 기록</th>
               <th>최근 7일</th>
               <th>누적 기록</th>
-              <th>평균 혈당</th>
               <th>관리</th>
             </tr></thead>
             <tbody id="glc-overview-body"></tbody>
@@ -3729,7 +3729,10 @@ function renderFamCert() {
     return true;
   });
   document.getElementById('fc-total').textContent = GD_famcert.length;
-  document.getElementById('fc-pend').textContent = GD_famcert.filter(r => r.status === 'pending').length;
+  const fcPendCount = GD_famcert.filter(r => r.status === 'pending').length;
+  document.getElementById('fc-pend').textContent = fcPendCount;
+  const fcBadge = document.getElementById('famcert-badge');
+  if (fcBadge) { fcBadge.textContent = fcPendCount; fcBadge.style.display = fcPendCount > 0 ? '' : 'none'; }
   document.getElementById('fc-ok').textContent = GD_famcert.filter(r => r.status === 'approved').length;
   document.getElementById('fc-rej').textContent = GD_famcert.filter(r => r.status === 'rejected').length;
   document.getElementById('fc-count').textContent = rows.length + '건';
@@ -4104,12 +4107,9 @@ function renderGlucoseSummary() {
   const todayCnt = GD.glucose.filter(g => glcTs(g) >= todayStart.getTime()).length;
   const weekCnt  = GD.glucose.filter(g => glcTs(g) >= weekStart).length;
   const userSet  = new Set(GD.glucose.map(g => g.deviceId).filter(Boolean));
-  const vals     = GD.glucose.map(g => Number(g.value)).filter(v => v > 0);
-  const avg      = vals.length ? Math.round(vals.reduce((a,b)=>a+b,0)/vals.length) : '-';
   document.getElementById('glc-sum-today').textContent = todayCnt;
   document.getElementById('glc-sum-week').textContent  = weekCnt;
   document.getElementById('glc-sum-users').textContent = userSet.size;
-  document.getElementById('glc-sum-avg').textContent   = avg;
 }
 
 function syncGlucoseSelectionUI(deviceId) {
@@ -4159,13 +4159,11 @@ function renderGlucoseOverview() {
   GD.glucose.forEach(g => {
     const id = String(g.deviceId || '').trim();
     if (!id) return;
-    const s = stats.get(id) || { count:0, weekCount:0, latestTs:0, vals:[] };
+    const s = stats.get(id) || { count:0, weekCount:0, latestTs:0 };
     const ts = glcTs(g);
     s.count++;
     if (ts > s.latestTs) s.latestTs = ts;
     if (ts >= weekStart) s.weekCount++;
-    const v = Number(g.value);
-    if (v > 0) s.vals.push(v);
     stats.set(id, s);
   });
 
@@ -4186,16 +4184,13 @@ function renderGlucoseOverview() {
 
   const tbody = document.getElementById('glc-overview-body');
   if (!rows.length) {
-    tbody.innerHTML = `<tr><td class="empty-cell" colspan="8">혈당 기록 이용자가 없습니다</td></tr>`;
+    tbody.innerHTML = `<tr><td class="empty-cell" colspan="7">혈당 기록 이용자가 없습니다</td></tr>`;
     return;
   }
 
-  const timingColor = { '공복':'var(--sky)', '식후':'var(--amber)', '취침전':'var(--purple)', '기상후':'var(--green)' };
   tbody.innerHTML = rows.map(({ user, stat }, idx) => {
     const safeId = String(user.deviceId || '').replace(/'/g,"\'");
     const latestText = stat.latestTs ? new Date(stat.latestTs).toLocaleString('ko-KR', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' }) : '-';
-    const avg = stat.vals.length ? Math.round(stat.vals.reduce((a,b)=>a+b,0)/stat.vals.length) : '-';
-    const avgColor = typeof avg === 'number' ? avg < 70 ? 'var(--sky)' : avg > 140 ? 'var(--red)' : 'var(--green)' : 'var(--t3)';
     return `<tr>
       <td><span class="rank ${idx===0?'g1':idx===1?'g2':idx===2?'g3':''}">${idx+1}</span></td>
       <td class="td-name">${escHtml(user.name||'(이름없음)')}</td>
@@ -4203,7 +4198,6 @@ function renderGlucoseOverview() {
       <td class="td-date">${latestText}</td>
       <td>${stat.weekCount}건</td>
       <td>${stat.count}건</td>
-      <td style="font-weight:700;color:${avgColor}">${avg}${typeof avg==='number'?' mg/dL':''}</td>
       <td><button class="abtn det" onclick="setGlucoseUserFilter('${safeId}')">기록 보기</button></td>
     </tr>`;
   }).join('');

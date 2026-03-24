@@ -4001,6 +4001,57 @@
     .ch-reg-value { font-weight:600; color:#78350f; font-size:12px; }
     .ch-reg-phase { font-size:11px; font-weight:600; color:#b45309; opacity:0.75; margin-bottom:10px; }
     .ch-share-btn { flex:1; padding:8px 12px; background:#F59E0B; color:#fff; border:none; border-radius:20px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; }
+    .ch-family-cert-preview {
+      margin-bottom:12px;
+      border-radius:14px;
+      overflow:hidden;
+      background:#0f172a;
+      border:1px solid rgba(15,23,42,0.08);
+    }
+    .ch-family-cert-media {
+      width:100%;
+      max-height:280px;
+      display:block;
+      object-fit:cover;
+      background:#000;
+    }
+    img.ch-family-cert-media { cursor:zoom-in; }
+    .ch-family-cert-copy {
+      font-size:13px;
+      font-weight:800;
+      color:var(--text);
+      margin-bottom:4px;
+    }
+    .ch-family-cert-points {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      margin-bottom:10px;
+      padding:5px 10px;
+      border-radius:999px;
+      background:#ecfdf5;
+      border:1px solid rgba(16,185,129,0.18);
+      color:#047857;
+      font-size:11px;
+      font-weight:800;
+    }
+    .ch-family-cert-sub {
+      font-size:11px;
+      line-height:1.6;
+      color:var(--text-secondary);
+      margin-bottom:10px;
+    }
+    .ch-family-cert-memo {
+      margin-bottom:10px;
+      padding:10px 12px;
+      border-radius:10px;
+      background:#f8fafc;
+      color:#334155;
+      font-size:12px;
+      line-height:1.6;
+      white-space:pre-wrap;
+      border:1px solid rgba(148,163,184,0.18);
+    }
 
     .ch-tl { display:flex; flex-direction:column; gap:0; position:relative; padding-left:34px; }
     .ch-tl::before { content:''; position:absolute; left:6px; top:10px; bottom:10px; width:2px; background:var(--border); border-radius:2px; }
@@ -6033,8 +6084,32 @@ window.addEventListener('focus', () => {
 });
 
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) loadAppConfig();
+  if (!document.hidden) {
+    loadAppConfig();
+    refreshUserPointsFromServer();
+  }
 });
+
+async function refreshUserPointsFromServer() {
+  if (!_db || !S.deviceId || IS_GUEST) return;
+  try {
+    const { data } = await _db.from('users').select('points,totalPoints').eq('deviceId', S.deviceId).maybeSingle();
+    if (!data) return;
+    const srvPts   = Number(data.points)       || 0;
+    const srvTotal = Number(data.totalPoints || data.points) || 0;
+    if (srvPts !== S.user.points || srvTotal !== S.user.totalPoints) {
+      const gained = srvPts - S.user.points;
+      S.user.points      = srvPts;
+      S.user.totalPoints = srvTotal;
+      save({ skipRemote: true });
+      renderHeader();
+      renderHome();
+      if (gained > 0) {
+        showCelebration('bonuspoints', { gained, message: '추가 포인트를 받았어요~' });
+      }
+    }
+  } catch(e) { /* 네트워크 오류 무시 */ }
+}
 
 function isAppConfigMissingColumnError(error) {
   const message = String(error?.message || error || '');
@@ -6901,16 +6976,28 @@ function save(opts = {}) {
     const syncedKey = 'hi_synced_' + S.deviceId;
     if (localStorage.getItem(syncedKey)) {
       // 기존 유저 — UPDATE 시도, 0행이면 upsert로 재등록 (관리자가 삭제 후 재가입 허용)
-      _db.from('users').update(payload).eq('deviceId', S.deviceId).select('deviceId')
+      // 서버 포인트가 더 높으면 덮어쓰지 않음 (관리자 지급 보너스 포인트 보호)
+      _db.from('users').update(payload).eq('deviceId', S.deviceId).lte('points', payload.points).select('deviceId')
         .then(({ data, error }) => {
           if (error) { console.error('[syncUser/update]', error); return; }
           if (!data || data.length === 0) {
-            // Supabase에 행이 없으면 재등록
-            localStorage.removeItem(syncedKey);
-            _db.from('users').upsert(payload, { onConflict: 'deviceId' })
-              .then(({ error: e2 }) => {
-                if (!e2) localStorage.setItem(syncedKey, '1');
-                else console.error('[syncUser/re-upsert]', e2);
+            // 서버 포인트가 더 높거나 행이 없음 — 존재 여부 확인
+            _db.from('users').select('deviceId').eq('deviceId', S.deviceId).maybeSingle()
+              .then(({ data: existing }) => {
+                if (!existing) {
+                  // 행이 없으면 재등록
+                  localStorage.removeItem(syncedKey);
+                  _db.from('users').upsert(payload, { onConflict: 'deviceId' })
+                    .then(({ error: e2 }) => {
+                      if (!e2) localStorage.setItem(syncedKey, '1');
+                      else console.error('[syncUser/re-upsert]', e2);
+                    });
+                } else {
+                  // 행은 있으나 서버 포인트가 더 높음 — 포인트 제외하고 나머지만 업데이트
+                  const { points: _p, totalPoints: _tp, ...payloadNoPts } = payload;
+                  _db.from('users').update(payloadNoPts).eq('deviceId', S.deviceId)
+                    .then(({ error: e3 }) => { if (e3) console.error('[syncUser/update-no-pts]', e3); });
+                }
               });
           }
         });
@@ -8449,6 +8536,14 @@ function showCelebration(type, data) {
     title.textContent = '배지 획득!';
     sub.textContent = data.name + ' — ' + data.desc;
     iconWrap.innerHTML = '<div style="width:72px;height:72px;border-radius:50%;background:#F3F4F6;display:flex;align-items:center;justify-content:center;margin:0 auto 12px"><img src="' + data.img + '" style="width:72%;height:72%;object-fit:contain"></div>';
+  } else if (type === 'bonuspoints') {
+    const gained = Number(data?.gained) || 0;
+    title.textContent = '포인트 지급!';
+    sub.textContent = data?.message || '추가 포인트를 받았어요~';
+    iconWrap.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:12px">
+      <div style="width:76px;height:76px;border-radius:24px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;font-size:36px;box-shadow:0 16px 32px rgba(79,70,229,0.28)">🎁</div>
+      ${gained ? `<div style="display:inline-flex;align-items:center;justify-content:center;padding:6px 14px;border-radius:999px;background:#ede9fe;color:#5b21b6;font-size:14px;font-weight:900;border:1px solid #c4b5fd">+${gained.toLocaleString()}P</div>` : ''}
+    </div>`;
   } else if (type === 'familycert') {
     const rewardPoints = Number(data?.points) || FAMILY_CERT_REWARD_POINTS;
     title.textContent = '가족 인증 승인!';
@@ -8519,6 +8614,7 @@ function earnedAchs() {
   });
 }
 function myLeagueRank() {
+  if (!canJoinLeagueRanking()) return null;
   const tab = S.leagueTab;
   const base = (_realLeagueUsers && _realLeagueUsers.length) ? _realLeagueUsers : [];
   if (tab === 'level') {
@@ -8533,6 +8629,10 @@ function myLeagueRank() {
 }
 function myWeekPts() {
   return weekData().reduce((s,d) => s + Math.round(d.mins*0.8), 0);
+}
+
+function canJoinLeagueRanking() {
+  return Array.isArray(S.workouts) && S.workouts.length > 0;
 }
 
 /* ════════════════════════════════════════
@@ -9203,7 +9303,10 @@ function renderHome() {
 
   // Quick action subtitles
   const _base = (_realLeagueUsers && _realLeagueUsers.length) ? _realLeagueUsers : [];
-  if (hasActiveChallengeRegistration()) {
+  if (!canJoinLeagueRanking()) {
+    document.getElementById('rank-quick-label').textContent = '';
+    document.getElementById('my-rank-quick').textContent = '운동 기록 후 참여';
+  } else if (hasActiveChallengeRegistration()) {
     const chTotal = _base.filter(u => u.isChallenger).length + 1;
     const chRank  = _base.filter(u => u.isChallenger && u.pts > (S.user.totalPoints || S.user.points)).length + 1;
     document.getElementById('rank-quick-label').textContent = '(챌린지)';
@@ -9440,7 +9543,7 @@ function renderExerciseHistory() {
   if (_woViewMode === 'recent') {
     document.getElementById('wo-total-badge').textContent = '총 ' + S.workouts.length + '회';
     if (!allWorkouts.length) {
-      wo.innerHTML = `<div class="empty-state"><div class="ei">${renderExerciseIcon('running', { size:'44px', color:'var(--primary)' })}</div><p>아직 기록된 운동이 없어요.<br>첫 운동을 기록해보세요!</p></div>`;
+      wo.innerHTML = `<div class="empty-state"><p>아직 기록된 운동이 없어요.<br>첫 운동을 기록해보세요!</p></div>`;
       return;
     }
     const reversed = [...allWorkouts].reverse();
@@ -9557,6 +9660,9 @@ function renderMedalIcon(rank, opts = {}) {
 }
 
 function formatRankSummary(rank, total) {
+  if (!Number.isFinite(Number(rank)) || !Number.isFinite(Number(total)) || Number(total) <= 0) {
+    return '운동 기록 후 참여';
+  }
   const medal = renderMedalIcon(rank, { size:'14px' });
   return `${medal ? medal + ' ' : ''}${rank}위 / 전체 ${total}명`;
 }
@@ -12441,6 +12547,7 @@ async function fetchLeagueData(opts = {}) {
 
 function renderLeague() {
   const tab = S.leagueTab;
+  const canJoinLeague = canJoinLeagueRanking();
   if (tab === 'challenger' && !hasActiveChallengeRegistration()) {
     S.leagueTab = 'weekly';
     const weeklyTab = document.querySelector('.league-tab[data-tab="weekly"]');
@@ -12463,11 +12570,11 @@ function renderLeague() {
     const baseUsers = (_realLeagueUsers && _realLeagueUsers.length) ? _realLeagueUsers : [];
     const challengers = [
       ...baseUsers.filter(u => u.isChallenger).map(u => ({ ...u, isMe: false })),
-      ...(isRegistered && !LEAGUE_EXCLUDE_EMPIDS.includes((S.user.empId || ACTIVE_EMPID || '').trim().toUpperCase()) ? [me] : []),
+      ...(isRegistered && canJoinLeague && !LEAGUE_EXCLUDE_EMPIDS.includes((S.user.empId || ACTIVE_EMPID || '').trim().toUpperCase()) ? [me] : []),
     ].sort((a, b) => b.pts - a.pts).map((u, i) => ({ ...u, rank: i + 1 }));
 
     // My rank card
-    if (isRegistered) {
+    if (isRegistered && canJoinLeague) {
       const myRankCh = challengers.find(u => u.isMe)?.rank || '-';
       const myLv = getLevel(S.user.points);
       document.getElementById('my-rank-card').innerHTML = `
@@ -12487,6 +12594,11 @@ function renderLeague() {
           <div class="mrc-sub">Level ${myLv.lv}</div>
         </div>
       `;
+    } else if (isRegistered) {
+      document.getElementById('my-rank-card').innerHTML = `
+        <div style="padding:16px;text-align:center;color:var(--text-secondary);font-size:13px">
+          ${renderExerciseIcon('running', { size:'16px', color:'var(--primary)' })} 운동 기록을 남기면 챌린지 랭킹에 진입할 수 있어요
+        </div>`;
     } else {
       document.getElementById('my-rank-card').innerHTML = `
         <div style="padding:16px;text-align:center;color:var(--text-secondary);font-size:13px">
@@ -12546,26 +12658,33 @@ function renderLeague() {
   const myRank = myLeagueRank();
   const myLv   = getLevel(S.user.points);
   const myLvNumCard = getLevel(S.user.totalPoints || S.user.points).lv;
-  const total  = currentTab === 'level' ? baseUsers.filter(u => u.lv === myLvNumCard).length + 1 : baseUsers.length + 1;
-  const pct    = Math.round((myRank / total) * 100);
+  const total  = currentTab === 'level' ? baseUsers.filter(u => u.lv === myLvNumCard).length + (canJoinLeague ? 1 : 0) : baseUsers.length + (canJoinLeague ? 1 : 0);
+  const pct    = (canJoinLeague && myRank && total > 0) ? Math.round((myRank / total) * 100) : null;
 
-  document.getElementById('my-rank-card').innerHTML = `
-    <div class="mrc-stat">
-      <div class="mrc-label">내 순위</div>
-      <div class="mrc-value">${myRank}위</div>
-      <div class="mrc-sub">${currentTab === 'level' ? '같은 레벨 ' + total + '명' : '상위 ' + pct + '%'}</div>
-    </div>
-    <div class="mrc-stat">
-      <div class="mrc-label">${currentTab === 'weekly' ? '주간 획득 포인트' : currentTab === 'level' ? '레벨별 포인트' : '누적 포인트'}</div>
-      <div class="mrc-value pts">${myPts}p</div>
-      <div class="mrc-sub"><span class="lb-change ch-eq">−</span></div>
-    </div>
-    <div class="mrc-stat">
-      <div class="mrc-label">내 레벨</div>
-      <div class="mrc-value" style="font-size:48px">${myLv.icon}</div>
-      <div class="mrc-sub">Level ${myLv.lv}</div>
-    </div>
-  `;
+  if (canJoinLeague) {
+    document.getElementById('my-rank-card').innerHTML = `
+      <div class="mrc-stat">
+        <div class="mrc-label">내 순위</div>
+        <div class="mrc-value">${myRank}위</div>
+        <div class="mrc-sub">${currentTab === 'level' ? '같은 레벨 ' + total + '명' : '상위 ' + pct + '%'}</div>
+      </div>
+      <div class="mrc-stat">
+        <div class="mrc-label">${currentTab === 'weekly' ? '주간 획득 포인트' : currentTab === 'level' ? '레벨별 포인트' : '누적 포인트'}</div>
+        <div class="mrc-value pts">${myPts}p</div>
+        <div class="mrc-sub"><span class="lb-change ch-eq">−</span></div>
+      </div>
+      <div class="mrc-stat">
+        <div class="mrc-label">내 레벨</div>
+        <div class="mrc-value" style="font-size:48px">${myLv.icon}</div>
+        <div class="mrc-sub">Level ${myLv.lv}</div>
+      </div>
+    `;
+  } else {
+    document.getElementById('my-rank-card').innerHTML = `
+      <div style="padding:16px;text-align:center;color:var(--text-secondary);font-size:13px">
+        ${renderExerciseIcon('running', { size:'16px', color:'var(--primary)' })} 운동 기록을 남기면 리그에 진입할 수 있어요
+      </div>`;
+  }
 
   const me = {
     id:0, name: myDisplayName() + ' (나)', avatar: S.user.avatar,
@@ -12577,7 +12696,7 @@ function renderLeague() {
     ...baseUsers
       .filter(u => currentTab === 'level' ? u.lv === myLvNum : true)
       .map(u => ({ ...u, isMe: false })),
-    ...(LEAGUE_EXCLUDE_EMPIDS.includes((S.user.empId || ACTIVE_EMPID || '').trim().toUpperCase()) ? [] : [me])
+    ...(!canJoinLeague || LEAGUE_EXCLUDE_EMPIDS.includes((S.user.empId || ACTIVE_EMPID || '').trim().toUpperCase()) ? [] : [me])
   ].sort((a,b) => currentTab === 'weekly' ? b.wPts - a.wPts : b.pts - a.pts)
    .map((u,i) => ({ ...u, rank: i+1 }));
 
@@ -14967,7 +15086,171 @@ function goToFamilyCert() {
 
 const FAMILY_CERT_REWARD_POINTS = 100;
 const FAMILY_CERT_REWARD_SEEN_KEY = 'hi_family_cert_reward_seen';
+const FAMILY_CERT_LATEST_SUBMISSION_KEY = 'hi_family_cert_latest_submission';
 let _familyCertRewardSyncPromise = null;
+let _familyCertLatestRow = null;
+let _familyCertLatestFetchPromise = null;
+let _familyCertLatestEmpId = '';
+let _familyCertLatestFetchedAt = 0;
+
+function getFamilyCertLatestStorageKey(empId = ACTIVE_EMPID || S.user?.empId || '') {
+  return getAccountScopedStorageKey(FAMILY_CERT_LATEST_SUBMISSION_KEY, empId);
+}
+
+function normalizeFamilyCertRow(row) {
+  if (!row || typeof row !== 'object') return null;
+  const normalized = {
+    id: String(row.id || '').trim(),
+    reg_id: String(row.reg_id || row.regId || '').trim(),
+    emp_id: normalizeEmpIdValue(row.emp_id || row.empId || ''),
+    name: String(row.name || '').trim(),
+    media_url: String(row.media_url || row.mediaUrl || '').trim(),
+    media_type: String(row.media_type || row.mediaType || '').trim().toLowerCase(),
+    memo: String(row.memo || '').trim(),
+    status: String(row.status || '').trim().toLowerCase(),
+    submitted_at: String(row.submitted_at || row.submittedAt || row.created_at || '').trim(),
+    reviewed_at: String(row.reviewed_at || row.reviewedAt || '').trim(),
+    rewarded_at: String(row.rewarded_at || row.rewardedAt || '').trim(),
+    updated_at: String(row.updated_at || row.updatedAt || '').trim(),
+  };
+  if (!normalized.id && !normalized.media_url && !normalized.submitted_at) return null;
+  return normalized;
+}
+
+function getFamilyCertLatestRowToken(row) {
+  const normalized = normalizeFamilyCertRow(row);
+  if (!normalized) return '';
+  return [
+    normalized.id,
+    normalized.status,
+    normalized.submitted_at,
+    normalized.reviewed_at,
+    normalized.rewarded_at,
+    normalized.updated_at,
+    normalized.media_url,
+  ].join('|');
+}
+
+function readFamilyCertLatestRow(empId = ACTIVE_EMPID || S.user?.empId || '') {
+  try {
+    return normalizeFamilyCertRow(JSON.parse(localStorage.getItem(getFamilyCertLatestStorageKey(empId)) || 'null'));
+  } catch (e) {
+    return null;
+  }
+}
+
+function writeFamilyCertLatestRow(row, empId = ACTIVE_EMPID || S.user?.empId || '') {
+  try {
+    const key = getFamilyCertLatestStorageKey(empId);
+    const normalized = normalizeFamilyCertRow(row);
+    if (!normalized) localStorage.removeItem(key);
+    else localStorage.setItem(key, JSON.stringify(normalized));
+  } catch (e) {}
+}
+
+function setFamilyCertLatestRow(row, empId = ACTIVE_EMPID || S.user?.empId || '') {
+  const prevToken = getFamilyCertLatestRowToken(_familyCertLatestRow);
+  const nextRow = normalizeFamilyCertRow(row);
+  const nextToken = getFamilyCertLatestRowToken(nextRow);
+  _familyCertLatestEmpId = normalizeEmpIdValue(empId);
+  _familyCertLatestRow = nextRow;
+  writeFamilyCertLatestRow(nextRow, empId);
+  return prevToken !== nextToken;
+}
+
+function getCurrentFamilyCertLatestRow() {
+  const currentEmpId = normalizeEmpIdValue(ACTIVE_EMPID || S.user?.empId || '');
+  if (_familyCertLatestRow && _familyCertLatestEmpId === currentEmpId) return _familyCertLatestRow;
+  if (_familyCertLatestEmpId !== currentEmpId) _familyCertLatestFetchedAt = 0;
+  _familyCertLatestEmpId = currentEmpId;
+  _familyCertLatestRow = readFamilyCertLatestRow();
+  return _familyCertLatestRow;
+}
+
+function getFamilyCertStatusMeta(status) {
+  const normalized = String(status || '').trim().toLowerCase();
+  if (normalized === 'approved') return { label:'승인 완료', cls:'badge-success' };
+  if (normalized === 'rejected') return { label:'반려', cls:'' };
+  if (normalized === 'cancelled') return { label:'취소됨', cls:'' };
+  return { label:'검토 중', cls:'badge-warning' };
+}
+
+function getFamilyCertLatestSortTs(row) {
+  return Date.parse(
+    String(
+      row?.submitted_at
+      || row?.submittedAt
+      || row?.created_at
+      || row?.createdAt
+      || row?.updated_at
+      || row?.updatedAt
+      || 0
+    )
+  ) || 0;
+}
+
+function getFamilyCertSubmittedText(row) {
+  const ts = Date.parse(String(row?.submitted_at || row?.created_at || 0)) || 0;
+  if (!ts) return '';
+  return new Date(ts).toLocaleString('ko-KR', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function getFamilyCertMemoText(row) {
+  const raw = String(row?.memo || '').trim();
+  return raw
+    .replace(/\[홍보영상 활용 동의\]/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+async function refreshCurrentFamilyCertLatest(opts = {}) {
+  if (!_db) return getCurrentFamilyCertLatestRow();
+  if (!opts.force && _familyCertLatestFetchedAt && (Date.now() - _familyCertLatestFetchedAt) < 30000) {
+    return getCurrentFamilyCertLatestRow();
+  }
+  if (_familyCertLatestFetchPromise && !opts.force) return _familyCertLatestFetchPromise;
+  const identity = getCurrentFamilyCertIdentity();
+  const filters = [];
+  if (identity.empId) {
+    filters.push(`emp_id.eq.${identity.empId}`);
+    if (identity.empId.toLowerCase() !== identity.empId) filters.push(`emp_id.eq.${identity.empId.toLowerCase()}`);
+  }
+  if (identity.regId) filters.push(`reg_id.eq.${identity.regId}`);
+  if (!filters.length) return getCurrentFamilyCertLatestRow();
+
+  const run = (async () => {
+    const { data, error } = await _db
+      .from('family_certifications')
+      .select('*')
+      .or(filters.join(','))
+      .order('submitted_at', { ascending: false })
+      .limit(10);
+    if (error) throw error;
+
+    const matched = (data || [])
+      .filter(isCurrentFamilyCertRow)
+      .sort((a, b) => getFamilyCertLatestSortTs(b) - getFamilyCertLatestSortTs(a));
+    _familyCertLatestFetchedAt = Date.now();
+    const changed = setFamilyCertLatestRow(matched[0] || null, identity.empId);
+    if (changed && document.getElementById('page-challenge')?.classList.contains('active')) renderChallenge();
+    return _familyCertLatestRow;
+  })();
+
+  _familyCertLatestFetchPromise = run;
+  try {
+    return await run;
+  } catch (err) {
+    if (!opts.silent) console.warn('[family-cert/latest]', err);
+    return getCurrentFamilyCertLatestRow();
+  } finally {
+    if (_familyCertLatestFetchPromise === run) _familyCertLatestFetchPromise = null;
+  }
+}
 
 function getCurrentFamilyCertIdentity() {
   const myReg = getMyReg();
@@ -15203,6 +15486,7 @@ async function submitFamilyCertFromIndex() {
   try {
     const ext = (file.name.split('.').pop() || (file.type.startsWith('image/') ? 'jpg' : 'mp4')).toLowerCase();
     const fileName = `${empId || 'unknown'}_${regId}_${Date.now()}.${ext}`;
+    const submittedAt = new Date().toISOString();
     const uploadRes = await fetch(`${SUPABASE_URL}/storage/v1/object/family-certifications/${encodeURIComponent(fileName)}`, {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': file.type || 'application/octet-stream', 'x-upsert': 'true' },
@@ -15214,11 +15498,24 @@ async function submitFamilyCertFromIndex() {
     const dbRes = await fetch(SUPABASE_URL + '/rest/v1/family_certifications', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ id: certId, reg_id: regId, emp_id: empId || null, name: name || null, media_url: mediaUrl, media_type: file.type.startsWith('image/') ? 'image' : 'video', memo: memo, submitted_at: new Date().toISOString(), status: 'pending' }),
+      body: JSON.stringify({ id: certId, reg_id: regId, emp_id: empId || null, name: name || null, media_url: mediaUrl, media_type: file.type.startsWith('image/') ? 'image' : 'video', memo: memo, submitted_at: submittedAt, status: 'pending' }),
     });
     if (!dbRes.ok) throw new Error((await dbRes.text().catch(() => '')) || 'DB 저장 실패 (' + dbRes.status + ')');
+    setFamilyCertLatestRow({
+      id: certId,
+      reg_id: regId,
+      emp_id: empId || null,
+      name: name || null,
+      media_url: mediaUrl,
+      media_type: file.type.startsWith('image/') ? 'image' : 'video',
+      memo,
+      submitted_at: submittedAt,
+      status: 'pending',
+    }, empId);
     btn.style.display = 'none';
     document.getElementById('fc-done').style.display = 'block';
+    renderChallenge();
+    refreshCurrentFamilyCertLatest({ force: true, silent: true }).catch(err => console.warn('[family-cert/post-submit-sync]', err));
   } catch (err) {
     console.error('[submitFamilyCertFromIndex]', err);
     btn.disabled = false; btn.textContent = '관리자에게 제출하기';
@@ -15241,6 +15538,8 @@ function renderChallenge() {
     return;
   }
   if (!document.getElementById('ch-hero')) return; // iframe 모드: runday.html이 렌더링 담당
+  getCurrentFamilyCertLatestRow();
+  refreshCurrentFamilyCertLatest({ silent: true }).catch(err => console.warn('[family-cert/render-sync]', err));
   const phase = getChPhase();
   const now = new Date();
   const challengeStart = CH.preStart;
@@ -15514,17 +15813,35 @@ function renderChallenge() {
     formRenderKey = `challenge:${phase}:form:none`;
   }
 
+  const familyCertRow = getCurrentFamilyCertLatestRow();
+  const familyCertStatus = getFamilyCertStatusMeta(familyCertRow?.status);
+  const familyCertMemo = getFamilyCertMemoText(familyCertRow);
+  const familyCertSubmittedAt = getFamilyCertSubmittedText(familyCertRow);
+  const familyCertMediaUrl = escHtmlComm(familyCertRow?.media_url || '');
+  const familyCertImageAlt = escHtmlComm('가족 운동 인증');
+  const familyCertPreviewHtml = familyCertRow?.media_url
+    ? String(familyCertRow?.media_type || '').startsWith('video')
+      ? `<div class="ch-family-cert-preview"><video class="ch-family-cert-media" src="${familyCertMediaUrl}" controls playsinline preload="metadata"></video></div>`
+      : `<div class="ch-family-cert-preview"><img class="ch-family-cert-media" src="${familyCertMediaUrl}" alt="${familyCertImageAlt}" onclick="openPhotoLightbox('${familyCertMediaUrl}','${familyCertImageAlt}')"></div>`
+    : '';
   const familyCertActionHtml = `
     <div class="card">
       <div class="card-header">
         <span class="card-title">가족 인증</span>
+        ${familyCertRow ? `<span class="badge ${familyCertStatus.cls}">${familyCertStatus.label}</span>` : ''}
       </div>
-      <div style="font-size:12px;line-height:1.6;color:var(--text-secondary);margin-bottom:10px">신청 여부와 무관하게 가족과 함께한 걷기, 운동, 스트레칭 인증을 제출할 수 있어요.</div>
-      <button type="button" class="btn btn-primary btn-full ch-workout-btn" style="padding:8px;font-size:11px" onclick="goToFamilyCert()">가족 함께 운동 인증하기</button>
+      ${familyCertPreviewHtml}
+      ${familyCertRow
+        ? `<div class="ch-family-cert-points">+100포인트</div>
+           <div class="ch-family-cert-copy">가족 운동 인증에 참여하였습니다.</div>
+           <div class="ch-family-cert-sub">${familyCertSubmittedAt ? `${familyCertSubmittedAt} 업로드` : '업로드한 인증 파일입니다.'}</div>
+           ${familyCertMemo ? `<div class="ch-family-cert-memo">${escHtmlComm(familyCertMemo)}</div>` : ''}`
+        : `<div style="font-size:12px;line-height:1.6;color:var(--text-secondary);margin-bottom:10px">신청 여부와 무관하게 가족과 함께한 걷기, 운동, 스트레칭 인증을 제출할 수 있어요.</div>`}
+      <button type="button" class="btn btn-primary btn-full ch-workout-btn" style="padding:8px;font-size:11px" onclick="goToFamilyCert()">가족사진 영상 인증하기</button>
     </div>
   `;
   doneHtml += familyCertActionHtml;
-  doneRenderKey += '|family-cert-v1';
+  doneRenderKey += '|family-cert:' + getFamilyCertLatestRowToken(familyCertRow);
 
   const formChanged = setChallengeSectionHtml(formEl, formHtml, formRenderKey);
   setChallengeSectionHtml(doneEl, doneHtml, doneRenderKey);
@@ -15621,7 +15938,7 @@ function renderChallenge() {
               <div class="ch-program-title">스페셜 인증</div>
               <div style="font-size:11px;font-weight:700;color:var(--primary);white-space:nowrap">각 1회</div>
             </div>
-            <div class="ch-program-desc">러닝화 착용/첫 운동 인증 1회, 가족과 함께 걷기·운동·스트레칭 등 인증 1회를 진행해 주세요.</div>
+            <div class="ch-program-desc">러닝화 착용 또는 첫 운동 인증을 진행해 주세요.</div>
           </div>
         </div>
       </div>
@@ -17504,10 +17821,12 @@ async function init() {
   window.addEventListener('hi:loggedin', () => setTimeout(syncPushSubscriptionIfNeeded, 1500));
   window.addEventListener('hi:loggedin', () => setTimeout(() => {
     syncFamilyCertRewardStatus().catch(err => console.warn('[family-cert/reward-sync]', err));
+    refreshCurrentFamilyCertLatest({ force: true, silent: true }).catch(err => console.warn('[family-cert/latest-login-sync]', err));
   }, 1800));
   window.addEventListener('focus', () => {
     if (!(S.user?.empId || ACTIVE_EMPID)) return;
     syncFamilyCertRewardStatus().catch(err => console.warn('[family-cert/reward-focus-sync]', err));
+    refreshCurrentFamilyCertLatest({ force: true, silent: true }).catch(err => console.warn('[family-cert/latest-focus-sync]', err));
   });
 
   if ('serviceWorker' in navigator) {
@@ -17568,8 +17887,12 @@ async function init() {
         })
         .subscribe();
       _db.channel('family_certifications_ch')
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'family_certifications' }, async (payload) => {
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'family_certifications' }, async (payload) => {
           const changed = payload.new || {};
+          if (isCurrentFamilyCertRow(changed)) {
+            setFamilyCertLatestRow(changed);
+            if (document.getElementById('page-challenge')?.classList.contains('active')) renderChallenge();
+          }
           if (String(changed.status || '').trim().toLowerCase() !== 'approved') return;
           if (!isCurrentFamilyCertRow(changed)) return;
           try {
