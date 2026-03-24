@@ -573,16 +573,16 @@
 
     <!-- ── PANEL: CHALLENGE ── -->
     <div class="panel" id="panel-challenge">
-      <div style="display:flex;gap:24px;align-items:baseline;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border);">
-        <div><span id="ch-total" style="font-size:28px;font-weight:800;color:var(--t1)">-</span><span style="font-size:13px;color:var(--t3);margin-left:4px">명 전체</span></div>
-        <div><span id="ch-fam" style="font-size:22px;font-weight:700;color:var(--p)">-</span><span style="font-size:12px;color:var(--t3);margin-left:4px">명 가족참여</span></div>
-        <div><span id="ch-cgm" style="font-size:22px;font-weight:700;color:var(--green)">-</span><span style="font-size:12px;color:var(--t3);margin-left:4px">명 혈당기기</span></div>
-        <span id="ch-live" style="display:none"></span>
-        <span id="ch-donation" style="display:none"></span>
-        <span id="ch-pend" style="display:none"></span>
-        <span id="ch-ok" style="display:none"></span>
-        <span id="ch-can" style="display:none"></span>
+      <div class="stat-grid" style="margin-bottom:20px">
+        <div class="stat-card a"><div class="s-lbl">전체</div><div class="s-val" id="ch-total">-</div><div class="s-sub">명</div></div>
+        <div class="stat-card pu"><div class="s-lbl">가족참여</div><div class="s-val" id="ch-fam">-</div><div class="s-sub">명</div></div>
+        <div class="stat-card g"><div class="s-lbl">혈당기기</div><div class="s-val" id="ch-cgm">-</div><div class="s-sub">명</div></div>
       </div>
+      <span id="ch-live" style="display:none"></span>
+      <span id="ch-donation" style="display:none"></span>
+      <span id="ch-pend" style="display:none"></span>
+      <span id="ch-ok" style="display:none"></span>
+      <span id="ch-can" style="display:none"></span>
       <div class="ctrl-bar">
         <input class="ctrl-inp" id="ch-search" placeholder="신청번호·이름·계정 ID·티셔츠·혈당체크기기 검색" oninput="renderChallenge()">
         <select class="ctrl-sel" id="ch-sfilter" onchange="renderChallenge()">
