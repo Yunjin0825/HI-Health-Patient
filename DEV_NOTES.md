@@ -69,6 +69,14 @@
 
 ---
 
+### [2026-03-24] 챌린지 진입 시 내 아바타가 av1.png로 표시됨
+**증상**: 같이 달려요 av-stack에서 본인 아바타가 항상 av1.png로 표시됨
+**원인**: `syncChallengeRuntimeToRunday()`가 iframe 로드 시 `LOGIN` 메시지를 보내지 않아 `currentLoginAvatar`가 기본값(av1.png)으로 남음. `window.parent.S`는 `let` 선언이라 iframe에서 접근 불가
+**해결**: `syncChallengeRuntimeToRunday()`에 LOGIN 메시지 전송 추가
+**관련 파일**: `index.html:13948`
+
+---
+
 ## 🚧 작업 (Task)
 
 <!-- 형식:
