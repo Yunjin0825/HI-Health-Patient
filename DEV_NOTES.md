@@ -7,6 +7,12 @@
 
 ## 🐛 오류 / 이슈
 
+### [2026-03-24] 관리자페이지 이용자 삭제 후 챌린지 이용자가 다시 나타남
+**증상**: 관리자페이지에서 이용자 삭제를 눌러도 대상 이용자가 다시 목록에 보이거나 삭제가 제대로 안 된 것처럼 보임
+**원인**: 삭제 로직이 `workouts`, `glucose`, `posts`, `users`만 `deviceId` 기준으로 지우고 있었음. 하지만 관리자 이용자 목록은 `users` 테이블만이 아니라 `registrations`를 합쳐서 생성되므로, 챌린지 신청 데이터가 남아 있으면 같은 사람이 `임시/챌린지` 이용자로 다시 합성되어 표시됨. 게시글 반응/댓글 같은 연관 데이터도 별도 정리가 필요했음
+**해결**: 관리자 이용자 삭제를 `deviceId`, `empId`, `registrationId` 기반 확장 삭제로 변경. `registrations`, `orders`, `reactions`, `post_comments`까지 함께 정리하고, 중복 이용자 삭제도 같은 공용 삭제 함수를 사용하도록 통일
+**관련 파일**: `user-admin.html`
+
 ### [2026-03-24] 같이 달려요 아바타 전부 av1.png 표시
 **증상**: 참여자 아바타 스택에 모든 사람이 av1.png로 표시됨
 **원인**:
@@ -96,6 +102,14 @@
 **관련 파일**: 파일명
 -->
 
+### #4 ✅ 완료 [2026-03-24] 관리자 이용자 삭제 범위 보강
+**목표**: 관리자페이지에서 이용자 삭제 시 챌린지 신청/주문/반응 데이터까지 함께 정리되어 실제로 목록에서 사라지게 하기
+**현재 상태**:
+- 삭제 대상을 `deviceId`, `empId`, `registrationId` 기준으로 확장 수집하도록 수정
+- `users`, `workouts`, `glucose`, `posts` 외에 `registrations`, `orders`, `reactions`, `post_comments`도 함께 정리
+- 중복 이용자 삭제도 같은 공용 삭제 함수 사용으로 통일
+**관련 파일**: `user-admin.html`
+
 ### #3 ✅ 완료 [2026-03-24] 참여자 목록 0명 표시 버그 수정
 **목표**: cancelled + pending 이력이 같은 empId에 있을 때 pending이 올바르게 표시되게 하기
 **현재 상태**: select 쿼리에 `registeredat` 추가 + `normalizeRegRow` 폴백 추가로 수정 완료
@@ -136,6 +150,7 @@
 - 챌린지 관련 변경 시 아래 5가지 흐름을 항상 함께 확인할 것: `신청`, `수정`, `취소`, `프로필 아바타 변경`, `같이 달려요 반영`
 - 프로필 아바타 변경은 `S.user`만 바꾸면 끝나지 않음. `registrations` 로컬/원격, `CHALLENGE_PEOPLE_CACHE_KEY`, `runday.html`의 `PEOPLE_CACHE_KEY`, `CHALLENGE_PEOPLE_STATE` 전달 흐름까지 같이 유지해야 함
 - 현재 사용자 식별은 `regId`, `empId/empid`, `deviceId/deviceid`를 모두 고려해야 함. 챌린지 코드 수정 시 camelCase만 가정하지 말 것
+- 관리자 이용자 삭제는 `users`만 지우면 끝나지 않음. `registrations` 기반 파생 이용자가 다시 생길 수 있으므로 `deviceId`, `empId`, `registrationId`를 함께 추적해서 연관 테이블까지 삭제해야 함
 
 ### 백엔드 선택 기준
 - 신규 기능: Supabase 우선
