@@ -61,11 +61,14 @@
 
     /* ── MAIN ── */
     .adm-main{margin-left:220px;min-height:100vh;display:flex;flex-direction:column;background:var(--bg);}
-    .adm-topbar{background:#fff;border-bottom:1px solid var(--border);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:50;}
-    .tb-title{font-size:15px;font-weight:700;color:var(--t1);}
-    .tb-right{display:flex;align-items:center;gap:6px;}
-    .tb-btn{background:none;border:1px solid var(--border);color:var(--t2);padding:5px 13px;border-radius:20px;font-family:inherit;font-size:12px;cursor:pointer;transition:all .2s;font-weight:500;}
-    .tb-btn:hover{background:var(--bg);border-color:var(--p);color:var(--p);}
+    .adm-topbar{background:#fff;border-bottom:1px solid var(--border);height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:50;gap:12px;}
+    .tb-title{font-size:14px;font-weight:700;color:var(--t1);white-space:nowrap;}
+    .tb-right{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+    .tb-btn{background:none;border:none;color:var(--t3);padding:5px 10px;border-radius:6px;font-family:inherit;font-size:12px;cursor:pointer;transition:all .15s;font-weight:500;white-space:nowrap;}
+    .tb-btn:hover{background:var(--bg);color:var(--t1);}
+    .tb-btn.danger{color:var(--red);}
+    .tb-btn.danger:hover{background:var(--rl);}
+    .tb-divider{width:1px;height:16px;background:var(--border);margin:0 2px;}
     .adm-content{padding:20px;flex:1;width:100%;}
 
     /* ── STAT GRID ── */
@@ -306,9 +309,7 @@
       <button class="sb-item" id="tab-btn-content" data-tab="content" onclick="switchTab('content',this)"><span class="sb-icon">📝</span>콘텐츠 작성</button>
       <button class="sb-item" id="tab-btn-settings" data-tab="settings" onclick="switchTab('settings',this)"><span class="sb-icon">⚙️</span>설정</button>
     </nav>
-    <div class="sb-footer">
-      <span class="ah-status err" id="conn-status">연결 중...</span>
-    </div>
+    <div class="sb-footer" style="font-size:11px;color:var(--t3)">HI Health Admin</div>
   </aside>
 
   <!-- MAIN -->
@@ -316,9 +317,12 @@
     <header class="adm-topbar">
       <div class="tb-title" id="tb-page-title">이용자 관리</div>
       <div class="tb-right">
+        <span class="ah-status err" id="conn-status" style="font-size:11px"></span>
+        <div class="tb-divider"></div>
         <button class="tb-btn" onclick="loadAll()">새로고침</button>
-        <button class="tb-btn" onclick="openPwModal()">비밀번호</button>
-        <button class="tb-btn" onclick="doLogout()">로그아웃</button>
+        <button class="tb-btn" onclick="openPwModal()">비밀번호 변경</button>
+        <div class="tb-divider"></div>
+        <button class="tb-btn danger" onclick="doLogout()">로그아웃</button>
       </div>
     </header>
 
