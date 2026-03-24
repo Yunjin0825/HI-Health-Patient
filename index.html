@@ -7649,6 +7649,13 @@ async function hydrateAccountFromRemote(empId, fallbackName = '') {
         }, { onConflict: 'id' })
           .then(({ error }) => { if (error) console.error('[retrySync/workout]', wr.id, error); });
       });
+      // 누락 기록만큼 포인트도 재계산 후 users 테이블 업데이트
+      const recalcPoints = S.workouts.reduce((s, w) => s + (Number(w.points) || 0), 0);
+      if (recalcPoints > S.user.points) {
+        S.user.points = recalcPoints;
+        S.user.totalPoints = Math.max(recalcPoints, S.user.totalPoints || 0);
+        save();
+      }
     }
     S.glucoseRecords = mergeGlucoseRecords(g.data || [], S.glucoseRecords);
     applyProfileOverride(normalizedEmpId);
