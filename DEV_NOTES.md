@@ -15,6 +15,12 @@
 **관련 파일**: 파일명:라인
 -->
 
+### [2026-03-24] 시크릿탭에서 신청 내역 초기화 (checkExisting 필터 오류)
+**증상**: 시크릿탭으로 접속하면 이미 신청한 사람도 신청 화면이 새로 뜸
+**원인**: `syncRegistrationFromRemote`의 OR 필터가 `empid.eq.`, `deviceid.eq.` (소문자) → 400 실패 → localStorage 없는 시크릿탭에서 신청 데이터 못 불러옴
+**해결**: 필터를 `"empId".eq.`, `"deviceId".eq.` (camelCase)로 수정
+**관련 파일**: `runday.html:2554-2559`
+
 ### [2026-03-24] 참여자 목록에서 본인만 표시됨 (다른 참여자 안 보임)
 **증상**: 참여자 목록에 본인만 나오고 다른 사람은 표시 안 됨
 **원인**: `registrations` 테이블 컬럼이 camelCase quoted identifier(`"empId"`, `"deviceId"`, `"registeredAt"`)인데 select 쿼리를 소문자(`empid`, `deviceid`, `registeredat`)로 보내서 400 Bad Request. 서버 응답이 빈 배열 → localStorage recovery로 본인만 표시

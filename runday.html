@@ -2553,10 +2553,10 @@
         const filters = [];
         if (identity.regId) filters.push(`id.eq.${identity.regId}`);
         if (identity.empId) {
-          filters.push(`empid.eq.${identity.empId}`);
-          if (identity.empId.toLowerCase() !== identity.empId) filters.push(`empid.eq.${identity.empId.toLowerCase()}`);
+          filters.push(`"empId".eq.${identity.empId}`);
+          if (identity.empId.toLowerCase() !== identity.empId) filters.push(`"empId".eq.${identity.empId.toLowerCase()}`);
         }
-        if (identity.deviceId) filters.push(`deviceid.eq.${identity.deviceId}`);
+        if (identity.deviceId) filters.push(`"deviceId".eq.${identity.deviceId}`);
         if (!filters.length) return false;
         const res = await fetch(
           SB_URL + '/rest/v1/registrations?select=*&or=(' + filters.join(',') + ')&_=' + Date.now(),
