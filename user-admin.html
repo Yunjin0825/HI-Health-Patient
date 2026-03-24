@@ -617,7 +617,9 @@
         <select class="ctrl-sel" id="rew-sfilter" onchange="renderRewards()">
           <option value="">전체 상태</option>
           <option value="pending">대기</option>
-          <option value="done">완료</option>
+          <option value="confirmed">확인</option>
+          <option value="completed">완료</option>
+          <option value="cancelled">취소</option>
         </select>
         <span class="ctrl-count" id="rew-count">0건</span>
       </div>
@@ -630,6 +632,7 @@
               <th>보상 항목</th>
               <th>차감 포인트</th>
               <th>상태</th>
+              <th>신청일</th>
               <th>관리</th>
             </tr></thead>
             <tbody id="rew-tbody"></tbody>
@@ -3230,28 +3233,24 @@ function exportOrdersCsv() {
 ══════════════════════════════════════════════ */
 function getRewardRows() {
   const rows = [];
-  GD.users.forEach(u => {
-    const pendingRaw = u.pendingRewards ?? u.pendingrewards;
-    const doneRaw = u.redeemedRewards ?? u.redeemedrewards;
-    // pending: pendingRewards (아직 지급 안됨)
-    const pending = typeof pendingRaw === 'string'
-      ? pendingRaw.split(',').filter(Boolean)
-      : (pendingRaw || []);
-    // done: redeemedRewards (지급 완료)
-    const done = typeof doneRaw === 'string'
-      ? doneRaw.split(',').filter(Boolean)
-      : (doneRaw || []);
-    pending.forEach(rid => {
-      const r = REWARD_LIST.find(x => x.id === rid);
-      rows.push({ deviceId: u.deviceId, userName: u.name||'(이름없음)', empId: u.empId||'-',
-        rewardId: rid, rewardName: r?.name || rid, cost: r?.cost || 0, status: 'pending' });
+  GD.orders
+    .filter(o => o.pickup === '포인트교환' || String(o.id||'').startsWith('REW-'))
+    .forEach(o => {
+      let items = o.items;
+      if (typeof items === 'string') { try { items = JSON.parse(items); } catch { items = []; } }
+      const item = (items && items[0]) || {};
+      rows.push({
+        orderId:    o.id,
+        deviceId:   o.deviceId || '',
+        userName:   o.userName || o.name || '(이름없음)',
+        empId:      o.phone || '-',
+        rewardName: item.name || '-',
+        cost:       item.price || Number(o.total) || 0,
+        status:     o.status || 'pending',
+        orderedAt:  o.orderedAt,
+      });
     });
-    done.forEach(rid => {
-      const r = REWARD_LIST.find(x => x.id === rid);
-      rows.push({ deviceId: u.deviceId, userName: u.name||'(이름없음)', empId: u.empId||'-',
-        rewardId: rid, rewardName: r?.name || rid, cost: r?.cost || 0, status: 'done' });
-    });
-  });
+  rows.sort((a, b) => new Date(b.orderedAt||0) - new Date(a.orderedAt||0));
   return rows;
 }
 
@@ -3265,63 +3264,48 @@ function renderRewards() {
     return true;
   });
 
-  document.getElementById('rew-pend').textContent = all.filter(r => r.status === 'pending').length;
-  document.getElementById('rew-done').textContent = all.filter(r => r.status === 'done').length;
+  document.getElementById('rew-pend').textContent = all.filter(r => r.status === 'pending' || r.status === 'confirmed').length;
+  document.getElementById('rew-done').textContent = all.filter(r => r.status === 'completed').length;
   document.getElementById('rew-count').textContent = list.length + '건';
 
   const tbody = document.getElementById('rew-tbody');
   if (!list.length) {
-    tbody.innerHTML = `<tr><td class="empty-cell" colspan="6">보상 교환 내역이 없습니다</td></tr>`;
+    tbody.innerHTML = `<tr><td class="empty-cell" colspan="7">보상 교환 내역이 없습니다</td></tr>`;
     return;
   }
   tbody.innerHTML = list.map(r => {
-    const sBadge = r.status === 'done'
-      ? '<span class="badge ok">완료</span>'
+    const sBadge = r.status === 'completed' ? '<span class="badge ok">완료</span>'
+      : r.status === 'confirmed'  ? '<span class="badge ch">확인</span>'
+      : r.status === 'cancelled'  ? '<span class="badge can">취소</span>'
       : '<span class="badge pend">대기</span>';
-    const safeDevId = (r.deviceId||'').replace(/'/g,'');
-    const safeRid   = (r.rewardId||'').replace(/'/g,'');
+    const safeId = (r.orderId||'').replace(/'/g,"\\'");
+    const d = r.orderedAt ? new Date(r.orderedAt).toLocaleDateString('ko-KR') : '-';
+    let actionBtns = '';
+    if (r.status === 'pending')   actionBtns += `<button class="abtn grn" onclick="markRewardStatus('${safeId}','confirmed')">확인</button> `;
+    if (r.status === 'confirmed') actionBtns += `<button class="abtn pri" onclick="markRewardStatus('${safeId}','completed')">지급완료</button> `;
+    if (r.status !== 'cancelled' && r.status !== 'completed') actionBtns += `<button class="abtn red" onclick="markRewardStatus('${safeId}','cancelled')">취소</button>`;
     return `<tr>
       <td class="td-name">${r.userName}</td>
       <td>${r.empId}</td>
       <td>${r.rewardName}</td>
       <td><span class="badge pts">-${r.cost}p</span></td>
       <td>${sBadge}</td>
-      <td>
-        ${r.status === 'pending'
-          ? `<button class="abtn det" onclick="markRewardDone('${safeDevId}','${safeRid}')">지급 완료</button>`
-          : '-'}
-      </td>
+      <td class="td-date">${d}</td>
+      <td style="white-space:nowrap">${actionBtns || '-'}</td>
     </tr>`;
   }).join('');
 }
 
-async function markRewardDone(deviceId, rewardId) {
-  const u = GD.users.find(x => x.deviceId === deviceId);
-  if (!u) return;
-  const pendingRaw = u.pendingRewards ?? u.pendingrewards;
-  const doneRaw = u.redeemedRewards ?? u.redeemedrewards;
-  // pendingRewards에서 제거, redeemedRewards에 추가
-  let pending = typeof pendingRaw === 'string'
-    ? pendingRaw.split(',').filter(Boolean)
-    : [...(pendingRaw || [])];
-  let done = typeof doneRaw === 'string'
-    ? doneRaw.split(',').filter(Boolean)
-    : [...(doneRaw || [])];
-  pending = pending.filter(id => id !== rewardId);
-  if (!done.includes(rewardId)) done.push(rewardId);
+async function markRewardStatus(orderId, status) {
   showLoading(true);
-  const { error } = await db.from('users').update({
-    pendingrewards: pending.join(','),
-    redeemedrewards: done.join(','),
-  }).eq('deviceId', deviceId);
+  const { error } = await db.from('orders').update({ status }).eq('id', orderId);
   showLoading(false);
   if (error) { toast('실패: ' + error.message); return; }
-  u.pendingRewards = pending.join(',');
-  u.redeemedRewards = done.join(',');
-  u.pendingrewards = pending.join(',');
-  u.redeemedrewards = done.join(',');
+  const o = GD.orders.find(x => String(x.id) === String(orderId));
+  if (o) o.status = status;
   renderRewards();
-  toast('보상 지급 완료 처리 ✓');
+  const msg = status === 'completed' ? '✅ 지급 완료 처리!' : status === 'confirmed' ? '확인 처리!' : '취소 처리!';
+  toast(msg);
 }
 
 /* ══════════════════════════════════════════════
