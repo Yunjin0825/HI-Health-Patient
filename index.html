@@ -9063,6 +9063,7 @@ function navigate(page) {
     setRewardsTab('rewards');
     renderRewards();
     loadAppConfig();
+    syncRewardStatus();
   }
   if (!isChallenge && _rundayIframeLoadStarted) {
     postToRunday({ type: 'PAGE_VISIBILITY', active: false });
@@ -13740,13 +13741,13 @@ function redeemReward(id) {
   if (!_challengeRewardMode) S.user.points -= r.cost;
   S.pendingRewards.push(id);
   if (!S.rewardHistory) S.rewardHistory = [];
-  S.rewardHistory.unshift({ id, name: r.name, cost: r.cost, status: 'pending', ts: Date.now() });
+  const orderId = 'REW-' + String(Date.now()).slice(-8);
+  S.rewardHistory.unshift({ id, name: r.name, cost: r.cost, status: 'pending', ts: Date.now(), orderId });
   save();
   renderHeader();
   haptic('success');
 
   // 관리자 페이지 orders 테이블에 등록
-  const orderId = 'REW-' + String(Date.now()).slice(-8);
   apiSync('addOrder', {
     id: orderId,
     deviceId: S.deviceId || '',
@@ -13768,19 +13769,45 @@ function redeemReward(id) {
 function confirmReward(id) {
   const r = REWARDS_DATA.find(x => x.id === id);
   if (!r) return;
-  showConfirm(
-    `"${r.name}" 교환을 확인하시겠어요?`,
-    () => {
-      S.pendingRewards  = S.pendingRewards.filter(x => x !== id);
-      S.redeemedRewards.push(id);
-      const hist = (S.rewardHistory || []).find(h => h.id === id && h.status === 'pending');
-      if (hist) { hist.status = 'done'; hist.doneTs = Date.now(); }
-      save();
-      haptic('success');
-      showToast('✅ 교환 완료 확인!');
-      renderRewards();
+  S.pendingRewards  = S.pendingRewards.filter(x => x !== id);
+  S.redeemedRewards.push(id);
+  const hist = (S.rewardHistory || []).find(h => h.id === id && h.status === 'pending');
+  if (hist) { hist.status = 'done'; hist.doneTs = Date.now(); }
+  save();
+  haptic('success');
+  showToast('✅ 교환 완료 확인!');
+  // Supabase orders 상태 업데이트
+  if (_db && hist?.orderId) {
+    _db.from('orders').update({ status: 'completed' }).eq('id', hist.orderId);
+  }
+  renderRewards();
+}
+
+async function syncRewardStatus() {
+  if (!_db || !S.deviceId) return;
+  const { data } = await _db.from('orders')
+    .select('id, status, items')
+    .eq('deviceId', S.deviceId)
+    .eq('pickup', '포인트교환');
+  if (!data || !data.length) return;
+  let changed = false;
+  data.forEach(order => {
+    let items = order.items;
+    if (typeof items === 'string') { try { items = JSON.parse(items); } catch { return; } }
+    const rewardId = (items?.[0]?.id) || null;
+    if (!rewardId) return;
+    if (order.status === 'completed') {
+      if (!S.redeemedRewards.includes(rewardId)) { S.redeemedRewards.push(rewardId); changed = true; }
+      S.pendingRewards = S.pendingRewards.filter(x => x !== rewardId);
+      const hist = (S.rewardHistory || []).find(h => h.id === rewardId && h.orderId === order.id);
+      if (hist && hist.status !== 'done') { hist.status = 'done'; hist.doneTs = Date.now(); changed = true; }
+    } else if (order.status === 'cancelled') {
+      S.pendingRewards = S.pendingRewards.filter(x => x !== rewardId);
+      S.redeemedRewards = S.redeemedRewards.filter(x => x !== rewardId);
+      changed = true;
     }
-  );
+  });
+  if (changed) { save(); renderRewards(); }
 }
 
 function openRewardForm() {
