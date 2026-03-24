@@ -3710,8 +3710,8 @@
 
     // Supabase에서 실시간 데이터 fetch
     const loadPromise = (async () => {
-      const selectWithAvatar = 'id,deviceid,name,dept,empid,avatar,status,registeredat';
-      const selectFallback = 'id,deviceid,name,dept,empid,status,registeredat';
+      const selectWithAvatar = 'id,"deviceId",name,dept,"empId",avatar,status,"registeredAt"';
+      const selectFallback = 'id,"deviceId",name,dept,"empId",status,"registeredAt"';
       const normalizeRegRow = r => ({ ...r, empId: r.empId ?? r.empid ?? '', deviceId: r.deviceId ?? r.deviceid ?? '', registeredAt: r.registeredAt ?? r.registeredat ?? '' });
       const fetchRows = async (selectClause) => {
         const res = await fetch(
