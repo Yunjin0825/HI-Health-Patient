@@ -392,10 +392,6 @@
       <div class="ctrl-bar">
         <input class="ctrl-inp" id="wo-search" placeholder="이용자명·계정 ID 검색" oninput="woReset()">
         <select class="ctrl-sel" id="wo-user" onchange="woReset()"><option value="">이용자 선택</option></select>
-        <div class="wo-inline-actions">
-          <button class="cbtn sky" onclick="useSelectedUserForWorkouts()">선택 이용자 보기</button>
-          <button class="cbtn" style="background:var(--bg);color:var(--t2)" onclick="clearWorkoutUserFilter()">선택 해제</button>
-        </div>
         <select class="ctrl-sel" id="wo-type" onchange="woReset()"><option value="">전체 종류</option></select>
         <select class="ctrl-sel" id="wo-period" onchange="woReset()">
           <option value="">전체 기간</option>
