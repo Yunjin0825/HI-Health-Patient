@@ -7614,6 +7614,10 @@ async function hydrateAccountFromRemote(empId, fallbackName = '') {
     if (w.error) throw w.error;
     if (g.error) throw g.error;
 
+    // 서버에 없는 로컬 운동 기록 — 나중에 재동기화
+    const serverWorkoutIds = new Set((w.data || []).map(r => String(r.id)));
+    const localOnlyWorkouts = (S.workouts || []).filter(r => !serverWorkoutIds.has(String(r.id)));
+
     S.user = { ...S.user,
       name: u.name || S.user.name || fallbackName,
       avatar: normalizeAvatar(u.avatar || S.user.avatar),
@@ -7625,6 +7629,27 @@ async function hydrateAccountFromRemote(empId, fallbackName = '') {
       tags: typeof u.tags === 'string' ? u.tags.split(',').filter(Boolean) : (u.tags || []),
     };
     S.workouts = mergeWorkoutRecords(w.data || [], S.workouts);
+
+    // 로컬에만 있던 기록을 Supabase에 재동기화 (오프라인/네트워크 오류로 누락된 경우)
+    if (localOnlyWorkouts.length > 0) {
+      localOnlyWorkouts.forEach(wr => {
+        const exInfo = getExType(wr.exId);
+        _db.from('workouts').upsert({
+          id: wr.id,
+          deviceId: resolvedDid,
+          userName: S.user.name,
+          date: new Date(wr.ts).toLocaleDateString('ko-KR'),
+          exId: wr.exId,
+          exName: wr.customName || exInfo.name,
+          duration: wr.duration,
+          points: wr.points,
+          memo: wr.memo || '',
+          ts: wr.ts,
+          routepath: (wr.routePath && Array.isArray(wr.routePath) && wr.routePath.length > 1) ? wr.routePath : null,
+        }, { onConflict: 'id' })
+          .then(({ error }) => { if (error) console.error('[retrySync/workout]', wr.id, error); });
+      });
+    }
     S.glucoseRecords = mergeGlucoseRecords(g.data || [], S.glucoseRecords);
     applyProfileOverride(normalizedEmpId);
     return { user: u, deviceId: resolvedDid, relatedDeviceIds };
