@@ -14966,8 +14966,29 @@ function getFamilyCertRewardSeenKey(empId = ACTIVE_EMPID || S.user?.empId || '')
 
 function getFamilyCertRewardToken(row) {
   const certId = String(row?.id || '').trim();
-  const stamp = String(row?.rewarded_at || row?.reviewed_at || '').trim();
+  const stamp = String(
+    row?.rewarded_at
+    || row?.reviewed_at
+    || row?.updated_at
+    || row?.submitted_at
+    || row?.created_at
+    || row?.status
+    || ''
+  ).trim();
   return certId && stamp ? `${certId}:${stamp}` : '';
+}
+
+function getFamilyCertRewardSortTs(row) {
+  return Date.parse(
+    String(
+      row?.rewarded_at
+      || row?.reviewed_at
+      || row?.updated_at
+      || row?.submitted_at
+      || row?.created_at
+      || 0
+    )
+  ) || 0;
 }
 
 function hasSeenFamilyCertReward(row, empId = ACTIVE_EMPID || S.user?.empId || '') {
@@ -15084,11 +15105,12 @@ async function syncFamilyCertRewardStatus() {
       .limit(10);
     if (error) throw error;
 
-    const matched = (data || []).filter(isCurrentFamilyCertRow);
+    const matched = (data || [])
+      .filter(isCurrentFamilyCertRow)
+      .sort((a, b) => getFamilyCertRewardSortTs(b) - getFamilyCertRewardSortTs(a));
     if (!matched.length) return null;
-    const unseen = matched.find(row => !hasSeenFamilyCertReward(row));
-    const target = unseen || matched[0];
-    if (target && unseen) await consumeFamilyCertReward(target);
+    const target = matched[0];
+    if (target && !hasSeenFamilyCertReward(target)) await consumeFamilyCertReward(target);
     return target;
   })();
 
