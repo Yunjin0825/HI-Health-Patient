@@ -7577,7 +7577,7 @@ async function hydrateAccountFromRemote(empId, fallbackName = '') {
   try {
     const { data: rows, error } = await _db.from('users')
       .select('*')
-      .or(`empid.eq.${normalizedEmpId},empid.eq.${normalizedEmpId.toLowerCase()}`);
+      .or(`"empId".eq.${normalizedEmpId},"empId".eq.${normalizedEmpId.toLowerCase()}`);
     if (error) throw error;
 
     const matchedUsers = Array.isArray(rows) ? rows.filter(Boolean) : [];
@@ -11456,8 +11456,8 @@ function syncProfileToRemote() {
   const nextName = String(S.user.name || '').trim();
   if (!_db || !normalizedEmpId) return;
 
-  const userFilters = [`empid.eq.${normalizedEmpId}`];
-  if (normalizedEmpId.toLowerCase() !== normalizedEmpId) userFilters.push(`empid.eq.${normalizedEmpId.toLowerCase()}`);
+  const userFilters = [`"empId".eq.${normalizedEmpId}`];
+  if (normalizedEmpId.toLowerCase() !== normalizedEmpId) userFilters.push(`"empId".eq.${normalizedEmpId.toLowerCase()}`);
   _db.from('users').update({
     avatar: nextAvatar,
     nickname: nextNickname,
@@ -12193,8 +12193,8 @@ async function deleteMyDeviceAndServerData() {
     if (empIds.length || lowerEmpIds.length) {
       await runDeleteByIds('user_client_settings(emp_id)', ACCOUNT_SETTINGS_TABLE, 'emp_id', [...empIds, ...lowerEmpIds]);
       const empDeleteFilters = [...new Set([
-        ...empIds.map(empId => `empid.eq.${empId}`),
-        ...lowerEmpIds.map(empId => `empid.eq.${empId}`),
+        ...empIds.map(empId => `"empId".eq.${empId}`),
+        ...lowerEmpIds.map(empId => `"empId".eq.${empId}`),
       ])];
       if (empDeleteFilters.length) {
         await runDelete('users(empId)', () => _db.from('users').delete().or(empDeleteFilters.join(',')));
@@ -14699,10 +14699,10 @@ function syncRemoteChallengeRegistrationRef(registrationId = '', empId = S.user.
   const normalizedEmpId = normChallengeEmpId(empId);
   const normalizedDeviceId = normChallengeId(deviceId);
   if (normalizedEmpId) {
-    filters.push(`empid.eq.${normalizedEmpId}`);
-    if (normalizedEmpId.toLowerCase() !== normalizedEmpId) filters.push(`empid.eq.${normalizedEmpId.toLowerCase()}`);
+    filters.push(`"empId".eq.${normalizedEmpId}`);
+    if (normalizedEmpId.toLowerCase() !== normalizedEmpId) filters.push(`"empId".eq.${normalizedEmpId.toLowerCase()}`);
   } else if (normalizedDeviceId) {
-    filters.push(`deviceid.eq.${normalizedDeviceId}`);
+    filters.push(`"deviceId".eq.${normalizedDeviceId}`);
   }
   if (!filters.length) return;
   _db.from('users').update({
@@ -16160,7 +16160,7 @@ async function doAppLogin() {
   if (_db) {
     const { data: existing } = await _db.from('users')
       .select('name')
-      .or(`empid.eq.${regId},empid.eq.${regId.toLowerCase()}`)
+      .or(`"empId".eq.${regId},"empId".eq.${regId.toLowerCase()}`)
       .limit(1)
       .maybeSingle();
     if (existing && existing.name) {
