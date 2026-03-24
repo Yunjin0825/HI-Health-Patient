@@ -12937,6 +12937,12 @@ async function fetchCommunityPosts() {
       p.comments = p.commentList.length;
     });
 
+    // 관리자가 삭제한 내 글 제거 (S.posts에서 서버에 없는 글 걸러냄)
+    if (remotePosts.length) {
+      const remoteIds = new Set(remotePosts.map(p => String(p.id)));
+      S.posts = S.posts.filter(p => remoteIds.has(String(p.id)));
+    }
+
     // 커뮤니티 포스트 병합
     if (remotePosts.length) {
       const myIds = new Set(S.posts.map(p => String(p.id)));
