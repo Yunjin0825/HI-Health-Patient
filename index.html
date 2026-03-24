@@ -7610,6 +7610,27 @@ function load() {
     S.deviceId = did;
     const d = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
     if (!d) return;
+    // ── 오픈 전 1회 데이터 초기화 (2026-03-25) ──
+    const LAUNCH_RESET_FLAG = 'hi_reset_20260325';
+    if (!localStorage.getItem(LAUNCH_RESET_FLAG)) {
+      d.workouts = [];
+      d.glucoseRecords = [];
+      d.posts = [];
+      d.myReactions = {};
+      d.todayLog = null;
+      if (d.user) {
+        d.user.points = 0;
+        d.user.totalPoints = 0;
+        d.user.streak = 0;
+        d.user.stickersReceived = 0;
+        d.user.rewardHistory = [];
+      }
+      d.redeemedRewards = [];
+      d.pendingRewards = [];
+      d.rewardHistory = [];
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch(e) {}
+      localStorage.setItem(LAUNCH_RESET_FLAG, '1');
+    }
     S.user = { ...S.user, ...d.user };
     // 기존 사용자 마이그레이션: totalPoints 없으면 현재 points로 초기화
     if (!S.user.totalPoints) S.user.totalPoints = S.user.points;
