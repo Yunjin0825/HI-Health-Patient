@@ -15,6 +15,12 @@
 **관련 파일**: 파일명:라인
 -->
 
+### [2026-03-24] 참여자 목록에서 본인만 표시됨 (다른 참여자 안 보임)
+**증상**: 참여자 목록에 본인만 나오고 다른 사람은 표시 안 됨
+**원인**: `registrations` 테이블 컬럼이 camelCase quoted identifier(`"empId"`, `"deviceId"`, `"registeredAt"`)인데 select 쿼리를 소문자(`empid`, `deviceid`, `registeredat`)로 보내서 400 Bad Request. 서버 응답이 빈 배열 → localStorage recovery로 본인만 표시
+**해결**: select 쿼리 컬럼명을 큰따옴표 camelCase로 수정 (`"empId"`, `"deviceId"`, `"registeredAt"`)
+**관련 파일**: `index.html:13900-13901`, `runday.html:3713-3714`
+
 ### [2026-03-24] 참여자 목록에서 cancelled가 pending을 덮어씀 (0명 표시)
 **증상**: 동일 empId로 cancelled → pending 순서로 신청 내역이 있을 때, 참여자 목록에 0명 표시
 **원인**: `loadPeople` / `fetchChallengePeopleRows`의 select 쿼리에 `registeredat`가 없었음. `peopleRowTs()`가 항상 0 반환 → `collapsePeopleRows`에서 `0 >= 0 = true` 조건으로 나중에 순회된 cancelled 행이 pending을 덮어씀 → status: 'cancelled' → 필터링 → 0명
@@ -94,7 +100,7 @@
 - `workouts.id`는 항상 문자열로 취급 (`String(id)` 변환 후 비교)
 - Supabase 조회 시 `push_subscriptions` 알림 필터: `enabled = true OR permission = 'granted'`
 - 챌린지 인원 수는 클라이언트 캐시 무시, 서버 응답을 권위적 소스로 사용
-- `registrations` 테이블 컬럼명은 소문자(`empid`, `deviceid`, `registeredat`). JS에서 camelCase로 정규화해서 사용. 필터/select 쿼리 문자열에도 소문자로 작성할 것
+- `registrations` 테이블 컬럼명은 camelCase(`"empId"`, `"deviceId"`, `"registeredAt"`). PostgreSQL quoted identifier라서 대소문자 구분됨. REST API select 쿼리에서도 큰따옴표로 감싸서 정확히 써야 함 (예: `"empId"`, `"deviceId"`, `"registeredAt"`)
 - 챌린지 관련 변경 시 아래 5가지 흐름을 항상 함께 확인할 것: `신청`, `수정`, `취소`, `프로필 아바타 변경`, `같이 달려요 반영`
 - 프로필 아바타 변경은 `S.user`만 바꾸면 끝나지 않음. `registrations` 로컬/원격, `CHALLENGE_PEOPLE_CACHE_KEY`, `runday.html`의 `PEOPLE_CACHE_KEY`, `CHALLENGE_PEOPLE_STATE` 전달 흐름까지 같이 유지해야 함
 - 현재 사용자 식별은 `regId`, `empId/empid`, `deviceId/deviceid`를 모두 고려해야 함. 챌린지 코드 수정 시 camelCase만 가정하지 말 것
