@@ -6485,10 +6485,16 @@ function mergeAccountSettingsSnapshots(localSnapshot, remoteSnapshot) {
       ...((localSnapshot && localSnapshot.notifications) || {}),
       ...((remoteSnapshot && remoteSnapshot.notifications) || {}),
     },
-    profile: {
-      ...((localSnapshot && localSnapshot.profile) || {}),
-      ...((remoteSnapshot && remoteSnapshot.profile) || {}),
-    },
+    profile: (() => {
+      const local = (localSnapshot && localSnapshot.profile) || {};
+      const remote = (remoteSnapshot && remoteSnapshot.profile) || {};
+      const merged = { ...local, ...remote };
+      // 빈 nickname으로 로컬 닉네임을 덮어쓰지 않음
+      const localNick = String(local.nickname || '').trim();
+      const remoteNick = String(remote.nickname || '').trim();
+      merged.nickname = remoteNick || localNick;
+      return merged;
+    })(),
     todayPhoto: Object.prototype.hasOwnProperty.call(remoteSnapshot, 'todayPhoto')
       ? remoteSnapshot.todayPhoto
       : (localSnapshot?.todayPhoto || null),
@@ -11653,8 +11659,8 @@ function syncProfileToRemote() {
 
 function rerenderProfileSurfaces() {
   renderHeader();
+  renderHome();
   const activePage = document.querySelector('.page.active')?.id || '';
-  if (activePage === 'page-home') renderHome();
   if (activePage === 'page-community') {
     renderCommunity();
     if (document.getElementById('comm-league-panel')?.style.display !== 'none') renderLeague();
@@ -11884,7 +11890,8 @@ function openProfileModal(onboarding = false) {
   if (!S.user.name && identity.name) S.user.name = identity.name;
   document.getElementById('pm-realname').textContent = identity.name || '-';
   document.getElementById('pm-empid').textContent = identity.empId || '-';
-  document.getElementById('pm-nickname').value = S.user.nickname || S.user.name || '';
+  const _storedNick = readProfileOverride()?.nickname;
+  document.getElementById('pm-nickname').value = S.user.nickname || _storedNick || S.user.name || '';
   _selAvatar = normalizeAvatar(S.user.avatar);
   const validTags = new Set(activeTags().flatMap(c => c.tags));
   _preservedProfileTags = (S.user.tags || []).filter(t => !validTags.has(t));
