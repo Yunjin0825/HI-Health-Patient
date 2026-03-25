@@ -2765,6 +2765,21 @@
       65%  { transform: translateY(-5px) translateX(-2px) rotate(0deg); }
       100% { transform: translateY(0px) translateX(0px) rotate(-1deg); }
     }
+    @keyframes rtCharRun {
+      0%   { transform: translateY(0px) rotate(-2deg); }
+      25%  { transform: translateY(-10px) rotate(1deg); }
+      50%  { transform: translateY(-4px) rotate(-1deg); }
+      75%  { transform: translateY(-8px) rotate(2deg); }
+      100% { transform: translateY(0px) rotate(-2deg); }
+    }
+    @keyframes rtCharIdle {
+      0%,100% { transform: translateY(0px); }
+      50%     { transform: translateY(-4px); }
+    }
+    .rt-char-wrap { display:flex; align-items:center; justify-content:center; height:52px; }
+    .rt-char { height:48px; width:auto; object-fit:contain; filter:brightness(1.1); animation:rtCharIdle 3s ease-in-out infinite; transition:opacity 0.3s; }
+    #run-tracker-overlay.is-running .rt-char { animation:rtCharRun 0.55s ease-in-out infinite; }
+    #run-tracker-overlay.is-paused  .rt-char { animation:rtCharIdle 4s ease-in-out infinite; opacity:0.5; }
     #run-tracker-overlay { position:fixed; inset:0; z-index:8000; background:#0f172a; display:none; flex-direction:column; align-items:center; justify-content:space-between; padding:max(env(safe-area-inset-top),44px) 0 max(env(safe-area-inset-bottom),24px); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
     #run-tracker-overlay.show { display:flex; }
     .rt-header { width:100%; display:flex; align-items:center; justify-content:space-between; padding:0 20px; }
@@ -4774,7 +4789,7 @@
           </div>
           <div class="hero-stat">
             <div class="hero-stat-value" id="today-min">0</div>
-            <div class="hero-stat-label">운동(분)</div>
+            <div class="hero-stat-label">운동시간</div>
           </div>
           <div class="hero-stat">
             <div class="hero-stat-value" id="today-pts">+0</div>
@@ -7970,8 +7985,8 @@ async function shareLevelCard() {
     <div style="flex-shrink:0;background:linear-gradient(to bottom,rgba(0,0,0,0.28) 0%,rgba(0,0,0,0) 90px),linear-gradient(135deg,#3730A3 0%,#4F46E5 100%);padding:12px 18px 12px;border-radius:0 0 24px 24px;position:relative;overflow:hidden;color:#fff">
       <!-- 광택 오버레이 -->
       <div style="position:absolute;top:0;left:0;right:0;height:100%;background:linear-gradient(180deg,rgba(255,255,255,0.08) 0%,transparent 52%);pointer-events:none"></div>
-      <div style="position:absolute;top:-34px;right:-22px;width:132px;height:132px;border-radius:50%;background:rgba(255,255,255,0.14);filter:blur(14px);pointer-events:none"></div>
-      <div style="position:absolute;bottom:-24px;right:32px;width:82px;height:82px;border-radius:50%;background:rgba(255,255,255,0.08);filter:blur(8px);pointer-events:none"></div>
+      <div style="position:absolute;top:-34px;right:-22px;width:132px;height:132px;border-radius:50%;background:rgba(255,255,255,0.14);pointer-events:none"></div>
+      <div style="position:absolute;bottom:-24px;right:32px;width:82px;height:82px;border-radius:50%;background:rgba(255,255,255,0.08);pointer-events:none"></div>
 
       <!-- 헤더: 로고 + 나의 건강 기록 (좌) | 아바타 (우) -->
       <div style="display:flex;align-items:center;justify-content:space-between;position:relative">
@@ -8061,7 +8076,7 @@ async function shareLevelCard() {
     </div>
   `;
 
-  document.body.appendChild(card);
+    document.body.appendChild(card);
 
   try {
     const cardH = card.scrollHeight || card.offsetHeight || 560;
@@ -17185,6 +17200,7 @@ async function init() {
     <div class="rt-status" id="rt-status">대기 중</div>
   </div>
   <div class="rt-main" id="rt-main">
+    <div class="rt-char-wrap"><img src="images/4x/run_day_bla.png" class="rt-char" alt=""></div>
     <div><span class="rt-dist" id="rt-dist">0.00</span><span class="rt-dist-unit"> km</span></div>
     <div class="rt-stats">
       <div class="rt-stat"><div class="rt-stat-val" id="rt-time">00:00</div><div class="rt-stat-label">시간</div></div>
@@ -17309,6 +17325,7 @@ async function init() {
     _rt = createRunTrackerState();
     const ov = document.getElementById('run-tracker-overlay');
     ov.classList.add('show');
+    ov.classList.remove('is-running', 'is-paused');
     document.getElementById('rt-main').style.display = '';
     document.getElementById('rt-summary').classList.remove('show');
     document.getElementById('rt-btns').style.display = '';
@@ -17359,6 +17376,8 @@ async function init() {
     _rt.state = 'running';
     _rt.startedAt = null;
     _rtToast('GPS를 연결하는 중이에요');
+    const _rtOv = document.getElementById('run-tracker-overlay');
+    _rtOv.classList.add('is-running'); _rtOv.classList.remove('is-paused');
     document.getElementById('rt-btn-main').className = 'rt-btn-main rt-btn-pause';
     document.getElementById('rt-btn-main').innerHTML = '<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="3" width="4" height="18" rx="1"/><rect x="15" y="3" width="4" height="18" rx="1"/></svg>';
     document.getElementById('rt-status').className = 'rt-status running';
@@ -17400,6 +17419,8 @@ async function init() {
     clearInterval(_rt.timer); _rt.timer = null;
     if (_rt.watchId !== null) { navigator.geolocation.clearWatch(_rt.watchId); _rt.watchId = null; }
     _rt.lastPos = null;
+    const _rtOv2 = document.getElementById('run-tracker-overlay');
+    _rtOv2.classList.remove('is-running'); _rtOv2.classList.add('is-paused');
     document.getElementById('rt-btn-main').className = 'rt-btn-main rt-btn-start';
     document.getElementById('rt-btn-main').innerHTML = '<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>';
     document.getElementById('rt-status').className = 'rt-status paused';

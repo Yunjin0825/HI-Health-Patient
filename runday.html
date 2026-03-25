@@ -781,24 +781,25 @@
     }
 
     /* fam detail */
+    .fam-note { font-size:11px; color:#6b7280; line-height:1.5; margin:6px 0 10px; }
     .fam-box {
       display: none; margin-top: 10px;
-      background: #f9fafb; border-radius: 10px; padding: 14px;
+      border-top: 1px solid #e5e7eb; padding-top: 14px;
     }
     .fam-box.show { display: block; }
-    .fam-box-label { font-size: 10px; font-weight: 700; color: var(--dim); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
-    .fam-member-list { display:flex; flex-direction:column; gap:10px; }
-    .fam-member-card { background:#fff; border:1.5px solid #e5e7eb; border-radius:12px; padding:10px; }
+    .fam-box-label { font-size: 11px; font-weight: 700; color: var(--dim); margin-bottom: 8px; }
+    .fam-member-list { display:flex; flex-direction:column; gap:8px; }
+    .fam-member-card { background:#f9fafb; border:1px solid #e5e7eb; border-radius:10px; padding:10px 12px; }
     .fam-member-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
-    .fam-member-title { font-size:12px; font-weight:800; color:var(--text); }
+    .fam-member-title { font-size:12px; font-weight:700; color:var(--text); }
     .fam-member-remove {
-      border:none; background:#fef2f2; color:#dc2626; border-radius:999px;
-      padding:5px 10px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit;
+      border:none; background:none; color:#dc2626; border-radius:999px;
+      padding:3px 8px; font-size:11px; font-weight:600; cursor:pointer; font-family:inherit;
     }
     .fam-member-remove:disabled { opacity:0.45; cursor:not-allowed; }
     .fam-add-btn {
-      width:100%; margin-top:10px; border:1.5px dashed #c4b5fd; background:#f5f3ff; color:#6d28d9;
-      border-radius:12px; padding:10px 12px; font-size:12px; font-weight:800; cursor:pointer; font-family:inherit;
+      width:100%; margin-top:8px; border:1.5px dashed #c4b5fd; background:#f5f3ff; color:#6d28d9;
+      border-radius:10px; padding:9px 12px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit;
     }
     .fam-add-btn:hover { background:#ede9fe; }
     .fam-add-btn:disabled { opacity:0.45; cursor:not-allowed; background:#f5f3ff; }
@@ -1283,7 +1284,7 @@
       color: rgba(255,255,255,0.45); text-align: center;
     }
     .img-preview-close {
-      position: absolute; top: 12px; right: 12px;
+      position: fixed; top: max(env(safe-area-inset-top), 16px); right: 16px;
       width: 40px; height: 40px; border-radius: 50%;
       background: rgba(15,23,42,0.78);
       border: 1px solid rgba(255,255,255,0.24);
@@ -1787,21 +1788,14 @@
     </div>
 
     <div class="fcard">
-      <div class="fcard-label-row">
-        <div class="fcard-label">가족 함께 참여</div>
-        <span style="font-size:11px;line-height:1.5;color:#6b7280">챌린지 기간동안 함께 운동하고, 런데이 행사에는 직원만 참여합니다.</span>
-      </div>
-      <div class="fg">
-        <div class="rg">
-          <label class="rl"><input type="radio" name="fam" value="no"  onchange="toggleFam(this)">본인만</label>
-          <label class="rl"><input type="radio" name="fam" value="yes" onchange="toggleFam(this)">가족함께</label>
-        </div>
-        <div class="souvenir-note form-note">
-          ✨ 함께하는 가족에게는 <strong style="color:#5b21b6">티셔츠</strong>를 선물로 드리고, 함께 운동하는 모습 인증하면 <strong style="color:#5b21b6">추가 포인트</strong>를 드려요.
-        </div>
+      <div class="fcard-label">가족 함께 참여</div>
+      <div class="fam-note">가족과 함께 운동하면 티셔츠 증정 + 인증 시 추가 포인트 지급 · 런데이 행사는 직원만 참여</div>
+      <div class="rg">
+        <label class="rl"><input type="radio" name="fam" value="no"  onchange="toggleFam(this)">본인만</label>
+        <label class="rl"><input type="radio" name="fam" value="yes" onchange="toggleFam(this)">가족함께</label>
       </div>
       <div class="fam-box" id="fam-detail">
-        <div class="fam-box-label">가족 정보 (티셔츠 선물용)</div>
+        <div class="fam-box-label">가족 정보 (티셔츠 사이즈 선택)</div>
         <div class="fam-member-list" id="fam-member-list"></div>
         <button type="button" class="fam-add-btn" onclick="addFamilyMember()">+ 가족 추가</button>
       </div>
@@ -1825,10 +1819,10 @@
 
 <!-- ─── IMAGE PREVIEW ───────────────────────── -->
 <div class="img-preview-overlay hidden" id="img-preview" onclick="if(event.target===this)closeImgPreview()">
+  <button type="button" class="img-preview-close" onclick="event.stopPropagation();closeImgPreview()">✕</button>
   <div class="img-preview-viewer" onclick="event.stopPropagation()">
     <button class="img-preview-nav prev" onclick="event.stopPropagation();previewNav(-1)">‹</button>
     <div class="img-preview-stage">
-      <button type="button" class="img-preview-close" onclick="event.stopPropagation();closeImgPreview()">✕</button>
       <img class="img-preview-img" id="img-preview-img" src="" alt="">
     </div>
     <button class="img-preview-nav next" onclick="event.stopPropagation();previewNav(1)">›</button>
