@@ -781,7 +781,7 @@
     }
 
     /* fam detail */
-    .fam-note { font-size:11px; color:#6b7280; line-height:1.5; margin:6px 0 10px; }
+    .fam-note { font-size:12px; color:#6b7280; line-height:1.5; margin:6px 0 10px; letter-spacing:-0.02em; }
     .fam-box {
       display: none; margin-top: 10px;
       border-top: 1px solid #e5e7eb; padding-top: 14px;
@@ -794,7 +794,8 @@
     .fam-member-title { font-size:12px; font-weight:700; color:var(--text); }
     .fam-member-remove {
       border:none; background:none; color:#dc2626; border-radius:999px;
-      padding:3px 8px; font-size:11px; font-weight:600; cursor:pointer; font-family:inherit;
+      padding:3px 6px; font-size:16px; line-height:1; cursor:pointer; font-family:inherit;
+      display:flex; align-items:center;
     }
     .fam-member-remove:disabled { opacity:0.45; cursor:not-allowed; }
     .fam-add-btn {
@@ -1628,7 +1629,7 @@
         <div class="route-focus-point">
           <div class="route-focus-point-dist">3.4KM</div>
           <div class="route-focus-point-title">서강대교 부근</div>
-          <div class="route-focus-point-desc">직선 주로를 따라 달리면 서강대교가 가까워지는 지점으로, 리듬을 안정적으로 잡기 좋은 구간입니다.</div>
+          <div class="route-focus-point-desc">결승선까지 약 1km! 지금까지의 페이스를 믿고 끝까지 달려봐요. 여의도공원이 눈앞에 있습니다.</div>
         </div>
         <div class="route-focus-point">
           <div class="route-focus-point-dist">4.3KM</div>
@@ -2048,7 +2049,7 @@
       <div class="fam-member-card">
         <div class="fam-member-head">
           <div class="fam-member-title">가족 ${idx + 1}</div>
-          <button type="button" class="fam-member-remove" onclick="removeFamilyMember(${idx})">삭제</button>
+          <button type="button" class="fam-member-remove" onclick="removeFamilyMember(${idx})" title="삭제">🗑️</button>
         </div>
         <div class="fg row2">
           <div>
@@ -2069,8 +2070,8 @@
           </div>
         </div>
         <div class="fg" style="margin-bottom:0">
-          <label class="lbl">기타 메모</label>
-          <input type="text" class="fi" value="${escAttr(member.memo)}" placeholder="키즈 제품 신청시 사이즈 110 - 150 중 선택하여 기입" oninput="updateFamilyMember(${idx}, 'memo', this.value)">
+          <label class="lbl" style="font-size:10px;">기타 메모</label>
+          <input type="text" class="fi" style="font-size:11px;" value="${escAttr(member.memo)}" placeholder="키즈 제품 신청시 사이즈 110 - 150 중 선택하여 기입" oninput="updateFamilyMember(${idx}, 'memo', this.value)">
         </div>
       </div>
     `).join('');

@@ -4935,7 +4935,7 @@
 
     <div class="exercise-section-shell exercise-section-shell--record">
       <div class="exercise-section-head">
-        <div class="exercise-section-title">운동 혈당 기록</div>
+        <div class="exercise-section-title">운동 · 혈당 기록</div>
       </div>
       <div class="record-entry-guide">
         <div class="record-entry-guide-copy">
@@ -4979,8 +4979,8 @@
           <button class="btn btn-primary btn-full btn-record btn-inactive" id="log-exercise-btn" onclick="logExercise()">운동 기록하기</button>
           <div id="log-exercise-hint" style="display:none;text-align:center;font-size:12px;color:var(--primary);margin-top:6px;animation:fadeIn 0.15s ease"></div>
           <div id="daily-limit-info" class="daily-limit-info daily-limit-info--center" style="margin-top:6px;margin-bottom:8px"></div>
-          <hr style="border:none;border-top:1px solid var(--border);margin:14px 0 10px">
-          <div class="record-history-head">
+          <hr id="wo-history-divider" style="display:none;border:none;border-top:1px solid var(--border);margin:14px 0 10px">
+          <div class="record-history-head" style="display:none">
             <span class="record-history-count" id="wo-total-badge">총 0회</span>
             <div class="record-view-tabs" aria-label="운동 기록 보기 전환">
               <button type="button" class="record-view-tab active" id="wo-tab-recent" onclick="setWoView('recent')">최근</button>
@@ -5042,11 +5042,11 @@
 
     <div class="exercise-section-shell exercise-section-shell--daily">
       <div class="exercise-section-head">
-        <div class="exercise-section-title">오늘 하루</div>
+        <div class="exercise-section-title">식사 · 수면 · 영양제 기록</div>
       </div>
       <div class="record-entry-guide">
         <div class="record-entry-guide-copy">
-          <div class="record-entry-guide-text">식사, 수면, 영양제는 오늘 기록이 누적 반영되고 자정에 초기화돼요</div>
+          <div class="record-entry-guide-text">오늘 기록이 누적 반영되고 자정에 초기화돼요</div>
         </div>
         <button type="button" class="reg-reset-btn" onclick="resetTodayLogNow()">지금 초기화</button>
       </div>
@@ -5211,7 +5211,7 @@
 
       <!-- 사진으로 기록 -->
       <div class="hc-section" style="padding-top:20px; padding-bottom:12px; margin-bottom:0; border-top:none">
-        <div class="hc-sec-title">오늘 하루를 사진으로 기록해보세요</div>
+        <div class="hc-sec-title">사진으로 기록해보세요</div>
         <div class="photo-upload-area" id="photo-upload-area" onclick="triggerPhotoInput()">
           <div id="photo-placeholder">
             <div class="pu-icon">
@@ -9503,11 +9503,18 @@ function renderWoTypeFilter() {
 function renderExerciseHistory() {
   renderWoTypeFilter();
   const wo = document.getElementById('wo-history');
+  const histHead = document.querySelector('.record-history-head');
+  const histDivider = document.getElementById('wo-history-divider');
+  const hasAny = S.workouts.length > 0;
+  if (histHead) histHead.style.display = hasAny ? '' : 'none';
+  if (histDivider) histDivider.style.display = hasAny ? '' : 'none';
+  const monthNav = document.getElementById('wo-month-nav');
+  if (monthNav && !hasAny) monthNav.classList.remove('show');
   const allWorkouts = _woTypeFilter === 'all' ? S.workouts : S.workouts.filter(w => w.exId === _woTypeFilter);
   if (_woViewMode === 'recent') {
     document.getElementById('wo-total-badge').textContent = '총 ' + S.workouts.length + '회';
     if (!allWorkouts.length) {
-      wo.innerHTML = `<div class="empty-state"><p>아직 기록된 운동이 없어요.<br>첫 운동을 기록해보세요!</p></div>`;
+      wo.innerHTML = '';
       return;
     }
     const reversed = [...allWorkouts].reverse();
@@ -9534,7 +9541,7 @@ function renderExerciseHistory() {
   document.getElementById('wo-total-badge').textContent = (month + 1) + '월 ' + monthWo.length + '회';
 
   if (!monthWo.length) {
-    wo.innerHTML = `<div class="wo-month-empty">${renderExerciseIcon('strength', { size:'14px', color:'#7c3aed' })}<span>이 달에는 운동 기록이 없어요</span></div>`;
+    wo.innerHTML = '';
     return;
   }
 
@@ -10239,6 +10246,8 @@ function updatePtsPreview() {
   } else if (remPts <= 0) {
     infoEl.textContent = `오늘 포인트 한도(${DAILY_POINTS_LIMIT}p) 도달`;
     infoEl.className = 'daily-limit-info daily-limit-info--center warn';
+  } else if (todayWo.length === 0) {
+    infoEl.textContent = '';
   } else {
     infoEl.textContent = `오늘 ${todayWo.length}회 기록 · 1분당 +${getExType(S.selectedEx).ppm}p`;
     infoEl.className = 'daily-limit-info daily-limit-info--center';
