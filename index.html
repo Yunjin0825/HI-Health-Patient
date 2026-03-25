@@ -15674,7 +15674,7 @@ function renderChallenge() {
       grad: 'linear-gradient(135deg,#8B5CF6,#6D28D9)',
       badge: '오픈 예정',
       title: 'HI RUN DAY 챌린지가 곧 시작됩니다',
-      desc: '워밍업기간에는 운동으로 루틴을 만들고, 페이스업 기간에는 운동과 혈당 기록을 함께 진행합니다. 스페셜 인증 미션도 참여해 주세요.',
+      desc: '워밍업기간에는 운동으로 루틴을 만들고, 페이스업 기간에는 운동과 혈당 기록을 함께 진행합니다.',
       stats: [
         { v: '3/25', l: '워밍업 시작' },
         { v: '4/5', l: '페이스업 시작' },
@@ -15685,7 +15685,7 @@ function renderChallenge() {
       grad: 'linear-gradient(135deg,#F59E0B,#D97706)',
       badge: '챌린지 안내',
       title: 'HI RUN DAY 챌린지가 시작됩니다',
-      desc: '워밍업기간에는 운동으로 루틴을 만들고, 페이스업 기간에는 운동과 혈당 기록을 함께 진행합니다. 스페셜 인증 미션도 참여해 주세요.',
+      desc: '워밍업기간에는 운동으로 루틴을 만들고, 페이스업 기간에는 운동과 혈당 기록을 함께 진행합니다.',
       stats: [
         { v: '3/25', l: '워밍업 시작' },
         { v: '4/5', l: '페이스업 시작' },
@@ -15718,7 +15718,7 @@ function renderChallenge() {
       grad: 'linear-gradient(135deg,#EF4444,#DC2626)',
       badge: '페이스업',
       title: '운동과 혈당 기록을 함께 진행해 주세요',
-      desc: '페이스업 기간에는 운동과 혈당 기록을 함께 남기고, 주 3회 이상 인증합니다. 스페셜 인증도 같이 체크해 주세요.',
+      desc: '페이스업 기간에는 운동과 혈당 기록을 함께 남기고, 주 3회 이상 인증합니다.',
       stats: [
         { v: chDays(now, CH.mainEnd) + '일', l: '페이스업 남은 기간' },
         { v: '주 3회+', l: '운동 + 혈당 기록' },
@@ -15729,11 +15729,11 @@ function renderChallenge() {
       grad: 'linear-gradient(135deg,#F97316,#EA580C)',
       badge: '오늘! HI RUN DAY',
       title: '오늘은 HI RUN DAY입니다',
-      desc: '워밍업과 페이스업 인증을 마치고, 스페셜 인증까지 확인해 주세요. 오늘은 직원들이 함께 달린 거리만큼 기부도 이어집니다.',
+      desc: '워밍업과 페이스업 인증을 마치고, 오늘은 직원들이 함께 달린 거리만큼 기부도 이어집니다.',
       stats: [
         { v: '4/15', l: 'RUN DAY' },
         { v: '주 3회+', l: '페이스업 기준' },
-        { v: '각 1회', l: '스페셜 인증' },
+        { v: '약 4.3km', l: 'RUN COURSE' },
       ]
     },
     ended: {
@@ -15932,7 +15932,7 @@ function renderChallenge() {
       </div>
       ${familyCertPreviewHtml}
       ${familyCertRow
-        ? `<div class="ch-family-cert-points">+100포인트</div>
+        ? `<div class="ch-family-cert-points">+100P</div>
            <div class="ch-family-cert-copy">가족 운동 인증에 참여하였습니다.</div>
            <div class="ch-family-cert-sub">${familyCertSubmittedAt ? `${familyCertSubmittedAt} 업로드` : '업로드한 인증 파일입니다.'}</div>
            ${familyCertMemo ? `<div class="ch-family-cert-memo">${escHtmlComm(familyCertMemo)}</div>` : ''}`
@@ -16029,16 +16029,6 @@ function renderChallenge() {
               <div style="font-size:11px;font-weight:700;color:var(--primary);white-space:nowrap">주 3회 이상</div>
             </div>
             <div class="ch-program-desc">운동과 혈당 기록을 함께 진행하며 보다 집중적으로 인증해 주세요.</div>
-          </div>
-        </div>
-        <div class="ch-program-step">
-          <div class="ch-program-num">3</div>
-          <div style="flex:1">
-            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
-              <div class="ch-program-title">스페셜 인증</div>
-              <div style="font-size:11px;font-weight:700;color:var(--primary);white-space:nowrap">각 1회</div>
-            </div>
-            <div class="ch-program-desc">러닝화 착용 또는 첫 운동 인증을 진행해 주세요.</div>
           </div>
         </div>
       </div>
