@@ -2168,6 +2168,15 @@
     }
     .exercise-section-head {
       margin: 0 2px 10px;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+    .exercise-section-date {
+      font-size: 12px;
+      color: #94a3b8;
+      font-weight: 500;
+      letter-spacing: -0.01em;
     }
     .exercise-section-title {
       font-size: 16px;
@@ -5236,7 +5245,7 @@
     <div class="card share-section">
       <div class="share-toggle-card on" id="share-toggle-btn">
         <div class="share-toggle-text">
-          <span class="share-toggle-title">오늘 하루 기록</span>
+          <span class="share-toggle-title">오늘 하루 기록 <span id="daily-log-date" style="font-size:11px;font-weight:500;color:#94a3b8;margin-left:4px"></span></span>
           <span class="share-toggle-sub" id="share-toggle-sub">저장하거나 커뮤니티에 공유해보세요</span>
         </div>
       </div>
@@ -16929,6 +16938,12 @@ function appLogout() {
 async function init() {
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   window.scrollTo(0, 0);
+  const dateEl = document.getElementById('daily-log-date');
+  if (dateEl) {
+    const now = new Date();
+    const days = ['일','월','화','수','목','금','토'];
+    dateEl.textContent = `${now.getMonth()+1}월 ${now.getDate()}일 ${days[now.getDay()]}요일`;
+  }
   warmInlineChallengeHtml();
   // ?run 파라미터 없으면 히어로 섹션 숨김, 서브타이틀 변경
   const loginScreen = document.getElementById('app-login-screen');
