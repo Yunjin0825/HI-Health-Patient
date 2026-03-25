@@ -5879,6 +5879,12 @@ let SHOP_CART_KEY   = 'hi_health_cart';
 /* ── 현재 로그인 사용자 (로그인 후 설정) ── */
 let ACTIVE_EMPID = '';
 let STORAGE_KEY  = 'hi_health_v2'; // 로그인 시 'hi_health_v2_사번'으로 변경
+function getResolvedProfileNickname(empId = ACTIVE_EMPID || S.user?.empId || '') {
+  const localNick = String(S.user?.nickname || '').trim();
+  if (localNick) return localNick;
+  const overrideNick = String(readProfileOverride(empId)?.nickname || '').trim();
+  return overrideNick || '';
+}
 // 닉네임 우선, 없으면 이름
 function myDisplayName() {
   const identityName = String(
@@ -5886,7 +5892,7 @@ function myDisplayName() {
     document.getElementById('login-name-input')?.value ||
     ''
   ).trim();
-  return S.user.nickname || S.user.name || identityName || '';
+  return getResolvedProfileNickname() || S.user.name || identityName || '';
 }
 /* ── Supabase 설정 (Supabase 콘솔 > Project Settings > API 에서 복사) ── */
 const SUPABASE_URL      = 'https://nbnmvvobehjitophkqmu.supabase.co';       // Project URL
@@ -5894,7 +5900,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const PUSH_PUBLIC_KEY   = 'BEaMexe-bw1jM31PgeQdkkZeqs29Ls1KIMY-TViYgH2dPqg_v7tRRObOpRUTGu5-ZgH13qR_ZTtxeOWh9_vnhTk';
 const PUSH_TABLE        = 'push_subscriptions';
 const PUSH_DEFAULT_URL  = './index.html#community';
-const SW_VERSION        = '20260324-92';
+const SW_VERSION        = '20260325-93';
 const CHALLENGE_PEOPLE_CACHE_KEY = 'hi_health_people_cache_v1';
 let _db = null; // Supabase 클라이언트
 let _realLeagueUsers = null; // Supabase에서 가져온 실제 유저 목록
@@ -6444,7 +6450,7 @@ function buildAccountSettingsSnapshot(empId = ACTIVE_EMPID || S.user?.empId || '
     },
     profile: {
       avatar: normalizeAvatar(profileOverride?.avatar || S.user?.avatar),
-      nickname: String(profileOverride?.nickname || S.user?.nickname || '').trim(),
+      nickname: getResolvedProfileNickname(normalizedEmpId),
     },
     communitySeenTs: Number(localStorage.getItem(getAccountScopedStorageKey(COMM_SEEN_KEY, normalizedEmpId)) || '0'),
     introSeen: !!localStorage.getItem(getAccountScopedStorageKey('hi_intro_seen', normalizedEmpId)),
@@ -6982,9 +6988,10 @@ let S = {
 function save(opts = {}) {
   if (IS_GUEST) return;
   const skipRemote = !!opts.skipRemote;
+  const resolvedNickname = getResolvedProfileNickname();
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      user: S.user,
+      user: { ...S.user, nickname: resolvedNickname },
       workouts: S.workouts,
       posts: S.posts,
       redeemedRewards: S.redeemedRewards,
@@ -7018,7 +7025,7 @@ function save(opts = {}) {
       dept: S.user.dept || '',
       points: S.user.points,
       streak: S.user.streak,
-      nickname: S.user.nickname || '',
+      nickname: resolvedNickname,
       tags: (S.user.tags || []).join(','),
       registrationId: S.user.registrationId || '',
       lastactiveat: new Date().toISOString(),
@@ -7487,6 +7494,7 @@ const ACCOUNT_SETTINGS_TABLE = 'user_client_settings';
 const ACCOUNT_SETTINGS_META_KEY = 'hi_account_settings_meta';
 let _accountSettingsSyncTimer = null;
 let _accountSettingsApplyingRemote = false;
+let _profileNicknameSyncTimer = null;
 
 function getAccountSettingsMetaKey(empId = ACTIVE_EMPID || S.user?.empId || '') {
   return getAccountScopedStorageKey(ACCOUNT_SETTINGS_META_KEY, empId);
@@ -7690,6 +7698,7 @@ async function hydrateAccountFromRemote(empId, fallbackName = '') {
 
     S.user = { ...S.user,
       name: u.name || S.user.name || fallbackName,
+      nickname: String(u.nickname || getResolvedProfileNickname(normalizedEmpId) || '').trim(),
       avatar: normalizeAvatar(u.avatar || S.user.avatar),
       empId: u.empId || normalizedEmpId,
       dept: u.dept || S.user.dept || '',
@@ -11499,7 +11508,7 @@ function renderProfileModalSummary() {
   if (previewName) {
     const inputName = String(document.getElementById('pm-nickname')?.value || '').trim();
     const identity = getProfileIdentity();
-    previewName.textContent = inputName || S.user.nickname || identity.name || '내 프로필';
+    previewName.textContent = inputName || getResolvedProfileNickname() || identity.name || '내 프로필';
   }
 }
 
@@ -11630,7 +11639,7 @@ function refreshChallengePeopleProfileCache(options = {}) {
 function syncProfileToRemote() {
   const normalizedEmpId = normalizeEmpIdValue(S.user.empId || ACTIVE_EMPID);
   const nextAvatar = normalizeAvatar(S.user.avatar);
-  const nextNickname = String(S.user.nickname || '').trim();
+  const nextNickname = getResolvedProfileNickname(normalizedEmpId);
   const nextName = String(S.user.name || '').trim();
   if (!_db || !normalizedEmpId) return;
 
@@ -11686,7 +11695,7 @@ function getPushIdentity() {
   return {
     deviceId: String(S.deviceId || '').trim(),
     empId: String(S.user.empId || identity.empId || ACTIVE_EMPID || '').trim().toUpperCase(),
-    name: String(S.user.nickname || S.user.name || identity.name || '').trim(),
+    name: String(getResolvedProfileNickname() || S.user.name || identity.name || '').trim(),
   };
 }
 
@@ -11890,8 +11899,7 @@ function openProfileModal(onboarding = false) {
   if (!S.user.name && identity.name) S.user.name = identity.name;
   document.getElementById('pm-realname').textContent = identity.name || '-';
   document.getElementById('pm-empid').textContent = identity.empId || '-';
-  const _storedNick = readProfileOverride()?.nickname;
-  document.getElementById('pm-nickname').value = S.user.nickname || _storedNick || S.user.name || '';
+  document.getElementById('pm-nickname').value = getResolvedProfileNickname(identity.empId) || S.user.name || '';
   _selAvatar = normalizeAvatar(S.user.avatar);
   const validTags = new Set(activeTags().flatMap(c => c.tags));
   _preservedProfileTags = (S.user.tags || []).filter(t => !validTags.has(t));
@@ -11942,24 +11950,37 @@ function togglePmSection(type) {
   const collapsed = body.classList.toggle('collapsed');
   btn.textContent = collapsed ? '열기' : '닫기';
 }
-function saveProfileModal() {
-  const modal = document.getElementById('profile-modal');
+function queueNicknameProfileSync(delay = 300) {
+  clearTimeout(_profileNicknameSyncTimer);
+  _profileNicknameSyncTimer = setTimeout(() => {
+    _profileNicknameSyncTimer = null;
+    syncProfileToRemote();
+  }, delay);
+}
+function persistProfileNickname(opts = {}) {
+  const skipRemote = opts.skipRemote !== false;
   const prevDisplayName = myDisplayName();
-  const nickname = document.getElementById('pm-nickname')?.value.trim();
+  const nicknameInput = document.getElementById('pm-nickname');
+  const nickname = String(nicknameInput?.value || '').trim();
   S.user.nickname = nickname || '';
-  S.user.avatar = normalizeAvatar(_selAvatar);
   writeProfileOverride({
-    avatar: S.user.avatar,
+    avatar: normalizeAvatar(S.user.avatar),
     nickname: S.user.nickname || '',
     modifiedAt: Date.now(),
   });
-  S.user.tags = [...new Set([..._preservedProfileTags, ..._selTags])];
   syncLocalProfileReferences(prevDisplayName);
-  if (modal) modal.classList.add('pm-hidden');
   markAccountSettingsDirty();
-  save();
+  save({ skipRemote: true });
   rerenderProfileSurfaces();
-  syncProfileToRemote();
+  if (!skipRemote) syncProfileToRemote();
+  else queueNicknameProfileSync();
+}
+function saveProfileModal() {
+  const modal = document.getElementById('profile-modal');
+  S.user.avatar = normalizeAvatar(_selAvatar);
+  S.user.tags = [...new Set([..._preservedProfileTags, ..._selTags])];
+  persistProfileNickname({ skipRemote: false });
+  if (modal) modal.classList.add('pm-hidden');
   postToRunday({
     type: 'AVATAR_CHANGE',
     name: S.user.name,
@@ -12032,6 +12053,10 @@ function pickAvatar(a) {
     avatar: nextAvatar,
   });
   renderProfileModalSummary();
+}
+function handleProfileNicknameInput() {
+  renderProfileModalSummary();
+  persistProfileNickname();
 }
 let _deleteMyDataBusy = false;
 
@@ -15422,7 +15447,7 @@ async function refreshCurrentUserPointsFromRemote() {
 
   const { data, error } = await _db
     .from('users')
-    .select('deviceId,empId,name,dept,avatar,points,tags,lastactiveat')
+    .select('deviceId,empId,name,nickname,dept,avatar,points,tags,lastactiveat')
     .or(filters.join(','));
   if (error) throw error;
 
@@ -15430,6 +15455,7 @@ async function refreshCurrentUserPointsFromRemote() {
   if (!remoteUser) return null;
   S.deviceId = String(remoteUser.deviceId || S.deviceId || '').trim() || S.deviceId;
   S.user.name = remoteUser.name || S.user.name;
+  S.user.nickname = String(remoteUser.nickname || getResolvedProfileNickname(identity.empId) || '').trim();
   S.user.empId = remoteUser.empId || S.user.empId;
   S.user.dept = remoteUser.dept || S.user.dept;
   S.user.avatar = normalizeAvatar(remoteUser.avatar || S.user.avatar);
@@ -16963,6 +16989,7 @@ function loadSheetsUserData(data) {
   S.user = {
     ...S.user,
     name: u.name || '',
+    nickname: String(u.nickname || getResolvedProfileNickname(u.empId || ACTIVE_EMPID) || '').trim(),
     avatar: normalizeAvatar(u.avatar),
     empId: u.empId || ACTIVE_EMPID,
     dept: u.dept || '',
@@ -17150,7 +17177,7 @@ async function init() {
           <div class="pm-field-help">커뮤니티와 리그에 표시돼요</div>
         </div>
       </div>
-      <input type="text" class="ch-form-input" id="pm-nickname" placeholder="닉네임을 입력하세요" maxlength="15" oninput="renderProfileModalSummary()">
+      <input type="text" class="ch-form-input" id="pm-nickname" placeholder="닉네임을 입력하세요" maxlength="15" oninput="handleProfileNicknameInput()">
     </div>
     <div class="pm-panel">
       <div class="pm-panel-head">
