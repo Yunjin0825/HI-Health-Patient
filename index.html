@@ -13189,7 +13189,7 @@ async function fetchCommunityPosts() {
         commentMap[pid].push({
           id: c.id,
           name: c.userName || '익명',
-          avatar: AVATARS[0],
+          avatar: c.deviceId === 'hi_ai_bot' ? './images/avatars/run_day_rola.png' : AVATARS[0],
           lv: 1,
           body: c.body || '',
           time: c.ts ? new Date(Number(c.ts)).toLocaleDateString('ko-KR') : '',
