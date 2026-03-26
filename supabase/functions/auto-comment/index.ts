@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import Anthropic from "npm:@anthropic-ai/sdk";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -10,57 +11,50 @@ const json = (data: unknown, status = 200) =>
 const BOT_DEVICE_ID = "hi_ai_bot";
 const BOT_NAME = "Hi-Rola";
 
-const COMMENTS: Record<string, string[]> = {
-  walking: [
-    "오늘도 꾸준히 걸으셨군요 🚶 천천히라도 매일 이렇게 하면 몸이 달라져요!",
-    "걷기만큼 좋은 운동이 없죠 😊 오늘 하루도 수고 많으셨어요!",
-    "꾸준한 걷기가 최고의 건강 비결이에요 🌿 멋져요!",
-    "한 걸음 한 걸음이 쌓여서 큰 변화가 생기죠 💪 오늘도 화이팅!",
-    "걷기 완료! 오늘 하루도 건강하게 마무리하셨네요 👏",
-  ],
-  running: [
-    "달리기 완료! 정말 대단해요 🏃 오늘도 멋지게 해내셨네요!",
-    "힘차게 달리셨군요 🔥 이 기세 계속 유지해요!",
-    "러닝 완료 축하드려요 🎉 몸이 점점 강해지고 있을 거예요!",
-    "오늘도 달리셨다니 존경스러워요 😤 정말 대단합니다!",
-    "달리기만큼 상쾌한 운동이 없죠 💨 잘하셨어요!",
-  ],
-  cycling: [
-    "자전거 라이딩 완료! 정말 멋진 하루네요 🚴 수고하셨어요!",
-    "씩씩하게 페달 밟으셨군요 💪 오늘도 건강 챙기셨네요!",
-    "라이딩 완료! 시원한 바람을 느끼며 달리셨겠어요 🌬️ 최고예요!",
-  ],
-  swimming: [
-    "수영 완료! 전신 운동이라 더 값진 시간이었을 거예요 🏊 수고하셨어요!",
-    "물속에서도 열심히 하셨군요 💦 정말 대단해요!",
-    "수영은 관절에도 좋고 정말 좋은 운동이죠 😊 잘하셨어요!",
-  ],
-  yoga: [
-    "요가로 몸과 마음을 정돈하셨군요 🧘 오늘 하루도 수고하셨어요!",
-    "유연성도 키우고 마음도 편안해지는 시간이었겠어요 🌸 멋져요!",
-    "요가 완료! 내면의 평화를 찾는 시간이었겠네요 ✨",
-  ],
-  strength: [
-    "근력 운동 완료! 오늘도 근육이 한 뼘 자랐겠어요 💪 수고하셨어요!",
-    "묵직하게 운동하셨군요 🏋️ 꾸준함이 진짜 실력이에요!",
-    "근력 운동은 배신이 없죠 🔥 오늘도 대단해요!",
-  ],
-  default: [
-    "오늘도 운동 완료! 정말 대단해요 💪 꾸준함이 최고예요!",
-    "건강을 위해 오늘도 열심히 하셨군요 😊 수고 많으셨어요!",
-    "하루하루 이렇게 쌓여가는 게 진짜 건강이죠 🌟 잘하셨어요!",
-    "오늘도 멋지게 해내셨네요 👏 이 기세로 계속 화이팅!",
-    "운동 완료! 오늘 하루도 건강하게 마무리하셨네요 🌿",
-    "꾸준히 하시는 모습이 정말 멋져요 ✨ 응원합니다!",
-    "작은 실천이 모여 큰 변화가 생기죠 🔥 오늘도 수고하셨어요!",
-    "건강한 습관을 만들어가고 계시네요 😄 대단해요!",
-  ],
-};
+const FALLBACK_COMMENTS = [
+  "오늘도 운동 완료! 정말 대단해요 💪 꾸준함이 최고예요!",
+  "건강을 위해 오늘도 열심히 하셨군요 😊 수고 많으셨어요!",
+  "하루하루 이렇게 쌓여가는 게 진짜 건강이죠 🌟 잘하셨어요!",
+  "오늘도 멋지게 해내셨네요 👏 이 기세로 계속 화이팅!",
+  "꾸준히 하시는 모습이 정말 멋져요 ✨ 응원합니다!",
+];
 
-function pickComment(exTag: string): string {
-  const tag = (exTag || "").toLowerCase();
-  const pool = COMMENTS[tag] || COMMENTS["default"];
-  return pool[Math.floor(Math.random() * pool.length)];
+function fallbackComment(): string {
+  return FALLBACK_COMMENTS[Math.floor(Math.random() * FALLBACK_COMMENTS.length)];
+}
+
+async function generateComment(apiKey: string, postBody: string, exTag: string): Promise<string> {
+  const client = new Anthropic({ apiKey });
+
+  const exLabel: Record<string, string> = {
+    walking: "걷기", running: "달리기", cycling: "자전거", swimming: "수영",
+    yoga: "요가", strength: "근력운동",
+  };
+  const exName = exLabel[(exTag || "").toLowerCase()] || "운동";
+
+  const prompt = `당신은 건강 챌린지 앱의 응원 봇 Hi-Rola입니다.
+아래 사용자가 ${exName} 기록을 공유한 게시글에 달 짧은 응원 댓글을 작성해주세요.
+
+규칙:
+- 한국어로 작성
+- 1~2문장, 50자 이내
+- 따뜻하고 진심 어린 톤
+- 이모지 1~2개 포함
+- 게시글 내용을 반영해서 개인화할 것
+- 마케팅성 표현 금지
+
+게시글: "${postBody}"
+
+댓글만 출력하세요. 다른 설명 없이.`;
+
+  const message = await client.messages.create({
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 150,
+    messages: [{ role: "user", content: prompt }],
+  });
+
+  const text = message.content[0].type === "text" ? message.content[0].text.trim() : "";
+  return text || fallbackComment();
 }
 
 function delay(ms: number) {
@@ -73,6 +67,7 @@ Deno.serve(async (req) => {
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY") || "";
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY)
       return json({ error: "Supabase env not configured" }, 500);
 
@@ -98,9 +93,20 @@ Deno.serve(async (req) => {
     const { data: existing } = await db.from("posts").select("id").eq("id", postId).single();
     if (!existing) return json({ ok: true, skipped: "post deleted" });
 
-    const commentBody = pickComment(exTag);
-    const commentId = String(Date.now());
+    // AI 댓글 생성 (API 키 없으면 fallback)
+    let commentBody: string;
+    if (ANTHROPIC_API_KEY) {
+      try {
+        commentBody = await generateComment(ANTHROPIC_API_KEY, postBody, exTag);
+      } catch (e) {
+        console.warn("[auto-comment] AI 생성 실패, fallback 사용:", e);
+        commentBody = fallbackComment();
+      }
+    } else {
+      commentBody = fallbackComment();
+    }
 
+    const commentId = String(Date.now());
     const { error: insertErr } = await db.from("post_comments").insert({
       id: commentId,
       postId,
