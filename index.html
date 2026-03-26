@@ -12633,7 +12633,7 @@ function buildRealLeagueUsers(allUsers, allRegs, wPtsByDevice = {}) {
 
   _realLeagueUsers = filtered.map(u => ({
     id: u.empId,
-    name: u.name,
+    name: u.nickname || u.name,
     avatar: u.avatar || AVATARS[0],
     lv: getLevel(Number(u.points) || 0).lv,
     pts: Number(u.points) || 0,
