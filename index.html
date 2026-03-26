@@ -9198,7 +9198,7 @@ function navigate(page) {
     nb.addEventListener('animationend', () => nb.classList.remove('nav-anim'), { once: true });
   }
   // Render the page
-  if (page === 'home')      renderHome();
+  if (page === 'home')      { renderHome(); fetchLeagueData({ needWeekly: false }); }
   if (page === 'exercise')  renderExercise();
   if (page === 'community') { setCommunityTab('feed'); renderCommunity(); fetchAdminPosts(); fetchCommunityPosts(); markCommunityAsSeen(); }
   if (page === 'rewards')   {
