@@ -7035,6 +7035,7 @@ function save(opts = {}) {
       empId: S.user.empId || '',
       dept: S.user.dept || '',
       points: S.user.points,
+      totalPoints: S.user.totalPoints || S.user.points,
       streak: S.user.streak,
       nickname: resolvedNickname,
       tags: (S.user.tags || []).join(','),
@@ -7080,6 +7081,15 @@ function save(opts = {}) {
         });
     }
   }
+}
+
+// 삭제 시 포인트 강제 동기화 (lte 조건 없이 직접 업데이트)
+function forceSyncPoints() {
+  if (!_db || !S.deviceId) return;
+  _db.from('users')
+    .update({ points: S.user.points, totalPoints: S.user.totalPoints || S.user.points })
+    .eq('deviceId', S.deviceId)
+    .then(({ error }) => { if (error) console.error('[forceSyncPoints]', error); });
 }
 
 /* ── Supabase 비동기 동기화 ── */
@@ -10565,7 +10575,7 @@ function deleteWorkout(id) {
           await deleteRemoteRecordById('workouts', targetId, [wo?.deviceId, S.deviceId]);
           // 포인트 차감을 users 테이블에 즉시 반영
           if (S.deviceId) {
-            await _db.from('users').update({ points: S.user.points, streak: S.user.streak })
+            await _db.from('users').update({ points: S.user.points, totalPoints: S.user.totalPoints || S.user.points, streak: S.user.streak })
               .eq('deviceId', S.deviceId);
           }
         } catch (e) {
@@ -11289,6 +11299,7 @@ function deleteGlucose(id) {
         }
       }
       save();
+      forceSyncPoints();
       showToast('혈당 기록이 삭제되었습니다');
     },
   });
