@@ -892,11 +892,19 @@
 
 <!-- POST DETAIL MODAL -->
 <div class="modal-bg" id="po-modal">
-  <div class="modal">
+  <div class="modal" style="max-width:520px">
     <div class="modal-title">게시글 상세</div>
     <div id="po-modal-body"></div>
+    <div style="margin-top:16px;border-top:1px dashed #E2E8F0;padding-top:14px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px">댓글 <span id="po-comment-count" style="color:#94A3B8;font-weight:400"></span></div>
+      <div id="po-comment-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;max-height:220px;overflow-y:auto"></div>
+      <div style="display:flex;gap:6px">
+        <input id="po-comment-input" class="ctrl-inp" style="flex:1;font-size:13px" placeholder="Hi-Rola로 댓글 달기...">
+        <button class="cbtn pri" onclick="sendAdminComment()" style="white-space:nowrap">전송</button>
+      </div>
+    </div>
     <div class="modal-footer">
-      <button class="mfbtn del" id="po-del-btn">삭제</button>
+      <button class="mfbtn del" id="po-del-btn">게시글 삭제</button>
       <button class="mfbtn close" onclick="closeModal('po-modal')">닫기</button>
     </div>
   </div>
@@ -2999,9 +3007,12 @@ function renderPosts() {
   renderPager('po-pager', list.length, totalPages, poPage, p => { poPage = p; renderPosts(); });
 }
 
-function showPostDetail(id) {
+let _poModalPostId = null;
+
+async function showPostDetail(id) {
   const p = GD.posts.find(x => String(x.id) === String(id));
   if (!p) return;
+  _poModalPostId = String(id);
   const d = new Date(Number(p.ts)||0);
   const rows = [
     ['작성자', p.userName||'-'],
@@ -3012,7 +3023,62 @@ function showPostDetail(id) {
   document.getElementById('po-modal-body').innerHTML = rows.map(([l,v]) =>
     `<div class="detail-row"><div class="detail-label">${l}</div><div class="detail-value">${v}</div></div>`).join('');
   document.getElementById('po-del-btn').onclick = () => { deletePost(id); closeModal('po-modal'); };
+  document.getElementById('po-comment-input').value = '';
   document.getElementById('po-modal').classList.add('open');
+  await loadPostComments(id);
+}
+
+async function loadPostComments(postId) {
+  const listEl = document.getElementById('po-comment-list');
+  const countEl = document.getElementById('po-comment-count');
+  if (!listEl) return;
+  listEl.innerHTML = '<div style="color:#94A3B8;font-size:12px">불러오는 중...</div>';
+  const { data, error } = await db.from('post_comments').select('*').eq('postId', String(postId)).order('ts', { ascending: true });
+  if (error) { listEl.innerHTML = '<div style="color:#EF4444;font-size:12px">불러오기 실패</div>'; return; }
+  if (countEl) countEl.textContent = `(${(data||[]).length}개)`;
+  if (!data?.length) { listEl.innerHTML = '<div style="color:#94A3B8;font-size:12px">댓글이 없어요</div>'; return; }
+  listEl.innerHTML = data.map(c => {
+    const isBot = c.deviceId === 'hi_ai_bot';
+    const dt = new Date(Number(c.ts||0));
+    const timeStr = c.ts ? `${pad(dt.getHours())}:${pad(dt.getMinutes())}` : '';
+    return `<div style="display:flex;align-items:flex-start;gap:8px;padding:8px;background:${isBot?'#F0F9FF':'#F8FAFC'};border-radius:8px;border:1px solid ${isBot?'#BAE6FD':'#E2E8F0'}">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:700;color:${isBot?'#0369A1':'#334155'}">${c.userName||'익명'}${isBot?' 🤖':''}</div>
+        <div style="font-size:13px;color:#334155;margin-top:2px;word-break:break-all">${c.body||''}</div>
+        <div style="font-size:11px;color:#94A3B8;margin-top:2px">${timeStr}</div>
+      </div>
+      <button class="abtn del" style="flex-shrink:0" onclick="deleteComment('${c.id}','${postId}')">삭제</button>
+    </div>`;
+  }).join('');
+}
+
+async function deleteComment(commentId, postId) {
+  if (!confirm('댓글을 삭제하시겠습니까?')) return;
+  const { error } = await db.from('post_comments').delete().eq('id', String(commentId));
+  if (error) { toast('삭제 실패: ' + error.message); return; }
+  toast('댓글 삭제 완료');
+  await loadPostComments(postId);
+}
+
+async function sendAdminComment() {
+  const postId = _poModalPostId;
+  if (!postId) return;
+  const input = document.getElementById('po-comment-input');
+  const body = (input?.value || '').trim();
+  if (!body) { toast('댓글 내용을 입력해주세요'); return; }
+  const commentId = String(Date.now());
+  const { error } = await db.from('post_comments').insert({
+    id: commentId,
+    postId,
+    deviceId: 'hi_ai_bot',
+    userName: 'Hi-Rola',
+    body,
+    ts: commentId,
+  });
+  if (error) { toast('전송 실패: ' + error.message); return; }
+  input.value = '';
+  toast('댓글을 달았어요 ✓');
+  await loadPostComments(postId);
 }
 
 async function deletePost(id) {
