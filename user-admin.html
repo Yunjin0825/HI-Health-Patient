@@ -224,6 +224,7 @@
     /* ── ROW STYLES ── */
     tr.row-bad td{background:#FFF5F5!important;}
     tr.row-dup td{background:#FFFBEB!important;}
+    tr.row-ch-dup td{background:#FFF3E0!important;}
 
     /* ── CHALLENGE STATUS COUNTS ── */
     .ch-status-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
@@ -353,6 +354,7 @@
         </div>
         <span class="ctrl-count" id="u-count">0명</span>
         <button class="cbtn amb" id="restore-users-btn" style="display:none" onclick="restoreUsersFromActivity()">users 복구</button>
+        <button class="cbtn" id="u-dup-only-btn" onclick="toggleUserDupOnly(this)" style="display:none">중복만 보기</button>
         <button class="cbtn dan" id="dup-btn" style="display:none" onclick="deleteDuplicates()">중복 삭제</button>
       </div>
 
@@ -612,6 +614,7 @@
           <option value="cancelled">취소</option>
         </select>
         <span class="ctrl-count" id="ch-count">0건</span>
+        <button class="cbtn" id="ch-dup-only-btn" onclick="toggleChDupOnly(this)">중복만 보기</button>
         <button class="cbtn sky" onclick="exportChallengeCsv()">CSV 다운로드</button>
       </div>
       <div class="tbl-wrap">
@@ -1870,11 +1873,37 @@ function getDupEmpIds() {
   return new Set(Object.entries(cnt).filter(([,c]) => c > 1).map(([id]) => id));
 }
 
+function getDupChEmpIds() {
+  const cnt = {};
+  getEffectiveChallengeRegistrations().forEach(r => {
+    const id = (r.empId||'').trim().toUpperCase();
+    if (id) cnt[id] = (cnt[id]||0)+1;
+  });
+  return new Set(Object.entries(cnt).filter(([,c]) => c > 1).map(([id]) => id));
+}
+
+let chDupOnly = false;
+function toggleChDupOnly(btn) {
+  chDupOnly = !chDupOnly;
+  btn.classList.toggle('sky', chDupOnly);
+  btn.textContent = chDupOnly ? '중복만 보기 ✓' : `중복만 보기`;
+  renderChallenge();
+}
+
 function getChEmpIds() {
   return new Set(getEffectiveChallengeRegistrations().filter(r => r.status !== 'cancelled').map(r => (r.empId||'').trim()));
 }
 
 let uTab = 'all'; // 'all' | 'gen' | 'ch'
+let uDupOnly = false;
+
+function toggleUserDupOnly(btn) {
+  uDupOnly = !uDupOnly;
+  uPage = 0;
+  btn.classList.toggle('sky', uDupOnly);
+  btn.textContent = uDupOnly ? '중복만 보기 ✓' : '중복만 보기';
+  renderUsers();
+}
 
 function switchUserTab(tab, btn) {
   uTab = tab;
@@ -1897,12 +1926,15 @@ function isChallenger(u) {
 
 function filteredUsers() {
   const q = (document.getElementById('u-search')?.value || '').toLowerCase();
+  const dupIds = uDupOnly ? getDupEmpIds() : null;
   return GD.users.filter(u => {
     // 관리자 전용 계정 제외
     if (USER_LIST_EXCLUDE_EMPIDS.includes((u.empId || '').trim().toUpperCase())) return false;
     // 서브탭 필터 (최우선)
     if (uTab === 'gen') { if (isChallenger(u)) return false; }
     if (uTab === 'ch')  { if (!isChallenger(u)) return false; }
+    // 중복만 보기
+    if (dupIds && !dupIds.has((u.empId || '').trim())) return false;
     // 검색
     if (q && ![(u.name||''),(u.nickname||''),(u.empId||''),(u.dept||'')].some(s => s.toLowerCase().includes(q))) return false;
     return true;
@@ -1938,6 +1970,12 @@ function renderUsers() {
   const dupBtn = document.getElementById('dup-btn');
   dupBtn.style.display = dupIds.size ? '' : 'none';
   dupBtn.textContent = `중복 삭제 (${dupIds.size}건)`;
+  const uDupOnlyBtn = document.getElementById('u-dup-only-btn');
+  if (uDupOnlyBtn) {
+    uDupOnlyBtn.style.display = dupIds.size ? '' : 'none';
+    uDupOnlyBtn.classList.toggle('sky', uDupOnly);
+    uDupOnlyBtn.textContent = uDupOnly ? '중복만 보기 ✓' : `중복만 보기 (${dupIds.size})`;
+  }
   const restoreBtn = document.getElementById('restore-users-btn');
   if (restoreBtn) {
     const derivedCnt = GD.users.filter(u => u.__derived && !isSyntheticDerivedDeviceId(u.deviceId)).length;
@@ -2986,6 +3024,13 @@ function renderChallenge() {
   const sf = document.getElementById('ch-sfilter').value;
   const all = getEffectiveChallengeRegistrations();
   const livePeopleRows = getChallengeLivePeopleRows(all);
+  const dupChIds = getDupChEmpIds();
+  // 중복만 보기 버튼 업데이트
+  const chDupBtn = document.getElementById('ch-dup-only-btn');
+  if (chDupBtn) {
+    chDupBtn.classList.toggle('sky', chDupOnly);
+    chDupBtn.textContent = chDupOnly ? '중복만 보기 ✓' : `중복만 보기 (${dupChIds.size})`;
+  }
   const list = all.filter(r => {
     const status = String(r?.status || '').trim().toLowerCase();
     if (sf) {
@@ -2993,6 +3038,8 @@ function renderChallenge() {
     } else if (status === 'cancelled') {
       return false;
     }
+    // 중복만 보기
+    if (chDupOnly && !dupChIds.has((r.empId||'').trim().toUpperCase())) return false;
     const hay = [
       r.id || '',
       r.name || '',
@@ -3060,9 +3107,11 @@ function renderChallenge() {
     return;
   }
   tbody.innerHTML = list.map(r => {
+    const isDupReg = dupChIds.has((r.empId||'').trim().toUpperCase());
     const sBadge = r.status === 'confirmed' ? '<span class="badge ok">확정</span>'
       : r.status === 'cancelled' ? '<span class="badge can">취소</span>'
       : '<span class="badge pend">대기</span>';
+    const dupBadge = isDupReg ? '<span class="badge dup" style="margin-left:4px">중복</span>' : '';
     const safeId = (r.id||'').replace(/'/g,'');
     const ownShoe = getRegDisplayText(r, withMm(r.shoeSize) || withMm(getRegNoteLine(r, '신발사이즈')));
     const tshirtText = getRegDisplayText(r, getRegTshirtText(r));
@@ -3077,9 +3126,9 @@ function renderChallenge() {
     const requestHtml = requestParts.length
       ? requestParts.map(v => `<div>${escHtml(v)}</div>`).join('')
       : getRegDisplayText(r, '');
-    return `<tr>
+    return `<tr class="${isDupReg ? 'row-ch-dup' : ''}">
       <td class="td-date">${r.id||'-'}</td>
-      <td class="td-name">${escHtml(r.name||'-')}</td>
+      <td class="td-name">${escHtml(r.name||'-')}${dupBadge}</td>
       <td>${escHtml(r.empId||'-')}</td>
       <td>${escHtml(ownShoe)}</td>
       <td>${escHtml(tshirtText)}</td>
