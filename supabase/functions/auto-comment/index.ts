@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
 
     const record = payload?.record;
     if (!record) return json({ ok: true, skipped: "no record" });
-    if (payload?.type !== "INSERT") return json({ ok: true, skipped: "not insert" });
+    if (payload?.type !== "INSERT" && payload?.type !== "DIRECT") return json({ ok: true, skipped: "not insert" });
 
     const postId = String(record.id || "").trim();
     const postBody = String(record.body || "").trim();
@@ -86,8 +86,10 @@ Deno.serve(async (req) => {
 
     const db = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // 10~20초 딜레이 (자연스럽게)
-    await delay(10000 + Math.random() * 10000);
+    // 웹훅(INSERT)일 때만 딜레이, 직접 호출(DIRECT)은 즉시 처리
+    if (payload?.type === "INSERT") {
+      await delay(10000 + Math.random() * 10000);
+    }
 
     // 글이 삭제됐는지 확인
     const { data: existing } = await db.from("posts").select("id").eq("id", postId).single();
