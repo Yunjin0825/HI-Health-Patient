@@ -5720,6 +5720,7 @@ function normalizeAvatar(src) {
   if (!raw) return AVATARS[0];
   const cleaned = raw.replace(/[?#].*$/, '');
   if (AVATAR_SET.has(cleaned)) return cleaned;
+  if (/run_day_rola/.test(cleaned)) return 'images/avatars/run_day_rola.png';
   const avatarMatch = cleaned.match(/(?:^|\/)images\/avatars\/av(\d+)\.png$/i) || cleaned.match(/(?:^|\/)av(\d+)\.png$/i);
   if (avatarMatch) {
     const mapped = `images/avatars/av${Math.max(1, Math.min(20, Number(avatarMatch[1]) || 1))}.png`;
