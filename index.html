@@ -5915,6 +5915,7 @@ const SW_VERSION        = '20260325-93';
 const CHALLENGE_PEOPLE_CACHE_KEY = 'hi_health_people_cache_v1';
 let _db = null; // Supabase 클라이언트
 let _realLeagueUsers = null; // Supabase에서 가져온 실제 유저 목록
+let _challengerDeviceIds = new Set(); // 챌린지 신청자 deviceId 세트
 let _leagueFetching = false;
 const LEAGUE_CACHE_TTL_MS = 2 * 60 * 1000;
 let _leagueCache = {
@@ -12643,6 +12644,15 @@ function buildRealLeagueUsers(allUsers, allRegs, wPtsByDevice = {}) {
     if (rdev) regDeviceIds.add(rdev);
   });
 
+  // 피드 챌린지 필터용: 챌린저 deviceId 세트 갱신
+  _challengerDeviceIds = new Set();
+  (allUsers || []).forEach(u => {
+    const isChallenger =
+      regEmpIds.has(normChallengeEmpId(u.empId)) ||
+      (!normChallengeEmpId(u.empId) && regDeviceIds.has(normChallengeId(u.deviceId)));
+    if (isChallenger && u.deviceId) _challengerDeviceIds.add(u.deviceId);
+  });
+
   _realLeagueUsers = filtered.map(u => ({
     id: u.empId,
     name: u.nickname || u.name,
@@ -13048,7 +13058,7 @@ function renderCommunity() {
     const sorted = deduped.sort((a, b) => b.id - a.id);
     userItems = sorted.filter(p => {
       if (_feedFilter === 'all') return true;
-      if (_feedFilter === '챌린지') return p.isChallenger || (p.userId === 0 && hasActiveChallengeRegistration());
+      if (_feedFilter === '챌린지') return p.isChallenger || _challengerDeviceIds.has(p.deviceId) || (p.userId === 0 && hasActiveChallengeRegistration());
       return (p.userTags || []).includes(_feedFilter);
     }).map(p => ({ _type:'user', _ts: p.id, ...p }));
   }
