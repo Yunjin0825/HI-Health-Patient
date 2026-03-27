@@ -281,7 +281,7 @@ Deno.serve(async (req) => {
     if (isBotAuthor(record)) return json({ ok: true, skipped: "bot post" });
 
     if (payload?.type === "INSERT") {
-      await delay(10000 + Math.random() * 10000);
+      await delay(5000 + Math.random() * 5000);
     }
 
     const { data: existing } = await db.from("posts").select("id,deviceId,userName").eq("id", postId).single();
@@ -303,7 +303,7 @@ Deno.serve(async (req) => {
 
     // 하이블라: 식단 글 또는 둘 다
     if (postType === "diet" || postType === "both") {
-      await delay(3000 + Math.random() * 3000); // 하이로라와 시차를 두고 댓글
+      await delay(1000 + Math.random() * 1000); // 하이로라와 시차를 두고 댓글
       let commentBody: string;
       try { commentBody = ANTHROPIC_API_KEY ? await generateBlaComment(ANTHROPIC_API_KEY, postBody) : BLA_FALLBACKS[Math.floor(Math.random() * BLA_FALLBACKS.length)]; }
       catch { commentBody = BLA_FALLBACKS[Math.floor(Math.random() * BLA_FALLBACKS.length)]; }
