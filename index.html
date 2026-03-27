@@ -13211,12 +13211,39 @@ async function fetchAdminPosts() {
 async function fetchCommunityPosts() {
   if (!_db) return;
   try {
+    // 1단계: posts만 먼저 → 즉시 렌더
     const { data: postsData } = await _db.from('posts').select('*').order('ts', { ascending: false }).limit(30);
     const remotePosts = postsData || [];
-    const targetPostIdSet = new Set(remotePosts.map(p => String(Number(p?.id) || p?.id)).filter(Boolean));
+    const targetPostIds = remotePosts.map(p => String(Number(p?.id) || p?.id)).filter(Boolean);
+    const targetPostIdSet = new Set(targetPostIds);
     _applyRemotePostsToState(remotePosts, {}, {}, targetPostIdSet);
     renderCommunity();
     updateCommunityDot();
+
+    // 2단계: 반응·댓글 백그라운드 로드 → 카드 조용히 업데이트
+    if (!targetPostIds.length) return;
+    const [rp, cmp] = await Promise.all([
+      _db.from('reactions').select('*').in('postId', targetPostIds),
+      _db.from('post_comments').select('postId,id,userName,body,ts,deviceId').in('postId', targetPostIds).order('ts', { ascending: true }),
+    ]);
+    const stickerMap = {}, myReactionMap = {}, commentMap = {};
+    (rp.data || []).forEach(r => {
+      const pid = String(r.postId);
+      if (!stickerMap[pid]) stickerMap[pid] = { cheer:0, love:0, congrats:0, cool:0, together:0 };
+      if (r.stickerId in stickerMap[pid]) stickerMap[pid][r.stickerId]++;
+      if (r.deviceId === S.deviceId) { if (!myReactionMap[pid]) myReactionMap[pid] = []; myReactionMap[pid].push(r.stickerId); }
+    });
+    (cmp.data || []).forEach(c => {
+      const pid = String(c.postId);
+      if (!commentMap[pid]) commentMap[pid] = [];
+      commentMap[pid].push({ id: c.id, name: c.userName || '익명', avatar: c.deviceId === 'hi_ai_bot' ? './images/avatars/run_day_rola.png' : AVATARS[0], lv: 1, body: c.body || '', time: c.ts ? new Date(Number(c.ts)).toLocaleDateString('ko-KR') : '', ts: c.ts ? Number(c.ts) : Date.now(), deviceId: c.deviceId || '' });
+    });
+    targetPostIds.forEach(pid => {
+      if (myReactionMap[pid]?.length) S.myReactions[pid] = [...myReactionMap[pid]];
+      else delete S.myReactions[pid];
+    });
+    _applyRemotePostsToState(remotePosts, stickerMap, commentMap, targetPostIdSet);
+    renderCommunity();
   } catch(e) { console.error('[fetchCommunityPosts]', e); }
 }
 
@@ -13334,11 +13361,17 @@ async function openComments(postId) {
   _commentPostId = postId;
   document.getElementById('cm-av').innerHTML = avHTML(S.user.avatar);
   document.getElementById('cm-input').value = '';
-  document.getElementById('cm-list').innerHTML = '<div class="cm-empty" style="color:var(--text-secondary)">불러오는 중…</div>';
+  // 캐시 있으면 즉시 표시, 없으면 로딩 표시
+  const _cachedPost = S.posts.find(p => String(p.id) === String(postId)) || (S.communityPosts || []).find(p => String(p.id) === String(postId));
+  if (_cachedPost?.commentList?.length) {
+    renderCommentList();
+  } else {
+    document.getElementById('cm-list').innerHTML = '<div class="cm-empty" style="color:var(--text-secondary)">불러오는 중…</div>';
+  }
   document.getElementById('comment-overlay').classList.remove('pm-hidden');
   setTimeout(() => document.getElementById('cm-input').focus(), 300);
 
-  // 댓글·반응 실시간 fetch
+  // 최신 댓글·반응 fetch (백그라운드 업데이트)
   if (!_db) return;
   try {
     const pid = String(postId);
