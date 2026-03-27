@@ -3038,7 +3038,10 @@
       background: linear-gradient(180deg, #fef0f7 0%, #fff7fb 60%, transparent 100%);
     }
     .podium-item { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1 1 0; min-width: 0; max-width: 98px; }
-    .podium-av-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .podium-item.podium-first { max-width: 108px; }
+    .podium-item.podium-second,
+    .podium-item.podium-third { max-width: 94px; }
+    .podium-av-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
     .podium-bubble {
       background: linear-gradient(135deg, #fff 0%, #f5f0ff 100%);
       border: 1px solid rgba(139,92,246,0.15);
@@ -3070,23 +3073,31 @@
     .podium-item.podium-third .podium-avatar { width:58px; height:58px; }
     .podium-name {
       width: 100%; min-height: 34px;
-      display: flex; align-items: center; justify-content: center;
+      display: flex; align-items: center; justify-content: center; align-content: center; gap: 4px; flex-wrap: wrap;
       font-size: 14px; font-weight: 600; line-height: 1.2; text-align: center;
     }
+    .podium-item.podium-first .podium-name { min-height: 36px; font-size: 15px; }
+    .podium-item.podium-second .podium-name,
+    .podium-item.podium-third .podium-name { font-size: 13px; }
     .podium-name .ui-svg-icon { --ui-icon-size: 12px; vertical-align: -0.14em; }
-    .podium-pts { font-size: 11px; line-height: 1.2; color: var(--warning); font-weight: 700; text-align: center; }
+    .podium-name .rank-medal { margin-right: 0; flex-shrink: 0; }
+    .podium-pts { min-height: 14px; font-size: 11px; line-height: 1.2; color: var(--warning); font-weight: 700; text-align: center; }
     .podium-stand {
       border-radius: 8px 8px 0 0;
       display: flex; align-items: center; justify-content: center;
       font-size: 17px; font-weight: 700; color: #fff;
     }
-    .stand-gold   { background: linear-gradient(180deg, #FFD700, #FFA500); width: 68px; height: 76px; }
-    .stand-silver { background: linear-gradient(180deg, #D0D0D0, #A8A8A8); width: 58px; height: 58px; }
-    .stand-bronze { background: linear-gradient(180deg, #CD7F32, #9A5A2A); width: 58px; height: 44px; }
+    .stand-gold   { background: linear-gradient(180deg, #FFD700, #FFA500); width: 72px; height: 76px; }
+    .stand-silver { background: linear-gradient(180deg, #D0D0D0, #A8A8A8); width: 60px; height: 58px; }
+    .stand-bronze { background: linear-gradient(180deg, #CD7F32, #9A5A2A); width: 60px; height: 44px; }
     @media (max-width: 360px) {
       .podium { gap: 8px; padding: 16px 4px 18px; }
       .podium-item { max-width: 92px; }
+      .podium-item.podium-first { max-width: 96px; }
       .podium-name { min-height: 32px; font-size: 13px; }
+      .podium-item.podium-first .podium-name { min-height: 34px; font-size: 14px; }
+      .podium-item.podium-second .podium-name,
+      .podium-item.podium-third .podium-name { font-size: 12px; }
       .podium-pts { font-size: 10px; }
     }
 
@@ -5926,6 +5937,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const PUSH_PUBLIC_KEY   = 'BEaMexe-bw1jM31PgeQdkkZeqs29Ls1KIMY-TViYgH2dPqg_v7tRRObOpRUTGu5-ZgH13qR_ZTtxeOWh9_vnhTk';
 const PUSH_TABLE        = 'push_subscriptions';
 const PUSH_DEFAULT_URL  = './index.html#community';
+const AUTO_COMMENT_FN   = 'https://nbnmvvobehjitophkqmu.supabase.co/functions/v1/auto-comment';
 const SW_VERSION        = '20260325-93';
 const CHALLENGE_PEOPLE_CACHE_KEY = 'hi_health_people_cache_v1';
 let _db = null; // Supabase 클라이언트
@@ -10234,6 +10246,7 @@ function submitShareNow() {
       userTags: (S.user.tags || []).join(','),
       ts: String(sharedPostId),
     });
+    triggerAutoComment({ id: String(sharedPostId), deviceId: S.deviceId, userName: myDisplayName(), body: shareMsg, exTag: '' });
     showToast('커뮤니티에 공유되었어요!');
   }
   // 공유 완료 후 "오늘 이미 공유" 상태로 전환 (패널 유지)
@@ -13692,6 +13705,14 @@ function deletePost(id) {
   });
 }
 
+function triggerAutoComment(record) {
+  fetch(AUTO_COMMENT_FN, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+    body: JSON.stringify({ type: 'DIRECT', record }),
+  }).catch(() => {});
+}
+
 function submitPost() {
   if (IS_GUEST) { flashGuestBanner(); return; }
   const input = document.getElementById('post-input');
@@ -13726,6 +13747,7 @@ function submitPost() {
     userTags: Array.isArray(newPost.userTags) ? newPost.userTags.join(',') : (newPost.userTags || ''),
     ts: String(newPost.id),
   });
+  triggerAutoComment({ id: String(newPost.id), deviceId: S.deviceId, userName: displayName, body: newPost.body, exTag: newPost.exTag || '' });
   haptic('medium');
   showToast('📣 게시물이 등록되었어요!');
   renderCommunity();
