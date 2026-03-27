@@ -13071,6 +13071,7 @@ function setRewardsTab(tab) {
 ════════════════════════════════════════ */
 let _feedFilter = 'all';
 let _commentPostId = null;
+let _commentPollTimer = null;
 
 function buildPostHealthHtml(h) {
   const chips = [];
@@ -13483,10 +13484,40 @@ async function openComments(postId) {
       }
     }
   } catch(e) { console.error('[openComments fetch]', e); }
+
+  // 패널이 열려 있는 동안 새 댓글 자동 감지 (30초간 4초마다)
+  if (_commentPollTimer) clearInterval(_commentPollTimer);
+  let _pollCount = 0;
+  _commentPollTimer = setInterval(async () => {
+    _pollCount++;
+    if (!_commentPostId || _pollCount > 7) { clearInterval(_commentPollTimer); _commentPollTimer = null; return; }
+    if (!_db) return;
+    try {
+      const pid = String(_commentPostId);
+      const { data } = await _db.from('post_comments').select('*').eq('postId', pid).order('ts', { ascending: true });
+      const post = S.posts.find(p => String(p.id) === pid) || (S.communityPosts || []).find(p => String(p.id) === pid);
+      if (!post || !data) return;
+      if (data.length === (post.commentList || []).length) return; // 변화 없으면 패스
+      post.commentList = data.map(c => ({
+        id: c.id, name: c.userName || '익명',
+        avatar: botAvatar(c.deviceId) || AVATARS[0],
+        lv: 1, body: c.body || '',
+        time: c.ts ? new Date(Number(c.ts)).toLocaleDateString('ko-KR') : '',
+        ts: c.ts ? Number(c.ts) : Date.now(), deviceId: c.deviceId || '',
+      }));
+      post.comments = post.commentList.length;
+      if (_commentPostId === postId) {
+        renderCommentList();
+        const card = document.getElementById(`post-${postId}`);
+        if (card) { const cmBtn = card.querySelector('.comment-btn .cm-count'); if (cmBtn) cmBtn.textContent = `댓글 ${post.comments}개`; }
+      }
+    } catch(_) {}
+  }, 4000);
 }
 function closeComments() {
   document.getElementById('comment-overlay').classList.add('pm-hidden');
   _commentPostId = null;
+  if (_commentPollTimer) { clearInterval(_commentPollTimer); _commentPollTimer = null; }
 }
 function renderCommentList() {
   const post = S.posts.find(p => p.id === _commentPostId) || (S.communityPosts || []).find(p => p.id === _commentPostId);
