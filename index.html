@@ -13206,102 +13206,12 @@ async function fetchAdminPosts() {
 async function fetchCommunityPosts() {
   if (!_db) return;
   try {
-    const emptyStickers = () => ({ cheer:0, love:0, congrats:0, cool:0, together:0 });
     const { data: postsData } = await _db.from('posts').select('*').order('ts', { ascending: false }).limit(30);
     const remotePosts = postsData || [];
-    const localPostIds = [...(S.posts || [])]
-      .sort((a, b) => (Number(b?.id) || 0) - (Number(a?.id) || 0))
-      .slice(0, 30)
-      .map(p => String(Number(p?.id) || p?.id));
-    const targetPostIds = [...new Set([
-      ...remotePosts.map(p => String(Number(p?.id) || p?.id)),
-      ...localPostIds,
-    ])].filter(Boolean);
-    const targetPostIdSet = new Set(targetPostIds);
-
-    // ── 1차 렌더링: 게시글만 먼저 표시 (반응/댓글은 빈 값으로) ──
+    const targetPostIdSet = new Set(remotePosts.map(p => String(Number(p?.id) || p?.id)).filter(Boolean));
     _applyRemotePostsToState(remotePosts, {}, {}, targetPostIdSet);
     renderCommunity();
-
-    // ── 반응·댓글 병렬 fetch ──
-    let reactionsData = [];
-    let commentsData = [];
-    if (targetPostIds.length) {
-      const [rp, cmp] = await Promise.all([
-        _db.from('reactions').select('*').in('postId', targetPostIds),
-        _db.from('post_comments').select('*').in('postId', targetPostIds).order('ts', { ascending: true }),
-      ]);
-      reactionsData = rp.data || [];
-      commentsData = cmp.data || [];
-    }
-
-    // 스티커 카운트 집계
-    const stickerMap = {};
-    const myReactionMap = {};
-    reactionsData.forEach(r => {
-        const pid = String(r.postId);
-        if (!stickerMap[pid]) stickerMap[pid] = { cheer:0, love:0, congrats:0, cool:0, together:0 };
-        if (r.stickerId in stickerMap[pid]) stickerMap[pid][r.stickerId]++;
-        if (r.deviceId === S.deviceId) {
-          if (!myReactionMap[pid]) myReactionMap[pid] = [];
-          myReactionMap[pid].push(r.stickerId);
-        }
-    });
-
-    // 댓글 집계
-    const commentMap = {};
-    commentsData.forEach(c => {
-        const pid = String(c.postId);
-        if (!commentMap[pid]) commentMap[pid] = [];
-        commentMap[pid].push({
-          id: c.id,
-          name: c.userName || '익명',
-          avatar: c.deviceId === 'hi_ai_bot' ? './images/avatars/run_day_rola.png' : AVATARS[0],
-          lv: 1,
-          body: c.body || '',
-          time: c.ts ? new Date(Number(c.ts)).toLocaleDateString('ko-KR') : '',
-          ts: c.ts ? Number(c.ts) : Date.now(),
-          deviceId: c.deviceId || '',
-        });
-    });
-
-    // 내 글에 달린 새 댓글은 로컬 알림으로 저장
-    let notifAdded = false;
-    const seenCommentIds = getSeenMyPostCommentIds();
-    const hasSeenState = hasSeenMyPostCommentState();
-    let seenChanged = false;
-    S.posts.forEach(p => {
-      const pid = String(p.id);
-      if (!targetPostIdSet.has(pid)) return;
-      const prevIds = new Set((p.commentList || []).map(c => String(c.id)));
-      const nextComments = commentMap[pid] || [];
-      nextComments.forEach(comment => {
-        const commentId = String(comment.id);
-        const isNew = !prevIds.has(commentId) && !seenCommentIds.has(commentId);
-        const isMine = (comment.deviceId && S.deviceId && comment.deviceId === S.deviceId)
-          || (!!S.user.name && comment.name === S.user.name);
-        if (hasSeenState && isNew && !isMine) {
-          notifAdded = notifyCommentOnMyPost(p, comment) || notifAdded;
-        }
-        if (!seenCommentIds.has(commentId)) {
-          seenCommentIds.add(commentId);
-          seenChanged = true;
-        }
-      });
-    });
-    if (seenChanged || !hasSeenState) saveSeenMyPostCommentIds(seenCommentIds);
-
-    // 내 리액션 상태 업데이트
-    targetPostIds.forEach(pid => {
-      if (myReactionMap[pid]?.length) S.myReactions[pid] = [...myReactionMap[pid]];
-      else delete S.myReactions[pid];
-    });
-
-    // ── 2차 렌더링: 반응·댓글 포함 최종 업데이트 ──
-    _applyRemotePostsToState(remotePosts, stickerMap, commentMap, targetPostIdSet);
-    renderCommunity();
     updateCommunityDot();
-    if (notifAdded) loadNotifList();
   } catch(e) { console.error('[fetchCommunityPosts]', e); }
 }
 
@@ -13410,7 +13320,7 @@ function escHtmlComm(s) {
 }
 
 /* ── Comments ── */
-function openComments(postId) {
+async function openComments(postId) {
   haptic('light');
   _commentPostId = postId;
   document.getElementById('cm-av').innerHTML = avHTML(S.user.avatar);
@@ -13418,6 +13328,56 @@ function openComments(postId) {
   renderCommentList();
   document.getElementById('comment-overlay').classList.remove('pm-hidden');
   setTimeout(() => document.getElementById('cm-input').focus(), 300);
+
+  // 댓글·반응 실시간 fetch
+  if (!_db) return;
+  try {
+    const pid = String(postId);
+    const [cmp, rp] = await Promise.all([
+      _db.from('post_comments').select('*').eq('postId', pid).order('ts', { ascending: true }),
+      _db.from('reactions').select('*').eq('postId', pid),
+    ]);
+    const post = S.posts.find(p => String(p.id) === pid) || (S.communityPosts || []).find(p => String(p.id) === pid);
+    if (!post) return;
+
+    // 댓글 업데이트
+    post.commentList = (cmp.data || []).map(c => ({
+      id: c.id,
+      name: c.userName || '익명',
+      avatar: c.deviceId === 'hi_ai_bot' ? './images/avatars/run_day_rola.png' : AVATARS[0],
+      lv: 1,
+      body: c.body || '',
+      time: c.ts ? new Date(Number(c.ts)).toLocaleDateString('ko-KR') : '',
+      ts: c.ts ? Number(c.ts) : Date.now(),
+      deviceId: c.deviceId || '',
+    }));
+    post.comments = post.commentList.length;
+
+    // 반응 업데이트
+    const stickers = { cheer:0, love:0, congrats:0, cool:0, together:0 };
+    const myR = [];
+    (rp.data || []).forEach(r => {
+      if (r.stickerId in stickers) stickers[r.stickerId]++;
+      if (r.deviceId === S.deviceId) myR.push(r.stickerId);
+    });
+    post.stickers = stickers;
+    if (myR.length) S.myReactions[postId] = myR;
+    else delete S.myReactions[postId];
+
+    if (_commentPostId === postId) {
+      renderCommentList();
+      // 피드 카드 스티커·댓글 수 업데이트
+      const card = document.getElementById(`post-${postId}`);
+      if (card) {
+        const cmBtn = card.querySelector('.comment-btn span');
+        if (cmBtn) cmBtn.textContent = `댓글 ${post.comments}개`;
+        STICKERS.forEach(s => {
+          const btn = card.querySelector(`.sticker-btn[onclick*="'${s.id}'"]`);
+          if (btn) updateStickerButtonUi(btn, post.stickers[s.id] || 0, (S.myReactions[postId] || []).includes(s.id));
+        });
+      }
+    }
+  } catch(e) { console.error('[openComments fetch]', e); }
 }
 function closeComments() {
   document.getElementById('comment-overlay').classList.add('pm-hidden');
