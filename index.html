@@ -9424,9 +9424,13 @@ function renderHome() {
 
   // Quick action subtitles
   const _base = (_realLeagueUsers && _realLeagueUsers.length) ? _realLeagueUsers : [];
+  const _leagueReady = !!(_realLeagueUsers && _realLeagueUsers.length);
   if (!canJoinLeagueRanking()) {
     document.getElementById('rank-quick-label').textContent = '';
     document.getElementById('my-rank-quick').textContent = '운동 기록 후 참여';
+  } else if (!_leagueReady) {
+    document.getElementById('rank-quick-label').textContent = '';
+    document.getElementById('my-rank-quick').textContent = '확인 중…';
   } else if (hasActiveChallengeRegistration()) {
     const chTotal = _base.filter(u => u.isChallenger).length + 1;
     const chRank  = _base.filter(u => u.isChallenger && u.pts > (S.user.totalPoints || S.user.points)).length + 1;
