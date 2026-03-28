@@ -9280,10 +9280,12 @@ function getLeagueAlertRankBand(rank = 0, total = 0) {
 }
 
 function getLeagueTierDisplayLabel(rank = 0, total = 0) {
-  const band = getLeagueAlertRankBand(rank, total);
-  if (band === 'mid') return '추격권';
-  if (band === 'low') return '도약권';
-  return '선두권';
+  const safeRank = Number(rank) || 0;
+  if (!safeRank) return '추격권';
+  if (safeRank <= 3) return '선두권';
+  if (safeRank <= 10) return '추격권';
+  if (safeRank <= 20) return '도약권';
+  return 'TOP 20 밖';
 }
 
 function renderLeagueTierHtml(rank = 0, total = 0) {
@@ -9381,12 +9383,12 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
       chip,
       text: coachLine(
         tab === 'level'
-          ? '첫 기록부터 넣어볼까요. 다음 레벨 계산은 제가 할게요.'
+          ? '첫 기록부터 천천히 시작해볼까요. 레벨은 제가 볼게요.'
           : tab === 'alltime'
-            ? '오늘은 운동하기 딱 좋은 날이에요. 전체기록은 오늘부터 쌓으면 됩니다.'
+            ? '오늘 기록부터 전체기록에 차곡차곡 쌓여요.'
           : tab === 'challenger'
-            ? '지금 들어와도 안 늦었어요. 챌린지는 뒤에서 올라가는 맛도 있거든요.'
-              : '오늘 기록 하나면 주간 순위 바로 반영돼요. 잠들기 전 스트레칭 한 번부터 가죠.',
+            ? '지금 시작해도 챌린지 늦지 않았어요.'
+              : '오늘 기록 하나면 이번주 순위에 바로 반영돼요.',
         { mentionName: true }
       ),
     };
@@ -9395,7 +9397,7 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
     return {
       tone: 'info',
       chip,
-      text: coachLine('순위표 다시 계산 중이에요. 곧 바로 보여드릴게요.'),
+      text: coachLine('순위표 정리 중이에요. 금방 보여드릴게요.'),
     };
   }
   if (!Array.isArray(entries) || !entries.length) {
@@ -9404,8 +9406,8 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
       chip,
       text: coachLine(
         tab === 'challenger'
-          ? '아직 기록이 많지 않아요. 지금 시작해도 충분히 올라갈 수 있어요.'
-          : '아직 기록이 많지 않아요. 오늘 한 번만 움직여도 바로 티 납니다.'
+          ? '아직 기록이 많지 않아요. 지금 시작해도 충분해요.'
+          : '아직 기록이 많지 않아요. 오늘 하나만 남겨도 금방 보여요.'
       ),
     };
   }
@@ -9416,28 +9418,28 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
         tone: 'info',
         chip,
         text: coachLine(nextLevel
-          ? `다음 레벨까지 ${nextLevel.remaining}p예요. 숙제 많이 안 남았습니다.`
-          : '지금은 최고 레벨이에요. 이제는 같은 레벨 안 순위전이에요.'),
+          ? `다음 레벨까지 ${nextLevel.remaining}p 남았어요. 천천히 가도 괜찮아요.`
+          : '지금은 최고 레벨이에요.'),
       };
     }
     if (tab === 'alltime') {
       return {
         tone: 'info',
         chip,
-        text: coachLine('전체기록은 꾸준한 사람이 이겨요. 오늘 한 번부터 쌓아봅시다.'),
+        text: coachLine('오늘 기록부터 차근차근 쌓아가면 돼요.'),
       };
     }
     if (tab === 'challenger') {
       return {
         tone: 'info',
         chip,
-        text: coachLine('챌린지는 아직 늦지 않았어요. 지금 들어와도 따라붙을 자리 충분합니다.'),
+        text: coachLine('지금 시작해도 늦지 않았어요.'),
       };
     }
     return {
       tone: 'info',
       chip,
-      text: coachLine(`오늘 ${sport.session} 한 번만 더 하면 이번주 순위 바로 반응해요. 이 날씨에 가만있기엔 좀 아깝죠.`),
+      text: coachLine(`오늘 ${sport.session} 기록 하나면 바로 반영돼요.`),
     };
   }
   const above = myIndex > 0 ? entries[myIndex - 1] : null;
@@ -9451,33 +9453,34 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
   const isOutsideTop20 = myRank > 20 && !!top20Entry;
   const diffToTop20 = isOutsideTop20 ? Math.max(1, getLeagueMetricValue(top20Entry, tab) - myPoints + 1) : 0;
   const rankBucket = myRank <= 3 ? 'top3' : myRank <= 10 ? 'top10' : myRank <= 20 ? 'top20' : 'outside20';
+  const tierLabel = getLeagueTierDisplayLabel(myRank, totalEntries);
 
   if (tab === 'level') {
     if (!nextLevel) {
       return {
         tone: 'lead',
         chip: '최고 레벨',
-        text: coachLine(`지금 최고 레벨이고 같은 레벨 안에서 ${myRank}위예요. 이 구간은 꾸준한 사람이 이깁니다.`),
+        text: coachLine('지금 최고 레벨이에요. 지금처럼만 이어가면 돼요.'),
       };
     }
     if (rankBucket === 'top3') {
       return {
         tone: 'lead',
         chip,
-        text: coachLine(`다음 레벨까지 ${nextLevel.remaining}p예요. 오늘은 욕심 좀 내도 되는 날이에요.`),
+        text: coachLine(`다음 레벨까지 ${nextLevel.remaining}p 남았어요. 거의 다 왔어요.`),
       };
     }
     if (rankBucket === 'top10') {
       return {
         tone: 'info',
         chip,
-        text: coachLine(`다음 레벨까지 ${nextLevel.remaining}p예요. 페이스 좋아요, 한 번만 더 밀어봅시다.`),
+        text: coachLine(`다음 레벨까지 ${nextLevel.remaining}p 남았어요. 조금씩 가까워지고 있어요.`),
       };
     }
     return {
       tone: 'info',
       chip,
-      text: coachLine(`다음 레벨까지 ${nextLevel.remaining}p예요. 조급해하지 말고 출석 찍듯이 쌓아가죠.`),
+      text: coachLine(`다음 레벨까지 ${nextLevel.remaining}p 남았어요. 천천히 쌓아가면 돼요.`),
     };
   }
 
@@ -9486,7 +9489,7 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
       return {
         tone: 'info',
         chip,
-        text: coachLine(`전체기록 TOP 20까지 ${diffToTop20}p예요. 오늘은 순위권 진입 노려볼 만한 날이에요.`, { mentionName: true }),
+        text: coachLine(`TOP 20까지 ${diffToTop20}p 남았어요. 아직 충분히 가능해요.`, { mentionName: true }),
       };
     }
     if (myRank === 1) {
@@ -9495,8 +9498,8 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
         chip,
         text: coachLine(
           below
-            ? `전체기록 1위예요. ${belowGap}p 앞서 있으니 오늘은 기록 욕심보다 자리 지키는 쪽이 더 똑똑합니다.`
-            : '전체기록 1위예요. 오늘은 선두 유지에 집중하면 됩니다.'
+            ? `${belowGap}p 앞서 있어요. 지금처럼만 이어가면 돼요.`
+            : '지금 자리 잘 지키고 있어요.'
         ),
       };
     }
@@ -9506,8 +9509,8 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
         chip,
         text: coachLine(
           above
-            ? `전체기록 ${myRank}위예요. 윗순위까지 ${aboveDiff}p, 오늘 기록 하나면 순위 한 칸 충분히 올라갑니다.`
-            : `전체기록 ${myRank}위예요. 여기서는 욕심내는 사람이 한 칸 더 올라갑니다.`
+            ? `윗순위까지 ${aboveDiff}p 남았어요. 차이 크지 않아요.`
+            : '좋은 자리예요.'
         ),
       };
     }
@@ -9517,8 +9520,8 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
         chip,
         text: coachLine(
           above
-            ? `전체기록 ${myRank}위예요. 윗순위까지 ${aboveDiff}p, 여기선 한 번 잘하면 순위가 금방 올라와요.`
-            : `전체기록 ${myRank}위예요. 지금도 좋지만 오늘은 한 칸 더 올라가보죠.`
+            ? `윗순위까지 ${aboveDiff}p 남았어요. 충분히 따라갈 수 있어요.`
+            : '지금 페이스 괜찮아요.'
         ),
       };
     }
@@ -9527,8 +9530,8 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
       chip,
       text: coachLine(
         above
-          ? `전체기록 ${myRank}위예요. 윗순위까지 ${aboveDiff}p, 오늘은 두 자릿수 초반까지 당겨봅시다.`
-          : `전체기록 ${myRank}위예요. 오늘은 운동하기 딱 좋은 날이라 하나 남기고 자면 좋겠네요.`
+          ? `윗순위까지 ${aboveDiff}p 남았어요. 아직 멀지 않아요.`
+          : '오늘 기록 하나가 좋은 시작이 될 수 있어요.'
       ),
     };
   }
@@ -9538,7 +9541,7 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
       return {
         tone: 'info',
         chip,
-        text: coachLine(`챌린지 TOP 20까지 ${diffToTop20}p예요. 지금부터 순위 올리기 좋은 구간이에요.`, { mentionName: true }),
+        text: coachLine(`TOP 20까지 ${diffToTop20}p 남았어요. 아직 충분히 가능해요.`, { mentionName: true }),
       };
     }
     if (myRank === 1) {
@@ -9547,8 +9550,8 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
         chip,
         text: coachLine(
           below
-            ? `챌린지 1위예요. ${belowGap}p 앞서 있으니 오늘 한 번 더 챙기면 격차를 더 벌릴 수 있어요.`
-            : '챌린지 1위예요. 여기선 지키는 것도 실력입니다.'
+            ? `${belowGap}p 앞서 있어요. 지금처럼만 이어가면 돼요.`
+            : '지금 자리 잘 지키고 있어요.'
         ),
       };
     }
@@ -9556,7 +9559,7 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
       return {
         tone: 'chase',
         chip,
-        text: coachLine(`챌린지 ${myRank}위예요. 윗순위까지 ${aboveDiff}p, 오늘은 메달권 욕심 내볼 만합니다.`),
+        text: coachLine(`윗순위까지 ${aboveDiff}p 남았어요. 차이 크지 않아요.`),
       };
     }
     if (rankBucket === 'top10') {
@@ -9565,8 +9568,8 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
         chip,
         text: coachLine(
           above
-            ? `챌린지 ${myRank}위예요. 윗순위까지 ${aboveDiff}p, 이 구간은 기록 하나가 꽤 크게 먹혀요.`
-            : `챌린지 ${myRank}위예요. 이 구간은 기록 하나 차이로 순위가 금방 바뀝니다.`
+            ? `윗순위까지 ${aboveDiff}p 남았어요. 충분히 따라갈 수 있어요.`
+            : '지금 페이스 괜찮아요.'
         ),
       };
     }
@@ -9575,8 +9578,8 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
       chip,
       text: coachLine(
         above
-          ? `챌린지 ${myRank}위예요. 윗순위까지 ${aboveDiff}p, 오늘 한 번 잘 들어가면 금방 두 자릿수 초반 봅니다.`
-          : `챌린지 ${myRank}위예요. 아직 포기 버튼 누를 타이밍은 아닙니다.`
+          ? `윗순위까지 ${aboveDiff}p 남았어요. 아직 멀지 않아요.`
+          : '오늘 하나만 남겨도 괜찮아요.'
       ),
     };
   }
@@ -9585,7 +9588,7 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
     return {
       tone: 'info',
       chip,
-        text: coachLine(`이번주 TOP 20까지 ${diffToTop20}p예요. 오늘은 순위권 진입 노려볼 만한 날이에요.`, { mentionName: true }),
+        text: coachLine(`TOP 20까지 ${diffToTop20}p 남았어요. 충분히 들어갈 수 있어요.`, { mentionName: true }),
     };
   }
   if (myRank === 1) {
@@ -9594,8 +9597,8 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
       chip,
       text: coachLine(
         below
-          ? `이번주 1위예요. ${belowGap}p 앞서 있으니 오늘은 선두 유지에 집중하면 됩니다.`
-          : '이번주 1위예요. 오늘은 페이스만 잃지 않으면 됩니다.'
+          ? `${belowGap}p 앞서 있어요. 지금처럼만 이어가면 돼요.`
+          : '지금 자리 잘 지키고 있어요.'
       ),
     };
   }
@@ -9603,7 +9606,7 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
     return {
       tone: 'chase',
       chip,
-      text: coachLine(`이번주 ${myRank}위예요. 윗순위까지 ${aboveDiff}p, 오늘 컨디션 괜찮으면 바로 흔들 수 있어요.`),
+      text: coachLine(`윗순위까지 ${aboveDiff}p 남았어요. 차이 크지 않아요.`),
     };
   }
   if (rankBucket === 'top10') {
@@ -9612,8 +9615,8 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
       chip,
       text: coachLine(
         above
-          ? `이번주 ${myRank}위예요. 윗순위까지 ${aboveDiff}p, 이 구간은 한 번 잘 넣으면 금방 올라갑니다.`
-          : `이번주 ${myRank}위예요. 지금도 좋지만 오늘은 한 칸 더 올라가보죠.`
+          ? `윗순위까지 ${aboveDiff}p 남았어요. 충분히 따라갈 수 있어요.`
+          : '지금 페이스 괜찮아요.'
       ),
     };
   }
@@ -9622,8 +9625,8 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
     chip,
     text: coachLine(
       above
-        ? `이번주 ${myRank}위예요. 윗순위까지 ${aboveDiff}p, 오늘 하나 더 쌓아두면 순위권 지키기 훨씬 편해져요.`
-        : `이번주 ${myRank}위예요. 오늘은 운동하기 딱 좋은 날이라 하나 남기고 자면 좋겠네요.`
+        ? `윗순위까지 ${aboveDiff}p 남았어요. 아직 멀지 않아요.`
+        : '오늘 기록 하나면 바로 반영돼요.'
     ),
   };
 }
