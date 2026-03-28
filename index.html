@@ -9191,24 +9191,105 @@ function getLeagueNextLevelInfo(points = 0) {
   };
 }
 
-function getLeagueTierState(rank = 0, total = 0) {
+function getLeagueAlertChip(tab = S.leagueTab) {
+  return tab === 'level' ? '다음 레벨' : tab === 'alltime' ? '응원' : tab === 'challenger' ? '챌린지' : '순위 체크';
+}
+
+function getLeagueAlertRankBand(rank = 0, total = 0) {
   const safeRank = Number(rank) || 0;
   const safeTotal = Number(total) || 0;
-  if (!safeRank || !safeTotal) return { key: 'mid', label: '중위권' };
+  if (!safeRank || !safeTotal) return 'mid';
+  if (safeRank === 1) return 'leader';
+  if (safeRank <= 3) return 'top3';
   const ratio = safeRank / safeTotal;
-  if (ratio <= 0.33) return { key: 'high', label: '상위권' };
-  if (ratio <= 0.66) return { key: 'mid', label: '중위권' };
-  return { key: 'low', label: '하위권' };
+  if (ratio <= 0.33) return 'high';
+  if (ratio <= 0.66) return 'mid';
+  return 'low';
+}
+
+const LEAGUE_ALERT_SPORT_COPY = {
+  walking:   { label: '걷기', momentum: '걷기 흐름', hold: '걸음 수', session: '걸음' },
+  running:   { label: '달리기', momentum: '달리기 페이스', hold: '페이스', session: '러닝' },
+  swimming:  { label: '수영', momentum: '수영 리듬', hold: '호흡', session: '수영' },
+  cycling:   { label: '자전거', momentum: '자전거 페이스', hold: '페달 감각', session: '라이딩' },
+  pilates:   { label: '필라테스', momentum: '필라테스 리듬', hold: '코어 감각', session: '필라테스' },
+  yoga:      { label: '요가', momentum: '요가 리듬', hold: '호흡', session: '요가' },
+  hiking:    { label: '등산', momentum: '등산 흐름', hold: '오름세', session: '등산' },
+  tennis:    { label: '테니스', momentum: '테니스 텐션', hold: '랠리 감각', session: '테니스' },
+  strength:  { label: '근력운동', momentum: '근력 루틴', hold: '루틴 힘', session: '루틴' },
+  kendo:     { label: '검도', momentum: '검도 리듬', hold: '집중력', session: '검도' },
+  climbing:  { label: '클라이밍', momentum: '클라이밍 감각', hold: '그립 감각', session: '클라이밍' },
+  custom:    { label: '운동', momentum: '운동 흐름', hold: '리듬', session: '기록' },
+  default:   { label: '운동', momentum: '운동 흐름', hold: '리듬', session: '기록' },
+};
+
+function getLeagueAlertSportCopy(exId = '') {
+  const raw = String(exId || '').trim();
+  if (!raw) return LEAGUE_ALERT_SPORT_COPY.default;
+  const normalized = raw.startsWith('custom_') ? 'custom' : raw;
+  return LEAGUE_ALERT_SPORT_COPY[normalized] || LEAGUE_ALERT_SPORT_COPY.default;
+}
+
+function getLeagueAlertWorkoutsForTab(tab = S.leagueTab) {
+  const workouts = Array.isArray(S.workouts) ? S.workouts : [];
+  if (!workouts.length) return [];
+  if (tab === 'weekly') {
+    const startTs = getLeagueWeekStartTs();
+    const endTs = startTs + LEAGUE_WEEK_MS;
+    const weekly = workouts.filter(workout => {
+      const ts = Number(workout?.ts);
+      return Number.isFinite(ts) && ts >= startTs && ts < endTs;
+    });
+    return weekly.length ? weekly : workouts;
+  }
+  if (tab === 'challenger') {
+    const sinceTs = Date.now() - (21 * 24 * 60 * 60 * 1000);
+    const recent = workouts.filter(workout => {
+      const ts = Number(workout?.ts);
+      return Number.isFinite(ts) && ts >= sinceTs;
+    });
+    return recent.length ? recent : workouts;
+  }
+  return workouts;
+}
+
+function getLeagueAlertExerciseId(tab = S.leagueTab) {
+  const workouts = getLeagueAlertWorkoutsForTab(tab);
+  if (!workouts.length) return 'default';
+  const stats = new Map();
+  workouts.forEach(workout => {
+    let exId = String(workout?.exId || '').trim();
+    if (!exId) exId = 'custom';
+    if (exId.startsWith('custom_')) exId = 'custom';
+    const current = stats.get(exId) || { points: 0, duration: 0, count: 0, lastTs: 0 };
+    current.points += Math.max(0, Number(workout?.points) || 0);
+    current.duration += Math.max(0, Number(workout?.duration) || 0);
+    current.count += 1;
+    current.lastTs = Math.max(current.lastTs, Number(workout?.ts) || 0);
+    stats.set(exId, current);
+  });
+  const top = [...stats.entries()].sort((a, b) => {
+    const pointDiff = b[1].points - a[1].points;
+    if (pointDiff) return pointDiff;
+    const durationDiff = b[1].duration - a[1].duration;
+    if (durationDiff) return durationDiff;
+    const countDiff = b[1].count - a[1].count;
+    if (countDiff) return countDiff;
+    return b[1].lastTs - a[1].lastTs;
+  })[0];
+  return top?.[0] || 'default';
 }
 
 function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) {
   const myName = escHtmlComm((myDisplayName() || '회원').replace(/\s*\(나\)\s*$/, ''));
   const myLeaguePoints = getCurrentLeaguePoints();
   const nextLevel = getLeagueNextLevelInfo(myLeaguePoints);
+  const chip = getLeagueAlertChip(tab);
+  const sport = getLeagueAlertSportCopy(getLeagueAlertExerciseId(tab));
   if (!canJoinLeagueRanking()) {
     return {
       tone: 'info',
-      chip: tab === 'level' ? '다음 레벨' : tab === 'alltime' ? '응원' : tab === 'challenger' ? '챌린지' : '순위 체크',
+      chip,
       text: `${myName}님, 첫 운동만 찍히면 제가 제일 먼저 부산 떨 준비는 끝났어요`,
       meta: tab === 'level'
         ? '레벨별은 다음 레벨까지 얼마나 남았는지 같이 볼게요.'
@@ -9222,7 +9303,7 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
   if (_leagueFetching && (!_realLeagueUsers || !_realLeagueUsers.length)) {
     return {
       tone: 'info',
-      chip: tab === 'level' ? '다음 레벨' : tab === 'alltime' ? '응원' : tab === 'challenger' ? '챌린지' : '순위 체크',
+      chip,
       text: `${myName}님, 순위판 정리 중이에요. 눈 한 번만 깜빡이면 거의 끝나요`,
       meta: '잠깐만요. 곧 누가 앞에 있는지 딱 보여드릴게요.',
     };
@@ -9230,7 +9311,7 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
   if (!Array.isArray(entries) || !entries.length) {
     return {
       tone: 'info',
-      chip: tab === 'level' ? '다음 레벨' : tab === 'alltime' ? '응원' : tab === 'challenger' ? '챌린지' : '순위 체크',
+      chip,
       text: `${myName}님, 아직 조용해요. 지금 들어가면 첫 장면 센터는 거의 예약이에요`,
       meta: tab === 'challenger'
         ? '챌린지는 초반 페이스가 은근 오래 남아요.'
@@ -9242,7 +9323,7 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
     if (tab === 'level') {
       return {
         tone: 'info',
-        chip: '다음 레벨',
+        chip,
         text: nextLevel
           ? `${myName}님, 다음 레벨 ${nextLevel.next.name}까지 ${nextLevel.remaining}p예요. 이 정도면 금방 치고 올라가요`
           : `${myName}님, 지금은 최고 레벨 구간이에요. 여기선 존재감으로 한 판이에요`,
@@ -9254,23 +9335,23 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
     if (tab === 'alltime') {
       return {
         tone: 'info',
-        chip: '응원',
-        text: `${myName}님, 전체기록은 한 번 탄력 붙으면 쭉 가요. 오늘이 그날 같기도 해요`,
-        meta: '상위권, 중위권, 하위권 흐름에 맞춰 제가 계속 응원멘트 바꿔드릴게요.',
+        chip,
+        text: `${myName}님, 전체기록은 ${sport.momentum} 붙는 날이 오면 쭉 올라가요. 오늘이 그날 같기도 해요`,
+        meta: '종목 흐름과 순위대에 맞춰 응원 멘트를 계속 다르게 들려드릴게요.',
       };
     }
     if (tab === 'challenger') {
       return {
         tone: 'info',
-        chip: '챌린지',
-        text: `${myName}님, 챌린지는 끝나기 전까진 몰라요. 지금 슬쩍 올라타도 아직 안 늦었어요`,
+        chip,
+        text: `${myName}님, 챌린지는 끝나기 전까진 몰라요. ${sport.momentum} 붙이면 지금 올라타도 아직 안 늦었어요`,
         meta: '챌린지는 한 번 흐름 타기 시작하면 생각보다 오래 갑니다.',
       };
     }
     return {
       tone: 'info',
-      chip: '순위 체크',
-      text: `${myName}님, 오늘 한 번만 움직여도 이번주 순위판 바로 술렁여요`,
+      chip,
+      text: `${myName}님, 오늘 ${sport.session} 한 번만 더 쌓아도 이번주 순위판 바로 술렁여요`,
       meta: '이번주는 숫자보다 흐름 타는 게 더 빨라요.',
     };
   }
@@ -9279,108 +9360,130 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
   const myPoints = getLeagueMetricValue(meEntry, tab);
   const myRank = Number(meEntry.rank || (myIndex + 1)) || (myIndex + 1);
   const totalEntries = entries.length;
+  const rankBand = getLeagueAlertRankBand(myRank, totalEntries);
+  const aboveDiff = above ? Math.max(1, getLeagueMetricValue(above, tab) - myPoints + 1) : 0;
+  const belowGap = below ? Math.max(0, myPoints - getLeagueMetricValue(below, tab)) : 0;
 
   if (tab === 'level') {
     if (!nextLevel) {
       return {
         tone: 'lead',
         chip: '최고 레벨',
-        text: `${myName}님, 지금은 최고 레벨 구간이에요. 슬슬 레전드 흉내 내도 되겠어요`,
-        meta: `같은 레벨 안에서는 ${myRank}위예요. 이쯤이면 이미 존재감 충분해요.`,
+        text: `${myName}님, 지금은 최고 레벨 구간이에요. ${sport.momentum}까지 붙어서 존재감이 진해졌어요`,
+        meta: `같은 레벨 안에서는 ${myRank}위예요. 지금 ${sport.hold}만 유지해도 오래 앞줄이에요.`,
+      };
+    }
+    if (rankBand === 'leader' || rankBand === 'top3' || rankBand === 'high') {
+      return {
+        tone: 'lead',
+        chip,
+        text: `${myName}님, ${sport.momentum} 좋아요. ${nextLevel.next.name}까지 ${nextLevel.remaining}p면 충분히 노려볼 만해요`,
+        meta: `같은 레벨 ${myRank}위예요. 지금 구간에서는 ${sport.session} 한 번이 레벨업 체감으로 바로 이어질 수 있어요.`,
       };
     }
     return {
       tone: 'info',
-      chip: '다음 레벨',
-      text: `${myName}님, ${nextLevel.next.name}까지 ${nextLevel.remaining}p예요. 레벨업 알림도 슬슬 몸 풀고 있어요`,
-      meta: `지금 같은 레벨에서는 ${myRank}위예요. 한 번 더 쌓으면 레벨창이 먼저 반응할 거예요.`,
+      chip,
+      text: `${myName}님, ${sport.session} 몇 번만 더 쌓이면 ${nextLevel.next.name}까지 금방 닿아요. 지금은 따라붙는 구간이에요`,
+      meta: `같은 레벨 ${myRank}위예요. 한 번 더 리듬 타면 레벨창이 먼저 반응할 거예요.`,
     };
   }
 
   if (tab === 'alltime') {
-    const tier = getLeagueTierState(myRank, totalEntries);
-    if (tier.key === 'high') {
+    if (rankBand === 'leader') {
       return {
         tone: 'lead',
-        chip: tier.label,
-        text: `${myName}님, 지금 상위권이에요. 이름이 슬슬 윗줄 자리 맡아두는 중이에요`,
-        meta: above
-          ? `${escHtmlComm(String(above.name || '바로 위 사용자').replace(/\s*\(나\)\s*$/, ''))}님까지 ${Math.max(1, getLeagueMetricValue(above, tab) - myPoints + 1)}p예요. 더 위도 보여요.`
-          : '이 페이스면 이름이 꽤 오래 위쪽에 남을 거예요.',
+        chip: '상위권',
+        text: `${myName}님, 전체기록에서도 ${sport.momentum}이 제일 앞이에요. 이름이 맨 윗줄에 단단히 붙었어요`,
+        meta: below ? `${belowGap}p 여유예요. 지금 ${sport.hold}만 유지해도 꽤 오래 선두예요.` : '이 페이스면 꽤 오래 맨 위에 남을 거예요.',
       };
     }
-    if (tier.key === 'mid') {
+    if (rankBand === 'top3' || rankBand === 'high') {
+      return {
+        tone: 'lead',
+        chip: '상위권',
+        text: `${myName}님, 전체기록 상위권에서 ${sport.momentum}이 좋아요. 더 위도 충분히 보여요`,
+        meta: above ? `앞줄까지 ${aboveDiff}p예요. ${sport.session} 한 번만 더 쌓아도 윗줄이 바로 가까워져요.` : '이 흐름이면 상위권 자리가 더 단단해질 거예요.',
+      };
+    }
+    if (rankBand === 'mid') {
       return {
         tone: 'info',
-        chip: tier.label,
-        text: `${myName}님, 지금 중위권이에요. 여기선 한 번만 툭 치고 올라가도 판이 확 바뀌어요`,
-        meta: '여기는 한 번만 치고 나가도 분위기가 확 바뀌는 자리예요.',
+        chip: '중위권',
+        text: `${myName}님, 지금 중위권이에요. ${sport.momentum}만 한 번 더 붙으면 판이 확 바뀌어요`,
+        meta: above ? `앞줄까지 ${aboveDiff}p예요. 여기선 ${sport.session} 한 번이 생각보다 크게 먹혀요.` : '여기는 한 번만 치고 나가도 분위기가 확 바뀌는 자리예요.',
       };
     }
     return {
       tone: 'info',
-      chip: tier.label,
-      text: `${myName}님, 아직 하위권이어도 괜찮아요. 여기선 두 번만 움직여도 분위기 바로 바뀌어요`,
-      meta: '이 구간은 기록 한두 번만 들어와도 순위가 꽤 크게 움직여요.',
+      chip: '하위권',
+      text: `${myName}님, 아직 하위권이어도 괜찮아요. ${sport.session} 두 번만 더 들어와도 분위기 바로 바뀌어요`,
+      meta: above ? `앞줄까지 ${aboveDiff}p예요. 이 구간은 기록 몇 번만 들어와도 순위가 꽤 크게 움직여요.` : '이 구간은 기록 한두 번만 들어와도 순위가 크게 움직여요.',
     };
   }
 
   if (tab === 'challenger') {
-    if (above) {
-      const targetPoints = getLeagueMetricValue(above, tab);
-      const diff = Math.max(1, targetPoints - myPoints + 1);
-      const rivalName = escHtmlComm(String(above.name || '바로 위 사용자').replace(/\s*\(나\)\s*$/, ''));
-      return {
-        tone: 'chase',
-        chip: '챌린지',
-        text: `${myName}님, 챌린지는 꾸준한 쪽이 은근 무서워요. ${rivalName}님까지 ${diff}p예요`,
-        meta: `${rivalName}님까지 ${diff}p예요. 챌린지는 막판에도 충분히 뒤집혀요.`,
-      };
-    }
-    if (below) {
-      const gap = Math.max(0, myPoints - getLeagueMetricValue(below, tab));
+    if (rankBand === 'leader') {
       return {
         tone: 'lead',
-        chip: '챌린지',
-        text: `${myName}님, 챌린지에서도 선두예요. 이 흐름이면 끝까지 꽤 얄미워질 수 있어요`,
-        meta: '이 페이스만 유지해도 꽤 오래 앞에서 보일 거예요.',
+        chip,
+        text: `${myName}님, 챌린지에서도 ${sport.momentum}이 제일 뜨거워요. 지금 선두 흐름이에요`,
+        meta: below ? `${belowGap}p 여유예요. 막판까지도 이 정도면 충분히 버틸 만해요.` : '이 페이스만 유지해도 꽤 오래 앞에서 보일 거예요.',
+      };
+    }
+    if (rankBand === 'top3' || rankBand === 'high') {
+      return {
+        tone: 'chase',
+        chip,
+        text: `${myName}님, 챌린지에서 ${sport.momentum} 살아 있어요. 앞줄까지 ${aboveDiff}p예요`,
+        meta: `${sport.session} 한 번만 더 잘 쌓아도 바로 붙어요. 챌린지는 막판에도 충분히 뒤집혀요.`,
+      };
+    }
+    if (rankBand === 'mid') {
+      return {
+        tone: 'info',
+        chip,
+        text: `${myName}님, 챌린지는 지금부터예요. ${sport.momentum} 한 번만 더 붙으면 위가 바로 보여요`,
+        meta: above ? `앞줄까지 ${aboveDiff}p예요. 이 정도 차이는 금방 줄어들어요.` : '챌린지는 한 번 흐름 타기 시작하면 생각보다 오래 갑니다.',
       };
     }
     return {
-      tone: 'lead',
-      chip: '챌린지',
-      text: `${myName}님, 챌린지 판은 아직 열려 있어요. 막판 뒤집기 슬쩍 예약해둘까요`,
-      meta: '한 번 올라탄 흐름이 끝까지 가는 경우가 많아요.',
+      tone: 'info',
+      chip,
+      text: `${myName}님, 챌린지 판은 아직 열려 있어요. ${sport.session} 몇 번만 더 들어오면 막판 뒤집기 충분해요`,
+      meta: above ? `앞줄까지 ${aboveDiff}p예요. 한 번 올라탄 흐름이 끝까지 가는 경우가 많아요.` : '한 번 올라탄 흐름이 끝까지 가는 경우가 많아요.',
     };
   }
 
-  if (above) {
-    const targetPoints = getLeagueMetricValue(above, tab);
-    const diff = Math.max(1, targetPoints - myPoints + 1);
-    const nextRank = Math.max(1, myRank - 1);
-    const rivalName = escHtmlComm(String(above.name || '바로 위 사용자').replace(/\s*\(나\)\s*$/, ''));
-    return {
-      tone: 'chase',
-      chip: '순위 체크',
-      text: `${myName}님, 이번주 분위기 좋아요. ${rivalName}님 바로 뒤까지 붙었어요`,
-      meta: `${diff}p만 더하면 바로 앞줄이에요. 이번주는 흐름이 진짜 빨라요.`,
-    };
-  }
-  if (below) {
-    const gap = Math.max(0, myPoints - getLeagueMetricValue(below, tab));
-    const rivalName = escHtmlComm(String(below.name || '2위 사용자').replace(/\s*\(나\)\s*$/, ''));
+  if (rankBand === 'leader') {
     return {
       tone: 'lead',
-      chip: '순위 체크',
-      text: `${myName}님, 이번주 흐름 제일 좋아요. 뒤는 제가 살펴볼게요`,
-      meta: `${rivalName}님과 ${gap}p 차이예요. 이 정도면 꽤 오래 앞줄이에요.`,
+      chip,
+      text: `${myName}님, 이번주 ${sport.momentum}이 제일 좋아요. 이름이 맨 앞줄에 딱 붙었어요`,
+      meta: below ? `${belowGap}p 여유예요. 이번주는 ${sport.hold}만 유지해도 선두를 오래 지킬 수 있어요.` : '이 페이스면 한동안 분위기 안 뺏길 것 같아요.',
+    };
+  }
+  if (rankBand === 'top3' || rankBand === 'high') {
+    return {
+      tone: 'chase',
+      chip,
+      text: `${myName}님, 이번주 ${sport.momentum} 좋아요. 앞줄까지 ${aboveDiff}p예요`,
+      meta: `${sport.session} 한 번만 더 쌓아도 바로 순위가 출렁일 수 있어요. 이번주는 흐름이 특히 빨라요.`,
+    };
+  }
+  if (rankBand === 'mid') {
+    return {
+      tone: 'info',
+      chip,
+      text: `${myName}님, 지금 중간 구간이에요. ${sport.momentum} 한 번만 더 붙으면 판이 바로 달라져요`,
+      meta: above ? `앞줄까지 ${aboveDiff}p예요. 이번주 순위판은 한 번의 기록에도 꽤 크게 흔들려요.` : '이번주는 숫자보다 흐름 타는 게 더 빨라요.',
     };
   }
   return {
-    tone: 'lead',
-    chip: '순위 체크',
-    text: `${myName}님, 이번주 흐름이 아주 좋아요. 이름이 위에 잘 붙어 있어요`,
-    meta: '이 페이스면 한동안 분위기 안 뺏길 것 같아요.',
+    tone: 'info',
+    chip,
+    text: `${myName}님, 아직 아래쪽이어도 괜찮아요. 이번주는 ${sport.session} 두 번만 더 들어와도 분위기 바로 바뀌어요`,
+    meta: above ? `앞줄까지 ${aboveDiff}p예요. 주간판은 생각보다 훨씬 빨리 요동쳐요.` : '이번주는 숫자보다 흐름 타는 게 더 빨라요.',
   };
 }
 
@@ -12806,6 +12909,7 @@ function saveProfileModal() {
   S.user.avatar = normalizeAvatar(_selAvatar);
   S.user.tags = [...new Set([..._preservedProfileTags, ..._selTags])];
   persistProfileNickname({ skipRemote: false });
+  save();
   if (modal) modal.classList.add('pm-hidden');
   postToRunday({
     type: 'AVATAR_CHANGE',
@@ -17949,17 +18053,16 @@ async function doAppLogin() {
   loadDayNotes();
   scheduleMidnightReset();
   if (!S.user.name) S.user.name = inputName;
-  // 태그 복구: 로그아웃 후 localStorage에서 복원
+  S.user.empId = S.user.empId || ACTIVE_EMPID;
+  if (!S.user.name) S.user.name = inputName;
+  await hydrateAccountFromRemote(ACTIVE_EMPID, inputName);
+  // 태그 복구: 서버에 태그가 없을 때 localStorage에서 복원 (hydrateAccountFromRemote 이후)
   if (!S.user.tags?.length) {
     try {
       const saved = JSON.parse(localStorage.getItem('hi_health_tags_' + regId));
       if (saved?.length) S.user.tags = saved;
     } catch(e) {}
   }
-
-  S.user.empId = S.user.empId || ACTIVE_EMPID;
-  if (!S.user.name) S.user.name = inputName;
-  await hydrateAccountFromRemote(ACTIVE_EMPID, inputName);
   await syncAccountSettingsWithRemote(ACTIVE_EMPID);
   await syncMyChallengeRegistrationWithOptions({ pruneMissingRemote: true });
   repairChRegNote();
