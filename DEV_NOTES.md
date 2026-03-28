@@ -7,6 +7,12 @@
 
 ## 🐛 오류 / 이슈
 
+### [2026-03-28] 프로필 태그가 재로그인 후 초기화됨
+**증상**: 프로필에서 태그를 선택해도 재로그인 후 태그가 사라짐
+**원인**: 로그인 흐름에서 localStorage 태그 복원이 `hydrateAccountFromRemote` 호출 전에 실행됨. 이후 `hydrateAccountFromRemote`가 서버의 빈 `tags` 값으로 `S.user.tags`를 덮어씌워 복원된 태그가 소멸. 이후 `save()` 호출로 빈 태그가 Supabase에 저장됨
+**해결**: 태그 복구 코드를 `hydrateAccountFromRemote` 호출 이후로 이동. `saveProfileModal`에도 `save()` 명시적 호출 추가
+**관련 파일**: `index.html:18054-18062, 12804`
+
 ### [2026-03-24] 가족2 신청 시 관리자페이지에 가족1인으로 표시
 **증상**: 챌린지 신청에서 가족 2명 추가 시 관리자페이지 가족 정보 컬럼에 "가족 1인"으로 표시됨
 **원인**: `getRegFamilyMembers`에서 `Array.isArray(r?.familyMembers)` 체크만 하고 길이를 확인하지 않음. `normalizeRegistrationRow`가 null을 `[]`로 변환하므로, DB에 `familyMembers` 데이터가 없으면 빈 배열이 되어 `Array.isArray([])===true` → note 파싱 건너뜀 → `가족목록` 노트가 있어도 무시됨. 또한 폴백 텍스트가 `familyCount` 무관하게 "가족 1인"으로 하드코딩되어 있었음
