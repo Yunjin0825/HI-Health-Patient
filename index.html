@@ -9141,7 +9141,6 @@ function getLeagueBadgeState(entries = [], tab = S.leagueTab) {
     entries
       .filter(entry => entry?.isNew)
       .forEach(entry => badgeState.newKeys.add(getLeagueEntryKey(entry)));
-
     const risingKing = [...entries]
       .filter(entry => (Number(entry?.change) || 0) > 0)
       .sort((a, b) => {
@@ -9205,6 +9204,17 @@ function getLeagueAlertRankBand(rank = 0, total = 0) {
   if (ratio <= 0.33) return 'high';
   if (ratio <= 0.66) return 'mid';
   return 'low';
+}
+
+function getLeagueTierDisplayLabel(rank = 0, total = 0) {
+  const band = getLeagueAlertRankBand(rank, total);
+  if (band === 'mid') return '중위권';
+  if (band === 'low') return '하위권';
+  return '상위권';
+}
+
+function renderLeagueTierHtml(rank = 0, total = 0) {
+  return `<span class="lb-change ch-eq">${getLeagueTierDisplayLabel(rank, total)}</span>`;
 }
 
 const LEAGUE_ALERT_SPORT_COPY = {
@@ -13796,7 +13806,14 @@ function renderLeague() {
   renderLeagueAlert(getLeagueAlertMessage(list, meEntry, currentTab));
   const displayMyRank = meEntry?.rank || myRank;
   const displayPct = (canJoinLeague && displayMyRank && total > 0) ? Math.round((displayMyRank / total) * 100) : pct;
-  const myChangeHtml = currentTab === 'weekly' ? renderLeagueChangeHtml(meEntry?.change || 0) : `<span class="lb-change ch-eq">−</span>`;
+  const myTierHtml = renderLeagueTierHtml(displayMyRank, total);
+  const myChangeHtml = currentTab === 'weekly'
+    ? renderLeagueChangeHtml(meEntry?.change || 0)
+    : currentTab === 'level'
+      ? ''
+      : currentTab === 'alltime'
+        ? myTierHtml
+        : `<span class="lb-change ch-eq">−</span>`;
 
   if (canJoinLeague) {
     document.getElementById('my-rank-card').innerHTML = `
@@ -13828,9 +13845,19 @@ function renderLeague() {
     ? [...lbSlice, meEntry]
     : lbSlice;
   document.getElementById('lb-list').innerHTML = showList.map(u => {
-    const chgHtml = currentTab === 'weekly' ? renderLeagueChangeHtml(u.change) : `<span class="lb-change ch-eq">−</span>`;
+    const tierHtml = renderLeagueTierHtml(u.rank, list.length);
+    const chgHtml = currentTab === 'weekly'
+      ? renderLeagueChangeHtml(u.change)
+      : currentTab === 'level' || currentTab === 'alltime'
+        ? ''
+        : `<span class="lb-change ch-eq">−</span>`;
     const lv = LEVELS[Math.min(u.lv-1, LEVELS.length-1)];
     const badgeHtml = renderLeagueEntryBadgesHtml(u, badgeState, currentTab);
+    const trailingHtml = currentTab === 'level'
+      ? `<div class="lb-pts"><span title="${escHtmlComm(lv.name)}" aria-label="${escHtmlComm(lv.name)}">${lv.icon}</span></div>`
+      : currentTab === 'alltime'
+        ? tierHtml
+        : `<div class="lb-pts">${currentTab === 'weekly' ? u.wPts : u.pts + 'p'}</div>`;
     return `
       <div class="lb-item ${u.isMe ? 'me' : ''} ${u.rank <= 3 ? 'rank-top3' : ''}" data-league-key="${escHtmlComm(getLeagueEntryKey(u))}">
         <div class="lb-rank ${u.rank<=3?'top3':''}">${renderLeagueRankHtml(u.rank)}</div>
@@ -13841,7 +13868,7 @@ function renderLeague() {
         </div>
         <div class="lb-right">
           ${chgHtml}
-          <div class="lb-pts">${currentTab === 'level' ? lv.name : currentTab === 'weekly' ? u.wPts : u.pts + 'p'}</div>
+          ${trailingHtml}
         </div>
       </div>
     `;
@@ -14254,6 +14281,8 @@ function loadYtPlayer(el, vid) {
 /* ── Comments ── */
 async function openComments(postId) {
   haptic('light');
+  // 이전 폴링 타이머 항상 먼저 정리 (샘플 글로 전환 시에도 old timer가 남지 않도록)
+  if (_commentPollTimer) { clearInterval(_commentPollTimer); _commentPollTimer = null; }
   _commentPostId = postId;
   document.getElementById('cm-av').innerHTML = avHTML(S.user.avatar);
   document.getElementById('cm-input').value = '';
@@ -14331,7 +14360,7 @@ async function openComments(postId) {
       const pid = String(_commentPostId);
       const { data } = await _db.from('post_comments').select('*').eq('postId', pid).order('ts', { ascending: true });
       const post = S.posts.find(p => String(p.id) === pid) || (S.communityPosts || []).find(p => String(p.id) === pid);
-      if (!post || !data) return;
+      if (!post || !data || post.isSample) return; // 샘플 글 데이터는 덮어쓰지 않음
       if (data.length === (post.commentList || []).length) return; // 변화 없으면 패스
       post.commentList = data.map(c => ({
         id: c.id, name: c.userName || '익명',
