@@ -7299,7 +7299,6 @@ function restorePersistedUserTags(empId = ACTIVE_EMPID || S.user?.empId || '', o
 function save(opts = {}) {
   if (IS_GUEST) return;
   const skipRemote = !!opts.skipRemote;
-  const syncTagsToUsers = !!opts.syncTagsToUsers;
   const resolvedNickname = getResolvedProfileNickname();
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -7345,7 +7344,6 @@ function save(opts = {}) {
       pendingrewards:  (S.pendingRewards  || []).join(','),
       redeemedrewards: (S.redeemedRewards || []).join(','),
     };
-    if (syncTagsToUsers) payload.tags = normalizeUserTags(S.user.tags).join(',');
     const syncedKey = 'hi_synced_' + S.deviceId;
     if (localStorage.getItem(syncedKey)) {
       // 기존 유저 — UPDATE 시도, 0행이면 upsert로 재등록 (관리자가 삭제 후 재가입 허용)
@@ -7895,7 +7893,6 @@ const ACCOUNT_SETTINGS_META_KEY = 'hi_account_settings_meta';
 let _accountSettingsSyncTimer = null;
 let _accountSettingsApplyingRemote = false;
 let _profileNicknameSyncTimer = null;
-let _profileTagsDirty = false;
 
 function getAccountSettingsMetaKey(empId = ACTIVE_EMPID || S.user?.empId || '') {
   return getAccountScopedStorageKey(ACCOUNT_SETTINGS_META_KEY, empId);
@@ -8106,7 +8103,7 @@ async function hydrateAccountFromRemote(empId, fallbackName = '') {
       points: Number(u.points) || 0,
       totalPoints: Number(u.totalPoints || u.points) || 0,
       streak: Number(u.streak) || 0,
-      tags: typeof u.tags === 'string' ? u.tags.split(',').filter(Boolean) : (u.tags || []),
+      tags: normalizeUserTags(S.user.tags),
     };
     _lastKnownServerPts = Number(u.points) || 0;
     S.workouts = mergeWorkoutRecords(w.data || [], S.workouts);
@@ -12965,12 +12962,11 @@ function refreshChallengePeopleProfileCache(options = {}) {
   return merged.rows;
 }
 
-function syncProfileToRemote(opts = {}) {
+function syncProfileToRemote() {
   const normalizedEmpId = normalizeEmpIdValue(S.user.empId || ACTIVE_EMPID);
   const nextAvatar = normalizeAvatar(S.user.avatar);
   const nextNickname = getResolvedProfileNickname(normalizedEmpId);
   const nextName = String(S.user.name || '').trim();
-  const includeTags = opts.includeTags === true;
   if (!_db || !normalizedEmpId) return;
 
   const userFilters = [`"empId".eq.${normalizedEmpId}`];
@@ -12980,13 +12976,8 @@ function syncProfileToRemote(opts = {}) {
     nickname: nextNickname,
     lastactiveat: new Date().toISOString(),
   };
-  if (includeTags) userPayload.tags = normalizeUserTags(S.user.tags).join(',');
   _db.from('users').update(userPayload).or(userFilters.join(',')).then(({ error }) => {
-    if (error) {
-      console.error('[syncProfileToRemote/users]', error);
-      return;
-    }
-    if (includeTags) _profileTagsDirty = false;
+    if (error) console.error('[syncProfileToRemote/users]', error);
   });
 
   const currentReg = syncStoredChallengeProfile();
@@ -13325,8 +13316,9 @@ function saveProfileModal() {
   S.user.tags = [...new Set([..._preservedProfileTags, ..._selTags])];
   markAccountSettingsDirty();
   persistProfileNickname({ skipRemote: true });
-  save({ syncTagsToUsers: true });
-  syncProfileToRemote({ includeTags: true });
+  save();
+  syncAccountSettingsToRemote(true);
+  syncProfileToRemote();
   if (modal) modal.classList.add('pm-hidden');
   postToRunday({
     type: 'AVATAR_CHANGE',
@@ -13369,7 +13361,6 @@ function togglePmTag(ci, ti) {
   const idx = _selTags.indexOf(tag);
   if (idx === -1) _selTags.push(tag); else _selTags.splice(idx, 1);
   S.user.tags = [...new Set([..._preservedProfileTags, ..._selTags])];
-  _profileTagsDirty = true;
   markAccountSettingsDirty();
   save();
   renderPmTags();
@@ -17000,11 +16991,7 @@ async function refreshCurrentUserPointsFromRemote() {
   S.user.avatar = normalizeAvatar(remoteUser.avatar || S.user.avatar);
   S.user.points = Number(remoteUser.points) || 0;
   S.user.totalPoints = Math.max(Number(remoteUser.points) || 0, Number(S.user.totalPoints || 0));
-  if (remoteUser.tags != null) {
-    S.user.tags = typeof remoteUser.tags === 'string'
-      ? remoteUser.tags.split(',').map(v => String(v || '').trim()).filter(Boolean)
-      : (Array.isArray(remoteUser.tags) ? remoteUser.tags : []);
-  }
+  S.user.tags = normalizeUserTags(S.user.tags);
   save();
   renderHeader();
   if (document.getElementById('page-home')?.classList.contains('active')) renderHome();
