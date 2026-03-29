@@ -6695,6 +6695,7 @@ function buildAccountSettingsSnapshot(empId = ACTIVE_EMPID || S.user?.empId || '
     profile: {
       avatar: normalizeAvatar(profileOverride?.avatar || S.user?.avatar),
       nickname: getResolvedProfileNickname(normalizedEmpId),
+      tags: Array.isArray(S.user?.tags) ? [...S.user.tags] : [],
     },
     communitySeenTs: Number(localStorage.getItem(getAccountScopedStorageKey(COMM_SEEN_KEY, normalizedEmpId)) || '0'),
     introSeen: !!localStorage.getItem(getAccountScopedStorageKey('hi_intro_seen', normalizedEmpId)),
@@ -6711,6 +6712,7 @@ function hasAccountSettingsContent(snapshot) {
   return (
     Number(snapshot.modifiedAt) > 0 ||
     !!String(snapshot?.profile?.nickname || '').trim() ||
+    ((Array.isArray(snapshot?.profile?.tags) ? snapshot.profile.tags : []).length > 0) ||
     normalizeAvatar(snapshot?.profile?.avatar) !== AVATARS[0] ||
     Number(snapshot.communitySeenTs) > 0 ||
     !!snapshot.introSeen ||
@@ -6743,6 +6745,9 @@ function mergeAccountSettingsSnapshots(localSnapshot, remoteSnapshot) {
       const localNick = String(local.nickname || '').trim();
       const remoteNick = String(remote.nickname || '').trim();
       merged.nickname = remoteNick || localNick;
+      const localTags = Array.isArray(local.tags) ? local.tags.filter(Boolean) : [];
+      const remoteTags = Array.isArray(remote.tags) ? remote.tags.filter(Boolean) : [];
+      merged.tags = remoteTags.length ? remoteTags : localTags;
       return merged;
     })(),
     todayPhoto: Object.prototype.hasOwnProperty.call(remoteSnapshot, 'todayPhoto')
@@ -6795,13 +6800,20 @@ function applyAccountSettingsSnapshot(snapshot, empId = ACTIVE_EMPID || S.user?.
       nickname: String(profile.nickname || '').trim(),
       modifiedAt: Number(snapshot.modifiedAt) || Date.now(),
     }, normalizedEmpId);
+    try {
+      localStorage.setItem('hi_health_tags_' + normalizedEmpId, JSON.stringify(Array.isArray(profile.tags) ? profile.tags : []));
+    } catch(e) {}
     writeAccountSettingsMeta({ modifiedAt: Number(snapshot.modifiedAt) || Date.now() }, normalizedEmpId);
     if (normalizedEmpId === getRecordChipScope()) hydrateRecordChipState(true);
     if (isActiveAccount) {
       if (profile.avatar) S.user.avatar = normalizeAvatar(profile.avatar);
       if (Object.prototype.hasOwnProperty.call(profile, 'nickname')) S.user.nickname = String(profile.nickname || '').trim();
+      if (Object.prototype.hasOwnProperty.call(profile, 'tags')) {
+        S.user.tags = Array.isArray(profile.tags) ? profile.tags.filter(Boolean) : [];
+      }
       loadDayNotes();
       applyTodayPhotoState(normalizedEmpId);
+      save({ skipRemote: true });
     }
   } finally {
     _accountSettingsApplyingRemote = false;
@@ -13241,6 +13253,7 @@ function saveProfileModal() {
   const modal = document.getElementById('profile-modal');
   S.user.avatar = normalizeAvatar(_selAvatar);
   S.user.tags = [...new Set([..._preservedProfileTags, ..._selTags])];
+  markAccountSettingsDirty();
   persistProfileNickname({ skipRemote: false });
   save();
   if (modal) modal.classList.add('pm-hidden');
@@ -13285,6 +13298,7 @@ function togglePmTag(ci, ti) {
   const idx = _selTags.indexOf(tag);
   if (idx === -1) _selTags.push(tag); else _selTags.splice(idx, 1);
   S.user.tags = [...new Set([..._preservedProfileTags, ..._selTags])];
+  markAccountSettingsDirty();
   save();
   renderPmTags();
   renderHeader();
