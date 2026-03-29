@@ -3040,8 +3040,8 @@
       margin: 0 0 18px;
       padding: 10px 14px 10px 54px;
       min-height: 50px;
-      background: rgba(255, 236, 242, 0.72);
-      border: 1px solid rgba(244, 114, 182, 0.18);
+      background: rgba(255, 236, 242, 0.48);
+      border: 1px dotted rgba(244, 114, 182, 0.32);
       border-radius: 18px;
       box-shadow: none;
       backdrop-filter: blur(10px);
@@ -3053,9 +3053,9 @@
       left: 36px;
       width: 12px;
       height: 12px;
-      background: rgba(255, 236, 242, 0.72);
-      border-left: 1px solid rgba(244, 114, 182, 0.18);
-      border-top: 1px solid rgba(244, 114, 182, 0.18);
+      background: rgba(255, 236, 242, 0.48);
+      border-left: 1px dotted rgba(244, 114, 182, 0.32);
+      border-top: 1px dotted rgba(244, 114, 182, 0.32);
       transform: rotate(45deg);
       border-top-left-radius: 4px;
     }
@@ -6107,7 +6107,7 @@ const PUSH_PUBLIC_KEY   = 'BEaMexe-bw1jM31PgeQdkkZeqs29Ls1KIMY-TViYgH2dPqg_v7tRR
 const PUSH_TABLE        = 'push_subscriptions';
 const PUSH_DEFAULT_URL  = './index.html#community';
 const AUTO_COMMENT_FN   = 'https://nbnmvvobehjitophkqmu.supabase.co/functions/v1/auto-comment';
-const SW_VERSION        = '20260329-95';
+const SW_VERSION        = '20260329-96';
 const CHALLENGE_PEOPLE_CACHE_KEY = 'hi_health_people_cache_v1';
 let _db = null; // Supabase 클라이언트
 let _lastKnownServerPts = null; // 마지막으로 서버에서 확인한 포인트 (delta 병합용)
@@ -7246,10 +7246,11 @@ function save(opts = {}) {
       todayLog: S.todayLog,
     }));
   } catch(e) {}
-  // 태그를 별도 키에 저장 (로그아웃 후에도 유지)
-  if (S.user.empId) {
+  // 태그를 별도 키에 저장 (로그아웃 후에도 유지) — 항상 대문자 정규화 키 사용
+  const _tagsEmpKey = normalizeEmpIdValue(ACTIVE_EMPID || S.user.empId);
+  if (_tagsEmpKey) {
     try {
-      localStorage.setItem('hi_health_tags_' + S.user.empId, JSON.stringify(Array.isArray(S.user.tags) ? S.user.tags : []));
+      localStorage.setItem('hi_health_tags_' + _tagsEmpKey, JSON.stringify(Array.isArray(S.user.tags) ? S.user.tags : []));
     } catch(e) {}
   }
   if (skipRemote) return;
@@ -9338,10 +9339,11 @@ function getLeagueAlertRankBand(rank = 0, total = 0) {
 
 function getLeagueTierDisplayLabel(rank = 0, total = 0) {
   const safeRank = Number(rank) || 0;
-  if (!safeRank) return '추격권';
-  if (safeRank <= 3) return '선두권';
-  if (safeRank <= 10) return '추격권';
-  if (safeRank <= 20) return '도약권';
+  if (!safeRank) return 'Runner';
+  if (safeRank === 1) return 'Champion';
+  if (safeRank <= 3) return 'Leader';
+  if (safeRank <= 10) return 'Runner';
+  if (safeRank <= 20) return 'Challenger';
   return 'TOP 20 밖';
 }
 
@@ -9506,11 +9508,15 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
   const totalEntries = entries.length;
   const aboveDiff = above ? Math.max(1, getLeagueMetricValue(above, tab) - myPoints + 1) : 0;
   const belowGap = below ? Math.max(0, myPoints - getLeagueMetricValue(below, tab)) : 0;
+  const aboveRank = above ? (Number(above.rank || Math.max(1, myRank - 1)) || Math.max(1, myRank - 1)) : 0;
   const top20Entry = totalEntries >= 20 ? entries[19] : null;
   const isOutsideTop20 = myRank > 20 && !!top20Entry;
   const diffToTop20 = isOutsideTop20 ? Math.max(1, getLeagueMetricValue(top20Entry, tab) - myPoints + 1) : 0;
   const rankBucket = myRank <= 3 ? 'top3' : myRank <= 10 ? 'top10' : myRank <= 20 ? 'top20' : 'outside20';
   const tierLabel = getLeagueTierDisplayLabel(myRank, totalEntries);
+  const aboveRankLine = suffix => above
+    ? `${aboveRank}위까지 ${aboveDiff}p 남았어요. ${suffix}`
+    : '';
 
   if (tab === 'level') {
     if (!nextLevel) {
@@ -9546,7 +9552,7 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
       return {
         tone: 'info',
         chip,
-        text: coachLine(`TOP 20까지 ${diffToTop20}p 남았어요. 아직 충분히 가능해요.`, { mentionName: true }),
+        text: coachLine(`20위까지 ${diffToTop20}p 남았어요. 아직 충분히 가능해요.`, { mentionName: true }),
       };
     }
     if (myRank === 1) {
@@ -9566,7 +9572,7 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
         chip,
         text: coachLine(
           above
-            ? `윗순위까지 ${aboveDiff}p 남았어요. 차이 크지 않아요.`
+            ? aboveRankLine('차이 크지 않아요.')
             : '좋은 자리예요.'
         ),
       };
@@ -9577,7 +9583,7 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
         chip,
         text: coachLine(
           above
-            ? `윗순위까지 ${aboveDiff}p 남았어요. 충분히 따라갈 수 있어요.`
+            ? aboveRankLine('충분히 따라갈 수 있어요.')
             : '지금 페이스 괜찮아요.'
         ),
       };
@@ -9587,7 +9593,7 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
       chip,
       text: coachLine(
         above
-          ? `윗순위까지 ${aboveDiff}p 남았어요. 아직 멀지 않아요.`
+          ? aboveRankLine('아직 멀지 않아요.')
           : '오늘 기록 하나가 좋은 시작이 될 수 있어요.'
       ),
     };
@@ -9598,7 +9604,7 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
       return {
         tone: 'info',
         chip,
-        text: coachLine(`TOP 20까지 ${diffToTop20}p 남았어요. 아직 충분히 가능해요.`, { mentionName: true }),
+        text: coachLine(`20위까지 ${diffToTop20}p 남았어요. 아직 충분히 가능해요.`, { mentionName: true }),
       };
     }
     if (myRank === 1) {
@@ -9616,7 +9622,7 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
       return {
         tone: 'chase',
         chip,
-        text: coachLine(`윗순위까지 ${aboveDiff}p 남았어요. 차이 크지 않아요.`),
+        text: coachLine(aboveRankLine('차이 크지 않아요.')),
       };
     }
     if (rankBucket === 'top10') {
@@ -9625,7 +9631,7 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
         chip,
         text: coachLine(
           above
-            ? `윗순위까지 ${aboveDiff}p 남았어요. 충분히 따라갈 수 있어요.`
+            ? aboveRankLine('충분히 따라갈 수 있어요.')
             : '지금 페이스 괜찮아요.'
         ),
       };
@@ -9635,7 +9641,7 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
       chip,
       text: coachLine(
         above
-          ? `윗순위까지 ${aboveDiff}p 남았어요. 아직 멀지 않아요.`
+          ? aboveRankLine('아직 멀지 않아요.')
           : '오늘 하나만 남겨도 괜찮아요.'
       ),
     };
@@ -9645,7 +9651,7 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
     return {
       tone: 'info',
       chip,
-        text: coachLine(`TOP 20까지 ${diffToTop20}p 남았어요. 충분히 들어갈 수 있어요.`, { mentionName: true }),
+        text: coachLine(`20위까지 ${diffToTop20}p 남았어요. 충분히 들어갈 수 있어요.`, { mentionName: true }),
     };
   }
   if (myRank === 1) {
@@ -9663,7 +9669,7 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
     return {
       tone: 'chase',
       chip,
-      text: coachLine(`윗순위까지 ${aboveDiff}p 남았어요. 차이 크지 않아요.`),
+      text: coachLine(aboveRankLine('차이 크지 않아요.')),
     };
   }
   if (rankBucket === 'top10') {
@@ -9672,7 +9678,7 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
       chip,
       text: coachLine(
         above
-          ? `윗순위까지 ${aboveDiff}p 남았어요. 충분히 따라갈 수 있어요.`
+          ? aboveRankLine('충분히 따라갈 수 있어요.')
           : '지금 페이스 괜찮아요.'
       ),
     };
@@ -9682,7 +9688,7 @@ function getLeagueAlertMessage(entries = [], meEntry = null, tab = S.leagueTab) 
     chip,
     text: coachLine(
       above
-        ? `윗순위까지 ${aboveDiff}p 남았어요. 아직 멀지 않아요.`
+        ? aboveRankLine('아직 멀지 않아요.')
         : '오늘 기록 하나면 바로 반영돼요.'
     ),
   };
@@ -18276,9 +18282,18 @@ async function doAppLogin() {
   // 태그 복구: 서버에 태그가 없을 때 localStorage에서 복원 (hydrateAccountFromRemote 이후)
   if (!S.user.tags?.length) {
     try {
-      const saved = JSON.parse(localStorage.getItem('hi_health_tags_' + regId));
+      const _normalizedKey = normalizeEmpIdValue(ACTIVE_EMPID || regId);
+      const saved = JSON.parse(localStorage.getItem('hi_health_tags_' + _normalizedKey) || 'null')
+        || JSON.parse(localStorage.getItem('hi_health_tags_' + regId) || 'null');
       if (saved?.length) S.user.tags = saved;
     } catch(e) {}
+    // 최후 폴백: STORAGE_KEY에서 직접 읽기
+    if (!S.user.tags?.length) {
+      try {
+        const d = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+        if (d?.user?.tags?.length) S.user.tags = d.user.tags;
+      } catch(e) {}
+    }
   }
   await syncAccountSettingsWithRemote(ACTIVE_EMPID);
   await syncMyChallengeRegistrationWithOptions({ pruneMissingRemote: true });
@@ -18478,9 +18493,18 @@ async function init() {
     // 태그 복구: 서버에 태그가 없을 때 localStorage에서 복원 (hydrateAccountFromRemote 이후)
     if (!S.user.tags?.length) {
       try {
-        const saved = JSON.parse(localStorage.getItem('hi_health_tags_' + savedEmpId));
+        const _normalizedKey = normalizeEmpIdValue(ACTIVE_EMPID || savedEmpId);
+        const saved = JSON.parse(localStorage.getItem('hi_health_tags_' + _normalizedKey) || 'null')
+          || JSON.parse(localStorage.getItem('hi_health_tags_' + savedEmpId) || 'null');
         if (saved?.length) S.user.tags = saved;
       } catch(e) {}
+      // 최후 폴백: STORAGE_KEY에서 직접 읽기
+      if (!S.user.tags?.length) {
+        try {
+          const d = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+          if (d?.user?.tags?.length) S.user.tags = d.user.tags;
+        } catch(e) {}
+      }
     }
     await syncAccountSettingsWithRemote(savedEmpId);
     await syncMyChallengeRegistrationWithOptions({ pruneMissingRemote: true });
