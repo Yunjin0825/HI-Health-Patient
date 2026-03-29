@@ -7241,6 +7241,61 @@ let S = {
 /* ════════════════════════════════════════
    STORAGE
 ════════════════════════════════════════ */
+function normalizeUserTags(raw) {
+  const arr = Array.isArray(raw)
+    ? raw
+    : typeof raw === 'string'
+      ? raw.split(',')
+      : [];
+  return [...new Set(arr.map(v => String(v || '').trim()).filter(Boolean))];
+}
+
+function getBestPersistedUserTags(empId = ACTIVE_EMPID || S.user?.empId || '', storageKey = STORAGE_KEY) {
+  const rawEmpId = String(empId || '').trim();
+  const normalizedEmpId = normalizeEmpIdValue(rawEmpId);
+  const candidates = [normalizeUserTags(S.user?.tags)];
+  const storageKeys = [...new Set([
+    storageKey,
+    normalizedEmpId ? 'hi_health_v2_' + normalizedEmpId : '',
+    rawEmpId ? 'hi_health_v2_' + rawEmpId : '',
+  ].filter(Boolean))];
+
+  const readJson = (key) => {
+    try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { return null; }
+  };
+
+  [...new Set([
+    normalizedEmpId ? 'hi_health_tags_' + normalizedEmpId : '',
+    rawEmpId ? 'hi_health_tags_' + rawEmpId : '',
+  ].filter(Boolean))].forEach(key => {
+    candidates.push(normalizeUserTags(readJson(key)));
+  });
+
+  storageKeys.forEach(key => {
+    const parsed = readJson(key);
+    candidates.push(normalizeUserTags(parsed?.user?.tags));
+  });
+
+  return candidates.reduce((best, tags) => tags.length > best.length ? tags : best, []);
+}
+
+function restorePersistedUserTags(empId = ACTIVE_EMPID || S.user?.empId || '', opts = {}) {
+  const rawEmpId = String(empId || '').trim();
+  const normalizedEmpId = normalizeEmpIdValue(rawEmpId);
+  const nextTags = getBestPersistedUserTags(rawEmpId, opts.storageKey || STORAGE_KEY);
+  const currentTags = normalizeUserTags(S.user?.tags);
+  if (!nextTags.length || nextTags.join('|') === currentTags.join('|')) return false;
+  S.user.tags = nextTags;
+  if (normalizedEmpId) {
+    try {
+      localStorage.setItem('hi_health_tags_' + normalizedEmpId, JSON.stringify(nextTags));
+    } catch (e) {}
+  }
+  if (opts.persist !== false) save({ skipRemote: true });
+  if (opts.rerender) rerenderProfileSurfaces();
+  return true;
+}
+
 function save(opts = {}) {
   if (IS_GUEST) return;
   const skipRemote = !!opts.skipRemote;
@@ -8132,6 +8187,7 @@ function load() {
       localStorage.setItem(LAUNCH_RESET_FLAG, '1');
     }
     S.user = { ...S.user, ...d.user };
+    S.user.tags = normalizeUserTags(S.user.tags);
     // 기존 사용자 마이그레이션: totalPoints 없으면 현재 points로 초기화
     if (!S.user.totalPoints) S.user.totalPoints = S.user.points;
     if (typeof S.user.levelCardShares !== 'number') S.user.levelCardShares = 0;
@@ -18396,23 +18452,9 @@ async function doAppLogin() {
   S.user.empId = S.user.empId || ACTIVE_EMPID;
   if (!S.user.name) S.user.name = inputName;
   await hydrateAccountFromRemote(ACTIVE_EMPID, inputName);
-  // 태그 복구: 서버에 태그가 없을 때 localStorage에서 복원 (hydrateAccountFromRemote 이후)
-  if (!S.user.tags?.length) {
-    try {
-      const _normalizedKey = normalizeEmpIdValue(ACTIVE_EMPID || regId);
-      const saved = JSON.parse(localStorage.getItem('hi_health_tags_' + _normalizedKey) || 'null')
-        || JSON.parse(localStorage.getItem('hi_health_tags_' + regId) || 'null');
-      if (saved?.length) S.user.tags = saved;
-    } catch(e) {}
-    // 최후 폴백: STORAGE_KEY에서 직접 읽기
-    if (!S.user.tags?.length) {
-      try {
-        const d = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-        if (d?.user?.tags?.length) S.user.tags = d.user.tags;
-      } catch(e) {}
-    }
-  }
+  restorePersistedUserTags(ACTIVE_EMPID || regId, { storageKey: STORAGE_KEY });
   await syncAccountSettingsWithRemote(ACTIVE_EMPID);
+  restorePersistedUserTags(ACTIVE_EMPID || regId, { storageKey: STORAGE_KEY });
   await syncMyChallengeRegistrationWithOptions({ pruneMissingRemote: true });
   repairChRegNote();
   save();
@@ -18607,23 +18649,9 @@ async function init() {
     const autoLoadEl = document.getElementById('login-loading');
     if (autoLoadEl) autoLoadEl.style.display = 'block';
     await hydrateAccountFromRemote(savedEmpId, keepName || S.user.name || '');
-    // 태그 복구: 서버에 태그가 없을 때 localStorage에서 복원 (hydrateAccountFromRemote 이후)
-    if (!S.user.tags?.length) {
-      try {
-        const _normalizedKey = normalizeEmpIdValue(ACTIVE_EMPID || savedEmpId);
-        const saved = JSON.parse(localStorage.getItem('hi_health_tags_' + _normalizedKey) || 'null')
-          || JSON.parse(localStorage.getItem('hi_health_tags_' + savedEmpId) || 'null');
-        if (saved?.length) S.user.tags = saved;
-      } catch(e) {}
-      // 최후 폴백: STORAGE_KEY에서 직접 읽기
-      if (!S.user.tags?.length) {
-        try {
-          const d = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-          if (d?.user?.tags?.length) S.user.tags = d.user.tags;
-        } catch(e) {}
-      }
-    }
+    restorePersistedUserTags(savedEmpId, { storageKey: STORAGE_KEY });
     await syncAccountSettingsWithRemote(savedEmpId);
+    restorePersistedUserTags(savedEmpId, { storageKey: STORAGE_KEY });
     await syncMyChallengeRegistrationWithOptions({ pruneMissingRemote: true });
     save();
     renderHeader();
