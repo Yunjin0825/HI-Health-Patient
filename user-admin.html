@@ -3951,8 +3951,7 @@ async function updateChStatus(id, status) {
   }
   if (userFilters.length) {
     const userRes = await db.from('users').update({
-      registrationId: '',
-      lastactiveat: new Date().toISOString(),
+      registrationId: status === 'cancelled' ? '' : (nextRow.id || ''),
     }).or(userFilters.join(','));
     if (userRes.error) {
       showLoading(false);
@@ -3999,7 +3998,6 @@ async function deleteChallengeRegistration(id) {
   if (userFilters.length) {
     const userRes = await db.from('users').update({
       registrationId: '',
-      lastactiveat: new Date().toISOString(),
     }).or(userFilters.join(','));
     if (userRes.error) {
       showLoading(false);
