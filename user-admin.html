@@ -1845,6 +1845,42 @@ function sortedRows(rows, keys) {
 }
 
 function buildDataSignature(data) {
+  const registrationSignatureRows = (data.registrations || []).map(row => {
+    const reg = normalizeRegistrationRow(row);
+    let shoePrefs = Array.isArray(reg.shoePrefs) ? reg.shoePrefs : [];
+    if (!shoePrefs.length && typeof reg.shoePrefs === 'string') {
+      try { shoePrefs = JSON.parse(reg.shoePrefs); } catch (e) { shoePrefs = reg.shoePrefs ? [reg.shoePrefs] : []; }
+    }
+    const familyMembers = Array.isArray(reg.familyMembers) ? reg.familyMembers : [];
+    return {
+      id: String(reg.id || ''),
+      deviceId: String(reg.deviceId || ''),
+      empId: String(reg.empId || ''),
+      name: String(reg.name || ''),
+      avatar: String(reg.avatar || ''),
+      dept: String(reg.dept || ''),
+      phone: String(reg.phone || ''),
+      shoeSize: String(reg.shoeSize || ''),
+      tshirtSize: String(reg.tshirtSize || ''),
+      shoePrefs: JSON.stringify(shoePrefs),
+      shoeRequestNote: String(reg.shoeRequestNote || ''),
+      cgmParticipation: reg.cgmParticipation === true,
+      familyParticipation: reg.familyParticipation === true,
+      familyCount: Number(reg.familyCount) || 0,
+      familyGender: String(reg.familyGender || ''),
+      familyAge: String(reg.familyAge || ''),
+      familyShoeSize: String(reg.familyShoeSize || ''),
+      familyMemo: String(reg.familyMemo || ''),
+      familyMembers: JSON.stringify(familyMembers),
+      cruiseParticipation: reg.cruiseParticipation === true,
+      eventParticipation: reg.eventParticipation === true,
+      note: String(reg.note || ''),
+      adminNote: String(reg.adminNote || ''),
+      status: String(reg.status || ''),
+      registeredAt: String(reg.registeredAt || ''),
+      createdAt: String(reg.createdAt || ''),
+    };
+  });
   return JSON.stringify({
     users: sortedRows(data.users, [
       'deviceId',
@@ -1862,7 +1898,34 @@ function buildDataSignature(data) {
     workouts: sortedRows(data.workouts, ['id', 'deviceId', 'ts', 'createdAt']),
     posts: sortedRows(data.posts, ['id', 'deviceId', 'ts', 'createdAt']),
     glucose: sortedRows(data.glucose, ['id', 'deviceId', 'ts', 'createdAt']),
-    registrations: sortedRows(data.registrations, ['id', 'deviceId', 'empId']),
+    registrations: sortedRows(registrationSignatureRows, [
+      'id',
+      'deviceId',
+      'empId',
+      'name',
+      'avatar',
+      'dept',
+      'phone',
+      'shoeSize',
+      'tshirtSize',
+      'shoePrefs',
+      'shoeRequestNote',
+      'cgmParticipation',
+      'familyParticipation',
+      'familyCount',
+      'familyGender',
+      'familyAge',
+      'familyShoeSize',
+      'familyMemo',
+      'familyMembers',
+      'cruiseParticipation',
+      'eventParticipation',
+      'note',
+      'adminNote',
+      'status',
+      'registeredAt',
+      'createdAt',
+    ]),
     orders: sortedRows(data.orders, ['id', 'deviceId', 'orderedAt', 'createdAt']),
     adminPosts: sortedRows(data.adminPosts, ['id', 'createdAt']),
   });
