@@ -357,13 +357,15 @@
     }
     .prog-guest-title { font-size:15px; font-weight:800; color:#1e1047; }
     .prog-guest-desc { font-size:12px; color:var(--sub); line-height:1.65; }
+    #together-time-section { margin-top: 20px; }
+    #together-time-section .section-title { margin-bottom: 8px; }
     .together-time-card {
-      margin-top: 14px;
-      padding: 16px 18px;
-      border-radius: 16px;
-      background: linear-gradient(135deg, #f8fbff 0%, #eef6ff 100%);
-      border: 1px solid rgba(147, 197, 253, 0.44);
-      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.06);
+      background: #fff;
+      border-radius: 20px;
+      border: 1px solid #f0f0f4;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+      overflow: hidden;
+      padding: 18px 20px;
     }
     .together-time-label {
       font-size: 11px;
@@ -373,10 +375,9 @@
       color: #2563eb;
     }
     .together-time-value {
-      margin-top: 8px;
-      font-size: 26px;
+      font-size: 28px;
       font-weight: 900;
-      letter-spacing: -0.7px;
+      letter-spacing: -1px;
       color: #1e1047;
       line-height: 1.1;
     }
@@ -1689,10 +1690,12 @@
       <!-- filled by JS -->
     </div>
   </div>
-  <div class="section-title" style="font-size:20px;font-weight:700;letter-spacing:-0.5px;color:#1e1047;margin-top:20px;margin-bottom:8px">같이 운동한 시간</div>
-  <div class="together-time-card" style="background:#fff;border-color:rgba(147,197,253,0.3)">
-    <div class="together-time-value" id="together-time-value2">집계 중</div>
-    <div class="together-time-sub" id="together-time-sub2">워밍업 시작 후 참가자 운동 시간을 집계하고 있어요.</div>
+  <div id="together-time-section" style="display:none">
+    <div class="section-title">같이 운동한 시간</div>
+    <div class="together-time-card">
+      <div class="together-time-value" id="together-time-value2"></div>
+      <div class="together-time-sub" id="together-time-sub2"></div>
+    </div>
   </div>
 </div>
 
@@ -2255,7 +2258,7 @@
   let challengeActivitySummaryCache = null;
 
   function formatDurationMinutesLabel(minutes) {
-    return `${Math.max(0, Number(minutes) || 0)}분`;
+    return `${Math.max(0, Number(minutes) || 0).toLocaleString()}분`;
   }
 
   function getRunDayDday() {
@@ -2271,11 +2274,17 @@
   function setTogetherTimeSummary(summary = null) {
     const totalMinutes = Math.max(0, Number(summary?.totalMinutes) || 0);
     const activeCount = Math.max(0, Number(summary?.activeCount) || 0);
-    const nextValue = summary ? formatDurationMinutesLabel(totalMinutes) : '집계 중';
+    const hasData = summary && totalMinutes > 0;
+
+    const section = document.getElementById('together-time-section');
+    if (section) section.style.display = hasData ? '' : 'none';
+
+    if (!hasData) return false;
+
+    const nextValue = formatDurationMinutesLabel(totalMinutes);
     const dday = getRunDayDday();
-    const nextSub = summary
-      ? `${dday} · ${activeCount}명이 함께 기록하고 있어요\n같이 운동한 시간만큼 기부금액에 추가됩니다`
-      : `${dday} · 워밍업 시작 후 운동 시간을 집계해요\n같이 운동한 시간만큼 기부금액에 추가됩니다`;
+    const nextSub = `${dday} · ${activeCount}명이 함께 기록하고 있어요\n같이 운동한 시간만큼 기부금액에 추가됩니다`;
+
     let changed = false;
     for (const id of ['together-time-value', 'together-time-value2']) {
       const el = document.getElementById(id);
