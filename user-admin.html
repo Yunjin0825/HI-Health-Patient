@@ -906,6 +906,29 @@
         </div>
       </div>
 
+      <!-- 푸시 발송 기록 -->
+      <div style="margin-top:18px;border-top:1px dashed #E2E8F0;padding-top:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:14px;font-weight:700">발송 기록</div>
+          <button class="cbtn" style="font-size:11px;padding:4px 10px" onclick="loadPushLogs()">새로고침</button>
+        </div>
+        <div class="tbl-wrap" style="max-height:320px;overflow-y:auto">
+          <table>
+            <thead><tr>
+              <th>발송일시</th>
+              <th>제목</th>
+              <th>내용</th>
+              <th>대상</th>
+              <th style="text-align:center">총</th>
+              <th style="text-align:center">성공</th>
+              <th style="text-align:center">실패</th>
+              <th style="text-align:center">관리</th>
+            </tr></thead>
+            <tbody id="push-logs-tbody"><tr><td colspan="8" style="text-align:center;color:#94A3B8;padding:16px">불러오는 중...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- 예약 발송 -->
       <div style="margin-top:18px;border-top:1px dashed #E2E8F0;padding-top:14px">
         <div style="font-size:14px;font-weight:700;margin-bottom:10px">⏰ 예약 발송</div>
@@ -946,28 +969,6 @@
               <tbody id="sched-list-tbody"><tr><td colspan="6" style="text-align:center;color:#94A3B8;padding:12px">불러오는 중...</td></tr></tbody>
             </table>
           </div>
-        </div>
-      </div>
-
-      <!-- 푸시 발송 기록 -->
-      <div style="margin-top:18px;border-top:1px dashed #E2E8F0;padding-top:14px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div style="font-size:14px;font-weight:700">발송 기록</div>
-          <button class="cbtn" style="font-size:11px;padding:4px 10px" onclick="loadPushLogs()">새로고침</button>
-        </div>
-        <div class="tbl-wrap" style="max-height:320px;overflow-y:auto">
-          <table>
-            <thead><tr>
-              <th>발송일시</th>
-              <th>제목</th>
-              <th>내용</th>
-              <th>대상</th>
-              <th style="text-align:center">총</th>
-              <th style="text-align:center">성공</th>
-              <th style="text-align:center">실패</th>
-            </tr></thead>
-            <tbody id="push-logs-tbody"><tr><td colspan="7" style="text-align:center;color:#94A3B8;padding:16px">불러오는 중...</td></tr></tbody>
-          </table>
         </div>
       </div>
     </div>
@@ -4726,7 +4727,7 @@ async function loadPushLogs() {
       .limit(50);
     if (error) throw error;
     if (!data?.length) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#94A3B8;padding:16px">발송 기록이 없어요</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#94A3B8;padding:16px">발송 기록이 없어요</td></tr>';
       return;
     }
     tbody.innerHTML = data.map(r => {
@@ -4741,11 +4742,19 @@ async function loadPushLogs() {
         <td style="text-align:center">${r.total_count}</td>
         <td style="text-align:center;color:#16A34A;font-weight:600">${r.sent_count}</td>
         <td style="text-align:center;color:${r.failed_count > 0 ? '#DC2626' : '#94A3B8'}">${r.failed_count}</td>
+        <td style="text-align:center"><button class="cbtn" style="font-size:11px;padding:2px 7px;color:#DC2626;border-color:#FCA5A5" onclick="deletePushLog('${r.id}')">삭제</button></td>
       </tr>`;
     }).join('');
   } catch (e) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#DC2626;padding:16px">${e.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#DC2626;padding:16px">${e.message}</td></tr>`;
   }
+}
+
+async function deletePushLog(id) {
+  if (!confirm('발송 기록을 삭제할까요?')) return;
+  const { error } = await db.from('push_logs').delete().eq('id', id);
+  if (error) { toast('삭제 실패: ' + error.message); return; }
+  loadPushLogs();
 }
 
 /* ── 예약 발송 ── */
