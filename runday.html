@@ -385,6 +385,7 @@
       font-size: 12px;
       line-height: 1.6;
       color: var(--sub);
+      white-space: pre-line;
     }
     @keyframes routeChipFloat {
       0%, 100% { transform: translateY(0) scale(1); }
@@ -1688,8 +1689,8 @@
       <!-- filled by JS -->
     </div>
   </div>
-  <div class="together-time-card" style="background:#fff;border-color:rgba(147,197,253,0.3);margin-top:12px">
-    <div class="section-title" style="font-size:20px;font-weight:700;letter-spacing:-0.5px;color:#1e1047;margin-bottom:8px">같이 운동한 시간</div>
+  <div class="section-title" style="font-size:20px;font-weight:700;letter-spacing:-0.5px;color:#1e1047;margin-top:20px;margin-bottom:8px">같이 운동한 시간</div>
+  <div class="together-time-card" style="background:#fff;border-color:rgba(147,197,253,0.3)">
     <div class="together-time-value" id="together-time-value2">집계 중</div>
     <div class="together-time-sub" id="together-time-sub2">워밍업 시작 후 참가자 운동 시간을 집계하고 있어요.</div>
   </div>
@@ -2273,8 +2274,8 @@
     const nextValue = summary ? formatDurationMinutesLabel(totalMinutes) : '집계 중';
     const dday = getRunDayDday();
     const nextSub = summary
-      ? `${dday} · ${activeCount}명이 함께 기록하고 있어요`
-      : `${dday} · 워밍업 시작 후 운동 시간을 집계해요`;
+      ? `${dday} · ${activeCount}명이 함께 기록하고 있어요\n같이 운동한 시간만큼 기부금액에 추가됩니다`
+      : `${dday} · 워밍업 시작 후 운동 시간을 집계해요\n같이 운동한 시간만큼 기부금액에 추가됩니다`;
     let changed = false;
     for (const id of ['together-time-value', 'together-time-value2']) {
       const el = document.getElementById(id);
