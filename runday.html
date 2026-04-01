@@ -2428,7 +2428,7 @@
           src: avatarSrcMap[dId] || `images/avatars/av${avIdx(dId)}.png`,
           latestTs: latestTsMap[dId] || 0,
         }));
-        activeAvatars.sort((a, b) => b.latestTs - a.latestTs);
+        activeAvatars.sort((a, b) => a.latestTs - b.latestTs);
         const next = {
           totalMinutes,
           activeCount: activeIds.size,
