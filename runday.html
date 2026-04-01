@@ -2257,13 +2257,24 @@
     return `${Math.max(0, Number(minutes) || 0)}분`;
   }
 
+  function getRunDayDday() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const runDay = new Date(2026, 3, 15); // 4월 15일
+    const diff = Math.ceil((runDay - today) / (1000 * 60 * 60 * 24));
+    if (diff > 0) return `런데이까지 D-${diff}`;
+    if (diff === 0) return '오늘이 런데이!';
+    return '런데이 완료';
+  }
+
   function setTogetherTimeSummary(summary = null) {
     const totalMinutes = Math.max(0, Number(summary?.totalMinutes) || 0);
     const activeCount = Math.max(0, Number(summary?.activeCount) || 0);
     const nextValue = summary ? formatDurationMinutesLabel(totalMinutes) : '집계 중';
+    const dday = getRunDayDday();
     const nextSub = summary
-      ? `워밍업 시작 후 누적 · ${activeCount}명이 함께 기록했어요`
-      : '워밍업 시작 후 참가자 운동 시간을 집계하고 있어요.';
+      ? `${dday} · ${activeCount}명이 함께 기록하고 있어요`
+      : `${dday} · 워밍업 시작 후 운동 시간을 집계해요`;
     let changed = false;
     for (const id of ['together-time-value', 'together-time-value2']) {
       const el = document.getElementById(id);
