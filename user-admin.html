@@ -217,8 +217,8 @@
     .ap-editor{min-height:160px;padding:12px 13px;border:1.5px solid var(--border);border-radius:0 0 12px 12px;background:#fff;font-family:inherit;font-size:14px;line-height:1.7;outline:none;white-space:pre-wrap;word-break:break-word;margin-bottom:8px;}
     .ap-editor:focus{border-color:var(--p);}
     .ap-editor.is-empty::before{content:attr(data-placeholder);color:#9ca3af;pointer-events:none;}
-    .ap-editor strong{font-weight:800;}
-    .ap-editor u{text-decoration-thickness:1.5px;text-underline-offset:2px;}
+    .ap-editor strong{font-weight:700;}
+    .ap-editor u{text-decoration-thickness:1px;text-underline-offset:1px;text-decoration-color:currentColor;}
 
     /* ── LOADING ── */
     .loading-bg{display:none;position:fixed;inset:0;background:rgba(255,255,255,.8);z-index:2000;align-items:center;justify-content:center;}
@@ -915,9 +915,13 @@
         </div>
         <textarea id="sched-body" placeholder="푸시 내용을 입력하세요..." style="margin-bottom:8px"></textarea>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
-          <select class="ctrl-sel" id="sched-target" style="flex:1;min-width:120px">
+          <select class="ctrl-sel" id="sched-target" style="flex:1;min-width:120px" onchange="onSchedTargetChange()">
             <option value="all">전체 발송</option>
             <option value="no_workout">오늘 미운동자</option>
+            <option value="user">선택 사용자</option>
+          </select>
+          <select class="ctrl-sel" id="sched-user-sel" style="flex:1;min-width:140px;display:none">
+            <option value="">이용자 선택</option>
           </select>
           <input type="datetime-local" id="sched-datetime" class="ctrl-inp" style="flex:1;min-width:160px">
           <button class="cbtn pri" onclick="addScheduledPush()" style="white-space:nowrap">예약 등록</button>
@@ -1237,13 +1241,17 @@ function escHtml(v) {
     .replace(/'/g, '&#39;');
 }
 
-const ADMIN_CONTENT_HIGHLIGHT = '#f9a8d4';
+const ADMIN_CONTENT_HIGHLIGHT = 'rgba(244, 191, 210, 0.42)';
 
 function normalizeAdminContentHighlightValue(value = '') {
   const raw = String(value || '').trim().toLowerCase().replace(/\s+/g, '');
   if (!raw) return '';
   if (raw === ADMIN_CONTENT_HIGHLIGHT) return ADMIN_CONTENT_HIGHLIGHT;
+  if (raw === '#fbcfe8') return ADMIN_CONTENT_HIGHLIGHT;
   if (raw === 'pink') return ADMIN_CONTENT_HIGHLIGHT;
+  if (raw === '#f9a8d4') return ADMIN_CONTENT_HIGHLIGHT;
+  if (raw === 'rgb(244,191,210)') return ADMIN_CONTENT_HIGHLIGHT;
+  if (raw === 'rgba(244,191,210,0.42)') return ADMIN_CONTENT_HIGHLIGHT;
   if (raw === 'rgb(249,168,212)') return ADMIN_CONTENT_HIGHLIGHT;
   if (raw === 'rgba(249,168,212,1)') return ADMIN_CONTENT_HIGHLIGHT;
   return '';
@@ -4727,6 +4735,20 @@ async function loadPushLogs() {
 /* ── 예약 발송 ── */
 const SEND_PUSH_SCHEDULED_FN = SUPABASE_URL + '/functions/v1/send-push-scheduled';
 
+function onSchedTargetChange() {
+  const target = document.getElementById('sched-target').value;
+  const userSel = document.getElementById('sched-user-sel');
+  userSel.style.display = target === 'user' ? '' : 'none';
+  if (target === 'user') {
+    userSel.innerHTML = '<option value="">이용자 선택</option>' +
+      GD.users
+        .filter(u => u.name || u.empId)
+        .sort((a, b) => String(a.name||'').localeCompare(String(b.name||''), 'ko'))
+        .map(u => `<option value="${u.empId || u.deviceId}">${u.name||'이름없음'}${u.empId ? ' · ' + u.empId : ''}</option>`)
+        .join('');
+  }
+}
+
 async function addScheduledPush() {
   const title = document.getElementById('sched-title').value.trim();
   const body = document.getElementById('sched-body').value.trim();
@@ -4736,22 +4758,38 @@ async function addScheduledPush() {
   if (!title) { toast('예약 제목을 입력해주세요'); return; }
   if (!body) { toast('예약 내용을 입력해주세요'); return; }
   if (!dtVal) { toast('발송 시각을 선택해주세요'); return; }
+
+  let targetEmpId = null;
+  if (target === 'user') {
+    const selVal = document.getElementById('sched-user-sel').value;
+    if (!selVal) { toast('이용자를 선택해주세요'); return; }
+    // empId인지 deviceId인지 구분: users에서 찾아서 empId 우선
+    const u = GD.users.find(x => x.empId === selVal || x.deviceId === selVal);
+    targetEmpId = u?.empId || selVal;
+  }
+
   const scheduledAt = new Date(dtVal).toISOString();
   if (new Date(scheduledAt) <= new Date()) { toast('현재 시각 이후로 설정해주세요'); return; }
   showLoading(true);
   try {
     const { error } = await db.from('push_scheduled').insert({
-      title, body, url, target_type: target,
-      scheduled_at: scheduledAt, status: 'pending',
+      title, body, url,
+      target_type: target,
+      target_emp_id: targetEmpId,
+      scheduled_at: scheduledAt,
+      status: 'pending',
     });
     if (error) throw error;
     document.getElementById('sched-title').value = '';
     document.getElementById('sched-body').value = '';
     document.getElementById('sched-url').value = '';
     document.getElementById('sched-datetime').value = '';
+    document.getElementById('sched-target').value = 'all';
+    onSchedTargetChange();
     const dt = new Date(scheduledAt);
     const label = `${dt.getMonth()+1}/${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
-    toast(`예약 등록 완료 ✓ (${label} 발송)`);
+    const targetLabel = target === 'user' ? targetEmpId : target === 'no_workout' ? '미운동자' : '전체';
+    toast(`예약 등록 완료 ✓ (${label} · ${targetLabel})`);
     loadScheduledPushList();
   } catch (e) {
     toast('예약 등록 실패: ' + e.message);
@@ -4791,7 +4829,7 @@ async function loadScheduledPushList() {
     tbody.innerHTML = data.map(r => {
       const dt = new Date(r.scheduled_at);
       const dateStr = `${dt.getMonth()+1}/${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
-      const targetLabel = r.target_type === 'no_workout' ? '미운동자' : '전체';
+      const targetLabel = r.target_type === 'no_workout' ? '미운동자' : r.target_type === 'user' ? (r.target_emp_id || '개인') : '전체';
       const statusMap = { pending: '<span style="color:#D97706;font-weight:700">대기중</span>', sent: '<span style="color:#16A34A;font-weight:700">발송완료</span>', cancelled: '<span style="color:#94A3B8">취소됨</span>' };
       const statusHtml = statusMap[r.status] || r.status;
       const sentInfo = r.status === 'sent' && r.sent_count != null ? ` (${r.sent_count}건)` : '';

@@ -7,6 +7,7 @@ create table if not exists public.push_scheduled (
   target_type text not null default 'all', -- 'all' | 'no_workout'
   scheduled_at timestamptz not null,
   status text not null default 'pending', -- 'pending' | 'sent' | 'cancelled'
+  target_emp_id text,
   sent_at timestamptz,
   sent_count integer,
   failed_count integer,

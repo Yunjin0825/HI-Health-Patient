@@ -100,6 +100,11 @@ Deno.serve(async (req) => {
           .select("id,endpoint,device_id,emp_id,subscription,updated_at,last_seen_at")
           .eq("enabled", true);
 
+        // 선택 사용자 대상
+        if (job.target_type === "user" && job.target_emp_id) {
+          query = query.eq("emp_id", String(job.target_emp_id).toUpperCase());
+        }
+
         // 미운동자 대상: 오늘 운동 기록 없는 사람
         let targetDeviceIds: string[] | null = null;
         if (job.target_type === "no_workout") {
@@ -123,7 +128,7 @@ Deno.serve(async (req) => {
             .map((r: any) => String(r.device_id || "").trim())
             .filter((d: string) => d && !workedDeviceIds.has(d));
 
-          if (!targetDeviceIds.length) {
+          if (!targetDeviceIds?.length) {
             await db.from("push_scheduled").update({ sent_count: 0, failed_count: 0 }).eq("id", job.id);
             results.push({ id: job.id, sent: 0, reason: "no_targets" });
             continue;
