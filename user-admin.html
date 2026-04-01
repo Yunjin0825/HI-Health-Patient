@@ -1669,7 +1669,7 @@ function hasUserPushEnabled(user) {
   return (GD.pushSubscriptions || []).some(row => {
     if (!isPushSubscriptionEnabled(row)) return false;
     if (empId && row.emp_id === empId) return true;
-    if (!empId && deviceId && row.device_id === deviceId) return true;
+    if (deviceId && row.device_id === deviceId) return true;
     return false;
   });
 }

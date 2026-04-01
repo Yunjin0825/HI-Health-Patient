@@ -2569,10 +2569,11 @@
     .pm-push-status {
       display:inline-flex; align-items:center; gap:6px;
       padding:6px 10px; border-radius:999px;
-      background:#EEF2FF; color:#4338CA;
+      background:#ECFDF5; color:#047857;
       font-size:11px; font-weight:700; flex-shrink:0;
     }
     .pm-push-status.off { background:#F1F5F9; color:#64748B; }
+    .pm-push-status.blocked { background:#FEF2F2; color:#B91C1C; }
     .pm-push-copy {
       margin-bottom:10px;
       font-size:11px; line-height:1.45; color:#64748B;
@@ -2598,9 +2599,14 @@
       cursor:pointer;
     }
     .pm-push-btn.primary {
-      border-color:transparent;
-      background:linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
-      color:#fff;
+      border-color:#CBD5E1;
+      background:#fff;
+      color:#0F172A;
+    }
+    .pm-push-btn.danger {
+      border-color:#FECDD3;
+      background:#FFF1F2;
+      color:#BE123C;
     }
     .pm-push-btn.ghost {
       background:#F8FAFC;
@@ -13058,7 +13064,9 @@ async function refreshPushPreferenceUI() {
   if (!isPushSupported()) {
     statusEl.textContent = '지원 안 됨';
     statusEl.classList.add('off');
+    statusEl.classList.remove('blocked');
     helpEl.textContent = '이 브라우저에서는 앱 알림을 지원하지 않아요. iPhone은 홈 화면 설치 후 Safari에서 사용할 수 있어요.';
+    enableBtn.textContent = '이 기기에서는 지원 안 됨';
     enableBtn.hidden = false; enableBtn.disabled = true;
     disableBtn.hidden = true;
     previewBtn.disabled = true;
@@ -13071,10 +13079,12 @@ async function refreshPushPreferenceUI() {
     const enabled = Notification.permission === 'granted' && !!sub;
     const blocked = Notification.permission === 'denied';
     statusEl.textContent = enabled ? '알림 켜짐' : (blocked ? '차단됨' : '알림 꺼짐');
-    statusEl.classList.toggle('off', !enabled);
+    statusEl.classList.toggle('off', !enabled && !blocked);
+    statusEl.classList.toggle('blocked', blocked);
     helpEl.textContent = enabled
       ? '관리자 공지나 이벤트 안내를 앱 알림으로 받아볼 수 있어요.'
       : (blocked ? '브라우저 설정에서 알림 권한을 허용한 뒤 다시 시도해주세요.' : '알림을 켜면 챌린지 공지와 RUN DAY 안내를 기기 알림으로 받아볼 수 있어요.');
+    enableBtn.textContent = blocked ? '브라우저에서 허용 필요' : '알림 설정하기';
     enableBtn.hidden = enabled;
     enableBtn.disabled = blocked;
     disableBtn.hidden = !enabled;
@@ -13083,7 +13093,9 @@ async function refreshPushPreferenceUI() {
   } catch (e) {
     statusEl.textContent = '확인 필요';
     statusEl.classList.add('off');
+    statusEl.classList.remove('blocked');
     helpEl.textContent = '알림 상태를 확인하는 중 문제가 생겼어요. 다시 시도해주세요.';
+    enableBtn.textContent = '알림 설정하기';
     enableBtn.hidden = false; enableBtn.disabled = false;
     disableBtn.hidden = true;
     console.warn('push ui refresh failed', e);
@@ -18712,12 +18724,12 @@ async function init() {
           <div class="pm-panel-title">앱 알림</div>
           <div class="pm-panel-sub">관리자 공지와 RUN DAY 안내를 기기 알림으로 받아볼 수 있어요</div>
         </div>
-        <span class="pm-push-status" id="pm-push-status">알림 켜짐</span>
+        <span class="pm-push-status off" id="pm-push-status">상태 확인 중</span>
       </div>
       <div class="pm-push-copy" id="pm-push-help">관리자 공지나 이벤트 안내를 앱 알림으로 받아볼 수 있어요.</div>
       <div class="pm-push-actions">
-        <button type="button" class="pm-push-btn primary" id="pm-push-enable-btn" onclick="enablePushNotifications()" hidden>알림 켜기</button>
-        <button type="button" class="pm-push-btn" id="pm-push-disable-btn" onclick="disablePushNotifications()">알림 끄기</button>
+        <button type="button" class="pm-push-btn primary" id="pm-push-enable-btn" onclick="enablePushNotifications()" hidden>알림 설정하기</button>
+        <button type="button" class="pm-push-btn danger" id="pm-push-disable-btn" onclick="disablePushNotifications()">알림 끄기</button>
         <button type="button" class="pm-push-btn ghost" id="pm-push-preview-btn" onclick="previewPushNotification()">미리보기</button>
       </div>
     </div>
