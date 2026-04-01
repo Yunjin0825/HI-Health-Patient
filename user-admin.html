@@ -4339,8 +4339,20 @@ async function postAdminNotice() {
   document.getElementById('ap-media').value = '';
   document.getElementById('ap-mediatype').value = '';
   GD.adminPosts.unshift(payload);
+  presetPushUrlForAdminContent(payload.id);
   renderAdminPosts();
   toast('공지 게시 완료 ✓');
+}
+
+function buildAdminContentPushUrl(id = '') {
+  const contentId = String(id || '').trim();
+  return contentId ? `./index.html#community?contentId=${encodeURIComponent(contentId)}` : './index.html#community';
+}
+
+function presetPushUrlForAdminContent(id = '') {
+  const pushUrlInput = document.getElementById('push-url');
+  if (!pushUrlInput) return;
+  pushUrlInput.value = buildAdminContentPushUrl(id);
 }
 
 function onPushUserSelChange() {
@@ -4619,6 +4631,7 @@ function editAdminPost(id) {
   document.getElementById('ap-category').value = p.category || 'notice';
   document.getElementById('ap-media').value    = p.mediaUrl  || '';
   document.getElementById('ap-mediatype').value= p.mediaType || '';
+  presetPushUrlForAdminContent(id);
   const btn = document.querySelector('[onclick="postAdminNotice()"]');
   btn.textContent = '수정 저장';
   btn.onclick = async () => {
@@ -4643,6 +4656,7 @@ function editAdminPost(id) {
     document.getElementById('ap-text').value  = '';
     document.getElementById('ap-media').value = '';
     document.getElementById('ap-mediatype').value = '';
+    presetPushUrlForAdminContent(id);
     btn.textContent = '콘텐츠 게시';
     btn.onclick = postAdminNotice;
     renderAdminPosts();

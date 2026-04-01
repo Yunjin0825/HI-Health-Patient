@@ -3461,6 +3461,19 @@
     .admin-post-inline .admin-post-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
     .admin-post-inline .admin-badge { font-size:11px; font-weight:700; background:rgba(67,56,202,0.08); color:#4C46A8; border:1px solid rgba(67,56,202,0.12); padding:3px 9px; border-radius:10px; flex-shrink:0; }
     .admin-post-inline .admin-post-date { font-size:11px; color:#999; margin-left:auto; }
+    .admin-post-inline .admin-post-link-btn {
+      border:none;
+      background:#fff;
+      color:#4C46A8;
+      border-radius:999px;
+      padding:5px 10px;
+      font-size:11px;
+      font-weight:700;
+      box-shadow: inset 0 0 0 1px rgba(76,70,168,0.12);
+      cursor:pointer;
+      font-family:inherit;
+      flex-shrink:0;
+    }
     .admin-post-inline .admin-post-title { font-size:15px; font-weight:700; color:#3F3852; margin-bottom:6px; }
     .admin-post-inline .admin-post-body { font-size:13px; color:#555; line-height:1.65; white-space:pre-wrap; margin-bottom:4px; }
     .admin-post-media { width:100%; margin:8px 0; }
@@ -6127,6 +6140,114 @@ const SW_VERSION        = '20260401-99';
 const CHALLENGE_PEOPLE_CACHE_KEY = 'hi_health_people_cache_v1';
 let _swControllerReloaded = false;
 let _swUpdateCheckQueued = false;
+let _pendingCommunityPostId = '';
+let _pendingCommunityContentId = '';
+let _communityPostOpenTimer = null;
+
+function parseAppHashRoute(rawHash = location.hash || '') {
+  const hash = String(rawHash || '').replace(/^#/, '').trim();
+  if (!hash) return { page: '', params: new URLSearchParams() };
+  const [pagePart = '', queryString = ''] = hash.split('?');
+  return {
+    page: String(pagePart || '').trim(),
+    params: new URLSearchParams(queryString || ''),
+  };
+}
+
+function getCommunityPostIdFromHash(rawHash = location.hash || '') {
+  const route = parseAppHashRoute(rawHash);
+  if (route.page !== 'community') return '';
+  return String(route.params.get('postId') || '').trim();
+}
+
+function getCommunityContentIdFromHash(rawHash = location.hash || '') {
+  const route = parseAppHashRoute(rawHash);
+  if (route.page !== 'community') return '';
+  return String(route.params.get('contentId') || '').trim();
+}
+
+function getRequestedEntryPage(defaultPage = IS_RUN_MODE ? 'challenge' : 'home') {
+  const route = parseAppHashRoute();
+  if (route.page === 'community') return 'community';
+  return defaultPage;
+}
+
+function queueOpenCommunityPostFromHash(rawHash = location.hash || '') {
+  _pendingCommunityPostId = getCommunityPostIdFromHash(rawHash);
+  _pendingCommunityContentId = getCommunityContentIdFromHash(rawHash);
+  if (!_pendingCommunityPostId && !_pendingCommunityContentId) return;
+  if (document.getElementById('page-community')?.classList.contains('active')) {
+    schedulePendingCommunityPostOpen();
+  }
+}
+
+function schedulePendingCommunityPostOpen(delay = 120) {
+  if (!_pendingCommunityPostId && !_pendingCommunityContentId) return;
+  if (_communityPostOpenTimer) clearTimeout(_communityPostOpenTimer);
+  _communityPostOpenTimer = setTimeout(() => {
+    _communityPostOpenTimer = null;
+    openPendingCommunityPost().catch(err => console.warn('[openPendingCommunityPost]', err));
+  }, Math.max(0, Number(delay) || 0));
+}
+
+async function openPendingCommunityPost() {
+  const contentId = String(_pendingCommunityContentId || '').trim();
+  const postId = String(_pendingCommunityPostId || '').trim();
+  if (!contentId && !postId) return false;
+  if (!document.getElementById('page-community')?.classList.contains('active')) return false;
+  if (document.getElementById('comm-feed-panel')?.style.display === 'none') setCommunityTab('feed');
+  if (contentId) {
+    if (_feedFilter !== 'content') setFeedFilter('content');
+    if (!_adminPostsFetched && _db) await fetchAdminPosts();
+    const contentCard = document.getElementById(`admin-post-${contentId}`);
+    if (contentCard) {
+      contentCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      _pendingCommunityContentId = '';
+      _pendingCommunityPostId = '';
+      return true;
+    }
+  }
+  if (!postId) return false;
+  let post = S.posts.find(p => String(p.id) === postId) || (S.communityPosts || []).find(p => String(p.id) === postId);
+  if (!post && _db) {
+    await fetchCommunityPosts();
+    post = S.posts.find(p => String(p.id) === postId) || (S.communityPosts || []).find(p => String(p.id) === postId);
+  }
+  if (!post) return false;
+  const card = document.getElementById(`post-${postId}`);
+  if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  await openComments(postId);
+  _pendingCommunityContentId = '';
+  _pendingCommunityPostId = '';
+  return true;
+}
+
+function buildCommunityContentLink(contentId) {
+  const url = new URL(location.href);
+  url.hash = `community?contentId=${encodeURIComponent(String(contentId || '').trim())}`;
+  return url.toString();
+}
+
+async function copyCommunityContentLink(contentId) {
+  const normalizedId = String(contentId || '').trim();
+  if (!normalizedId) return;
+  const url = buildCommunityContentLink(normalizedId);
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast('콘텐츠 링크를 복사했어요');
+  } catch (e) {
+    const ta = document.createElement('textarea');
+    ta.value = url;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'absolute';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('콘텐츠 링크를 복사했어요');
+  }
+}
 let _db = null; // Supabase 클라이언트
 let _lastKnownServerPts = null; // 마지막으로 서버에서 확인한 포인트 (delta 병합용)
 let _realLeagueUsers = null; // Supabase에서 가져온 실제 유저 목록
@@ -6674,7 +6795,7 @@ function notifyCommentOnMyPost(post, comment, opts = {}) {
     id: `comment_${post.id}_${comment.id}`,
     title: '내 글에 새 댓글',
     body: `${comment.name || '익명'}: ${snippet || '댓글이 도착했어요.'}`,
-    url: './index.html#community',
+    url: `./index.html#community?postId=${encodeURIComponent(String(post.id))}`,
     sent_at: new Date(Number(comment.ts) || Date.now()).toISOString(),
     type: 'comment_reply',
     postId: String(post.id),
@@ -6980,7 +7101,9 @@ function onNotifClick(id, url) {
   closeNotifPanel();
   const path = url.replace(/^\.\//, '').replace(/^index\.html/, '');
   if (path.startsWith('#')) {
-    const page = path.slice(1);
+    const route = parseAppHashRoute(path);
+    queueOpenCommunityPostFromHash(path);
+    const page = route.page;
     if (page) navigate(page);
   }
 }
@@ -10367,6 +10490,7 @@ function navigate(page) {
   }
   placeGuestBanner(page);
   window.scrollTo(0, 0);
+  if (page === 'community' && (_pendingCommunityPostId || _pendingCommunityContentId)) schedulePendingCommunityPostOpen();
 }
 
 /* ════════════════════════════════════════
@@ -14391,11 +14515,13 @@ function renderCommunity() {
           mediaHtml = `<div class="admin-post-media"><img src="${item.mediaUrl}" alt=""></div>`;
         }
       }
+      const safeContentId = String(item.id || '').replace(/'/g, "\\'");
       return `
-        <div class="post-card admin-post-inline">
+        <div class="post-card admin-post-inline" id="admin-post-${escHtmlComm(String(item.id || ''))}">
           <div class="admin-post-header">
             <span class="admin-badge">HI 콘텐츠</span>
             <span class="admin-post-date">${date}</span>
+            <button type="button" class="admin-post-link-btn" onclick="copyCommunityContentLink('${safeContentId}')">링크 복사</button>
           </div>
           <div class="admin-post-title">${escHtmlComm(item.title)}</div>
           ${mediaHtml}
@@ -14439,6 +14565,7 @@ function renderCommunity() {
       </div>
     `;
   }).join('');
+  if (_pendingCommunityPostId || _pendingCommunityContentId) schedulePendingCommunityPostOpen(80);
 }
 
 function setFeedFilter(key) {
@@ -18191,7 +18318,7 @@ function buildGuestSampleState() {
     id: `comment_${sampleNotifPost.id}_${sampleNotifComment.id}`,
     title: '내 글에 새 댓글',
     body: `${sampleNotifComment.name}: ${sampleNotifComment.body}`,
-    url: './index.html#community',
+    url: `./index.html#community?postId=${encodeURIComponent(String(sampleNotifPost.id))}`,
     sent_at: guestSampleDate(0, 21, 8).toISOString(),
     type: 'comment_reply',
     postId: String(sampleNotifPost.id),
@@ -18353,7 +18480,8 @@ function doGuestLogin() {
   resetEntryUiState();
   document.getElementById('app-login-screen').classList.add('hidden');
   renderHeader();
-  navigate('home');
+  queueOpenCommunityPostFromHash();
+  navigate(getRequestedEntryPage('home'));
   loadNotifList();
 }
 
@@ -18473,7 +18601,8 @@ async function doAppLogin() {
 
   renderHeader();
   renderHome();
-  navigate(IS_RUN_MODE ? 'challenge' : 'home');
+  queueOpenCommunityPostFromHash();
+  navigate(getRequestedEntryPage(IS_RUN_MODE ? 'challenge' : 'home'));
 
   // Apple Watch Shortcuts: ?action=run 으로 열리면 달리기 측정 자동 시작
   if (new URLSearchParams(location.search).get('action') === 'run') {
@@ -18633,7 +18762,8 @@ async function init() {
     resetEntryUiState();
     renderHeader();
     renderHome();
-    navigate(IS_RUN_MODE ? 'challenge' : 'home');
+    queueOpenCommunityPostFromHash();
+    navigate(getRequestedEntryPage(IS_RUN_MODE ? 'challenge' : 'home'));
     const autoLoadEl = document.getElementById('login-loading');
     if (autoLoadEl) autoLoadEl.style.display = 'block';
     await hydrateAccountFromRemote(savedEmpId, keepName || S.user.name || '');
