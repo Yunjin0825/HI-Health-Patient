@@ -2409,7 +2409,7 @@
         let activeAvatars = [];
         if (activeIds.size > 0) {
           try {
-            const ids = [...activeIds].map(id => `"${id}"`).join(',');
+            const ids = [...activeIds].join(',');
             const usersRes = await fetch(
               SB_URL + '/rest/v1/users?select=' + encodeURIComponent('"deviceId",avatar') + '&"deviceId"=in.(' + ids + ')',
               { cache: 'no-store', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } }
@@ -2417,7 +2417,7 @@
             if (usersRes.ok) {
               const users = await usersRes.json();
               activeAvatars = (Array.isArray(users) ? users : []).map(u => {
-                const dId = String(u.deviceId || '');
+                const dId = String(u.deviceId || '').trim();
                 return {
                   src: normalizeLiveAvatar(u.avatar || '') || `images/avatars/av${avIdx(dId)}.png`,
                   latestTs: latestTsMap[dId] || 0,
