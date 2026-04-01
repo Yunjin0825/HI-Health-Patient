@@ -3490,165 +3490,83 @@
     .admin-post-inline .admin-post-body strong { font-weight:700; }
     .admin-post-inline .admin-post-body u { text-decoration-thickness:1px; text-underline-offset:1px; text-decoration-color:currentColor; }
     .admin-content-react-wrap {
-      margin-top:14px;
-      padding-top:12px;
+      margin-top:12px;
+      padding-top:10px;
       border-top:1px solid rgba(246,216,224,0.92);
     }
     .admin-content-react-head {
       display:flex;
       align-items:center;
-      justify-content:space-between;
       gap:8px;
-      margin-bottom:10px;
+      margin-bottom:8px;
     }
     .admin-content-react-title {
       font-size:11px;
-      font-weight:800;
-      color:#8B5A6B;
-      letter-spacing:-0.2px;
-      text-transform:uppercase;
+      font-weight:700;
+      color:#9F7482;
     }
     .admin-content-react-sub {
       font-size:10px;
-      color:#B08997;
+      color:#C199A7;
       white-space:nowrap;
     }
     .admin-content-react-grid {
-      display:grid;
-      grid-template-columns:repeat(3, minmax(0, 1fr));
-      gap:9px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:7px;
     }
     .admin-content-react-btn {
       position:relative;
-      display:flex;
-      flex-direction:column;
-      align-items:flex-start;
-      justify-content:center;
-      gap:7px;
-      width:100%;
-      min-height:72px;
-      padding:12px 12px 11px;
-      border-radius:16px;
-      border:1px solid rgba(238,223,229,0.96);
-      background:linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(255,251,252,0.98) 100%);
-      color:#5B6472;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      min-height:0;
+      padding:8px 11px;
+      border-radius:999px;
+      border:1px solid rgba(233,220,226,0.96);
+      background:#fff;
+      color:#667085;
       cursor:pointer;
-      transition:transform .18s ease, box-shadow .22s ease, border-color .22s ease, background .22s ease, color .22s ease;
+      transition:transform .16s ease, border-color .18s ease, background .18s ease, color .18s ease;
       transform-origin:center;
-      overflow:hidden;
       font-family:inherit;
       text-align:left;
-      box-shadow:0 4px 12px rgba(15,23,42,0.03);
+      box-shadow:none;
     }
-    .admin-content-react-btn:active { transform:scale(0.95); }
+    .admin-content-react-btn:active { transform:scale(0.97); }
     .admin-content-react-btn.fx-boom {
-      animation: contentReactBtnBoom 520ms cubic-bezier(.16,.82,.2,1);
-    }
-    .admin-content-react-btn.fx-boom::after {
-      content:'';
-      position:absolute;
-      inset:-35% auto -35% -34%;
-      width:48%;
-      background:linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.92), rgba(255,255,255,0));
-      transform:skewX(-18deg);
-      animation: contentReactBtnShine 560ms ease-out forwards;
-      pointer-events:none;
+      animation: contentReactBtnBoom 220ms ease-out;
     }
     .admin-content-react-btn.on {
       color:var(--accent, #BE185D);
-      border-color:var(--accent, #BE185D);
-      background:linear-gradient(180deg, var(--soft, rgba(190,24,93,0.12)) 0%, #fff 100%);
-      box-shadow:0 10px 22px rgba(15,23,42,0.06);
+      border-color:rgba(0,0,0,0);
+      background:var(--soft, rgba(190,24,93,0.12));
     }
     .admin-content-react-icon {
-      width:34px;
-      height:34px;
+      font-size:15px;
+      line-height:1;
       flex-shrink:0;
-      border-radius:12px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:20px;
-      background:var(--soft, rgba(190,24,93,0.12));
-      box-shadow:inset 0 0 0 1px rgba(255,255,255,0.44);
-    }
-    .admin-content-react-btn.on .admin-content-react-icon {
-      transform:scale(1.06);
     }
     .admin-content-react-copy {
       display:flex;
-      flex-direction:column;
-      gap:1px;
-      min-width:0;
-      width:100%;
+      align-items:center;
+      gap:5px;
     }
     .admin-content-react-label {
       font-size:12px;
-      font-weight:800;
-      letter-spacing:-0.2px;
-      color:#334155;
-    }
-    .admin-content-react-btn.on .admin-content-react-label { color:inherit; }
-    .admin-content-react-count {
-      font-size:10px;
       font-weight:700;
-      color:#A1AEBE;
-      min-height:12px;
+      color:inherit;
     }
-    .admin-content-react-btn.on .admin-content-react-count { color:inherit; opacity:0.78; }
-    .admin-content-react-burst {
-      position:fixed;
-      left:0;
-      top:0;
-      display:inline-flex;
-      align-items:center;
-      gap:5px;
-      padding:7px 11px;
-      border-radius:999px;
-      background:rgba(255,255,255,0.96);
-      border:1px solid rgba(255,255,255,0.96);
-      color:var(--burst-accent, #BE185D);
-      box-shadow:0 12px 28px rgba(15,23,42,0.12);
-      pointer-events:none;
-      opacity:0;
-      z-index:1450;
-      transform-origin:center;
-      animation: contentReactBurstFloat 1320ms cubic-bezier(.08,.62,.18,1) forwards;
-      animation-delay:var(--burst-delay, 0ms);
-      will-change:transform, opacity;
-    }
-    .admin-content-react-burst-emoji {
-      font-size:20px;
-      line-height:1;
-    }
-    .admin-content-react-burst-label {
-      font-size:12px;
-      font-weight:800;
-      letter-spacing:-0.2px;
-      white-space:nowrap;
+    .admin-content-react-count {
+      font-size:11px;
+      font-weight:700;
+      color:#98A2B3;
+      min-width:0;
     }
     @keyframes contentReactBtnBoom {
-      0% { transform:scale(1); box-shadow:0 0 0 rgba(0,0,0,0); }
-      34% { transform:scale(1.11); box-shadow:0 14px 30px rgba(15,23,42,0.10); }
-      70% { transform:scale(0.98); }
-      100% { transform:scale(1); box-shadow:0 0 0 rgba(0,0,0,0); }
-    }
-    @keyframes contentReactBtnShine {
-      0% { opacity:0; transform:translateX(-12px) skewX(-18deg); }
-      18% { opacity:0.92; }
-      100% { opacity:0; transform:translateX(220%) skewX(-18deg); }
-    }
-    @keyframes contentReactBurstFloat {
-      0% { opacity:0; transform:translate3d(0, 0, 0) scale(0.78) rotate(0deg); }
-      12% { opacity:1; transform:translate3d(calc(var(--burst-x, 0px) * 0.16), calc(var(--burst-y, -68px) * 0.18), 0) scale(0.94) rotate(calc(var(--burst-rotate, 0deg) * 0.18)); }
-      62% { opacity:0.84; transform:translate3d(calc(var(--burst-x, 0px) * 0.62), calc(var(--burst-y, -68px) * 0.64), 0) scale(var(--burst-scale, 1.06)) rotate(calc(var(--burst-rotate, 0deg) * 0.72)); }
-      100% { opacity:0; transform:translate3d(var(--burst-x, 0px), var(--burst-y, -68px), 0) scale(calc(var(--burst-scale, 1.06) * 1.04)) rotate(var(--burst-rotate, 0deg)); }
-    }
-    @media (max-width:420px) {
-      .admin-content-react-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); }
-    }
-    @media (max-width:360px) {
-      .admin-content-react-grid { grid-template-columns:1fr; }
+      0% { transform:scale(1); }
+      50% { transform:scale(1.05); }
+      100% { transform:scale(1); }
     }
     .admin-post-media { width:100%; margin:8px 0; }
     .admin-post-media iframe { width:100%; aspect-ratio:16/9; display:block; border:none; border-radius:8px; }
@@ -6341,7 +6259,7 @@ const PUSH_DEFAULT_URL  = './index.html#community';
 const HOME_PUSH_PROMPT_DISMISSED_KEY = 'hi_home_push_prompt_dismissed';
 const HOME_PUSH_PROMPT_SESSION_KEY   = 'hi_home_push_prompt_seen';
 const AUTO_COMMENT_FN   = 'https://nbnmvvobehjitophkqmu.supabase.co/functions/v1/auto-comment';
-const SW_VERSION        = '20260401-100';
+const SW_VERSION        = '20260401-101';
 const CHALLENGE_PEOPLE_CACHE_KEY = 'hi_health_people_cache_v1';
 let _swControllerReloaded = false;
 let _swUpdateCheckQueued = false;
@@ -15084,8 +15002,8 @@ function renderCommunity() {
           <div class="admin-post-body">${renderAdminContentBodyHtml(item.body)}</div>
           <div class="admin-content-react-wrap">
             <div class="admin-content-react-head">
-              <div class="admin-content-react-title">Content Reactions</div>
-              <div class="admin-content-react-sub">${totalContentReactionCount > 0 ? `총 ${totalContentReactionCount}` : ''}</div>
+              <div class="admin-content-react-title">공감</div>
+              <div class="admin-content-react-sub">${totalContentReactionCount > 0 ? `${totalContentReactionCount}` : ''}</div>
             </div>
             <div class="admin-content-react-grid">${contentReactionButtons}</div>
           </div>
@@ -15645,30 +15563,6 @@ function playAdminContentReactionFeedback(buttonEl) {
   return 420;
 }
 
-function playAdminContentReactionBurst(buttonEl, reactionId) {
-  if (!buttonEl) return;
-  const reaction = CONTENT_REACTIONS.find(item => item.id === reactionId);
-  if (!reaction) return;
-  const rect = buttonEl.getBoundingClientRect();
-  const originX = rect.left + rect.width / 2;
-  const originY = rect.top + rect.height / 2;
-  for (let i = 0; i < 6; i++) {
-    const particle = document.createElement('span');
-    particle.className = 'admin-content-react-burst';
-    particle.style.left = `${originX}px`;
-    particle.style.top = `${originY}px`;
-    particle.style.setProperty('--burst-accent', reaction.accent);
-    particle.style.setProperty('--burst-x', `${Math.round((Math.random() - 0.5) * 92)}px`);
-    particle.style.setProperty('--burst-y', `${-78 - Math.round(Math.random() * 44)}px`);
-    particle.style.setProperty('--burst-scale', String(0.92 + Math.random() * 0.24));
-    particle.style.setProperty('--burst-rotate', `${Math.round((Math.random() - 0.5) * 18)}deg`);
-    particle.style.setProperty('--burst-delay', `${i * 36 + Math.round(Math.random() * 12)}ms`);
-    particle.innerHTML = `<span class="admin-content-react-burst-emoji">${reaction.emoji}</span><span class="admin-content-react-burst-label">${reaction.label}</span>`;
-    document.body.appendChild(particle);
-    setTimeout(() => particle.remove(), 1600);
-  }
-}
-
 function updateStickerButtonUi(buttonEl, count, isActive) {
   if (!buttonEl) return;
   buttonEl.classList.toggle('on', !!isActive);
@@ -15749,7 +15643,6 @@ function reactToAdminContent(buttonEl, contentId, reactionId) {
   } else {
     nextMyReactions.push(reactionId);
     nextCounts[reactionId] = (nextCounts[reactionId] || 0) + 1;
-    playAdminContentReactionBurst(buttonEl, reactionId);
   }
   updateAdminContentReactionState(normalizedContentId, nextCounts, nextMyReactions);
   updateAdminContentReactionButtonUi(buttonEl, nextCounts[reactionId] || 0, !isRemoving);
