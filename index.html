@@ -2747,6 +2747,17 @@
     .install-skip { text-align:center; margin-top:10px; font-size:12px; color:var(--text-secondary); cursor:pointer; text-decoration:underline; }
     .install-kakao-notice { background:#FEF9C3; border-radius:10px; padding:12px 14px; margin-bottom:14px; font-size:13px; line-height:1.6; color:#78350F; }
     .install-kakao-notice strong { font-weight:700; }
+    .home-push-card { background:linear-gradient(180deg, #ffffff 0%, #f8fbff 100%); border-radius:22px; padding:24px 20px 20px; width:100%; max-width:360px; box-shadow:0 18px 42px rgba(15,23,42,0.18); }
+    .home-push-eyebrow { display:inline-flex; align-items:center; padding:6px 10px; border-radius:999px; background:#dbeafe; color:#1d4ed8; font-size:11px; font-weight:800; margin-bottom:12px; }
+    .home-push-copy { font-size:13px; line-height:1.65; color:#475569; margin-bottom:18px; }
+    .home-push-points { display:flex; flex-direction:column; gap:8px; margin-bottom:18px; }
+    .home-push-point { display:flex; align-items:flex-start; gap:10px; font-size:13px; line-height:1.5; color:#0f172a; }
+    .home-push-point-dot { width:22px; height:22px; border-radius:50%; background:#eff6ff; color:#2563eb; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+    .home-push-actions { display:flex; gap:8px; }
+    .home-push-btn { flex:1 1 0; min-height:46px; border-radius:14px; border:1px solid rgba(148,163,184,0.18); font-size:14px; font-weight:800; cursor:pointer; }
+    .home-push-btn.primary { background:#2563eb; border-color:#2563eb; color:#fff; }
+    .home-push-btn.secondary { background:#fff; color:#334155; }
+    .home-push-btn:disabled { opacity:0.55; cursor:not-allowed; }
     /* ── Run Tracker Card ── */
     .btn-run-tracker {
       background: #fdfcf0;
@@ -6135,6 +6146,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const PUSH_PUBLIC_KEY   = 'BEaMexe-bw1jM31PgeQdkkZeqs29Ls1KIMY-TViYgH2dPqg_v7tRRObOpRUTGu5-ZgH13qR_ZTtxeOWh9_vnhTk';
 const PUSH_TABLE        = 'push_subscriptions';
 const PUSH_DEFAULT_URL  = './index.html#community';
+const HOME_PUSH_PROMPT_DISMISSED_KEY = 'hi_home_push_prompt_dismissed';
+const HOME_PUSH_PROMPT_SESSION_KEY   = 'hi_home_push_prompt_seen';
 const AUTO_COMMENT_FN   = 'https://nbnmvvobehjitophkqmu.supabase.co/functions/v1/auto-comment';
 const SW_VERSION        = '20260401-99';
 const CHALLENGE_PEOPLE_CACHE_KEY = 'hi_health_people_cache_v1';
@@ -6143,6 +6156,8 @@ let _swUpdateCheckQueued = false;
 let _pendingCommunityPostId = '';
 let _pendingCommunityContentId = '';
 let _communityPostOpenTimer = null;
+let _homePushPromptTimer = null;
+let _homePushPromptCheckSeq = 0;
 
 function parseAppHashRoute(rawHash = location.hash || '') {
   const hash = String(rawHash || '').replace(/^#/, '').trim();
@@ -6839,6 +6854,7 @@ function buildAccountSettingsSnapshot(empId = ACTIVE_EMPID || S.user?.empId || '
     communitySeenTs: Number(localStorage.getItem(getAccountScopedStorageKey(COMM_SEEN_KEY, normalizedEmpId)) || '0'),
     introSeen: !!localStorage.getItem(getAccountScopedStorageKey('hi_intro_seen', normalizedEmpId)),
     installDismissed: !!localStorage.getItem(getAccountScopedStorageKey('hi_install_dismissed', normalizedEmpId)),
+    homePushPromptDismissed: !!localStorage.getItem(getAccountScopedStorageKey(HOME_PUSH_PROMPT_DISMISSED_KEY, normalizedEmpId)),
     todayPhoto: todayPhoto && typeof todayPhoto === 'object' ? todayPhoto : null,
     dayNotes: dayNotes && typeof dayNotes === 'object' ? dayNotes : {},
   };
@@ -6856,6 +6872,7 @@ function hasAccountSettingsContent(snapshot) {
     Number(snapshot.communitySeenTs) > 0 ||
     !!snapshot.introSeen ||
     !!snapshot.installDismissed ||
+    !!snapshot.homePushPromptDismissed ||
     !!snapshot.todayPhoto?.data ||
     Object.keys(snapshot.dayNotes || {}).length > 0 ||
     Object.values(chips).some(value => Array.isArray(value) && value.length > 0) ||
@@ -6932,6 +6949,8 @@ function applyAccountSettingsSnapshot(snapshot, empId = ACTIVE_EMPID || S.user?.
     else localStorage.removeItem(getAccountScopedStorageKey('hi_intro_seen', normalizedEmpId));
     if (snapshot.installDismissed) localStorage.setItem(getAccountScopedStorageKey('hi_install_dismissed', normalizedEmpId), '1');
     else localStorage.removeItem(getAccountScopedStorageKey('hi_install_dismissed', normalizedEmpId));
+    if (snapshot.homePushPromptDismissed) localStorage.setItem(getAccountScopedStorageKey(HOME_PUSH_PROMPT_DISMISSED_KEY, normalizedEmpId), '1');
+    else localStorage.removeItem(getAccountScopedStorageKey(HOME_PUSH_PROMPT_DISMISSED_KEY, normalizedEmpId));
     writeTodayPhotoState(snapshot.todayPhoto && typeof snapshot.todayPhoto === 'object' ? snapshot.todayPhoto : null, normalizedEmpId);
     writeDayNotesState(snapshot.dayNotes, normalizedEmpId);
     writeProfileOverride({
@@ -10411,6 +10430,7 @@ function quickNav(btn, fn) {
 }
 
 function navigate(page) {
+  if (page !== 'home') closeHomePushPrompt({ rememberSession: false });
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   const hdr = document.querySelector('.app-header');
@@ -10712,6 +10732,7 @@ function renderHome() {
     }
     if (IS_GUEST) placeGuestBanner('home');
   });
+  scheduleHomePushPrompt();
 }
 
 /* ════════════════════════════════════════
@@ -13082,6 +13103,127 @@ function isPushSupported() {
   return 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window;
 }
 
+function getHomePushPromptSessionKey(empId = ACTIVE_EMPID || S.user?.empId || '') {
+  return getAccountScopedStorageKey(HOME_PUSH_PROMPT_SESSION_KEY, empId);
+}
+
+async function getPushPreferenceState() {
+  if (!isPushSupported()) {
+    return { supported: false, enabled: false, blocked: false, subscription: null };
+  }
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    const sub = reg ? await reg.pushManager.getSubscription() : null;
+    return {
+      supported: true,
+      enabled: Notification.permission === 'granted' && !!sub,
+      blocked: Notification.permission === 'denied',
+      subscription: sub,
+    };
+  } catch (e) {
+    return {
+      supported: true,
+      enabled: false,
+      blocked: Notification.permission === 'denied',
+      subscription: null,
+      error: e,
+    };
+  }
+}
+
+function updateHomePushPromptUI(state) {
+  const badgeEl = document.getElementById('home-push-status');
+  const copyEl = document.getElementById('home-push-copy');
+  const enableBtn = document.getElementById('home-push-enable-btn');
+  if (!badgeEl || !copyEl || !enableBtn) return;
+
+  if (!state?.supported) {
+    badgeEl.textContent = '지원 안 됨';
+    badgeEl.style.background = '#e2e8f0';
+    badgeEl.style.color = '#475569';
+    copyEl.textContent = '이 기기에서는 앱 알림을 지원하지 않아요. 홈 화면 설치 후 Safari 또는 Chrome에서 다시 확인해주세요.';
+    enableBtn.textContent = '이 기기에서는 지원 안 됨';
+    enableBtn.disabled = true;
+    return;
+  }
+
+  if (state.blocked) {
+    badgeEl.textContent = '브라우저 허용 필요';
+    badgeEl.style.background = '#fee2e2';
+    badgeEl.style.color = '#b91c1c';
+    copyEl.textContent = '브라우저에서 알림 권한이 차단되어 있어요. 설정에서 허용하면 공지와 RUN DAY 안내를 바로 받아볼 수 있어요.';
+    enableBtn.textContent = '브라우저에서 허용 필요';
+    enableBtn.disabled = true;
+    return;
+  }
+
+  badgeEl.textContent = '앱 알림 꺼짐';
+  badgeEl.style.background = '#dbeafe';
+  badgeEl.style.color = '#1d4ed8';
+  copyEl.textContent = '관리자 공지, 챌린지 소식, RUN DAY 안내를 기기 알림으로 바로 받아볼 수 있어요.';
+  enableBtn.textContent = '앱 알림 켜기';
+  enableBtn.disabled = false;
+}
+
+function closeHomePushPrompt(options = {}) {
+  const overlay = document.getElementById('home-push-overlay');
+  if (!overlay) return;
+  overlay.classList.add('pm-hidden');
+  if (options.rememberSession !== false) {
+    sessionStorage.setItem(getHomePushPromptSessionKey(), '1');
+  }
+}
+
+function dismissHomePushPrompt() {
+  localStorage.setItem(getAccountScopedStorageKey(HOME_PUSH_PROMPT_DISMISSED_KEY), '1');
+  markAccountSettingsDirty();
+  closeHomePushPrompt();
+}
+
+async function handleHomePushPromptPrimary() {
+  const state = await getPushPreferenceState();
+  if (!state.supported) {
+    showToast('이 기기에서는 앱 알림을 지원하지 않아요.');
+    return;
+  }
+  if (state.blocked) {
+    showToast('브라우저 설정에서 알림 권한을 허용해주세요.');
+    return;
+  }
+  await enablePushNotifications();
+  const nextState = await getPushPreferenceState();
+  updateHomePushPromptUI(nextState);
+  if (nextState.enabled) closeHomePushPrompt();
+}
+
+async function maybeShowHomePushPrompt(options = {}) {
+  const overlay = document.getElementById('home-push-overlay');
+  if (!overlay) return false;
+  if (!document.getElementById('page-home')?.classList.contains('active')) return false;
+  if (IS_GUEST) return false;
+  const identity = getPushIdentity();
+  if (!identity.deviceId || !(identity.empId || ACTIVE_EMPID || S.user?.empId)) return false;
+  if (localStorage.getItem(getAccountScopedStorageKey(HOME_PUSH_PROMPT_DISMISSED_KEY))) return false;
+  if (!options.force && sessionStorage.getItem(getHomePushPromptSessionKey())) return false;
+  const checkSeq = ++_homePushPromptCheckSeq;
+  const state = await getPushPreferenceState();
+  if (checkSeq !== _homePushPromptCheckSeq) return false;
+  if (!state.supported || state.enabled) return false;
+  updateHomePushPromptUI(state);
+  overlay.classList.remove('pm-hidden');
+  sessionStorage.setItem(getHomePushPromptSessionKey(), '1');
+  return true;
+}
+
+function scheduleHomePushPrompt(delay = 1200) {
+  clearTimeout(_homePushPromptTimer);
+  if (!document.getElementById('page-home')?.classList.contains('active')) return;
+  _homePushPromptTimer = setTimeout(() => {
+    _homePushPromptTimer = null;
+    maybeShowHomePushPrompt().catch(err => console.warn('home push prompt failed', err));
+  }, delay);
+}
+
 async function checkForServiceWorkerUpdate() {
   if (!('serviceWorker' in navigator) || _swUpdateCheckQueued) return null;
   _swUpdateCheckQueued = true;
@@ -13207,10 +13349,9 @@ async function refreshPushPreferenceUI() {
   }
 
   try {
-    const reg = await navigator.serviceWorker.getRegistration();
-    const sub = reg ? await reg.pushManager.getSubscription() : null;
-    const enabled = Notification.permission === 'granted' && !!sub;
-    const blocked = Notification.permission === 'denied';
+    const state = await getPushPreferenceState();
+    const enabled = !!state.enabled;
+    const blocked = !!state.blocked;
     statusEl.textContent = enabled ? '알림 켜짐' : (blocked ? '차단됨' : '알림 꺼짐');
     statusEl.classList.toggle('off', !enabled && !blocked);
     statusEl.classList.toggle('blocked', blocked);
@@ -13223,6 +13364,7 @@ async function refreshPushPreferenceUI() {
     disableBtn.hidden = !enabled;
     disableBtn.disabled = false;
     previewBtn.disabled = !enabled;
+    updateHomePushPromptUI(state);
   } catch (e) {
     statusEl.textContent = '확인 필요';
     statusEl.classList.add('off');
@@ -13260,6 +13402,7 @@ async function enablePushNotifications() {
     });
     await upsertPushSubscriptionRecord(sub, true);
     await refreshPushPreferenceUI();
+    closeHomePushPrompt();
     showToast('앱 알림이 켜졌어요 🔔');
   } catch (e) {
     console.warn('enablePushNotifications failed', e);
@@ -13282,6 +13425,7 @@ async function disablePushNotifications() {
       await setPushDisabledRecord();
     }
     await refreshPushPreferenceUI();
+    sessionStorage.removeItem(getHomePushPromptSessionKey());
     showToast('앱 알림이 꺼졌어요');
   } catch (e) {
     console.warn('disablePushNotifications failed', e);
@@ -18988,6 +19132,34 @@ async function init() {
   </div>
 </div>
 
+<div id="home-push-overlay" class="install-overlay pm-hidden">
+  <div class="home-push-card">
+    <div class="install-header">
+      <div>
+        <div class="home-push-eyebrow" id="home-push-status">앱 알림 꺼짐</div>
+        <div class="install-title">홈에서 바로 앱 알림 켜기</div>
+      </div>
+      <button class="install-close" onclick="closeHomePushPrompt()" aria-label="앱 알림 켜기 팝업 닫기">✕</button>
+    </div>
+    <div class="home-push-copy" id="home-push-copy">관리자 공지, 챌린지 소식, RUN DAY 안내를 기기 알림으로 바로 받아볼 수 있어요.</div>
+    <div class="home-push-points">
+      <div class="home-push-point">
+        <div class="home-push-point-dot">1</div>
+        <div>관리자 공지나 이벤트 소식을 더 빨리 확인할 수 있어요.</div>
+      </div>
+      <div class="home-push-point">
+        <div class="home-push-point-dot">2</div>
+        <div>챌린지 일정이나 RUN DAY 안내를 놓치지 않게 도와드려요.</div>
+      </div>
+    </div>
+    <div class="home-push-actions">
+      <button type="button" class="home-push-btn secondary" onclick="closeHomePushPrompt()">나중에</button>
+      <button type="button" class="home-push-btn primary" id="home-push-enable-btn" onclick="handleHomePushPromptPrimary()">앱 알림 켜기</button>
+    </div>
+    <div class="install-skip" onclick="dismissHomePushPrompt()">다시 보지 않기</div>
+  </div>
+</div>
+
 <div id="run-tracker-overlay">
   <div class="rt-header">
     <button class="rt-close" onclick="closeRunTracker()">✕</button>
@@ -19564,6 +19736,7 @@ async function init() {
 
   // ── Install Guide ──
   function showInstallGuide() {
+    if (!document.getElementById('home-push-overlay')?.classList.contains('pm-hidden')) return;
     const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
     if (isStandalone) return;
     if (localStorage.getItem(getAccountScopedStorageKey('hi_install_dismissed'))) return;
@@ -19590,6 +19763,7 @@ async function init() {
   // 로그인 후 5초 뒤에 표시 (단 한 번만)
   window.addEventListener('hi:loggedin', () => setTimeout(showInstallGuide, 5000));
   window.addEventListener('hi:loggedin', () => setTimeout(syncPushSubscriptionIfNeeded, 1500));
+  window.addEventListener('hi:loggedin', () => setTimeout(scheduleHomePushPrompt, 2200));
   window.addEventListener('hi:loggedin', () => setTimeout(() => {
     syncFamilyCertRewardStatus().catch(err => console.warn('[family-cert/reward-sync]', err));
     refreshCurrentFamilyCertLatest({ force: true, silent: true }).catch(err => console.warn('[family-cert/latest-login-sync]', err));
