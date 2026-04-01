@@ -6223,6 +6223,7 @@ async function openPendingCommunityPost() {
     }
   }
   if (!postId) return false;
+  if (_feedFilter === 'content') setFeedFilter('all');
   let post = S.posts.find(p => String(p.id) === postId) || (S.communityPosts || []).find(p => String(p.id) === postId);
   if (!post && _db) {
     await fetchCommunityPosts();
