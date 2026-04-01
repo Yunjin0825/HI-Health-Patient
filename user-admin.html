@@ -2300,6 +2300,20 @@ function renderAll() {
 /* ══════════════════════════════════════════════
    STATS
 ══════════════════════════════════════════════ */
+function getExcludedDeviceIds() {
+  return new Set(
+    GD.users
+      .filter(u => USER_LIST_EXCLUDE_EMPIDS.includes((u.empId || '').trim().toUpperCase()))
+      .map(u => String(u.deviceId || '').trim())
+      .filter(Boolean)
+  );
+}
+
+function visibleWorkouts() {
+  const excludedDeviceIds = getExcludedDeviceIds();
+  return GD.workouts.filter(w => !excludedDeviceIds.has(String(w.deviceId || '').trim()));
+}
+
 function renderStats() {
   const effectiveRegs = getEffectiveChallengeRegistrations();
   const activeRegs = effectiveRegs.filter(r => r.status !== 'cancelled').length;
@@ -2307,7 +2321,7 @@ function renderStats() {
   const visiblePosts = GD.posts.filter(post => !isBotAuthor(post));
   document.getElementById('st-users').textContent = visibleUsers.length;
   document.getElementById('st-regs').textContent = activeRegs;
-  document.getElementById('st-wo').textContent = GD.workouts.length;
+  document.getElementById('st-wo').textContent = visibleWorkouts().length;
   document.getElementById('st-glc').textContent = GD.glucose.length;
   document.getElementById('st-posts').textContent = visiblePosts.length;
   document.getElementById('st-donation').textContent = (activeRegs * CHALLENGE_DONATION_PER_PERSON).toLocaleString('ko-KR') + '원';
@@ -3319,10 +3333,11 @@ function useSelectedUserForWorkouts() {
 function renderWorkoutSummary() {
   const todayStart = getWorkoutPeriodStart('today');
   const weekStart = getWorkoutPeriodStart('week');
-  const todayCount = GD.workouts.filter(w => workoutTs(w) >= todayStart).length;
-  const weekRows = GD.workouts.filter(w => workoutTs(w) >= weekStart);
+  const wos = visibleWorkouts();
+  const todayCount = wos.filter(w => workoutTs(w) >= todayStart).length;
+  const weekRows = wos.filter(w => workoutTs(w) >= weekStart);
   const weekUsers = new Set(weekRows.map(w => String(w.deviceId || '').trim()).filter(Boolean));
-  const totalMins = GD.workouts.reduce((sum, w) => sum + (Number(w.duration) || 0), 0);
+  const totalMins = wos.reduce((sum, w) => sum + (Number(w.duration) || 0), 0);
   document.getElementById('wo-sum-today').textContent = todayCount.toLocaleString();
   document.getElementById('wo-sum-week').textContent = weekRows.length.toLocaleString();
   document.getElementById('wo-sum-active-users').textContent = weekUsers.size.toLocaleString();
