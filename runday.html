@@ -1561,11 +1561,6 @@
         </div>
       </div>
     </div>
-    <div class="together-time-card">
-      <div class="together-time-label">같이 운동한 시간</div>
-      <div class="together-time-value" id="together-time-value">집계 중</div>
-      <div class="together-time-sub" id="together-time-sub">워밍업 시작 후 참가자 운동 시간을 집계하고 있어요.</div>
-    </div>
   </div>
 </div>
 
@@ -1693,8 +1688,8 @@
       <!-- filled by JS -->
     </div>
   </div>
-  <div class="together-time-card">
-    <div class="together-time-label">같이 운동한 시간</div>
+  <div class="together-time-card" style="background:#fff;border-color:rgba(147,197,253,0.3);margin-top:12px">
+    <div class="section-title" style="font-size:20px;font-weight:700;letter-spacing:-0.5px;color:#1e1047;margin-bottom:8px">같이 운동한 시간</div>
     <div class="together-time-value" id="together-time-value2">집계 중</div>
     <div class="together-time-sub" id="together-time-sub2">워밍업 시작 후 참가자 운동 시간을 집계하고 있어요.</div>
   </div>
@@ -2259,11 +2254,7 @@
   let challengeActivitySummaryCache = null;
 
   function formatDurationMinutesLabel(minutes) {
-    const mins = Math.max(0, Number(minutes) || 0);
-    if (mins < 60) return `${mins}분`;
-    const hour = Math.floor(mins / 60);
-    const remain = mins % 60;
-    return remain ? `${hour}시간 ${remain}분` : `${hour}시간`;
+    return `${Math.max(0, Number(minutes) || 0)}분`;
   }
 
   function setTogetherTimeSummary(summary = null) {
