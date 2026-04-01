@@ -2286,6 +2286,24 @@
     return '런데이 완료';
   }
 
+  let _togetherTimePrevMinutes = 0;
+  const NEW_WORKOUT_WINDOW_MS = 1000 * 60 * 60 * 3; // 3시간 내 운동 = NEW
+
+  function animateTogetherTimeValue(from, to) {
+    const el = document.getElementById('together-time-value2');
+    if (!el || from === to) return;
+    const duration = 800;
+    const start = performance.now();
+    function step(now) {
+      const t = Math.min(1, (now - start) / duration);
+      const ease = 1 - Math.pow(1 - t, 3);
+      const val = Math.round(from + (to - from) * ease);
+      el.textContent = val.toLocaleString() + '분';
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
   function setTogetherTimeSummary(summary = null) {
     const totalMinutes = Math.max(0, Number(summary?.totalMinutes) || 0);
     const activeCount = Math.max(0, Number(summary?.activeCount) || 0);
@@ -2297,14 +2315,18 @@
     if (!hasData) return false;
 
     const nextValue = formatDurationMinutesLabel(totalMinutes);
-    const dday = getRunDayDday();
     const nextSub = '챌린지 기간 같이 운동한 시간만큼 기부금액에 추가됩니다';
 
     let changed = false;
-    for (const id of ['together-time-value', 'together-time-value2']) {
-      const el = document.getElementById(id);
-      if (el && el.textContent !== nextValue) { el.textContent = nextValue; changed = true; }
+
+    // 카운트업 애니메이션 (값이 바뀔 때)
+    const valEl2 = document.getElementById('together-time-value2');
+    if (valEl2 && valEl2.textContent !== nextValue) {
+      animateTogetherTimeValue(_togetherTimePrevMinutes, totalMinutes);
+      changed = true;
     }
+    _togetherTimePrevMinutes = totalMinutes;
+
     for (const id of ['together-time-sub', 'together-time-sub2']) {
       const el = document.getElementById(id);
       if (el && el.textContent !== nextSub) { el.textContent = nextSub; changed = true; }
@@ -2316,12 +2338,14 @@
     if (avStack) {
       const avatars = Array.isArray(summary?.activeAvatars) ? summary.activeAvatars : [];
       if (avatars.length > 0) {
+        const now = Date.now();
         const MAX_SHOW = 8;
         const shown = avatars.slice(0, MAX_SHOW);
         const rest = avatars.length - shown.length;
-        avStack.innerHTML = shown.map(src =>
-          `<div class="av"><img src="${src}" alt="" onerror="if(this.dataset.err)return;this.dataset.err=1;this.src='${LIVE_AVATAR_FALLBACK}'"></div>`
-        ).join('') + (rest > 0 ? `<div class="av-more-circle">+${rest}</div>` : '');
+        avStack.innerHTML = shown.map(({ src, latestTs }) => {
+          const isNew = latestTs && (now - latestTs) <= NEW_WORKOUT_WINDOW_MS;
+          return `<div class="av">${isNew ? '<span class="av-new">NEW</span>' : ''}<img src="${src}" alt="" onerror="if(this.dataset.err)return;this.dataset.err=1;this.src='${LIVE_AVATAR_FALLBACK}'"></div>`;
+        }).join('') + (rest > 0 ? `<div class="av-more-circle">+${rest}</div>` : '');
         avStack.classList.add('visible');
       } else {
         avStack.classList.remove('visible');
@@ -2371,6 +2395,7 @@
         );
         let totalMinutes = 0;
         const activeIds = new Set();
+        const latestTsMap = {};
         (Array.isArray(workouts) ? workouts : []).forEach(row => {
           const deviceId = String(row?.deviceId || '').trim();
           if (!participantIds.has(deviceId)) return;
@@ -2378,6 +2403,8 @@
           if (!duration) return;
           totalMinutes += duration;
           activeIds.add(deviceId);
+          const ts = row?.ts ? new Date(row.ts).getTime() : 0;
+          if (!latestTsMap[deviceId] || ts > latestTsMap[deviceId]) latestTsMap[deviceId] = ts;
         });
         let activeAvatars = [];
         if (activeIds.size > 0) {
@@ -2391,8 +2418,13 @@
               const users = await usersRes.json();
               activeAvatars = (Array.isArray(users) ? users : []).map(u => {
                 const dId = String(u.deviceId || '');
-                return normalizeLiveAvatar(u.avatar || '') || `images/avatars/av${avIdx(dId)}.png`;
+                return {
+                  src: normalizeLiveAvatar(u.avatar || '') || `images/avatars/av${avIdx(dId)}.png`,
+                  latestTs: latestTsMap[dId] || 0,
+                };
               });
+              // 최신 운동 기록 순으로 정렬
+              activeAvatars.sort((a, b) => b.latestTs - a.latestTs);
             }
           } catch (_) {}
         }
