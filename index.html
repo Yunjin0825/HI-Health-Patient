@@ -14752,8 +14752,7 @@ async function fetchLeagueData(opts = {}) {
       totalPtsByDevice || {},
       needWeekly ? wPtsByDevice : {}
     );
-    renderLeague();
-    if (document.getElementById('page-home')?.classList.contains('active')) renderHome();
+    console.log('[League] allUsers:', allUsers?.length, 'realLeagueUsers:', _realLeagueUsers?.length);
     // 커뮤니티 피드가 열려있고 챌린지 필터 중이면 재렌더
     if (_feedFilter === '챌린지') {
       const page = document.querySelector('.page.active');
@@ -14761,9 +14760,10 @@ async function fetchLeagueData(opts = {}) {
     }
   } catch(e) {
     console.error('League fetch error:', e);
-    if (document.getElementById('comm-league-panel')?.style.display !== 'none') renderLeague();
   } finally {
     _leagueFetching = false;
+    if (document.getElementById('comm-league-panel')?.style.display !== 'none') renderLeague();
+    if (document.getElementById('page-home')?.classList.contains('active')) renderHome();
   }
 }
 
