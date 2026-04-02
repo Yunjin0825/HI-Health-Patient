@@ -14707,7 +14707,7 @@ async function fetchLeagueData(opts = {}) {
     let totalPtsByDevice = canReuseUsers ? (_leagueCache.totalPtsByDevice || {}) : {};
     let wPtsByDevice = canReuseWeekly ? (_leagueCache.wPtsByDevice || {}) : {};
 
-    const [userBundle, weeklyRes] = await Promise.all([
+    const [userBundle, weeklyRes, alltimeWRes] = await Promise.all([
       canReuseUsers
         ? Promise.resolve(null)
         : Promise.all([
@@ -14717,6 +14717,9 @@ async function fetchLeagueData(opts = {}) {
       needWeekly && !canReuseWeekly
         ? _db.from('workouts').select('deviceId,points').gte('ts', String(weekStartTs))
         : Promise.resolve(null),
+      canReuseUsers
+        ? Promise.resolve(null)
+        : _db.from('workouts').select('deviceId,points').limit(10000),
     ]);
 
     if (userBundle) {
@@ -14725,9 +14728,17 @@ async function fetchLeagueData(opts = {}) {
       if (regsRes?.error) throw regsRes.error;
       allUsers = usersRes?.data || [];
       allRegs = regsRes?.data || [];
-      totalPtsByDevice = Object.fromEntries(
-        allUsers.map(u => [String(u.deviceId || '').trim(), Math.max(0, Number(u.points) || 0)])
-      );
+      // workouts 합산으로 누적 포인트 계산 (users.points는 stale할 수 있음)
+      totalPtsByDevice = {};
+      (alltimeWRes?.data || []).forEach(w => {
+        const did = String(w.deviceId || '').trim();
+        if (did) totalPtsByDevice[did] = (totalPtsByDevice[did] || 0) + (Number(w.points) || 0);
+      });
+      // workouts에 없는 유저는 users.points로 폴백
+      allUsers.forEach(u => {
+        const did = String(u.deviceId || '').trim();
+        if (did && !totalPtsByDevice[did]) totalPtsByDevice[did] = Math.max(0, Number(u.points) || 0);
+      });
       _leagueCache.users = allUsers;
       _leagueCache.regs = allRegs;
       _leagueCache.totalPtsByDevice = totalPtsByDevice;
