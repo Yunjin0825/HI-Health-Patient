@@ -1101,21 +1101,63 @@
     .snackbar.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
     /* ── 운동탭 같이 운동한 시간 팝업 ── */
     .together-popup {
-      position: fixed; bottom: calc(var(--nav-height) + 14px); left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: #1e1047; color: #fff;
-      padding: 12px 18px; border-radius: 16px;
-      font-size: 13px; font-weight: 500; line-height: 1.4;
+      position: fixed; bottom: calc(var(--nav-height) + 14px); left: 16px; right: 16px;
+      transform: translateY(20px);
+      background: #fff; border-radius: 20px;
+      border: 1px solid #f0f0f4;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.13);
       z-index: 1199; opacity: 0; transition: all 0.35s; pointer-events: none;
-      box-shadow: 0 6px 24px rgba(30,16,71,0.35);
-      display: flex; align-items: center; gap: 10px;
-      max-width: calc(100vw - 32px); white-space: nowrap;
+      overflow: hidden;
     }
-    .together-popup.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
-    .together-popup-icon { font-size: 18px; flex-shrink: 0; }
-    .together-popup-text { display: flex; flex-direction: column; gap: 1px; }
-    .together-popup-main { font-size: 13px; font-weight: 700; color: #fff; }
-    .together-popup-sub { font-size: 11px; color: rgba(255,255,255,0.6); }
+    .together-popup.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .together-popup-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px 12px; border-bottom: 1px solid #f3f4f6; gap: 12px;
+    }
+    .together-popup-title-row { display: flex; align-items: center; gap: 8px; }
+    .together-popup-badge {
+      flex-shrink: 0; font-size: 11px; font-weight: 700; color: #6b7280;
+      background: #f3f4f6; border-radius: 20px; padding: 3px 10px;
+    }
+    .together-popup-badge span { color: #1e1047; font-weight: 900; }
+    .together-popup-total {
+      margin-left: auto; flex-shrink: 0;
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; color: #6b7280; white-space: nowrap;
+    }
+    .together-popup-total strong { font-size: 13px; font-weight: 900; color: #1e1047; }
+    .together-popup-avs {
+      display: flex; align-items: center; padding: 12px 16px 14px;
+    }
+    .together-popup-av {
+      position: relative; width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+      background: #ede9fe; border: 2.5px solid #fff;
+      overflow: visible; display: flex; align-items: center; justify-content: center;
+      margin-left: -10px; box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    .together-popup-av:first-child { margin-left: 0; }
+    .together-popup-av img { width: 46px; height: 46px; object-fit: contain; margin-top: 4px; border-radius: 50%; }
+    .together-popup-av-new {
+      position: absolute; top: -4px; right: -6px; z-index: 2;
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 18px; height: 12px; padding: 0 4px;
+      border-radius: 999px; background: #ef4444; color: #fff;
+      font-size: 7px; font-weight: 900; letter-spacing: 0.15px;
+      border: 1.5px solid #fff; box-shadow: 0 2px 8px rgba(239,68,68,0.28);
+    }
+    .together-popup-av-more {
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+      background: #1e1047; border: 2.5px solid #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 800; color: #fff;
+      margin-left: -10px; box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    }
+    .together-popup-sub { padding: 0 16px 14px; font-size: 11px; color: #6b7280; line-height: 1.5; }
+    @keyframes livepulse {
+      0%   { box-shadow: 0 0 0 0 rgba(30,16,71,0.4); }
+      70%  { box-shadow: 0 0 0 7px rgba(30,16,71,0); }
+      100% { box-shadow: 0 0 0 0 rgba(30,16,71,0); }
+    }
     .snackbar-btn {
       flex-shrink: 0; background: #A78BFA; color: #fff;
       border: none; border-radius: 10px; padding: 6px 12px;
@@ -4932,11 +4974,16 @@
 <div id="toast" class="toast"></div>
 <div id="snackbar" class="snackbar"></div>
 <div id="together-popup" class="together-popup" onclick="this.classList.remove('show')">
-  <span class="together-popup-icon">🏃</span>
-  <div class="together-popup-text">
-    <span class="together-popup-main" id="together-popup-main"></span>
-    <span class="together-popup-sub" id="together-popup-sub"></span>
+  <div class="together-popup-head">
+    <div class="together-popup-title-row">
+      <div class="live-dot" style="width:8px;height:8px;border-radius:50%;background:#1e1047;animation:livepulse 1.8s ease-out infinite;flex-shrink:0"></div>
+      <span style="font-size:10px;font-weight:800;color:#1e1047;letter-spacing:1px">실시간</span>
+      <div class="together-popup-badge"><span id="together-popup-count">0</span>명 기록중</div>
+    </div>
+    <div class="together-popup-total">총 운동시간 <strong id="together-popup-mins">-</strong></div>
   </div>
+  <div class="together-popup-avs" id="together-popup-avs"></div>
+  <div class="together-popup-sub" id="together-popup-sub"></div>
 </div>
 <!-- Header -->
 <!-- 앱 인트로 팝업 -->
@@ -9444,6 +9491,7 @@ function renderWeekCard() {
 const TOGETHER_POPUP_CACHE_KEY = '_togetherPopupCache';
 const TOGETHER_POPUP_STALE_MS = 1000 * 60 * 5;
 const CHALLENGE_START_TS = new Date('2026-03-25T00:00:00+09:00').getTime();
+const TOGETHER_NEW_MS = 1000 * 60 * 60 * 12;
 
 async function fetchTogetherTimeSummary() {
   try {
@@ -9452,7 +9500,7 @@ async function fetchTogetherTimeSummary() {
     const headers = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY };
     const [regsRes, workoutsRes] = await Promise.all([
       fetch(SUPABASE_URL + '/rest/v1/registrations?select=' + encodeURIComponent('"deviceId",status') + '&order=id.desc', { cache: 'no-store', headers }),
-      fetch(SUPABASE_URL + '/rest/v1/workouts?select=' + encodeURIComponent('"deviceId",duration') + '&ts=gte.' + CHALLENGE_START_TS, { cache: 'no-store', headers }),
+      fetch(SUPABASE_URL + '/rest/v1/workouts?select=' + encodeURIComponent('"deviceId",duration,ts') + '&ts=gte.' + CHALLENGE_START_TS, { cache: 'no-store', headers }),
     ]);
     if (!regsRes.ok || !workoutsRes.ok) return null;
     const regs = await regsRes.json();
@@ -9464,6 +9512,7 @@ async function fetchTogetherTimeSummary() {
     );
     let totalMinutes = 0;
     const activeIds = new Set();
+    const latestTsMap = {};
     (Array.isArray(workouts) ? workouts : []).forEach(w => {
       const dId = String(w?.deviceId || '').trim();
       if (!participantIds.has(dId)) return;
@@ -9471,8 +9520,29 @@ async function fetchTogetherTimeSummary() {
       if (!d) return;
       totalMinutes += d;
       activeIds.add(dId);
+      const ts = Number(w?.ts) || 0;
+      if (!latestTsMap[dId] || ts > latestTsMap[dId]) latestTsMap[dId] = ts;
     });
-    const result = { totalMinutes, activeCount: activeIds.size, fetchedAt: Date.now() };
+    const idList = [...activeIds];
+    const avatarSrcMap = {};
+    if (idList.length > 0) {
+      try {
+        const usersRes = await fetch(
+          SUPABASE_URL + '/rest/v1/users?select=' + encodeURIComponent('"deviceId",avatar') + '&"deviceId"=in.(' + idList.join(',') + ')',
+          { cache: 'no-store', headers }
+        );
+        if (usersRes.ok) {
+          (await usersRes.json() || []).forEach(u => {
+            const dId = String(u.deviceId || '').trim();
+            if (dId) avatarSrcMap[dId] = u.avatar || '';
+          });
+        }
+      } catch (_) {}
+    }
+    const avatars = idList
+      .map(dId => ({ dId, src: avatarSrcMap[dId] || `images/avatars/av${((Math.abs([...dId].reduce((h,c) => (Math.imul(31,h)+c.charCodeAt(0))|0, 0)) % 20) + 1)}.png`, latestTs: latestTsMap[dId] || 0 }))
+      .sort((a, b) => a.latestTs - b.latestTs);
+    const result = { totalMinutes, activeCount: activeIds.size, avatars, fetchedAt: Date.now() };
     sessionStorage.setItem(TOGETHER_POPUP_CACHE_KEY, JSON.stringify(result));
     return result;
   } catch { return null; }
@@ -9484,15 +9554,42 @@ function showTogetherPopup() {
     if (!data || !data.totalMinutes) return;
     const popup = document.getElementById('together-popup');
     if (!popup) return;
-    document.getElementById('together-popup-main').textContent =
-      `함께 ${data.totalMinutes.toLocaleString()}분 운동했어요 🔥`;
-    document.getElementById('together-popup-sub').textContent =
-      `${data.activeCount}명이 챌린지 기간 함께 기록하고 있어요`;
+    document.getElementById('together-popup-count').textContent = data.activeCount;
+    document.getElementById('together-popup-mins').textContent = data.totalMinutes.toLocaleString() + '분';
+    document.getElementById('together-popup-sub').textContent = '챌린지 기간, 같이 운동한 시간만큼 기부금액에 추가됩니다';
+    const avsEl = document.getElementById('together-popup-avs');
+    if (avsEl && Array.isArray(data.avatars) && data.avatars.length > 0) {
+      const now = Date.now();
+      const MAX_SHOW = 8;
+      const shown = data.avatars.length > MAX_SHOW ? data.avatars.slice(data.avatars.length - MAX_SHOW) : data.avatars;
+      const rest = data.avatars.length - shown.length;
+      avsEl.innerHTML = shown.map(({ src, latestTs }) => {
+        const isNew = latestTs && (now - latestTs) <= TOGETHER_NEW_MS;
+        return `<div class="together-popup-av">${isNew ? '<span class="together-popup-av-new">NEW</span>' : ''}<img src="${src}" alt="" onerror="if(this.dataset.err)return;this.dataset.err=1;this.src='images/avatars/av1.png'"></div>`;
+      }).join('') + (rest > 0 ? `<div class="together-popup-av-more">+${rest}</div>` : '');
+      avsEl.style.display = '';
+    }
     popup.classList.add('show');
     clearTimeout(_togetherPopupTimer);
-    _togetherPopupTimer = setTimeout(() => popup.classList.remove('show'), 4000);
+    _togetherPopupTimer = setTimeout(() => popup.classList.remove('show'), 5000);
   });
 }
+
+// 팝업 스와이프 다운으로 닫기
+(function initTogetherPopupSwipe() {
+  let startY = 0;
+  function onStart(e) { startY = (e.touches ? e.touches[0] : e).clientY; }
+  function onEnd(e) {
+    const dy = (e.changedTouches ? e.changedTouches[0] : e).clientY - startY;
+    if (dy > 50) document.getElementById('together-popup')?.classList.remove('show');
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    const p = document.getElementById('together-popup');
+    if (!p) return;
+    p.addEventListener('touchstart', onStart, { passive: true });
+    p.addEventListener('touchend', onEnd, { passive: true });
+  });
+})();
 
 function showToast(msg) {
   const t = document.getElementById('toast');
