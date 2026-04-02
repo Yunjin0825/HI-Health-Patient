@@ -9706,8 +9706,12 @@ function computeStreakFromTsList(tsList) {
   if (!tsList || !tsList.length) return 0;
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const dateSet = new Set(tsList.map(ts => {
-    const d = new Date(Number(ts)); d.setHours(0, 0, 0, 0); return d.getTime();
-  }));
+    const normalizedTs = recordTsValue({ ts });
+    if (!normalizedTs) return null;
+    const d = new Date(normalizedTs);
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  }).filter(Boolean));
   let streak = 0;
   for (let i = 0; i < 365; i++) {
     const d = new Date(today); d.setDate(today.getDate() - i);
@@ -10023,10 +10027,10 @@ function getLeagueBadgeState(entries = [], tab = S.leagueTab) {
 
 function getLeagueStreakMilestoneLabel(streak = 0) {
   const value = Number(streak) || 0;
-  if (value >= 30) return '30일 연속';
-  if (value >= 21) return '21일 연속';
-  if (value >= 14) return '14일 연속';
-  if (value >= 7) return '7일 연속';
+  if (value >= 30) return '30일 연속 달성';
+  if (value >= 21) return '21일 연속 달성';
+  if (value >= 14) return '14일 연속 달성';
+  if (value >= 7) return '7일 연속 달성';
   return '';
 }
 
