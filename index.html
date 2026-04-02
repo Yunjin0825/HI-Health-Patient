@@ -14623,7 +14623,7 @@ function getCurrentLeaguePoints() {
   return Math.max(0, getRecordDerivedTotalPoints());
 }
 
-function buildRealLeagueUsers(allUsers, allRegs, alltimePtsByDevice = {}, wPtsByDevice = {}) {
+function buildRealLeagueUsers(allUsers, allRegs, alltimePtsByDevice = {}, wPtsByDevice = {}, streakByDevice = {}) {
   if (!allUsers || !allUsers.length) {
     _realLeagueUsers = null;
     return;
@@ -14662,7 +14662,7 @@ function buildRealLeagueUsers(allUsers, allRegs, alltimePtsByDevice = {}, wPtsBy
     lv: getLevel(Math.max(0, Number(alltimePtsByDevice[String(u.deviceId || '').trim()]) || 0)).lv,
     pts: Math.max(0, Number(alltimePtsByDevice[String(u.deviceId || '').trim()]) || 0),
     wPts: wPtsByDevice[u.deviceId] || 0,
-    streak: Number(u.streak) || 0,
+    streak: (String(u.deviceId || '').trim() in streakByDevice) ? streakByDevice[String(u.deviceId || '').trim()] : (Number(u.streak) || 0),
     change: 0,
     isNew: false,
     isMe: false,
@@ -14694,7 +14694,8 @@ async function fetchLeagueData(opts = {}) {
       _leagueCache.users,
       _leagueCache.regs,
       _leagueCache.totalPtsByDevice || {},
-      needWeekly ? (_leagueCache.wPtsByDevice || {}) : {}
+      needWeekly ? (_leagueCache.wPtsByDevice || {}) : {},
+      _leagueCache.streakByDevice || {}
     );
     renderLeague();
     return;
@@ -14719,7 +14720,7 @@ async function fetchLeagueData(opts = {}) {
         : Promise.resolve(null),
       canReuseUsers
         ? Promise.resolve(null)
-        : _db.from('workouts').select('deviceId,points').limit(10000),
+        : _db.from('workouts').select('deviceId,points,ts').limit(10000),
     ]);
 
     if (userBundle) {
@@ -14728,20 +14729,32 @@ async function fetchLeagueData(opts = {}) {
       if (regsRes?.error) throw regsRes.error;
       allUsers = usersRes?.data || [];
       allRegs = regsRes?.data || [];
-      // workouts 합산으로 누적 포인트 계산 (users.points는 stale할 수 있음)
+      // workouts 합산으로 누적 포인트 + streak 계산 (DB 값은 stale할 수 있음)
       totalPtsByDevice = {};
+      const tsByDevice = {};
       (alltimeWRes?.data || []).forEach(w => {
         const did = String(w.deviceId || '').trim();
-        if (did) totalPtsByDevice[did] = (totalPtsByDevice[did] || 0) + (Number(w.points) || 0);
+        if (!did) return;
+        totalPtsByDevice[did] = (totalPtsByDevice[did] || 0) + (Number(w.points) || 0);
+        if (!tsByDevice[did]) tsByDevice[did] = [];
+        tsByDevice[did].push(Number(w.ts));
       });
-      // workouts에 없는 유저는 users.points로 폴백
+      // streak 계산
+      const streakByDevice = {};
+      Object.entries(tsByDevice).forEach(([did, tsList]) => {
+        streakByDevice[did] = computeStreakFromTsList(tsList);
+      });
+      // workouts에 없는 유저는 users.points / streak으로 폴백
       allUsers.forEach(u => {
         const did = String(u.deviceId || '').trim();
-        if (did && !totalPtsByDevice[did]) totalPtsByDevice[did] = Math.max(0, Number(u.points) || 0);
+        if (!did) return;
+        if (!totalPtsByDevice[did]) totalPtsByDevice[did] = Math.max(0, Number(u.points) || 0);
+        if (!(did in streakByDevice)) streakByDevice[did] = Number(u.streak) || 0;
       });
       _leagueCache.users = allUsers;
       _leagueCache.regs = allRegs;
       _leagueCache.totalPtsByDevice = totalPtsByDevice;
+      _leagueCache.streakByDevice = streakByDevice;
       _leagueCache.usersFetchedAt = Date.now();
     }
 
@@ -14760,7 +14773,8 @@ async function fetchLeagueData(opts = {}) {
       allUsers || [],
       allRegs || [],
       totalPtsByDevice || {},
-      needWeekly ? wPtsByDevice : {}
+      needWeekly ? wPtsByDevice : {},
+      _leagueCache.streakByDevice || {}
     );
     // 커뮤니티 피드가 열려있고 챌린지 필터 중이면 재렌더
     if (_feedFilter === '챌린지') {
