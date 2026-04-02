@@ -1099,6 +1099,23 @@
       max-width: calc(100vw - 32px);
     }
     .snackbar.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+    /* ── 운동탭 같이 운동한 시간 팝업 ── */
+    .together-popup {
+      position: fixed; bottom: calc(var(--nav-height) + 14px); left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #1e1047; color: #fff;
+      padding: 12px 18px; border-radius: 16px;
+      font-size: 13px; font-weight: 500; line-height: 1.4;
+      z-index: 1199; opacity: 0; transition: all 0.35s; pointer-events: none;
+      box-shadow: 0 6px 24px rgba(30,16,71,0.35);
+      display: flex; align-items: center; gap: 10px;
+      max-width: calc(100vw - 32px); white-space: nowrap;
+    }
+    .together-popup.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+    .together-popup-icon { font-size: 18px; flex-shrink: 0; }
+    .together-popup-text { display: flex; flex-direction: column; gap: 1px; }
+    .together-popup-main { font-size: 13px; font-weight: 700; color: #fff; }
+    .together-popup-sub { font-size: 11px; color: rgba(255,255,255,0.6); }
     .snackbar-btn {
       flex-shrink: 0; background: #A78BFA; color: #fff;
       border: none; border-radius: 10px; padding: 6px 12px;
@@ -4914,6 +4931,13 @@
 <!-- Toast -->
 <div id="toast" class="toast"></div>
 <div id="snackbar" class="snackbar"></div>
+<div id="together-popup" class="together-popup" onclick="this.classList.remove('show')">
+  <span class="together-popup-icon">🏃</span>
+  <div class="together-popup-text">
+    <span class="together-popup-main" id="together-popup-main"></span>
+    <span class="together-popup-sub" id="together-popup-sub"></span>
+  </div>
+</div>
 <!-- Header -->
 <!-- 앱 인트로 팝업 -->
 <div class="app-intro hidden" id="app-intro" onclick="introSkip()">
@@ -9417,6 +9441,59 @@ function renderWeekCard() {
     </div>
   `).join('');
 }
+const TOGETHER_POPUP_CACHE_KEY = '_togetherPopupCache';
+const TOGETHER_POPUP_STALE_MS = 1000 * 60 * 5;
+const CHALLENGE_START_TS = new Date('2026-03-25T00:00:00+09:00').getTime();
+
+async function fetchTogetherTimeSummary() {
+  try {
+    const cached = JSON.parse(sessionStorage.getItem(TOGETHER_POPUP_CACHE_KEY) || 'null');
+    if (cached && (Date.now() - cached.fetchedAt) < TOGETHER_POPUP_STALE_MS) return cached;
+    const headers = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY };
+    const [regsRes, workoutsRes] = await Promise.all([
+      fetch(SUPABASE_URL + '/rest/v1/registrations?select=' + encodeURIComponent('"deviceId",status') + '&order=id.desc', { cache: 'no-store', headers }),
+      fetch(SUPABASE_URL + '/rest/v1/workouts?select=' + encodeURIComponent('"deviceId",duration') + '&ts=gte.' + CHALLENGE_START_TS, { cache: 'no-store', headers }),
+    ]);
+    if (!regsRes.ok || !workoutsRes.ok) return null;
+    const regs = await regsRes.json();
+    const workouts = await workoutsRes.json();
+    const participantIds = new Set(
+      (Array.isArray(regs) ? regs : [])
+        .filter(r => String(r?.status || '').trim().toLowerCase() !== 'cancelled')
+        .map(r => String(r?.deviceId || '').trim()).filter(Boolean)
+    );
+    let totalMinutes = 0;
+    const activeIds = new Set();
+    (Array.isArray(workouts) ? workouts : []).forEach(w => {
+      const dId = String(w?.deviceId || '').trim();
+      if (!participantIds.has(dId)) return;
+      const d = Math.max(0, Number(w?.duration) || 0);
+      if (!d) return;
+      totalMinutes += d;
+      activeIds.add(dId);
+    });
+    const result = { totalMinutes, activeCount: activeIds.size, fetchedAt: Date.now() };
+    sessionStorage.setItem(TOGETHER_POPUP_CACHE_KEY, JSON.stringify(result));
+    return result;
+  } catch { return null; }
+}
+
+let _togetherPopupTimer = null;
+function showTogetherPopup() {
+  fetchTogetherTimeSummary().then(data => {
+    if (!data || !data.totalMinutes) return;
+    const popup = document.getElementById('together-popup');
+    if (!popup) return;
+    document.getElementById('together-popup-main').textContent =
+      `함께 ${data.totalMinutes.toLocaleString()}분 운동했어요 🔥`;
+    document.getElementById('together-popup-sub').textContent =
+      `${data.activeCount}명이 챌린지 기간 함께 기록하고 있어요`;
+    popup.classList.add('show');
+    clearTimeout(_togetherPopupTimer);
+    _togetherPopupTimer = setTimeout(() => popup.classList.remove('show'), 4000);
+  });
+}
+
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -10767,7 +10844,7 @@ function navigate(page) {
   }
   // Render the page
   if (page === 'home')      { renderHome(); fetchLeagueData({ needWeekly: false }); }
-  if (page === 'exercise')  renderExercise();
+  if (page === 'exercise')  { renderExercise(); setTimeout(showTogetherPopup, 600); }
   if (page === 'community') { setCommunityTab('feed'); renderCommunity(); _adminPostsFetched = false; fetchAdminPosts(); fetchCommunityPosts(); markCommunityAsSeen(); fetchLeagueData({ needWeekly: false }); }
   if (page === 'rewards')   {
     setRewardsTab('rewards');
