@@ -9514,6 +9514,10 @@ const TOGETHER_POPUP_STALE_MS = 1000 * 60 * 30;
 const CHALLENGE_START_TS = new Date('2026-03-25T00:00:00+09:00').getTime();
 const TOGETHER_NEW_MS = 1000 * 60 * 60 * 6;
 
+function invalidateTogetherPopupCache() {
+  try { localStorage.removeItem(TOGETHER_POPUP_CACHE_KEY); } catch (_) {}
+}
+
 async function fetchTogetherTimeSummary() {
   try {
     const cached = JSON.parse(localStorage.getItem(TOGETHER_POPUP_CACHE_KEY) || 'null');
@@ -9580,31 +9584,49 @@ function closeTogetherPopup(hideToday = false) {
   }
 }
 
+function renderTogetherPopupData(data) {
+  const popup = document.getElementById('together-popup');
+  if (!popup) return false;
+  if (!data || !data.totalMinutes) {
+    closeTogetherPopup(false);
+    return false;
+  }
+  document.getElementById('together-popup-count').textContent = data.activeCount;
+  document.getElementById('together-popup-mins').textContent = data.totalMinutes.toLocaleString() + '분';
+  document.getElementById('together-popup-sub').textContent = '챌린지 기간, 같이 운동한 시간만큼 기부금액에 추가됩니다';
+  const avsEl = document.getElementById('together-popup-avs');
+  if (avsEl && Array.isArray(data.avatars) && data.avatars.length > 0) {
+    const now = Date.now();
+    const MAX_SHOW = 8;
+    const shown = data.avatars.length > MAX_SHOW ? data.avatars.slice(data.avatars.length - MAX_SHOW) : data.avatars;
+    const rest = data.avatars.length - shown.length;
+    avsEl.innerHTML = shown.map(({ src, latestTs }) => {
+      const isNew = latestTs && (now - latestTs) <= TOGETHER_NEW_MS;
+      return `<div class="together-popup-av">${isNew ? '<span class="together-popup-av-new">NEW</span>' : ''}<img src="${src}" alt="" onerror="if(this.dataset.err)return;this.dataset.err=1;this.src='images/avatars/av1.png'"></div>`;
+    }).join('') + (rest > 0 ? `<div class="together-popup-av-more">+${rest}</div>` : '');
+    avsEl.style.display = '';
+  }
+  popup.classList.add('show');
+  clearTimeout(_togetherPopupTimer);
+  _togetherPopupTimer = setTimeout(() => popup.classList.remove('show'), 5000);
+  return true;
+}
+
 function showTogetherPopup() {
   const today = new Date().toLocaleDateString('ko-KR');
   if (localStorage.getItem('_togetherPopupHideDate') === today) return;
   fetchTogetherTimeSummary().then(data => {
-    if (!data || !data.totalMinutes) return;
-    const popup = document.getElementById('together-popup');
-    if (!popup) return;
-    document.getElementById('together-popup-count').textContent = data.activeCount;
-    document.getElementById('together-popup-mins').textContent = data.totalMinutes.toLocaleString() + '분';
-    document.getElementById('together-popup-sub').textContent = '챌린지 기간, 같이 운동한 시간만큼 기부금액에 추가됩니다';
-    const avsEl = document.getElementById('together-popup-avs');
-    if (avsEl && Array.isArray(data.avatars) && data.avatars.length > 0) {
-      const now = Date.now();
-      const MAX_SHOW = 8;
-      const shown = data.avatars.length > MAX_SHOW ? data.avatars.slice(data.avatars.length - MAX_SHOW) : data.avatars;
-      const rest = data.avatars.length - shown.length;
-      avsEl.innerHTML = shown.map(({ src, latestTs }) => {
-        const isNew = latestTs && (now - latestTs) <= TOGETHER_NEW_MS;
-        return `<div class="together-popup-av">${isNew ? '<span class="together-popup-av-new">NEW</span>' : ''}<img src="${src}" alt="" onerror="if(this.dataset.err)return;this.dataset.err=1;this.src='images/avatars/av1.png'"></div>`;
-      }).join('') + (rest > 0 ? `<div class="together-popup-av-more">+${rest}</div>` : '');
-      avsEl.style.display = '';
-    }
-    popup.classList.add('show');
-    clearTimeout(_togetherPopupTimer);
-    _togetherPopupTimer = setTimeout(() => popup.classList.remove('show'), 5000);
+    renderTogetherPopupData(data);
+  });
+}
+
+function refreshTogetherPopupAfterWorkoutChange(opts = {}) {
+  invalidateTogetherPopupCache();
+  const popup = document.getElementById('together-popup');
+  const shouldShow = opts.show === true;
+  if (!shouldShow && !popup?.classList.contains('show')) return;
+  fetchTogetherTimeSummary().then(data => {
+    if (!renderTogetherPopupData(data) && shouldShow) closeTogetherPopup(false);
   });
 }
 
@@ -12320,9 +12342,9 @@ function logExercise() {
   }
   renderHeader();
   haptic('success');
-  localStorage.removeItem(TOGETHER_POPUP_CACHE_KEY);
+  invalidateTogetherPopupCache();
   showToast(photoBonus ? `🎉 운동 기록 완료! +${pts}p (사진 인증 +5p 포함!)` : `🎉 운동 기록 완료! +${pts}p 획득!`);
-  setTimeout(showTogetherPopup, 2000);
+  setTimeout(() => refreshTogetherPopupAfterWorkoutChange({ show: true }), 2000);
   renderExercise();
   refreshWorkoutLinkedSurfaces();
   updateSharePreview(); // 새 운동 포함한 메시지 즉시 재생성
@@ -12435,6 +12457,7 @@ function deleteWorkout(id) {
         }
       }
       save();
+      refreshTogetherPopupAfterWorkoutChange({ show: true });
       refreshWorkoutLinkedSurfaces();
       showToast('운동 기록이 삭제되었습니다');
     },
