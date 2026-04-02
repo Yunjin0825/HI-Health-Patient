@@ -14712,7 +14712,7 @@ async function fetchLeagueData(opts = {}) {
       canReuseUsers
         ? Promise.resolve(null)
         : Promise.all([
-            _db.from('users').select('empId,name,nickname,avatar,points,totalPoints,tags,deviceId,streak'),
+            _db.from('users').select('empId,name,nickname,avatar,points,tags,deviceId,streak'),
             _db.from('registrations').select('id,empId,deviceId,status'),
           ]),
       needWeekly && !canReuseWeekly
@@ -14753,13 +14753,12 @@ async function fetchLeagueData(opts = {}) {
       needWeekly ? wPtsByDevice : {}
     );
     renderLeague();
+    if (document.getElementById('page-home')?.classList.contains('active')) renderHome();
     // 커뮤니티 피드가 열려있고 챌린지 필터 중이면 재렌더
     if (_feedFilter === '챌린지') {
       const page = document.querySelector('.page.active');
       if (page?.id === 'page-community') renderCommunity();
     }
-
-
   } catch(e) {
     console.error('League fetch error:', e);
     if (document.getElementById('comm-league-panel')?.style.display !== 'none') renderLeague();
