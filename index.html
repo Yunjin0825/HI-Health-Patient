@@ -14624,7 +14624,7 @@ function getCurrentLeaguePoints() {
   return Math.max(0, getRecordDerivedTotalPoints());
 }
 
-function buildRealLeagueUsers(allUsers, allRegs, alltimePtsByDevice = {}, wPtsByDevice = {}, streakByDevice = {}) {
+function buildRealLeagueUsers(allUsers, allRegs, alltimePtsByDevice = {}, wPtsByDevice = {}) {
   if (!allUsers || !allUsers.length) {
     _realLeagueUsers = null;
     return;
@@ -14663,7 +14663,7 @@ function buildRealLeagueUsers(allUsers, allRegs, alltimePtsByDevice = {}, wPtsBy
     lv: getLevel(Math.max(0, Number(alltimePtsByDevice[String(u.deviceId || '').trim()]) || 0)).lv,
     pts: Math.max(0, Number(alltimePtsByDevice[String(u.deviceId || '').trim()]) || 0),
     wPts: wPtsByDevice[u.deviceId] || 0,
-    streak: (function(did){ return did in streakByDevice ? streakByDevice[did] : (Number(u.streak) || 0); })(String(u.deviceId || '').trim()),
+    streak: Number(u.streak) || 0,
     change: 0,
     isNew: false,
     isMe: false,
@@ -14695,8 +14695,7 @@ async function fetchLeagueData(opts = {}) {
       _leagueCache.users,
       _leagueCache.regs,
       _leagueCache.totalPtsByDevice || {},
-      needWeekly ? (_leagueCache.wPtsByDevice || {}) : {},
-      _leagueCache.streakByDevice || {}
+      needWeekly ? (_leagueCache.wPtsByDevice || {}) : {}
     );
     renderLeague();
     return;
@@ -14707,7 +14706,6 @@ async function fetchLeagueData(opts = {}) {
     let allUsers = canReuseUsers ? (_leagueCache.users || []) : null;
     let allRegs = canReuseUsers ? (_leagueCache.regs || []) : null;
     let totalPtsByDevice = canReuseUsers ? (_leagueCache.totalPtsByDevice || {}) : {};
-    let streakByDevice = _leagueCache.streakByDevice || {};
     let wPtsByDevice = canReuseWeekly ? (_leagueCache.wPtsByDevice || {}) : {};
 
     const [userBundle, weeklyRes] = await Promise.all([
@@ -14752,8 +14750,7 @@ async function fetchLeagueData(opts = {}) {
       allUsers || [],
       allRegs || [],
       totalPtsByDevice || {},
-      needWeekly ? wPtsByDevice : {},
-      streakByDevice
+      needWeekly ? wPtsByDevice : {}
     );
     renderLeague();
     // 커뮤니티 피드가 열려있고 챌린지 필터 중이면 재렌더
@@ -14762,33 +14759,7 @@ async function fetchLeagueData(opts = {}) {
       if (page?.id === 'page-community') renderCommunity();
     }
 
-    // streak는 백그라운드에서 계산 후 조용히 업데이트
-    if (!canReuseUsers) {
-      const streakWindowTs = Date.now() - 65 * 24 * 60 * 60 * 1000;
-      _db.from('workouts').select('deviceId,ts').gte('ts', String(streakWindowTs)).limit(5000)
-        .then(({ data }) => {
-          if (!data) return;
-          const tsByDevice = {};
-          data.forEach(w => {
-            const did = String(w.deviceId || '').trim();
-            if (!did) return;
-            if (!tsByDevice[did]) tsByDevice[did] = [];
-            tsByDevice[did].push(Number(w.ts));
-          });
-          _leagueCache.streakByDevice = Object.fromEntries(
-            Object.entries(tsByDevice).map(([did, tsList]) => [did, computeStreakFromTsList(tsList)])
-          );
-          buildRealLeagueUsers(
-            _leagueCache.users || [],
-            _leagueCache.regs || [],
-            _leagueCache.totalPtsByDevice || {},
-            needWeekly ? (_leagueCache.wPtsByDevice || {}) : {},
-            _leagueCache.streakByDevice
-          );
-          renderLeague();
-        })
-        .catch(() => {});
-    }
+
   } catch(e) {
     console.error('League fetch error:', e);
     if (document.getElementById('comm-league-panel')?.style.display !== 'none') renderLeague();
