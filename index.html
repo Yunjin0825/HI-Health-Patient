@@ -12277,6 +12277,7 @@ function logExercise() {
   }
   renderHeader();
   haptic('success');
+  localStorage.removeItem(TOGETHER_POPUP_CACHE_KEY);
   showToast(photoBonus ? `🎉 운동 기록 완료! +${pts}p (사진 인증 +5p 포함!)` : `🎉 운동 기록 완료! +${pts}p 획득!`);
   renderExercise();
   refreshWorkoutLinkedSurfaces();
