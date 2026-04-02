@@ -1101,12 +1101,17 @@
     .snackbar.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
     /* ── 운동탭 같이 운동한 시간 팝업 ── */
     .together-popup {
-      position: fixed; bottom: calc(var(--nav-height) + 14px); left: 16px; right: 16px;
-      transform: translateY(20px);
-      background: #fff; border-radius: 20px;
-      border: 1px solid #f0f0f4;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.13);
-      z-index: 1199; opacity: 0; transition: all 0.35s; pointer-events: none;
+      position: fixed;
+      top: calc(var(--header-height) + max(env(safe-area-inset-top), 44px) + 10px);
+      left: 16px; right: 16px;
+      transform: translateY(-12px);
+      background: rgba(255,255,255,0.82);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      backdrop-filter: blur(20px) saturate(180%);
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.5);
+      box-shadow: 0 8px 32px rgba(15,23,42,0.13), 0 1px 4px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.6);
+      z-index: 1199; opacity: 0; transition: opacity 0.32s, transform 0.32s cubic-bezier(0.34,1.56,0.64,1); pointer-events: none;
       overflow: hidden;
     }
     .together-popup.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
@@ -4973,7 +4978,7 @@
 <!-- Toast -->
 <div id="toast" class="toast"></div>
 <div id="snackbar" class="snackbar"></div>
-<div id="together-popup" class="together-popup" onclick="this.classList.remove('show')">
+<div id="together-popup" class="together-popup">
   <div class="together-popup-head">
     <div class="together-popup-title-row">
       <div class="live-dot" style="width:8px;height:8px;border-radius:50%;background:#1e1047;animation:livepulse 1.8s ease-out infinite;flex-shrink:0"></div>
@@ -4981,9 +4986,13 @@
       <div class="together-popup-badge"><span id="together-popup-count">0</span>명 기록중</div>
     </div>
     <div class="together-popup-total">총 운동시간 <strong id="together-popup-mins">-</strong></div>
+    <button type="button" onclick="closeTogetherPopup(false)" style="margin-left:8px;background:none;border:none;padding:4px;cursor:pointer;color:#9ca3af;font-size:16px;line-height:1;flex-shrink:0">✕</button>
   </div>
   <div class="together-popup-avs" id="together-popup-avs"></div>
   <div class="together-popup-sub" id="together-popup-sub"></div>
+  <div style="padding:0 16px 12px;display:flex;justify-content:flex-end">
+    <button type="button" onclick="closeTogetherPopup(true)" style="background:none;border:none;padding:0;font-size:11px;color:#9ca3af;cursor:pointer;text-decoration:underline">오늘 하루 보지 않기</button>
+  </div>
 </div>
 <!-- Header -->
 <!-- 앱 인트로 팝업 -->
@@ -9549,7 +9558,19 @@ async function fetchTogetherTimeSummary() {
 }
 
 let _togetherPopupTimer = null;
+
+function closeTogetherPopup(hideToday = false) {
+  document.getElementById('together-popup')?.classList.remove('show');
+  clearTimeout(_togetherPopupTimer);
+  if (hideToday) {
+    const today = new Date().toLocaleDateString('ko-KR');
+    localStorage.setItem('_togetherPopupHideDate', today);
+  }
+}
+
 function showTogetherPopup() {
+  const today = new Date().toLocaleDateString('ko-KR');
+  if (localStorage.getItem('_togetherPopupHideDate') === today) return;
   fetchTogetherTimeSummary().then(data => {
     if (!data || !data.totalMinutes) return;
     const popup = document.getElementById('together-popup');
@@ -9575,13 +9596,13 @@ function showTogetherPopup() {
   });
 }
 
-// 팝업 스와이프 다운으로 닫기
+// 팝업 스와이프 업으로 닫기 (위에서 내려오므로 위로 스와이프)
 (function initTogetherPopupSwipe() {
   let startY = 0;
   function onStart(e) { startY = (e.touches ? e.touches[0] : e).clientY; }
   function onEnd(e) {
     const dy = (e.changedTouches ? e.changedTouches[0] : e).clientY - startY;
-    if (dy > 50) document.getElementById('together-popup')?.classList.remove('show');
+    if (dy < -40) closeTogetherPopup(false);
   }
   document.addEventListener('DOMContentLoaded', () => {
     const p = document.getElementById('together-popup');
