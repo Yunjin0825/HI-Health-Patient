@@ -9502,13 +9502,13 @@ function renderWeekCard() {
   `).join('');
 }
 const TOGETHER_POPUP_CACHE_KEY = '_togetherPopupCache';
-const TOGETHER_POPUP_STALE_MS = 1000 * 60 * 5;
+const TOGETHER_POPUP_STALE_MS = 1000 * 60 * 30;
 const CHALLENGE_START_TS = new Date('2026-03-25T00:00:00+09:00').getTime();
 const TOGETHER_NEW_MS = 1000 * 60 * 60 * 12;
 
 async function fetchTogetherTimeSummary() {
   try {
-    const cached = JSON.parse(sessionStorage.getItem(TOGETHER_POPUP_CACHE_KEY) || 'null');
+    const cached = JSON.parse(localStorage.getItem(TOGETHER_POPUP_CACHE_KEY) || 'null');
     if (cached && (Date.now() - cached.fetchedAt) < TOGETHER_POPUP_STALE_MS) return cached;
     const headers = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY };
     const [regsRes, workoutsRes] = await Promise.all([
@@ -9556,7 +9556,7 @@ async function fetchTogetherTimeSummary() {
       .map(dId => ({ dId, src: avatarSrcMap[dId] || `images/avatars/av${((Math.abs([...dId].reduce((h,c) => (Math.imul(31,h)+c.charCodeAt(0))|0, 0)) % 20) + 1)}.png`, latestTs: latestTsMap[dId] || 0 }))
       .sort((a, b) => a.latestTs - b.latestTs);
     const result = { totalMinutes, activeCount: activeIds.size, avatars, fetchedAt: Date.now() };
-    sessionStorage.setItem(TOGETHER_POPUP_CACHE_KEY, JSON.stringify(result));
+    localStorage.setItem(TOGETHER_POPUP_CACHE_KEY, JSON.stringify(result));
     return result;
   } catch { return null; }
 }
