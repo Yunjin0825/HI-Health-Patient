@@ -9922,10 +9922,10 @@ function syncLeagueWeeklySnapshot(entries, weekStartTs = getLeagueWeekStartTs(),
     writeLeagueWeeklySnapshotData({
       weekStartTs,
       savedAt: Date.now(),
-      baselineRanks: latestRanks,
+      baselineRanks,
       latestRanks: currentRanks,
     }, empId);
-    return latestRanks;
+    return baselineRanks;
   }
   return baselineRanks;
 }
@@ -9948,10 +9948,10 @@ function syncLeagueChallengerSnapshot(entries, empId = ACTIVE_EMPID || S.user?.e
   if (!areLeagueRankMapsEqual(currentRanks, latestRanks)) {
     writeLeagueChallengerSnapshotData({
       savedAt: Date.now(),
-      baselineRanks: latestRanks,
+      baselineRanks,
       latestRanks: currentRanks,
     }, empId);
-    return latestRanks;
+    return baselineRanks;
   }
   return baselineRanks;
 }
