@@ -6330,7 +6330,7 @@ const PUSH_DEFAULT_URL  = './index.html#community';
 const HOME_PUSH_PROMPT_DISMISSED_KEY = 'hi_home_push_prompt_dismissed';
 const HOME_PUSH_PROMPT_SESSION_KEY   = 'hi_home_push_prompt_seen';
 const AUTO_COMMENT_FN   = 'https://nbnmvvobehjitophkqmu.supabase.co/functions/v1/auto-comment';
-const SW_VERSION        = '20260403-002';
+const SW_VERSION        = '20260404-001';
 const SW_UPDATE_POLL_MS = 60 * 1000;
 const CHALLENGE_PEOPLE_CACHE_KEY = 'hi_health_people_cache_v1';
 let _swControllerReloaded = false;
@@ -9781,17 +9781,18 @@ function myLeagueRank() {
   return myIndex >= 0 ? myIndex + 1 : null;
 }
 
-function sumWorkoutPointsInRange(startTs, endTs = startTs + LEAGUE_WEEK_MS) {
-  return (S.workouts || []).reduce((sum, workout) => {
-    const ts = Number(workout?.ts);
+function sumRecordPointsInRange(records = [], startTs, endTs = startTs + LEAGUE_WEEK_MS) {
+  return (records || []).reduce((sum, record) => {
+    const ts = recordTsValue(record);
     if (!Number.isFinite(ts) || ts < startTs || ts >= endTs) return sum;
-    return sum + (Number(workout?.points) || 0);
+    return sum + (Number(record?.points) || 0);
   }, 0);
 }
 
 function myWeekPts(baseDate = new Date()) {
   const weekStartTs = getLeagueWeekStartTs(baseDate);
-  return sumWorkoutPointsInRange(weekStartTs, weekStartTs + LEAGUE_WEEK_MS);
+  return sumRecordPointsInRange(S.workouts || [], weekStartTs, weekStartTs + LEAGUE_WEEK_MS)
+    + sumRecordPointsInRange(S.glucoseRecords || [], weekStartTs, weekStartTs + LEAGUE_WEEK_MS);
 }
 
 function getLeagueEntryKey(entry) {
@@ -14781,7 +14782,7 @@ async function fetchLeagueData(opts = {}) {
     let totalPtsByDevice = canReuseUsers ? (_leagueCache.totalPtsByDevice || {}) : {};
     let wPtsByDevice = canReuseWeekly ? (_leagueCache.wPtsByDevice || {}) : {};
 
-    const [userBundle, weeklyRes, alltimeWRes] = await Promise.all([
+    const [userBundle, weeklyBundle, alltimeBundle] = await Promise.all([
       canReuseUsers
         ? Promise.resolve(null)
         : Promise.all([
@@ -14789,11 +14790,17 @@ async function fetchLeagueData(opts = {}) {
             _db.from('registrations').select('id,empId,deviceId,status'),
           ]),
       needWeekly && !canReuseWeekly
-        ? _db.from('workouts').select('deviceId,points').gte('ts', String(weekStartTs))
+        ? Promise.all([
+            _db.from('workouts').select('deviceId,points,ts').gte('ts', String(weekStartTs)),
+            _db.from('glucose').select('deviceId,points,ts').gte('ts', String(weekStartTs)),
+          ])
         : Promise.resolve(null),
       canReuseUsers
         ? Promise.resolve(null)
-        : _db.from('workouts').select('deviceId,points,ts').limit(10000),
+        : Promise.all([
+            _db.from('workouts').select('deviceId,points,ts').limit(10000),
+            _db.from('glucose').select('deviceId,points,ts').limit(10000),
+          ]),
     ]);
 
     if (userBundle) {
@@ -14802,13 +14809,15 @@ async function fetchLeagueData(opts = {}) {
       if (regsRes?.error) throw regsRes.error;
       allUsers = usersRes?.data || [];
       allRegs = regsRes?.data || [];
-      // workouts 합산으로 누적 포인트 + streak 계산 (DB 값은 stale할 수 있음)
-      totalPtsByDevice = {};
+      const [alltimeWRes, alltimeGRes] = alltimeBundle || [];
+      if (alltimeWRes?.error) throw alltimeWRes.error;
+      if (alltimeGRes?.error) throw alltimeGRes.error;
+      // 운동+혈당 합산으로 누적 포인트 계산, streak는 운동 기준 유지
+      totalPtsByDevice = buildLeagueAlltimePointsMap(alltimeWRes?.data || [], alltimeGRes?.data || []);
       const tsByDevice = {};
       (alltimeWRes?.data || []).forEach(w => {
         const did = String(w.deviceId || '').trim();
         if (!did) return;
-        totalPtsByDevice[did] = (totalPtsByDevice[did] || 0) + (Number(w.points) || 0);
         if (!tsByDevice[did]) tsByDevice[did] = [];
         tsByDevice[did].push(Number(w.ts));
       });
@@ -14832,10 +14841,19 @@ async function fetchLeagueData(opts = {}) {
     }
 
     if (needWeekly && !canReuseWeekly) {
-      if (weeklyRes?.error) throw weeklyRes.error;
+      const [weeklyWRes, weeklyGRes] = weeklyBundle || [];
+      if (weeklyWRes?.error) throw weeklyWRes.error;
+      if (weeklyGRes?.error) throw weeklyGRes.error;
       wPtsByDevice = {};
-      (weeklyRes?.data || []).forEach(w => {
-        wPtsByDevice[w.deviceId] = (wPtsByDevice[w.deviceId] || 0) + (Number(w.points) || 0);
+      (weeklyWRes?.data || []).forEach(w => {
+        const deviceId = String(w?.deviceId || '').trim();
+        if (!deviceId) return;
+        wPtsByDevice[deviceId] = (wPtsByDevice[deviceId] || 0) + (Number(w.points) || 0);
+      });
+      (weeklyGRes?.data || []).forEach(w => {
+        const deviceId = String(w?.deviceId || '').trim();
+        if (!deviceId) return;
+        wPtsByDevice[deviceId] = (wPtsByDevice[deviceId] || 0) + (Number(w.points) || 0);
       });
       _leagueCache.wPtsByDevice = wPtsByDevice;
       _leagueCache.weeklyWeekStartTs = weekStartTs;
