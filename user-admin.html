@@ -2335,10 +2335,25 @@ function getAdminLeagueWeekStartTs(baseDate = new Date()) {
   return weekStart.getTime();
 }
 
+function getAdminRecordTsValue(record) {
+  const raw = record?.ts ?? record?.createdAt ?? record?.updatedAt ?? 0;
+  const num = Number(raw);
+  if (Number.isFinite(num) && num > 0) return num < 1e11 ? num * 1000 : num;
+  const parsed = Date.parse(String(raw || ''));
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function getAdminLocalDateKey(d = new Date()) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 function getAdminWeeklyPointsMap(workouts = GD.workouts, weekStartTs = getAdminLeagueWeekStartTs()) {
   const byDeviceId = {};
   (workouts || []).forEach(w => {
-    const ts = Number(w?.ts) || Date.parse(String(w?.ts || '')) || 0;
+    const ts = getAdminRecordTsValue(w);
     if (!ts || ts < weekStartTs) return;
     const deviceId = String(w?.deviceId || '').trim();
     if (!deviceId) return;
@@ -2633,10 +2648,15 @@ function sortedUsers(arr) {
   const activityPointsMap = getAdminActivityPointsMap();
   GD.workouts.forEach(w => {
     woCnt[w.deviceId] = (woCnt[w.deviceId]||0)+1;
-    lastWorkoutTsMap[w.deviceId] = Math.max(lastWorkoutTsMap[w.deviceId] || 0, Number(w.ts || 0));
+    lastWorkoutTsMap[w.deviceId] = Math.max(lastWorkoutTsMap[w.deviceId] || 0, getAdminRecordTsValue(w));
   });
   const computedStreak = computeAdminStreakByDevice();
-  GD.users.forEach(u => strk[u.deviceId] = computedStreak[u.deviceId] || u.streak || 0);
+  GD.users.forEach(u => {
+    const deviceId = String(u.deviceId || '').trim();
+    strk[deviceId] = Object.prototype.hasOwnProperty.call(computedStreak, deviceId)
+      ? (computedStreak[deviceId] || 0)
+      : (Number(u.streak) || 0);
+  });
   return [...arr].sort((a, b) => {
     if (sort === 'points')   return getAdminEffectivePoints(b, activityPointsMap) - getAdminEffectivePoints(a, activityPointsMap);
     if (sort === 'lastActive') return getUserLastActiveTs(b, lastWorkoutTsMap) - getUserLastActiveTs(a, lastWorkoutTsMap);
@@ -2651,17 +2671,21 @@ function computeAdminStreakByDevice(workouts = GD.workouts) {
   workouts.forEach(w => {
     const did = String(w.deviceId || '').trim();
     if (!did) return;
+    const ts = getAdminRecordTsValue(w);
+    if (!ts) return;
     if (!tsByDevice[did]) tsByDevice[did] = [];
-    tsByDevice[did].push(Number(w.ts));
+    tsByDevice[did].push(ts);
   });
-  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const result = {};
   Object.entries(tsByDevice).forEach(([did, tsList]) => {
-    const dateSet = new Set(tsList.map(ts => { const d = new Date(ts); d.setHours(0,0,0,0); return d.getTime(); }));
+    const dateSet = new Set(tsList.map(ts => getAdminLocalDateKey(new Date(ts))));
     let streak = 0;
     for (let i = 0; i < 365; i++) {
-      const d = new Date(today); d.setDate(today.getDate() - i);
-      if (dateSet.has(d.getTime())) streak++;
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      if (dateSet.has(getAdminLocalDateKey(d))) streak++;
       else if (i > 0) break;
     }
     result[did] = streak;
