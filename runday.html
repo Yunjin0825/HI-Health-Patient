@@ -178,60 +178,66 @@
       color: #c4b5fd; text-transform: uppercase;
     }
     .hero-dday-wrap {
-      padding: 14px 16px 0;
+      padding: 16px 16px 0;
     }
     .runday-dday-card {
-      padding: 18px;
-      border-radius: 18px;
-      background: #ffffff;
-      border: 1px solid #e7eaf3;
-      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+      position: relative;
+      overflow: visible;
+      padding: 22px 18px 18px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, #1a1a1a 0%, #0e0e11 100%);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 18px 34px rgba(15, 23, 42, 0.16);
     }
-    .runday-dday-label {
-      font-size: 11px;
-      font-weight: 800;
-      color: #64748b;
-      letter-spacing: .4px;
-      text-transform: uppercase;
-      margin-bottom: 8px;
+    .runday-dday-card::before,
+    .runday-dday-card::after {
+      content: "";
+      position: absolute;
+      top: -12px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #f5f7fb;
+      border: 5px solid #2b2b31;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+    }
+    .runday-dday-card::before {
+      left: 26px;
+    }
+    .runday-dday-card::after {
+      right: 26px;
     }
     .runday-dday-title {
       font-size: 18px;
       font-weight: 900;
-      color: #0f172a;
+      color: #ffffff;
       letter-spacing: -0.4px;
     }
-    .runday-dday-sub {
-      margin-top: 6px;
-      font-size: 12px;
-      line-height: 1.5;
-      color: #64748b;
-    }
     .runday-dday-grid {
-      margin-top: 14px;
+      margin-top: 16px;
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
+      gap: 9px;
     }
     .runday-dday-unit {
-      border-radius: 14px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      padding: 14px 10px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 16px 10px 14px;
       text-align: center;
     }
     .runday-dday-num {
-      font-size: 24px;
+      font-size: 26px;
       line-height: 1;
       font-weight: 900;
-      color: #0f172a;
+      color: #ffffff;
       letter-spacing: -0.4px;
     }
     .runday-dday-unit-label {
       margin-top: 6px;
       font-size: 11px;
       font-weight: 700;
-      color: #64748b;
+      color: rgba(255,255,255,0.72);
     }
 
     /* ─── WHY SECTION ────────────────────────── */
@@ -1643,9 +1649,7 @@
 
 <div class="hero-dday-wrap">
   <div class="runday-dday-card" id="runday-dday-card">
-    <div class="runday-dday-label">HI RUN DAY</div>
     <div class="runday-dday-title" id="runday-dday-title">런데이까지 남은 시간</div>
-    <div class="runday-dday-sub" id="runday-dday-sub">2026년 4월 15일 오전 11시 30분 · 선유도공원에서 출발해 여의도공원까지 함께 달려요.</div>
     <div class="runday-dday-grid">
       <div class="runday-dday-unit">
         <div class="runday-dday-num" id="runday-dday-days">0</div>
@@ -2555,19 +2559,16 @@
     const hoursEl = document.getElementById('runday-dday-hours');
     const minutesEl = document.getElementById('runday-dday-minutes');
     const titleEl = document.getElementById('runday-dday-title');
-    const subEl = document.getElementById('runday-dday-sub');
-    if (!daysEl || !hoursEl || !minutesEl || !titleEl || !subEl) return;
+    if (!daysEl || !hoursEl || !minutesEl || !titleEl) return;
     const countdown = getRunDayCountdownParts();
     daysEl.textContent = String(countdown.days);
     hoursEl.textContent = String(countdown.hours);
     minutesEl.textContent = String(countdown.minutes);
     if (!countdown.done) {
       titleEl.textContent = '런데이까지 남은 시간';
-      subEl.textContent = '2026년 4월 15일 오전 11시 30분 · 선유도공원에서 출발해 여의도공원까지 함께 달려요.';
       return;
     }
-    titleEl.textContent = 'HI RUN DAY가 시작됐어요';
-    subEl.textContent = '함께 달린 순간들을 가족 인증이나 커뮤니티 기록으로 남겨보세요.';
+    titleEl.textContent = '런데이 시작';
   }
 
   let runDayCountdownTimer = null;
