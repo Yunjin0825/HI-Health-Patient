@@ -2793,7 +2793,7 @@ function renderUsers() {
     const actCell = activeCell(u, lastWorkoutTsMap);
     return `<tr class="${rowClass}">
       <td><span class="rank ${rc}">${rank}</span></td>
-      <td class="td-name" title="클릭하여 이름 수정" style="cursor:pointer" onclick="editUserName('${safeId}','${safeName}')">
+      <td class="td-name">
         ${u.name||'(이름없음)'}
         ${bad ? '<span class="badge bad" style="margin-left:4px">이상</span>' : ''}
         ${dup ? '<span class="badge dup" style="margin-left:4px">중복</span>' : ''}
@@ -3110,21 +3110,6 @@ async function deleteAdminUserByIdentity(identity = {}) {
   if (selDeviceId && deviceIds.includes(normRegIdValue(selDeviceId))) clearSel();
 }
 
-async function editUserName(deviceId, currentName) {
-  const newName = window.prompt(`이름 수정\n현재: "${currentName}"`, currentName);
-  if (newName === null) return;
-  const trimmed = newName.trim();
-  if (!trimmed) { toast('이름을 입력해주세요'); return; }
-  if (trimmed === currentName) return;
-  showLoading(true);
-  const { error } = await db.from('users').update({ name: trimmed }).eq('deviceId', deviceId);
-  showLoading(false);
-  if (error) { toast('수정 실패: ' + error.message); return; }
-  const u = GD.users.find(u => u.deviceId === deviceId);
-  if (u) u.name = trimmed;
-  renderUsers();
-  toast(`✅ "${trimmed}" 으로 이름이 수정되었어요`);
-}
 
 async function deleteUser(deviceId, name) {
   const identity = collectAdminUserDeleteIdentity(deviceId, name);
