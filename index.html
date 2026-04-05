@@ -8162,6 +8162,7 @@ function forceSyncPoints(opts = {}) {
   const includePoints = opts.includePoints !== false;
   const payload = {
     totalPoints: Math.max(0, Number(S.user.points || 0) || 0),
+    app_version: SW_VERSION,
   };
   if (includePoints) payload.points = S.user.points;
   if (!Object.keys(payload).length) return;
@@ -8174,6 +8175,25 @@ function forceSyncPoints(opts = {}) {
         return;
       }
       if (includePoints) _lastKnownServerPts = Number(payload.points) || 0;
+    });
+}
+
+function syncCurrentUserAppVersion(opts = {}) {
+  if (!_db || IS_GUEST) return Promise.resolve(false);
+  const deviceId = String(S.deviceId || '').trim();
+  const version = String(SW_VERSION || '').trim();
+  if (!deviceId || !version) return Promise.resolve(false);
+  const payload = { app_version: version };
+  if (opts.touch !== false) payload.lastactiveat = new Date().toISOString();
+  return _db.from('users')
+    .update(payload)
+    .eq('deviceId', deviceId)
+    .then(({ error }) => {
+      if (error) {
+        console.error('[syncCurrentUserAppVersion]', error);
+        return false;
+      }
+      return true;
     });
 }
 
@@ -12770,7 +12790,7 @@ function deleteWorkout(id) {
           await deleteRemoteRecordById('workouts', targetId, [wo?.deviceId, S.deviceId]);
           // 포인트 차감을 users 테이블에 즉시 반영
           if (S.deviceId) {
-            await _db.from('users').update({ points: S.user.points, totalPoints: S.user.points, streak: S.user.streak })
+            await _db.from('users').update({ points: S.user.points, totalPoints: S.user.points, streak: S.user.streak, app_version: SW_VERSION })
               .eq('deviceId', S.deviceId);
           }
         } catch (e) {
@@ -13932,6 +13952,7 @@ function syncProfileToRemote() {
   const userPayload = {
     avatar: nextAvatar,
     nickname: nextNickname,
+    app_version: SW_VERSION,
     lastactiveat: new Date().toISOString(),
   };
   _db.from('users').update(userPayload).or(userFilters.join(',')).then(({ error }) => {
@@ -17887,6 +17908,7 @@ function syncRemoteChallengeRegistrationRef(registrationId = '', empId = S.user.
   if (!filters.length) return;
   _db.from('users').update({
     registrationId: normalizedRegId,
+    app_version: SW_VERSION,
     lastactiveat: new Date().toISOString(),
   }).or(filters.join(',')).then(({ error }) => {
     if (error) console.error('[syncRemoteChallengeRegistrationRef]', error);
@@ -18358,6 +18380,7 @@ async function updateCurrentUserPointFieldsRemote(touchedAt = new Date().toISOSt
     .update({
       points: Math.max(0, Number(S.user.points) || 0),
       totalPoints: Math.max(0, Number(S.user.points || 0) || 0),
+      app_version: SW_VERSION,
       lastactiveat: touchedAt,
     })
     .eq('deviceId', S.deviceId);
@@ -21426,6 +21449,9 @@ async function init() {
   window.addEventListener('hi:loggedin', () => setTimeout(showInstallGuide, 5000));
   window.addEventListener('hi:loggedin', () => setTimeout(syncPushSubscriptionIfNeeded, 1500));
   window.addEventListener('hi:loggedin', () => setTimeout(scheduleHomePushPrompt, 2200));
+  window.addEventListener('hi:loggedin', () => setTimeout(() => {
+    syncCurrentUserAppVersion().catch(err => console.warn('[app-version/login-sync]', err));
+  }, 1200));
   window.addEventListener('hi:loggedin', () => setTimeout(() => {
     syncFamilyCertRewardStatus().catch(err => console.warn('[family-cert/reward-sync]', err));
     refreshCurrentFamilyCertLatest({ force: true, silent: true }).catch(err => console.warn('[family-cert/latest-login-sync]', err));
