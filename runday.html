@@ -181,37 +181,56 @@
       padding: 14px 16px 0;
     }
     .runday-dday-card {
-      padding: 16px 18px;
-      border-radius: 20px;
-      background: linear-gradient(140deg,#fff8ec 0%,#fff3f4 48%,#ffffff 100%);
-      border: 1px solid rgba(249,115,22,0.16);
-      box-shadow: 0 10px 24px rgba(249,115,22,0.08);
+      padding: 18px;
+      border-radius: 18px;
+      background: #ffffff;
+      border: 1px solid #e7eaf3;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
     }
     .runday-dday-label {
       font-size: 11px;
       font-weight: 800;
-      color: #c2410c;
-      letter-spacing: .5px;
+      color: #64748b;
+      letter-spacing: .4px;
       text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-    .runday-dday-value {
-      font-size: 30px;
-      font-weight: 900;
-      color: #0f172a;
-      line-height: 1.1;
-      letter-spacing: -0.5px;
+      margin-bottom: 8px;
     }
     .runday-dday-title {
-      margin-top: 4px;
-      font-size: 13px;
-      font-weight: 800;
-      color: #7c2d12;
+      font-size: 18px;
+      font-weight: 900;
+      color: #0f172a;
+      letter-spacing: -0.4px;
     }
     .runday-dday-sub {
-      margin-top: 7px;
+      margin-top: 6px;
       font-size: 12px;
-      line-height: 1.6;
+      line-height: 1.5;
+      color: #64748b;
+    }
+    .runday-dday-grid {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .runday-dday-unit {
+      border-radius: 14px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 14px 10px;
+      text-align: center;
+    }
+    .runday-dday-num {
+      font-size: 24px;
+      line-height: 1;
+      font-weight: 900;
+      color: #0f172a;
+      letter-spacing: -0.4px;
+    }
+    .runday-dday-unit-label {
+      margin-top: 6px;
+      font-size: 11px;
+      font-weight: 700;
       color: #64748b;
     }
 
@@ -1624,10 +1643,23 @@
 
 <div class="hero-dday-wrap">
   <div class="runday-dday-card" id="runday-dday-card">
-    <div class="runday-dday-label">HI RUN DAY COUNTDOWN</div>
-    <div class="runday-dday-value" id="runday-dday-value">D-0</div>
+    <div class="runday-dday-label">HI RUN DAY</div>
     <div class="runday-dday-title" id="runday-dday-title">런데이까지 남은 시간</div>
-    <div class="runday-dday-sub" id="runday-dday-sub">2026년 4월 15일 수요일 · 선유도공원에서 출발해 여의도공원까지 함께 달려요.</div>
+    <div class="runday-dday-sub" id="runday-dday-sub">2026년 4월 15일 오전 11시 30분 · 선유도공원에서 출발해 여의도공원까지 함께 달려요.</div>
+    <div class="runday-dday-grid">
+      <div class="runday-dday-unit">
+        <div class="runday-dday-num" id="runday-dday-days">0</div>
+        <div class="runday-dday-unit-label">일</div>
+      </div>
+      <div class="runday-dday-unit">
+        <div class="runday-dday-num" id="runday-dday-hours">0</div>
+        <div class="runday-dday-unit-label">시간</div>
+      </div>
+      <div class="runday-dday-unit">
+        <div class="runday-dday-num" id="runday-dday-minutes">0</div>
+        <div class="runday-dday-unit-label">분</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2502,37 +2534,53 @@
     return `${Math.max(0, Number(minutes) || 0).toLocaleString()}분`;
   }
 
-  function getRunDayDday() {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const runDay = new Date(2026, 3, 15); // 4월 15일
-    const diff = Math.ceil((runDay - today) / (1000 * 60 * 60 * 24));
-    if (diff > 0) return `런데이까지 D-${diff}`;
-    if (diff === 0) return '오늘이 런데이!';
-    return '런데이 완료';
+  const RUN_DAY_TARGET_TS = new Date('2026-04-15T11:30:00+09:00').getTime();
+
+  function getRunDayCountdownParts() {
+    const diffMs = Math.max(0, RUN_DAY_TARGET_TS - Date.now());
+    const totalMinutes = Math.floor(diffMs / (1000 * 60));
+    const days = Math.floor(totalMinutes / (60 * 24));
+    const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+    const minutes = totalMinutes % 60;
+    return {
+      done: diffMs <= 0,
+      days,
+      hours,
+      minutes,
+    };
   }
 
   function renderRunDayCountdownCard() {
-    const valueEl = document.getElementById('runday-dday-value');
+    const daysEl = document.getElementById('runday-dday-days');
+    const hoursEl = document.getElementById('runday-dday-hours');
+    const minutesEl = document.getElementById('runday-dday-minutes');
     const titleEl = document.getElementById('runday-dday-title');
     const subEl = document.getElementById('runday-dday-sub');
-    if (!valueEl || !titleEl || !subEl) return;
-    const label = getRunDayDday();
-    if (/D-(\d+)/.test(label)) {
-      valueEl.textContent = label.replace('런데이까지 ', '');
+    if (!daysEl || !hoursEl || !minutesEl || !titleEl || !subEl) return;
+    const countdown = getRunDayCountdownParts();
+    daysEl.textContent = String(countdown.days);
+    hoursEl.textContent = String(countdown.hours);
+    minutesEl.textContent = String(countdown.minutes);
+    if (!countdown.done) {
       titleEl.textContent = '런데이까지 남은 시간';
-      subEl.textContent = '2026년 4월 15일 수요일 · 선유도공원에서 출발해 여의도공원까지 함께 달려요.';
+      subEl.textContent = '2026년 4월 15일 오전 11시 30분 · 선유도공원에서 출발해 여의도공원까지 함께 달려요.';
       return;
     }
-    if (label === '오늘이 런데이!') {
-      valueEl.textContent = 'D-DAY';
-      titleEl.textContent = '오늘이 바로 런데이예요!';
-      subEl.textContent = '오늘 선유도공원에서 출발해 여의도공원까지 함께 달려요.';
-      return;
-    }
-    valueEl.textContent = 'RUN DAY 완료';
-    titleEl.textContent = '2026년 4월 15일 HI RUN DAY를 함께 마쳤어요';
+    titleEl.textContent = 'HI RUN DAY가 시작됐어요';
     subEl.textContent = '함께 달린 순간들을 가족 인증이나 커뮤니티 기록으로 남겨보세요.';
+  }
+
+  let runDayCountdownTimer = null;
+  function startRunDayCountdownTimer() {
+    renderRunDayCountdownCard();
+    if (runDayCountdownTimer) return;
+    runDayCountdownTimer = setInterval(() => {
+      renderRunDayCountdownCard();
+      if (Date.now() >= RUN_DAY_TARGET_TS && runDayCountdownTimer) {
+        clearInterval(runDayCountdownTimer);
+        runDayCountdownTimer = null;
+      }
+    }, 30000);
   }
 
   function getParentFamilyCertRow() {
@@ -3759,7 +3807,7 @@
         return false;
       }
       setRundayPageActive(true, { bootstrap: false });
-      renderRunDayCountdownCard();
+      startRunDayCountdownTimer();
       renderFamilyMissionCard();
       const identity = syncInitialIdentity({ scheduleRestore: false });
       syncChallengeStateFromParent();
@@ -3809,7 +3857,7 @@
     if (e.data?.type === 'LOGIN' || e.data?.type === 'AVATAR_CHANGE') {
       prefillFromLogin(e.data.name, e.data.empId, e.data.avatar);
       updateStoredAvatarForCurrentEmp(e.data.empId, e.data.avatar);
-      renderRunDayCountdownCard();
+      startRunDayCountdownTimer();
       renderFamilyMissionCard();
       const activeReg = getLatestActiveRegistrationForCurrentEmp();
       if (activeReg) renderSuccessScreen(activeReg);
