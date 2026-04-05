@@ -12468,8 +12468,7 @@ function logExercise() {
     return;
   }
   const basePts = calcPts(S.selectedEx, S.duration);
-  const photoBonus = _photoData ? 5 : 0;
-  const pts = basePts + photoBonus;
+  const pts = basePts;
   // 하루 포인트 한도 체크
   const todayEarnedPts = todayWo.reduce((s, w) => s + (w.points || 0), 0);
   if (todayEarnedPts + pts > DAILY_POINTS_LIMIT) {
@@ -18561,6 +18560,20 @@ function renderChallenge() {
   `;
   setChallengeSectionHtml(document.getElementById('ch-hero'), heroHtml, `challenge:${phase}:hero:${heroBadge}`);
 
+  const runDayDdayValue = phase === 'ended' ? 'RUN DAY 완료' : eventDday === 0 ? 'D-DAY' : `D-${eventDday}`;
+  const runDayDdayTitle = phase === 'ended' ? '2026년 4월 15일 HI RUN DAY를 함께 마쳤어요' : eventDday === 0 ? '오늘이 바로 런데이예요!' : '런데이까지 남은 시간';
+  const runDayDdaySub = phase === 'ended'
+    ? '함께 달린 순간들을 가족 인증이나 커뮤니티 기록으로 남겨보세요.'
+    : '2026년 4월 15일 수요일 · 선유도공원에서 출발해 여의도공원까지 함께 달려요.';
+  const runDayDdayHtml = `
+    <div class="ch-dday-card">
+      <div class="ch-dday-label">HI RUN DAY COUNTDOWN</div>
+      <div class="ch-dday-value">${runDayDdayValue}</div>
+      <div class="ch-dday-title">${runDayDdayTitle}</div>
+      <div class="ch-dday-sub">${runDayDdaySub}</div>
+    </div>
+  `;
+
   /* ── Phase card ── */
   const phaseMap = {
     before: {
@@ -18643,6 +18656,7 @@ function renderChallenge() {
   };
   const p = phaseMap[phase] || phaseMap.registration;
   const phaseCardHtml = `
+    ${runDayDdayHtml}
     <div class="ch-phase-card" style="background:${p.grad}">
       <div class="ch-phase-badge">${p.badge}</div>
       <div class="ch-phase-title">${p.title}</div>
@@ -18657,6 +18671,7 @@ function renderChallenge() {
     title: p.title,
     desc: p.desc,
     stats: p.stats,
+    dday: runDayDdayValue,
   }));
 
   const myReg = getMyReg();
@@ -18783,24 +18798,11 @@ function renderChallenge() {
   const familyCertSubmittedAt = getFamilyCertSubmittedText(familyCertRow);
   const familyCertMediaUrl = escHtmlComm(familyCertRow?.media_url || '');
   const familyCertImageAlt = escHtmlComm('가족 운동 인증');
-  const runDayDdayValue = phase === 'ended' ? 'RUN DAY 완료' : eventDday === 0 ? 'D-DAY' : `D-${eventDday}`;
-  const runDayDdayTitle = phase === 'ended' ? '2026년 4월 15일 HI RUN DAY를 함께 마쳤어요' : eventDday === 0 ? '오늘이 바로 런데이예요!' : '런데이까지 남은 시간';
-  const runDayDdaySub = phase === 'ended'
-    ? '함께 달린 순간들을 가족 인증이나 커뮤니티 기록으로 남겨보세요.'
-    : '2026년 4월 15일 수요일 · 선유도공원에서 출발해 여의도공원까지 함께 달려요.';
   const familyCertPreviewHtml = familyCertRow?.media_url
     ? String(familyCertRow?.media_type || '').startsWith('video')
       ? `<div class="ch-family-cert-preview"><video class="ch-family-cert-media" src="${familyCertMediaUrl}" controls playsinline preload="metadata"></video></div>`
       : `<div class="ch-family-cert-preview"><img class="ch-family-cert-media" src="${familyCertMediaUrl}" alt="${familyCertImageAlt}" onclick="openPhotoLightbox('${familyCertMediaUrl}','${familyCertImageAlt}')"></div>`
     : '';
-  const runDayDdayHtml = `
-    <div class="ch-dday-card">
-      <div class="ch-dday-label">HI RUN DAY COUNTDOWN</div>
-      <div class="ch-dday-value">${runDayDdayValue}</div>
-      <div class="ch-dday-title">${runDayDdayTitle}</div>
-      <div class="ch-dday-sub">${runDayDdaySub}</div>
-    </div>
-  `;
   const familyCertActionHtml = `
     <div class="ch-family-spotlight-card">
       <div class="ch-family-spotlight-top">
@@ -18828,9 +18830,6 @@ function renderChallenge() {
            <button type="button" class="ch-family-spotlight-btn primary" onclick="goToFamilyCert()">가족 사진 · 영상 올리기</button>`}
     </div>
   `;
-  doneHtml = runDayDdayHtml + familyCertActionHtml + doneHtml;
-  doneRenderKey += '|dday:' + runDayDdayValue + '|' + phase;
-  doneRenderKey += '|family-cert:' + getFamilyCertLatestRowToken(familyCertRow);
 
   const formChanged = setChallengeSectionHtml(formEl, formHtml, formRenderKey);
   setChallengeSectionHtml(doneEl, doneHtml, doneRenderKey);
@@ -19125,6 +19124,7 @@ function renderChallenge() {
         <div class="ch-together-time-value">${totalChallengeTimeLabel}</div>
         <div class="ch-together-time-sub">${totalChallengeTimeSub}</div>
       </div>
+      ${familyCertActionHtml}
     `;
     setChallengeSectionHtml(
       infoEl,
@@ -19135,7 +19135,8 @@ function renderChallenge() {
         routeExpanded: !!_chRouteExpanded,
         challengeTimeLabel: totalChallengeTimeLabel,
         challengeTimeSub: totalChallengeTimeSub,
-        renderVersion: '20260401-speaker-1',
+        familyCertToken: getFamilyCertLatestRowToken(familyCertRow),
+        renderVersion: '20260405-speaker-family-dday-1',
       })
     );
   }
