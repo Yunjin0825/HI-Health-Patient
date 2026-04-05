@@ -5241,6 +5241,7 @@ async function grantCommStarManual() {
 ══════════════════════════════════════════════ */
 let GD_famcert = [];
 const FAMILY_CERT_REWARD_POINTS = 100;
+const FAMILY_CERT_REWARD_LIMIT = 3;
 
 function isFamCertRewardColumnMissingError(error) {
   const message = String(error?.message || error || '');
@@ -5312,6 +5313,49 @@ async function resolveFamCertRewardTarget(certRow) {
   };
 }
 
+function buildFamCertRewardIdentity(certRow, targetRes = {}) {
+  const regIds = [...new Set([
+    normRegIdValue(certRow?.reg_id || certRow?.regId),
+  ].filter(Boolean))];
+  const empIds = [...new Set([
+    normRegEmpId(certRow?.emp_id || certRow?.empId),
+    normRegEmpId(targetRes?.empId),
+  ].filter(Boolean))];
+  return { regIds, empIds };
+}
+
+function rowMatchesFamCertRewardIdentity(row, identity = {}) {
+  const rowRegId = normRegIdValue(row?.reg_id || row?.regId);
+  const rowEmpId = normRegEmpId(row?.emp_id || row?.empId);
+  if (identity.regIds?.includes(rowRegId)) return true;
+  if (identity.empIds?.includes(rowEmpId)) return true;
+  return false;
+}
+
+async function countGrantedFamilyCertRewards(certRow, targetRes = {}) {
+  const identity = buildFamCertRewardIdentity(certRow, targetRes);
+  const filters = [
+    ...(identity.regIds || []).map(id => `reg_id.eq.${id}`),
+    ...buildAdminEmpIdFilters('emp_id', identity.empIds || []),
+  ];
+  if (!filters.length) return { count: 0, error: null };
+
+  const { data, error } = await db
+    .from('family_certifications')
+    .select('id,reg_id,emp_id,status,rewarded_at')
+    .or(filters.join(','));
+  if (error) return { count: 0, error };
+
+  const currentId = String(certRow?.id || '').trim();
+  const count = (data || []).filter(row => {
+    if (!rowMatchesFamCertRewardIdentity(row, identity)) return false;
+    if (String(row?.id || '').trim() === currentId) return false;
+    if (String(row?.status || '').trim().toLowerCase() === 'cancelled') return false;
+    return !!String(row?.rewarded_at || '').trim();
+  }).length;
+  return { count, error: null };
+}
+
 async function loadFamCerts() {
   const { data, error } = await db
     .from('family_certifications')
@@ -5381,6 +5425,8 @@ async function reviewFamCert(id, status) {
   showLoading(true);
   const reviewedAt = new Date().toISOString();
   let rewardMeta = null;
+  let rewardLimitReached = false;
+  let rewardBlockedMessage = '';
 
   if (status === 'approved' && !certRow.rewarded_at) {
     const targetRes = await resolveFamCertRewardTarget(certRow);
@@ -5394,27 +5440,40 @@ async function reviewFamCert(id, status) {
       toast('포인트를 지급할 이용자를 찾지 못했습니다');
       return;
     }
-    const prevPoints = Number(targetRes.user.points) || 0;
-    const nextPoints = prevPoints + FAMILY_CERT_REWARD_POINTS;
-    const prevTotalPoints = Math.max(Number(targetRes.user.totalPoints || 0), prevPoints);
-    const nextTotalPoints = prevTotalPoints + FAMILY_CERT_REWARD_POINTS;
-    const userRes = await updateUserPointsFields(targetRes.user.deviceId, nextPoints, nextTotalPoints, reviewedAt);
-    if (userRes.error) {
+
+    const rewardCountRes = await countGrantedFamilyCertRewards(certRow, targetRes);
+    if (rewardCountRes.error) {
       showLoading(false);
-      toast('포인트 지급 실패: ' + formatFamCertReviewError(userRes.error));
+      toast('기존 보상 횟수 조회 실패: ' + formatFamCertReviewError(rewardCountRes.error));
       return;
     }
-    rewardMeta = {
-      userDeviceId: targetRes.user.deviceId,
-      prevPoints,
-      nextPoints: Number(userRes.points) || nextPoints,
-      prevTotalPoints,
-      nextTotalPoints: Number(userRes.totalPoints) || nextTotalPoints,
-      appliedTotalPoints: userRes.appliedTotalPoints,
-      rewardedAt: reviewedAt,
-      rewardPoints: FAMILY_CERT_REWARD_POINTS,
-      rewardMessage: `가족 운동 인증이 승인되어 ${FAMILY_CERT_REWARD_POINTS}포인트가 지급되었습니다!`,
-    };
+
+    if ((rewardCountRes.count || 0) >= FAMILY_CERT_REWARD_LIMIT) {
+      rewardLimitReached = true;
+      rewardBlockedMessage = `가족 운동 인증 보상은 최대 ${FAMILY_CERT_REWARD_LIMIT}회까지 지급되어 이번 승인 건은 포인트가 지급되지 않았습니다.`;
+    } else {
+      const prevPoints = Number(targetRes.user.points) || 0;
+      const nextPoints = prevPoints + FAMILY_CERT_REWARD_POINTS;
+      const prevTotalPoints = Math.max(Number(targetRes.user.totalPoints || 0), prevPoints);
+      const nextTotalPoints = prevTotalPoints + FAMILY_CERT_REWARD_POINTS;
+      const userRes = await updateUserPointsFields(targetRes.user.deviceId, nextPoints, nextTotalPoints, reviewedAt);
+      if (userRes.error) {
+        showLoading(false);
+        toast('포인트 지급 실패: ' + formatFamCertReviewError(userRes.error));
+        return;
+      }
+      rewardMeta = {
+        userDeviceId: targetRes.user.deviceId,
+        prevPoints,
+        nextPoints: Number(userRes.points) || nextPoints,
+        prevTotalPoints,
+        nextTotalPoints: Number(userRes.totalPoints) || nextTotalPoints,
+        appliedTotalPoints: userRes.appliedTotalPoints,
+        rewardedAt: reviewedAt,
+        rewardPoints: FAMILY_CERT_REWARD_POINTS,
+        rewardMessage: `가족 운동 인증이 승인되어 ${FAMILY_CERT_REWARD_POINTS}포인트가 지급되었습니다!`,
+      };
+    }
   }
 
   const updatePayload = { status, reviewed_at: reviewedAt };
@@ -5422,6 +5481,9 @@ async function reviewFamCert(id, status) {
     updatePayload.rewarded_at = rewardMeta.rewardedAt;
     updatePayload.reward_points = rewardMeta.rewardPoints;
     updatePayload.reward_message = rewardMeta.rewardMessage;
+  } else if (status === 'approved' && rewardLimitReached) {
+    updatePayload.reward_points = 0;
+    updatePayload.reward_message = rewardBlockedMessage;
   }
   const { error } = await db
     .from('family_certifications')
@@ -5455,12 +5517,19 @@ async function reviewFamCert(id, status) {
       certRow.rewarded_at = rewardMeta.rewardedAt;
       certRow.reward_points = rewardMeta.rewardPoints;
       certRow.reward_message = rewardMeta.rewardMessage;
+    } else if (rewardLimitReached) {
+      certRow.reward_points = 0;
+      certRow.reward_message = rewardBlockedMessage;
     }
   }
   showLoading(false);
   renderFamCert();
   renderUsers();
   renderStats();
+  if (status === 'approved' && rewardLimitReached) {
+    toast(`인증 승인 완료 ✓ 포인트는 최대 ${FAMILY_CERT_REWARD_LIMIT}회까지만 지급됩니다`);
+    return;
+  }
   toast(status === 'approved'
     ? `인증 승인 및 ${FAMILY_CERT_REWARD_POINTS}포인트 지급 완료 ✓`
     : `인증 ${label} 완료 ✓`);
