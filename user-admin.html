@@ -5286,13 +5286,24 @@ async function resolveFamCertRewardTarget(certRow) {
   const regId = String(certRow?.reg_id || '').trim();
   let targetEmpId = normRegEmpId(certRow?.emp_id);
   let targetDeviceId = '';
+  const localReg = (GD.registrations || []).map(normalizeRegistrationRow).find(r => normRegIdValue(r?.id) === normRegIdValue(regId)) || null;
+  if (localReg) {
+    if (!targetEmpId && localReg.empId) targetEmpId = normRegEmpId(localReg.empId);
+    if (!targetDeviceId && localReg.deviceId) targetDeviceId = String(localReg.deviceId || '').trim();
+  }
   if (regId) {
     const regRes = await db
       .from('registrations')
-      .select('id,"deviceId","empId"')
+      .select('*')
       .eq('id', regId)
       .maybeSingle();
-    if (regRes.error) return { error: regRes.error };
+    if (regRes.error) {
+      const localUser = pickFamCertRewardUser((GD.users || []), targetEmpId, targetDeviceId);
+      if (localUser?.deviceId) {
+        return { user: localUser, empId: targetEmpId, deviceId: targetDeviceId };
+      }
+      return { error: regRes.error };
+    }
     const reg = regRes.data || null;
     if (!targetEmpId && reg?.empId) targetEmpId = normRegEmpId(reg.empId);
     targetDeviceId = String(reg?.deviceId || '').trim();
@@ -5300,20 +5311,31 @@ async function resolveFamCertRewardTarget(certRow) {
 
   const filters = [];
   if (targetEmpId) {
-    filters.push(`"empId".eq.${targetEmpId}`);
-    if (targetEmpId.toLowerCase() !== targetEmpId) filters.push(`"empId".eq.${targetEmpId.toLowerCase()}`);
+    filters.push(...buildAdminEmpIdFilters('empId', [targetEmpId]));
   }
   if (targetDeviceId) filters.push(`deviceId.eq.${targetDeviceId}`);
-  if (!filters.length) return { user: null, empId: targetEmpId, deviceId: targetDeviceId };
+  if (!filters.length) {
+    const localUser = pickFamCertRewardUser((GD.users || []), targetEmpId, targetDeviceId);
+    return { user: localUser, empId: targetEmpId, deviceId: targetDeviceId };
+  }
 
   const userRes = await db
     .from('users')
     .select('deviceId,empId,name,points,totalPoints,lastactiveat')
     .or(filters.join(','));
-  if (userRes.error) return { error: userRes.error };
+  if (userRes.error) {
+    const localUser = pickFamCertRewardUser((GD.users || []), targetEmpId, targetDeviceId);
+    if (localUser?.deviceId) {
+      return { user: localUser, empId: targetEmpId, deviceId: targetDeviceId };
+    }
+    return { error: userRes.error };
+  }
+
+  const pickedUser = pickFamCertRewardUser(userRes.data || [], targetEmpId, targetDeviceId)
+    || pickFamCertRewardUser((GD.users || []), targetEmpId, targetDeviceId);
 
   return {
-    user: pickFamCertRewardUser(userRes.data || [], targetEmpId, targetDeviceId),
+    user: pickedUser,
     empId: targetEmpId,
     deviceId: targetDeviceId,
   };
