@@ -2811,12 +2811,12 @@
     const row = getParentFamilyCertRow();
     const certCount = getParentFamilyCertAllCount() || (row ? 1 : 0);
     const buttonLabel = certCount > 0
-      ? `가족 사진 · 영상 추가로 올리기 (${certCount}회)`
-      : '가족 사진 · 영상 올리기';
+      ? `운동 인증 사진 · 영상 추가로 올리기 (${certCount}회)`
+      : '운동 인증 사진 · 영상 올리기';
     card.innerHTML = `
       <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:${certCount > 0 ? '8px' : '10px'}">
         <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:0">
-          <span class="family-mission-sub" style="margin:0">가족과 함께 운동하는 사진 또는 영상을 올려주세요.</span>
+          <span class="family-mission-sub" style="margin:0">혼자 참여하셔도 괜찮아요. 가족, 반려동물 또는 자연과 함께한 운동 사진·영상도 인증할 수 있어요.</span>
           <span class="family-mission-sub" style="margin:0">챌린지 기간 중 최대 3회까지 참여할 수 있어요.</span>
         </div>
         <span class="family-mission-reward">${certCount > 0 ? '+100P 완료' : '+100P'}</span>
