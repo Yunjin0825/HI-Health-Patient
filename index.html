@@ -12648,6 +12648,11 @@ async function logExercise() {
     S.duration = 30;
     S.durationTouched = false;
     document.getElementById('dur-val')?.classList.remove('active');
+    haptic('success');
+    showToast(photoBonus ? `🎉 운동 기록 완료! +${pts}p (사진 인증 +5p 포함!)` : `🎉 운동 기록 완료! +${pts}p 획득!`);
+    setExerciseLogButtonBusy(false);
+    await waitForNextPaint();
+
     save();
     // 운동 기록 구글 시트 동기화
     if (workoutRecord) {
@@ -12667,9 +12672,7 @@ async function logExercise() {
       });
     }
     renderHeader();
-    haptic('success');
     invalidateTogetherPopupCache();
-    showToast(photoBonus ? `🎉 운동 기록 완료! +${pts}p (사진 인증 +5p 포함!)` : `🎉 운동 기록 완료! +${pts}p 획득!`);
     setTimeout(() => refreshTogetherPopupAfterWorkoutChange({ show: true }), 2000);
     renderExercise();
     refreshWorkoutLinkedSurfaces();
