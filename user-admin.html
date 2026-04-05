@@ -1632,6 +1632,17 @@ function doLogout() {
   db = null;
 }
 
+function showLoginError(message) {
+  const inp = document.getElementById('pw-input');
+  const err = document.getElementById('login-err');
+  if (inp) inp.classList.add('err');
+  if (err) err.textContent = message;
+  setTimeout(() => {
+    if (inp) inp.classList.remove('err');
+    if (err && err.textContent === message) err.textContent = '';
+  }, 3000);
+}
+
 function openPwModal() { document.getElementById('pw-modal').classList.add('open'); }
 function changePw() {
   const np = document.getElementById('pw-new').value;
@@ -1654,8 +1665,23 @@ function handleAdminVisibilityChange() {
 }
 
 function initSupabase() {
-  const { createClient } = supabase;
-  db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const createClient =
+    (typeof window !== 'undefined' && window.supabase && typeof window.supabase.createClient === 'function')
+      ? window.supabase.createClient
+      : (typeof supabase !== 'undefined' && typeof supabase.createClient === 'function' ? supabase.createClient : null);
+  if (!createClient) {
+    setStatus('Supabase 연결 스크립트 로드 실패', false);
+    showLoginError('서버 연결을 준비하지 못했습니다. 잠시 후 다시 시도해주세요');
+    return;
+  }
+  try {
+    db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } catch (e) {
+    console.error('[initSupabase]', e);
+    setStatus('Supabase 연결 실패', false);
+    showLoginError('서버 연결 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요');
+    return;
+  }
   setStatus('연결 중...', false);
   loadAll();
   setupRealtime();
@@ -1670,12 +1696,12 @@ function initSupabase() {
     _adminVisibilityBound = true;
   }
 
-  // 폴링 백업: 2초마다 갱신
+  // 폴링 백업
   if (_pollTimer) clearInterval(_pollTimer);
   _pollTimer = setInterval(() => {
     if (document.hidden) return;
     loadAll({ silent: true });
-  }, 2000);
+  }, 5000);
 }
 
 let _rtChannels = [];
@@ -2341,7 +2367,6 @@ function renderAll() {
   loadHiblaPostList();
   renderChallenge();
   renderOrders();
-  renderRewards();
   renderAdminPosts();
 }
 
@@ -5175,7 +5200,7 @@ function switchTab(name, btn) {
   if (name === 'posts') renderPosts();
   if (name === 'challenge') renderChallenge();
   if (name === 'orders') { renderOrders(); loadShopConfig(); }
-  if (name === 'content') { renderAdminPosts(); loadPushLogs(); loadScheduledPushList(); }
+  if (name === 'content') { renderAdminPosts(); loadHirolaPostList(); loadHiblaPostList(); loadPushLogs(); loadScheduledPushList(); }
   if (name === 'settings') loadSettingsTab();
   if (name === 'famcert') loadFamCerts();
   if (name === 'commstar') loadCommStarUsers();
@@ -5330,18 +5355,22 @@ function isFamCertApprovedWithoutReward(row) {
 function pickFamCertRewardUser(rows, targetEmpId = '', targetDeviceId = '') {
   const normalizedEmpId = normRegEmpId(targetEmpId);
   const normalizedDeviceId = String(targetDeviceId || '').trim();
+  const activityPointsMap = getAdminActivityPointsMap();
   return [...(rows || [])].sort((a, b) => {
     const aEmp = normRegEmpId(a?.empId);
     const bEmp = normRegEmpId(b?.empId);
     const aDevice = String(a?.deviceId || '').trim();
     const bDevice = String(b?.deviceId || '').trim();
     const aScore = (normalizedEmpId && aEmp === normalizedEmpId ? 4 : 0)
-      + (normalizedDeviceId && aDevice === normalizedDeviceId ? 2 : 0)
+      + (normalizedDeviceId && aDevice === normalizedDeviceId ? 1 : 0)
       + (aEmp ? 1 : 0);
     const bScore = (normalizedEmpId && bEmp === normalizedEmpId ? 4 : 0)
-      + (normalizedDeviceId && bDevice === normalizedDeviceId ? 2 : 0)
+      + (normalizedDeviceId && bDevice === normalizedDeviceId ? 1 : 0)
       + (bEmp ? 1 : 0);
     if (bScore !== aScore) return bScore - aScore;
+    const aEffectivePoints = getAdminEffectivePoints(a, activityPointsMap);
+    const bEffectivePoints = getAdminEffectivePoints(b, activityPointsMap);
+    if (bEffectivePoints !== aEffectivePoints) return bEffectivePoints - aEffectivePoints;
     const aTs = Date.parse(a?.lastactiveat || a?.updatedAt || a?.updatedat || 0) || 0;
     const bTs = Date.parse(b?.lastactiveat || b?.updatedAt || b?.updatedat || 0) || 0;
     return bTs - aTs;
@@ -6211,6 +6240,14 @@ function toast(msg, dur = 3000) {
 document.querySelectorAll('.modal-bg').forEach(bg => {
   bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('open'); });
 });
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.getRegistration()
+      .then(reg => reg ? reg.update() : null)
+      .catch(err => console.warn('[admin/sw-update]', err));
+  });
+}
 
 // Enter key on login
 document.getElementById('pw-input').addEventListener('keydown', e => {
