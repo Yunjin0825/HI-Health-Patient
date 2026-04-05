@@ -5350,13 +5350,30 @@ async function countGrantedFamilyCertRewards(certRow, targetRes = {}) {
     .from('family_certifications')
     .select('id,reg_id,emp_id,status,rewarded_at')
     .or(filters.join(','));
-  if (error) return { count: 0, error };
+  if (error) {
+    if (!isFamCertRewardColumnMissingError(error)) return { count: 0, error };
+    const fallbackRes = await db
+      .from('family_certifications')
+      .select('id,reg_id,emp_id,status')
+      .or(filters.join(','));
+    if (fallbackRes.error) return { count: 0, error: fallbackRes.error };
+    const currentId = String(certRow?.id || '').trim();
+    const fallbackCount = (fallbackRes.data || []).filter(row => {
+      if (!rowMatchesFamCertRewardIdentity(row, identity)) return false;
+      if (String(row?.id || '').trim() === currentId) return false;
+      const rowStatus = String(row?.status || '').trim().toLowerCase();
+      if (rowStatus === 'cancelled' || rowStatus === 'deleted') return false;
+      return rowStatus === 'approved';
+    }).length;
+    return { count: fallbackCount, error: null };
+  }
 
   const currentId = String(certRow?.id || '').trim();
   const count = (data || []).filter(row => {
     if (!rowMatchesFamCertRewardIdentity(row, identity)) return false;
     if (String(row?.id || '').trim() === currentId) return false;
-    if (String(row?.status || '').trim().toLowerCase() === 'cancelled') return false;
+    const rowStatus = String(row?.status || '').trim().toLowerCase();
+    if (rowStatus === 'cancelled' || rowStatus === 'deleted') return false;
     return !!String(row?.rewarded_at || '').trim();
   }).length;
   return { count, error: null };
@@ -5368,14 +5385,15 @@ async function loadFamCerts() {
     .select('*')
     .order('submitted_at', { ascending: false });
   if (error) { toast('가족인증 로드 실패: ' + error.message); return; }
-  GD_famcert = data || [];
+  GD_famcert = (data || []).filter(row => String(row?.status || '').trim().toLowerCase() !== 'deleted');
   renderFamCert();
 }
 
 function renderFamCert() {
   const search = (document.getElementById('fc-search')?.value || '').toLowerCase();
   const sfilter = document.getElementById('fc-sfilter')?.value || '';
-  const rows = GD_famcert.filter(r => {
+  const visibleRows = GD_famcert.filter(r => String(r?.status || '').trim().toLowerCase() !== 'deleted');
+  const rows = visibleRows.filter(r => {
     if (sfilter && r.status !== sfilter) return false;
     if (search) {
       const hay = ((r.name || '') + ' ' + (r.emp_id || '')).toLowerCase();
@@ -5383,13 +5401,13 @@ function renderFamCert() {
     }
     return true;
   });
-  document.getElementById('fc-total').textContent = GD_famcert.length;
-  const fcPendCount = GD_famcert.filter(r => r.status === 'pending').length;
+  document.getElementById('fc-total').textContent = visibleRows.length;
+  const fcPendCount = visibleRows.filter(r => r.status === 'pending').length;
   document.getElementById('fc-pend').textContent = fcPendCount;
   const fcBadge = document.getElementById('famcert-badge');
   if (fcBadge) { fcBadge.textContent = fcPendCount; fcBadge.style.display = fcPendCount > 0 ? '' : 'none'; }
-  document.getElementById('fc-ok').textContent = GD_famcert.filter(r => r.status === 'approved').length;
-  document.getElementById('fc-rej').textContent = GD_famcert.filter(r => r.status === 'cancelled').length;
+  document.getElementById('fc-ok').textContent = visibleRows.filter(r => r.status === 'approved').length;
+  document.getElementById('fc-rej').textContent = visibleRows.filter(r => r.status === 'cancelled').length;
   document.getElementById('fc-count').textContent = rows.length + '건';
   const tbody = document.getElementById('fc-tbody');
   if (!tbody) return;
@@ -5491,11 +5509,19 @@ async function reviewFamCert(id, status) {
     updatePayload.reward_points = 0;
     updatePayload.reward_message = rewardBlockedMessage;
   }
-  const { error } = await db
+  let updateError = null;
+  let reviewRes = await db
     .from('family_certifications')
     .update(updatePayload)
     .eq('id', id);
-  if (error) {
+  if (reviewRes.error && status === 'approved' && isFamCertRewardColumnMissingError(reviewRes.error)) {
+    reviewRes = await db
+      .from('family_certifications')
+      .update({ status, reviewed_at: reviewedAt })
+      .eq('id', id);
+  }
+  updateError = reviewRes.error || null;
+  if (updateError) {
     if (rewardMeta?.userDeviceId) {
       await updateUserPointsFields(
         rewardMeta.userDeviceId,
@@ -5505,7 +5531,7 @@ async function reviewFamCert(id, status) {
       );
     }
     showLoading(false);
-    toast('처리 실패: ' + formatFamCertReviewError(error));
+    toast('처리 실패: ' + formatFamCertReviewError(updateError));
     return;
   }
 
@@ -5551,10 +5577,42 @@ async function deleteFamCert(id) {
   }
   if (!confirm('이 가족인증 항목을 완전히 삭제할까요?\n삭제 후에는 복구할 수 없습니다.')) return;
   showLoading(true);
-  const { error } = await db.from('family_certifications').delete().eq('id', id);
-  if (error) {
+  let removed = false;
+  const deleteRes = await db.from('family_certifications').delete().eq('id', id).select('id');
+  if (deleteRes.error) {
     showLoading(false);
-    toast('삭제 실패: ' + formatFamCertReviewError(error));
+    toast('삭제 실패: ' + formatFamCertReviewError(deleteRes.error));
+    return;
+  }
+  if (Array.isArray(deleteRes.data) && deleteRes.data.length > 0) {
+    removed = true;
+  } else {
+    const verifyRes = await db.from('family_certifications').select('id,status').eq('id', id).maybeSingle();
+    if (verifyRes.error) {
+      showLoading(false);
+      toast('삭제 확인 실패: ' + formatFamCertReviewError(verifyRes.error));
+      return;
+    }
+    if (!verifyRes.data) {
+      removed = true;
+    } else {
+      const softDeleteRes = await db
+        .from('family_certifications')
+        .update({ status: 'deleted', reviewed_at: new Date().toISOString() })
+        .eq('id', id)
+        .select('id,status')
+        .maybeSingle();
+      if (softDeleteRes.error) {
+        showLoading(false);
+        toast('삭제 실패: ' + formatFamCertReviewError(softDeleteRes.error));
+        return;
+      }
+      removed = String(softDeleteRes.data?.status || '').trim().toLowerCase() === 'deleted';
+    }
+  }
+  if (!removed) {
+    showLoading(false);
+    toast('삭제가 완료되지 않았어요. 다시 시도해주세요.');
     return;
   }
   cleanupAdminFamCertStorageObject(certRow).catch(err => {
