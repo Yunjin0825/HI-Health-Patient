@@ -5536,7 +5536,7 @@ function renderFamCert() {
       ? `<a href="${escHtml(r.media_url)}" target="_blank" style="color:var(--p);text-decoration:underline">${mediaIcon} 보기</a>`
       : '-';
     const st = r.status || 'pending';
-    const canDelete = st === 'cancelled' || st === 'rejected' || isFamCertApprovedWithoutReward(r);
+    const canDelete = true;
     return `<tr>
       <td style="white-space:nowrap;font-size:12px">${escHtml(dt)}</td>
       <td style="font-weight:700">${escHtml(r.name || '-')}</td>
@@ -5689,12 +5689,12 @@ async function deleteFamCert(id) {
   const certRow = GD_famcert.find(r => String(r.id) === String(id));
   if (!certRow) { toast('가족인증 정보를 찾을 수 없습니다'); return; }
   const status = String(certRow.status || '').trim().toLowerCase();
-  const canDelete = status === 'cancelled' || status === 'rejected' || isFamCertApprovedWithoutReward(certRow);
-  if (!canDelete) {
-    toast('취소되었거나 미지급 승인 상태의 인증만 삭제할 수 있습니다');
-    return;
-  }
-  if (!confirm('이 가족인증 항목을 완전히 삭제할까요?\n삭제 후에는 복구할 수 없습니다.')) return;
+  const approvedWarning = status === 'approved'
+    ? (String(certRow?.rewarded_at || '').trim() || Number(certRow?.reward_points) > 0)
+      ? '\n승인 처리된 항목입니다. 이미 포인트가 지급됐다면 자동 회수되지 않습니다.'
+      : '\n승인 처리된 항목입니다. 현재는 미지급 승인 건으로 보고 삭제합니다.'
+    : '';
+  if (!confirm(`이 가족인증 항목을 완전히 삭제할까요?\n삭제 후에는 복구할 수 없습니다.${approvedWarning}`)) return;
   showLoading(true);
   let removed = false;
   const deleteRes = await db.from('family_certifications').delete().eq('id', id).select('id');
