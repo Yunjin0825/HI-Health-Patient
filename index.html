@@ -6636,7 +6636,7 @@ const PUSH_DEFAULT_URL  = './index.html#community';
 const HOME_PUSH_PROMPT_DISMISSED_KEY = 'hi_home_push_prompt_dismissed';
 const HOME_PUSH_PROMPT_SESSION_KEY   = 'hi_home_push_prompt_seen';
 const AUTO_COMMENT_FN   = 'https://nbnmvvobehjitophkqmu.supabase.co/functions/v1/auto-comment';
-const SW_VERSION        = '20260405-013';
+const SW_VERSION        = '20260405-014';
 const SW_UPDATE_POLL_MS = 60 * 1000;
 const CHALLENGE_PEOPLE_CACHE_KEY = 'hi_health_people_cache_v1';
 let _swControllerReloaded = false;
@@ -9970,8 +9970,8 @@ function showCelebration(type, data) {
     </div>`;
   } else if (type === 'familycert') {
     const rewardPoints = Number(data?.points) || FAMILY_CERT_REWARD_POINTS;
-    title.textContent = '가족 인증 승인!';
-    sub.textContent = data?.message || `축하합니다! 가족 운동 인증이 승인되어 ${rewardPoints}포인트가 지급됐어요.`;
+    title.textContent = '함께 운동 인증 승인!';
+    sub.textContent = data?.message || `축하합니다! 함께 운동 인증이 승인되어 ${rewardPoints}포인트가 지급됐어요.`;
     iconWrap.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:12px">
       <div style="width:76px;height:76px;border-radius:24px;background:linear-gradient(135deg,#f59e0b,#f97316);display:flex;align-items:center;justify-content:center;font-size:36px;box-shadow:0 16px 32px rgba(249,115,22,0.24)">📸</div>
       <div style="display:inline-flex;align-items:center;justify-content:center;padding:6px 14px;border-radius:999px;background:#fff7ed;color:#c2410c;font-size:13px;font-weight:900;border:1px solid #fdba74">+${rewardPoints}P</div>
@@ -10307,7 +10307,7 @@ function renderLeagueChangeHtml(change) {
 
 function getLeagueMetricForTab(tab = S.leagueTab) {
   if (tab === 'weekly') return 'wPts';
-  if (tab === 'alltime') return 'totalPts';
+  if (tab === 'alltime' || tab === 'level') return 'totalPts';
   return 'pts';
 }
 
@@ -12583,6 +12583,7 @@ async function logExercise() {
     return;
   }
   const basePts = calcPts(S.selectedEx, S.duration);
+  const photoBonus = false;
   const pts = basePts;
   // 하루 포인트 한도 체크
   const todayEarnedPts = todayWo.reduce((s, w) => s + (w.points || 0), 0);
@@ -15345,9 +15346,9 @@ function renderLeague() {
   const baseUsers = Array.isArray(_realLeagueUsers) ? _realLeagueUsers : MOCK_USERS;
   const myLeaguePts = getCurrentLeaguePoints();
   const myAlltimePts = getCurrentLeagueAlltimePoints();
-  const myPts  = currentTab === 'weekly' ? myWeekPts() : currentTab === 'alltime' ? myAlltimePts : myLeaguePts;
+  const myPts  = currentTab === 'weekly' ? myWeekPts() : currentTab === 'alltime' || currentTab === 'level' ? myAlltimePts : myLeaguePts;
   const myRank = myLeagueRank();
-  const myLvPoints = currentTab === 'alltime' ? myAlltimePts : myLeaguePts;
+  const myLvPoints = currentTab === 'alltime' || currentTab === 'level' ? myAlltimePts : myLeaguePts;
   const myLv   = getLevel(myLvPoints);
   const myLvNumCard = getLevel(myLvPoints).lv;
   const total  = currentTab === 'level' ? baseUsers.filter(u => u.lv === myLvNumCard).length + (canJoinLeague ? 1 : 0) : baseUsers.length + (canJoinLeague ? 1 : 0);
@@ -15395,7 +15396,7 @@ function renderLeague() {
         <div class="mrc-sub">${currentTab === 'level' ? '같은 레벨 ' + total + '명' : '상위 ' + displayPct + '%'}</div>
       </div>
       <div class="mrc-stat">
-        <div class="mrc-label">${currentTab === 'weekly' ? '주간 획득 포인트' : currentTab === 'level' ? '레벨별 포인트' : currentTab === 'alltime' ? '총 누적 포인트' : '운동+혈당 포인트'}</div>
+        <div class="mrc-label">${currentTab === 'weekly' ? '주간 운동+혈당' : currentTab === 'level' ? '총 누적 포인트' : currentTab === 'alltime' ? '총 누적 포인트' : '운동+혈당 포인트'}</div>
         <div class="mrc-value pts">${myPts}p</div>
         <div class="mrc-sub">${myChangeHtml}</div>
       </div>
@@ -15440,7 +15441,7 @@ function renderLeague() {
     const lv = LEVELS[Math.min(u.lv-1, LEVELS.length-1)];
     const badgeHtml = renderLeagueEntryBadgesHtml(u, badgeState, currentTab);
     const trailingHtml = currentTab === 'level'
-      ? `<div class="lb-motion-icon" title="${escHtmlComm(lv.name)}" aria-label="${escHtmlComm(lv.name)}">${lv.icon}</div><div class="lb-pts">${Number(u.pts) || 0}p</div>`
+      ? `<div class="lb-motion-icon" title="${escHtmlComm(lv.name)}" aria-label="${escHtmlComm(lv.name)}">${lv.icon}</div><div class="lb-pts">${Number(u.totalPts) || 0}p</div>`
       : currentTab === 'alltime'
         ? `<div class="lb-pts">${Number(u.totalPts) || 0}p</div>`
         : `<div class="lb-pts">${currentTab === 'weekly' ? `${Number(u.wPts) || 0}p` : `${Number(u.pts) || 0}p`}</div>`;
@@ -18193,8 +18194,8 @@ function isApprovedFamilyCertRow(row) {
 function buildFamilyCertCommunityBody(row) {
   const memo = getFamilyCertMemoText(row);
   return memo
-    ? `가족과 함께 운동한 순간을 인증했어요.\n${memo}`
-    : '가족과 함께 운동한 순간을 인증했어요.';
+    ? `함께 운동한 순간을 인증했어요.\n${memo}`
+    : '함께 운동한 순간을 인증했어요.';
 }
 
 function renderFamilyCertSubmittedView(row) {
@@ -18490,7 +18491,7 @@ async function consumeFamilyCertReward(row) {
     points: rewardPoints,
     message: String(row?.reward_message || '').trim(),
   });
-  showToast(`🎉 가족 운동 인증 승인! +${rewardPoints}p 지급 완료`);
+  showToast(`🎉 함께 운동 인증 승인! +${rewardPoints}p 지급 완료`);
   return true;
 }
 
@@ -18644,7 +18645,7 @@ function openFamilyCertMediaById(id) {
     window.open(row.media_url, '_blank', 'noopener');
     return;
   }
-  openPhotoLightbox(row.media_url, '가족 운동 인증');
+  openPhotoLightbox(row.media_url, '함께 운동 인증');
 }
 
 function shareFamilyCertById(id) {
@@ -18663,7 +18664,7 @@ function confirmDeleteFamilyCertById(id) {
   if (isApprovedFamilyCertRow(row)) { showToast('승인 완료된 인증은 삭제할 수 없어요.'); return; }
   const deductionPoints = getFamilyCertRewardDeductionPoints(row);
   showConfirm({
-    title: '가족 인증을 삭제할까요?',
+    title: '함께 운동 인증을 삭제할까요?',
     msg: deductionPoints
       ? `이 인증은 내 목록에서 삭제됩니다.\n포인트 ${deductionPoints}p가 차감됩니다.`
       : '이 인증은 내 목록에서 삭제됩니다.',
@@ -18713,7 +18714,7 @@ function applyFamilyCertRowsAfterCancel(updatedRow) {
 
 async function deleteFamilyCertRecordById(id) {
   const targetId = String(id || '').trim();
-  if (!targetId) throw new Error('삭제할 가족 인증 ID가 없어요.');
+  if (!targetId) throw new Error('삭제할 인증 ID가 없어요.');
 
   if (_db) {
     const { data, error } = await _db
@@ -18731,7 +18732,7 @@ async function deleteFamilyCertRecordById(id) {
       .eq('id', targetId);
     if (verifyRes.error) throw verifyRes.error;
     if ((verifyRes.data || []).some(row => String(row?.status || '').trim().toLowerCase() !== 'cancelled')) {
-      throw new Error('가족 인증 취소가 서버에 반영되지 않았어요.');
+      throw new Error('함께 운동 인증 취소가 서버에 반영되지 않았어요.');
     }
     return 0;
   }
@@ -18762,7 +18763,7 @@ async function deleteFamilyCertRecordById(id) {
   }
   const remaining = await verifyRes.json().catch(() => []);
   if (Array.isArray(remaining) && remaining.some(row => String(row?.status || '').trim().toLowerCase() !== 'cancelled')) {
-    throw new Error('가족 인증 취소가 서버에 반영되지 않았어요.');
+    throw new Error('함께 운동 인증 취소가 서버에 반영되지 않았어요.');
   }
   return 0;
 }
@@ -18793,8 +18794,8 @@ async function deleteFamilyCertById(id) {
   }
   applyFamilyCertRowsAfterDelete(row.id);
   showToast(deductionState.deduction
-    ? `가족 인증을 삭제하고 ${deductionState.deduction}p를 차감했어요.`
-    : '가족 인증을 삭제했어요.');
+    ? `함께 운동 인증을 삭제하고 ${deductionState.deduction}p를 차감했어요.`
+    : '함께 운동 인증을 삭제했어요.');
   cleanupFamilyCertStorageObject(row, 'deleteFamilyCertById/storage').catch(() => {});
   refreshCurrentFamilyCertLatest({ force: true, silent: true }).then(() => renderFamilyCertList()).catch(() => {});
 }
@@ -18809,20 +18810,20 @@ function openCurrentFamilyCertMedia() {
     window.open(row.media_url, '_blank', 'noopener');
     return;
   }
-  openPhotoLightbox(row.media_url, '가족 운동 인증');
+  openPhotoLightbox(row.media_url, '함께 운동 인증');
 }
 
 function shareCurrentFamilyCertToCommunity() {
   if (IS_GUEST) { flashGuestBanner(); return; }
   const row = getCurrentFamilyCertLatestRow();
   if (!row?.media_url) {
-    showToast('공유할 가족 인증 파일이 아직 없어요.');
+    showToast('공유할 인증 파일이 아직 없어요.');
     return;
   }
   const displayName = myDisplayName();
   const lv = getLevel(S.user.points);
   const body = buildFamilyCertCommunityBody(row);
-  const userTags = [...new Set([...(Array.isArray(S.user.tags) ? S.user.tags : []), '가족과 함께'])];
+  const userTags = [...new Set([...(Array.isArray(S.user.tags) ? S.user.tags : []), '함께 운동 인증'])];
   const sharePhoto = String(row.media_type || '').startsWith('video') ? null : row.media_url;
   const existing = (S.posts || []).find(p => p.userId === 0 && String(p.familyCertId || '') === String(row.id || ''));
 
@@ -18841,7 +18842,7 @@ function shareCurrentFamilyCertToCommunity() {
       userTags: userTags.join(','),
       ts: String(existing.id),
     });
-    showToast('가족 인증 공유글을 업데이트했어요.');
+    showToast('함께 운동 인증 공유글을 업데이트했어요.');
   } else {
     const postId = Date.now();
     S.posts.unshift({
@@ -18872,7 +18873,7 @@ function shareCurrentFamilyCertToCommunity() {
       ts: String(postId),
     });
     triggerAutoComment({ id: String(postId), deviceId: S.deviceId, userName: displayName, body, exTag: '' });
-    showToast(sharePhoto ? '가족 인증을 커뮤니티에 공유했어요!' : '가족 인증을 커뮤니티에 글로 공유했어요!');
+    showToast(sharePhoto ? '함께 운동 인증을 커뮤니티에 공유했어요!' : '함께 운동 인증을 커뮤니티에 글로 공유했어요!');
   }
   save();
   if (document.getElementById('page-community')?.classList.contains('active')) renderCommunity();
@@ -18881,7 +18882,7 @@ function shareCurrentFamilyCertToCommunity() {
 function confirmDeleteCurrentFamilyCert() {
   const row = getCurrentFamilyCertLatestRow();
   if (!row?.id) {
-    showToast('삭제할 가족 인증이 없어요.');
+    showToast('삭제할 인증이 없어요.');
     return;
   }
   if (isApprovedFamilyCertRow(row)) {
@@ -18890,7 +18891,7 @@ function confirmDeleteCurrentFamilyCert() {
   }
   const deductionPoints = getFamilyCertRewardDeductionPoints(row);
   showConfirm({
-    title: '가족 인증을 삭제할까요?',
+    title: '함께 운동 인증을 삭제할까요?',
     msg: deductionPoints
       ? `현재 인증 내역은 내 화면에서 삭제됩니다.\n포인트 ${deductionPoints}p가 차감됩니다.`
       : '현재 인증 내역은 내 화면에서 삭제됩니다.',
@@ -18918,8 +18919,8 @@ async function deleteCurrentFamilyCertSubmission() {
   const latestRow = getCurrentFamilyCertLatestRow();
   if (!renderFamilyCertSubmittedView(latestRow)) showFcUploadForm();
   showToast(deductionState.deduction
-    ? `가족 인증을 삭제하고 ${deductionState.deduction}p를 차감했어요.`
-    : '가족 인증을 삭제했어요.');
+    ? `함께 운동 인증을 삭제하고 ${deductionState.deduction}p를 차감했어요.`
+    : '함께 운동 인증을 삭제했어요.');
   cleanupFamilyCertStorageObject(row, 'deleteCurrentFamilyCertSubmission/storage').catch(() => {});
   refreshCurrentFamilyCertLatest({ force: true, silent: true }).then(nextRow => {
     if (!renderFamilyCertSubmittedView(nextRow)) showFcUploadForm();
@@ -19115,7 +19116,7 @@ function renderChallenge() {
   const _digBox = n => String(n).padStart(2, '0').split('').map(d => `<div class="ch-digit-box">${d}</div>`).join('');
   const runDayDdayTitle = phase === 'ended' ? '2026년 4월 15일 HI RUN DAY를 함께 마쳤어요' : eventDday === 0 ? '오늘이 바로 런데이예요!' : '런데이까지 남은 시간';
   const runDayDdaySub = phase === 'ended'
-    ? '함께 달린 순간들을 가족 인증이나 커뮤니티 기록으로 남겨보세요.'
+    ? '함께 달린 순간들을 함께 운동 인증이나 커뮤니티 기록으로 남겨보세요.'
     : '2026년 4월 15일 수요일 · 선유도공원에서 출발해 여의도공원까지 함께 달려요.';
   const countdownInnerHtml = (phase === 'ended' || eventDday === 0)
     ? `<div class="ch-dday-value">${phase === 'ended' ? 'RUN DAY 완료' : 'D-DAY'}</div>`
@@ -19365,15 +19366,15 @@ function renderChallenge() {
   const familyCertRow = getCurrentFamilyCertLatestRow();
   const familyCertCount = _familyCertAllRows.filter(isActiveFamilyCertRow).length || (familyCertRow ? 1 : 0);
   const familyCertButtonLabel = familyCertCount > 0
-    ? `가족 사진 · 영상 추가로 올리기 (${familyCertCount}회)`
-    : '가족 사진 · 영상 올리기';
+    ? `운동 인증 사진 · 영상 추가로 올리기 (${familyCertCount}회)`
+    : '운동 인증 사진 · 영상 올리기';
   const familyCertActionHtml = `
     <div class="card-header" style="margin-top:14px;margin-bottom:10px">
       <span class="card-title">가족과 함께 운동해요</span>
     </div>
     <div class="ch-family-spotlight-card" style="margin-bottom:14px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:${familyCertCount > 0 ? '8px' : '10px'}">
-        <span class="ch-family-spotlight-sub" style="margin:0;flex:1">가족과 함께 운동하는 사진 또는 영상을 올려주세요. 챌린지 기간 중 최대 3회까지 참여할 수 있어요.</span>
+        <span class="ch-family-spotlight-sub" style="margin:0;flex:1">혼자 참여하셔도 괜찮아요. 가족, 반려동물 또는 자연과 함께한 운동 사진·영상도 인증할 수 있어요. 챌린지 기간 중 최대 3회까지 참여할 수 있어요.</span>
         <div class="ch-family-spotlight-reward">${familyCertCount > 0 ? '+100P 완료' : '+100P'}</div>
       </div>
       <button type="button" class="ch-family-spotlight-btn primary" onclick="goToFamilyCert()">${familyCertButtonLabel}</button>
@@ -20847,7 +20848,7 @@ async function init() {
 <div id="fc-overlay" class="fc-overlay pm-hidden" onclick="if(event.target===this)closeFamilyCertModal()">
   <div class="fc-sheet">
     <div class="fc-head">
-      <span class="fc-title">가족 운동 인증</span>
+      <span class="fc-title">함께 운동 인증</span>
       <button type="button" onclick="closeFamilyCertModal()" style="background:none;border:none;font-size:20px;color:var(--text-secondary);cursor:pointer;padding:0">✕</button>
     </div>
 
