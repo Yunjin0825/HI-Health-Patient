@@ -2981,6 +2981,10 @@
     .fc-upload-label { font-size:13px; color:var(--text-secondary); }
     .fc-preview-wrap { border-radius:10px; overflow:hidden; display:none; }
     .fc-media-preview { width:100%; display:block; border-radius:10px; max-height:200px; object-fit:cover; }
+    .fc-upload-meta { min-height:16px; margin:-4px 0 12px; font-size:11px; line-height:1.5; color:var(--text-secondary); text-align:left; }
+    .fc-upload-meta.uploading { color:#1535c4; font-weight:700; }
+    .fc-upload-meta.success { color:#047857; }
+    .fc-upload-meta.warn { color:#b45309; }
     .fc-file-label { display:none; }
     .fc-btn-row { display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:0; }
     .fc-submit-btn,
@@ -7016,9 +7020,9 @@ document.addEventListener('visibilitychange', () => {
 async function refreshUserPointsFromServer() {
   if (!_db || !S.deviceId || IS_GUEST) return;
   try {
-    const { data } = await _db.from('users').select('points,totalPoints').eq('deviceId', S.deviceId).maybeSingle();
+    const { data } = await _db.from('users').select('points').eq('deviceId', S.deviceId).maybeSingle();
     if (!data) return;
-    const srvPts = Number(data.points || data.totalPoints) || 0;
+    const srvPts = Number(data.points) || 0;
     const prevPts = Number(S.user.points || 0);
     const prevTotal = Number(S.user.totalPoints || 0);
     S.user.points = srvPts;
@@ -18071,12 +18075,16 @@ function goToFamilyCert() {
 const FAMILY_CERT_REWARD_POINTS = 100;
 const FAMILY_CERT_REWARD_SEEN_KEY = 'hi_family_cert_reward_seen';
 const FAMILY_CERT_LATEST_SUBMISSION_KEY = 'hi_family_cert_latest_submission';
+const FAMILY_CERT_IMAGE_MAX_DIMENSION = 1600;
+const FAMILY_CERT_IMAGE_QUALITY = 0.82;
+const FAMILY_CERT_IMAGE_OPTIMIZE_THRESHOLD = 900 * 1024;
 let _familyCertRewardSyncPromise = null;
 let _familyCertLatestRow = null;
 let _familyCertAllRows = [];
 let _familyCertLatestFetchPromise = null;
 let _familyCertLatestEmpId = '';
 let _familyCertLatestFetchedAt = 0;
+let _familyCertPreviewObjectUrl = '';
 
 function getFamilyCertLatestStorageKey(empId = ACTIVE_EMPID || S.user?.empId || '') {
   return getAccountScopedStorageKey(FAMILY_CERT_LATEST_SUBMISSION_KEY, empId);
@@ -18477,7 +18485,7 @@ async function refreshCurrentUserPointsFromRemote() {
 
   const { data, error } = await _db
     .from('users')
-    .select('deviceId,empId,name,nickname,dept,avatar,points,totalPoints,tags,lastactiveat')
+    .select('deviceId,empId,name,nickname,dept,avatar,points,tags,lastactiveat')
     .or(filters.join(','));
   if (error) throw error;
 
@@ -18489,7 +18497,7 @@ async function refreshCurrentUserPointsFromRemote() {
   S.user.empId = remoteUser.empId || S.user.empId;
   S.user.dept = remoteUser.dept || S.user.dept;
   S.user.avatar = normalizeAvatar(remoteUser.avatar || S.user.avatar);
-  S.user.points = Number(remoteUser.points || remoteUser.totalPoints || remoteUser.totalpoints) || 0;
+  S.user.points = Number(remoteUser.points) || 0;
   S.user.totalPoints = Number(S.user.points || 0) || 0;
   S.user.tags = normalizeUserTags(S.user.tags);
   save();
@@ -18571,6 +18579,111 @@ function openFamilyCertModal() {
   }).catch(() => {});
 }
 
+function formatFamilyCertBytes(bytes) {
+  const value = Number(bytes) || 0;
+  if (value < 1024) return `${value}B`;
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(value < 100 * 1024 ? 1 : 0)}KB`;
+  return `${(value / (1024 * 1024)).toFixed(value < 10 * 1024 * 1024 ? 1 : 0)}MB`;
+}
+
+function setFamilyCertUploadMeta(message = '', tone = '') {
+  const el = document.getElementById('fc-upload-meta');
+  if (!el) return;
+  el.textContent = message || '';
+  el.className = `fc-upload-meta${tone ? ` ${tone}` : ''}`;
+}
+
+function clearFamilyCertPreviewObjectUrl() {
+  if (!_familyCertPreviewObjectUrl) return;
+  try { URL.revokeObjectURL(_familyCertPreviewObjectUrl); } catch (e) {}
+  _familyCertPreviewObjectUrl = '';
+}
+
+function getFamilyCertUploadExt(file) {
+  const fileName = String(file?.name || '').trim();
+  const ext = (fileName.split('.').pop() || '').trim().toLowerCase();
+  if (ext) return ext;
+  if (String(file?.type || '').startsWith('image/')) return 'jpg';
+  if (String(file?.type || '').startsWith('video/')) return 'mp4';
+  return 'bin';
+}
+
+function buildFamilyCertUploadFileName(file, empId, regId) {
+  return `${empId || 'unknown'}_${regId}_${Date.now()}.${getFamilyCertUploadExt(file)}`;
+}
+
+function loadFamilyCertImageElement(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('이미지를 불러오지 못했어요.'));
+    };
+    img.src = url;
+  });
+}
+
+async function optimizeFamilyCertUploadFile(file) {
+  const type = String(file?.type || '').toLowerCase();
+  if (!file || !type.startsWith('image/')) return { file, optimized: false };
+  if (file.size < FAMILY_CERT_IMAGE_OPTIMIZE_THRESHOLD && !type.includes('heic') && !type.includes('heif')) {
+    return { file, optimized: false };
+  }
+  try {
+    const img = await loadFamilyCertImageElement(file);
+    const canvas = document.createElement('canvas');
+    const longestSide = Math.max(Number(img.naturalWidth) || Number(img.width) || 1, Number(img.naturalHeight) || Number(img.height) || 1);
+    const ratio = Math.min(1, FAMILY_CERT_IMAGE_MAX_DIMENSION / longestSide);
+    canvas.width = Math.max(1, Math.round((Number(img.naturalWidth) || Number(img.width) || 1) * ratio));
+    canvas.height = Math.max(1, Math.round((Number(img.naturalHeight) || Number(img.height) || 1) * ratio));
+    const ctx = canvas.getContext('2d', { alpha: false });
+    if (!ctx) return { file, optimized: false };
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise((resolve, reject) => {
+      canvas.toBlob(nextBlob => {
+        if (nextBlob) resolve(nextBlob);
+        else reject(new Error('이미지 최적화에 실패했어요.'));
+      }, 'image/jpeg', FAMILY_CERT_IMAGE_QUALITY);
+    });
+    if (!blob || blob.size >= file.size * 0.95) return { file, optimized: false };
+    const nextBaseName = String(file.name || 'family-cert').replace(/\.[^.]+$/, '') || 'family-cert';
+    return {
+      file: new File([blob], `${nextBaseName}.jpg`, { type: 'image/jpeg', lastModified: Date.now() }),
+      optimized: true,
+      originalSize: file.size,
+      optimizedSize: blob.size,
+    };
+  } catch (err) {
+    console.warn('[optimizeFamilyCertUploadFile]', err);
+    return { file, optimized: false, failed: true };
+  }
+}
+
+function uploadFamilyCertFileToStorage(file, fileName, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${SUPABASE_URL}/storage/v1/object/family-certifications/${encodeURIComponent(fileName)}`);
+    xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_ANON_KEY);
+    xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+    xhr.setRequestHeader('x-upsert', 'true');
+    xhr.upload.onprogress = event => {
+      if (event.lengthComputable && typeof onProgress === 'function') onProgress(event.loaded, event.total);
+    };
+    xhr.onload = () => resolve({
+      ok: xhr.status >= 200 && xhr.status < 300,
+      status: xhr.status,
+      text: xhr.responseText || '',
+    });
+    xhr.onerror = () => reject(new Error('업로드 중 네트워크 오류가 발생했어요.'));
+    xhr.send(file);
+  });
+}
+
 function updateFcSubmitButtonState() {
   const btn = document.getElementById('fc-submit-btn');
   const fileInput = document.getElementById('fc-file-input');
@@ -18584,6 +18697,8 @@ function showFcUploadForm() {
   document.getElementById('fc-file-input').value = '';
   document.getElementById('fc-memo').value = '';
   document.getElementById('fc-consent').checked = false;
+  clearFamilyCertPreviewObjectUrl();
+  setFamilyCertUploadMeta('');
   const imgEl = document.getElementById('fc-img');
   const vidEl = document.getElementById('fc-vid');
   imgEl.style.display = 'none';
@@ -18968,6 +19083,8 @@ async function deleteCurrentFamilyCertSubmission() {
 function handleFcFileSelect(input) {
   const file = input.files[0];
   if (!file) {
+    clearFamilyCertPreviewObjectUrl();
+    setFamilyCertUploadMeta('');
     updateFcSubmitButtonState();
     return;
   }
@@ -18976,13 +19093,17 @@ function handleFcFileSelect(input) {
   const wrapEl = document.getElementById('fc-preview-wrap');
   const placeholder = document.getElementById('fc-upload-placeholder');
   const box = document.getElementById('fc-upload-box');
+  clearFamilyCertPreviewObjectUrl();
   const objUrl = URL.createObjectURL(file);
+  _familyCertPreviewObjectUrl = objUrl;
   if (file.type.startsWith('image/')) {
     imgEl.src = objUrl; imgEl.style.display = 'block';
     vidEl.style.display = 'none';
+    setFamilyCertUploadMeta(`사진 ${formatFamilyCertBytes(file.size)} 선택됨 · 업로드 전에 자동으로 가볍게 줄여서 전송해요.`, 'uploading');
   } else {
     vidEl.src = objUrl; vidEl.style.display = 'block';
     imgEl.style.display = 'none';
+    setFamilyCertUploadMeta(`영상 ${formatFamilyCertBytes(file.size)} 선택됨 · 용량이 클수록 업로드 시간이 길어질 수 있어요.`, 'warn');
   }
   wrapEl.style.display = 'block';
   if (placeholder) placeholder.style.display = 'none';
@@ -19016,23 +19137,54 @@ async function submitFamilyCertFromIndex() {
   const memo = rawMemo
     ? `${rawMemo}\n[홍보영상 활용 동의]`
     : '[홍보영상 활용 동의]';
-  btn.disabled = true; btn.textContent = '업로드 중...';
+  const isImageFile = file.type.startsWith('image/');
+  btn.disabled = true;
+  btn.textContent = isImageFile ? '사진 최적화 중...' : '업로드 준비 중...';
+  setFamilyCertUploadMeta(
+    isImageFile
+      ? `사진 ${formatFamilyCertBytes(file.size)}를 업로드에 맞게 정리하고 있어요.`
+      : `영상 ${formatFamilyCertBytes(file.size)} 업로드를 준비하고 있어요.`,
+    'uploading'
+  );
   try {
-    const ext = (file.name.split('.').pop() || (file.type.startsWith('image/') ? 'jpg' : 'mp4')).toLowerCase();
-    const fileName = `${empId || 'unknown'}_${regId}_${Date.now()}.${ext}`;
+    const optimized = await optimizeFamilyCertUploadFile(file);
+    const uploadFile = optimized?.file || file;
+    const fileName = buildFamilyCertUploadFileName(uploadFile, empId, regId);
     const submittedAt = new Date().toISOString();
-    const uploadRes = await fetch(`${SUPABASE_URL}/storage/v1/object/family-certifications/${encodeURIComponent(fileName)}`, {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': file.type || 'application/octet-stream', 'x-upsert': 'true' },
-      body: file,
+    if (optimized.optimized) {
+      setFamilyCertUploadMeta(
+        `사진 용량을 ${formatFamilyCertBytes(optimized.originalSize)}에서 ${formatFamilyCertBytes(optimized.optimizedSize)}로 줄였어요. 이제 업로드해요.`,
+        'uploading'
+      );
+    } else {
+      setFamilyCertUploadMeta(
+        isImageFile
+          ? `사진 ${formatFamilyCertBytes(uploadFile.size)} 업로드를 시작해요.`
+          : `영상 ${formatFamilyCertBytes(uploadFile.size)} 업로드를 시작해요.`,
+        'uploading'
+      );
+    }
+    btn.textContent = '업로드 중...';
+    const uploadRes = await uploadFamilyCertFileToStorage(uploadFile, fileName, (loaded, total) => {
+      const safeTotal = total || uploadFile.size || 0;
+      const percent = safeTotal ? Math.min(100, Math.max(1, Math.round((loaded / safeTotal) * 100))) : 0;
+      btn.textContent = percent ? `업로드 중... ${percent}%` : '업로드 중...';
+      if (safeTotal) {
+        setFamilyCertUploadMeta(
+          `${formatFamilyCertBytes(loaded)} / ${formatFamilyCertBytes(safeTotal)} 업로드 중`,
+          'uploading'
+        );
+      }
     });
-    if (!uploadRes.ok) throw new Error((await uploadRes.text().catch(() => '')) || 'Storage 업로드 실패 (' + uploadRes.status + ')');
+    if (!uploadRes.ok) throw new Error((uploadRes.text || '').trim() || 'Storage 업로드 실패 (' + uploadRes.status + ')');
     const mediaUrl = `${SUPABASE_URL}/storage/v1/object/public/family-certifications/${encodeURIComponent(fileName)}`;
     const certId = 'cert_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+    btn.textContent = '제출 저장 중...';
+    setFamilyCertUploadMeta('업로드가 끝나서 제출 내용을 저장하고 있어요.', 'uploading');
     const dbRes = await fetch(SUPABASE_URL + '/rest/v1/family_certifications', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ id: certId, reg_id: regId, emp_id: empId || null, name: name || null, media_url: mediaUrl, media_type: file.type.startsWith('image/') ? 'image' : 'video', memo: memo, submitted_at: submittedAt, status: 'pending' }),
+      body: JSON.stringify({ id: certId, reg_id: regId, emp_id: empId || null, name: name || null, media_url: mediaUrl, media_type: uploadFile.type.startsWith('image/') ? 'image' : 'video', memo: memo, submitted_at: submittedAt, status: 'pending' }),
     });
     if (!dbRes.ok) throw new Error((await dbRes.text().catch(() => '')) || 'DB 저장 실패 (' + dbRes.status + ')');
     setFamilyCertLatestRow({
@@ -19041,12 +19193,18 @@ async function submitFamilyCertFromIndex() {
       emp_id: empId || null,
       name: name || null,
       media_url: mediaUrl,
-      media_type: file.type.startsWith('image/') ? 'image' : 'video',
+      media_type: uploadFile.type.startsWith('image/') ? 'image' : 'video',
       memo,
       submitted_at: submittedAt,
       status: 'pending',
     }, empId);
     syncFamilyCertStateToRunday();
+    setFamilyCertUploadMeta(
+      optimized.optimized
+        ? `사진을 ${formatFamilyCertBytes(optimized.originalSize)}에서 ${formatFamilyCertBytes(optimized.optimizedSize)}로 줄여 빠르게 업로드했어요.`
+        : '',
+      optimized.optimized ? 'success' : ''
+    );
     document.getElementById('fc-done').style.display = 'block';
     renderChallenge();
     refreshCurrentFamilyCertLatest({ force: true, silent: true }).then(() => {
@@ -19059,6 +19217,12 @@ async function submitFamilyCertFromIndex() {
   } catch (err) {
     console.error('[submitFamilyCertFromIndex]', err);
     btn.disabled = false; btn.textContent = '인증 제출하기';
+    setFamilyCertUploadMeta(
+      isImageFile
+        ? '업로드 중 문제가 생겼어요. 잠시 후 다시 시도해주세요.'
+        : '영상 업로드 중 문제가 생겼어요. 파일 용량이 큰 경우 시간이 더 걸릴 수 있어요.',
+      'warn'
+    );
     showToast('제출 실패: ' + (err.message || String(err)));
   }
 }
@@ -20908,6 +21072,7 @@ async function init() {
         </div>
         <input type="file" id="fc-file-input" accept="image/*,video/*" style="display:none" onchange="handleFcFileSelect(this)">
       </div>
+      <div id="fc-upload-meta" class="fc-upload-meta"></div>
       <textarea class="fc-memo" id="fc-memo" rows="2" placeholder="한 줄 메모 (선택사항)"></textarea>
       <div class="fc-consent">
         <div class="fc-consent-copy">제출한 사진 및 영상은 병원 홍보 영상 또는 관련 홍보 콘텐츠에 활용될 수 있습니다.</div>
