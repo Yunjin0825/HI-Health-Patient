@@ -2973,11 +2973,21 @@
     .fc-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
     .fc-title { font-size:16px; font-weight:800; }
     .fc-sub { font-size:12px; color:var(--text-secondary); margin-bottom:14px; line-height:1.55; }
-    .fc-preview-wrap { margin-bottom:10px; border-radius:10px; overflow:hidden; display:none; }
-    .fc-media-preview { width:100%; display:block; border-radius:10px; }
-    .fc-file-label { display:flex; align-items:center; justify-content:center; gap:6px; width:100%; padding:10px; border-radius:10px; background:#f5f3ff; border:1px solid #ddd6fe; color:#6d28d9; font-size:13px; font-weight:700; cursor:pointer; margin-bottom:10px; }
-    .fc-file-label:active { background:#ede9fe; }
-    .fc-info-notice { background:#f5f3ff; border:1px solid #ddd6fe; border-radius:12px; padding:11px 14px; font-size:12px; color:#5b21b6; line-height:1.65; margin-bottom:14px; font-weight:600; }
+    .fc-info-text { font-size:12px; color:var(--text-secondary); margin-bottom:14px; line-height:1.6; }
+    .fc-upload-box { border:2px dashed var(--border); border-radius:14px; padding:16px; text-align:center; cursor:pointer; transition:all 0.2s; margin-bottom:12px; position:relative; background:var(--card); }
+    .fc-upload-box:hover { border-color:#7c3aed; background:#f5f3ff; }
+    .fc-upload-box.has-media { border-style:solid; border-color:#7c3aed; padding:8px; }
+    .fc-upload-placeholder { pointer-events:none; }
+    .fc-upload-icon { margin-bottom:6px; color:var(--text-secondary); }
+    .fc-upload-label { font-size:13px; color:var(--text-secondary); }
+    .fc-preview-wrap { border-radius:10px; overflow:hidden; display:none; }
+    .fc-media-preview { width:100%; display:block; border-radius:10px; max-height:200px; object-fit:cover; }
+    .fc-file-label { display:none; }
+    .fc-btn-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:0; }
+    .fc-submit-btn { padding:13px; border-radius:12px; border:none; background:linear-gradient(135deg,#6d28d9,#5b21b6); color:#fff; font-family:inherit; font-size:14px; font-weight:800; cursor:pointer; width:100%; }
+    .fc-comm-btn { padding:13px; border-radius:12px; border:1.5px solid #1535c4; background:none; color:#1535c4; font-family:inherit; font-size:14px; font-weight:800; cursor:pointer; width:100%; }
+    .fc-submit-btn:disabled { background:#d1d5db; cursor:not-allowed; }
+    .fc-divider { border:none; border-top:1px solid var(--border); margin:16px 0 14px; }
     .fc-memo { width:100%; padding:9px 12px; border:1.5px solid var(--border); border-radius:10px; font-family:inherit; font-size:13px; outline:none; resize:none; margin-bottom:12px; background:var(--card); color:var(--text); box-sizing:border-box; }
     .fc-memo:focus { border-color:#7c3aed; }
     .fc-consent { margin-bottom:12px; padding:12px; border-radius:12px; background:#fff; border:1px solid var(--border); }
@@ -3000,8 +3010,6 @@
     .fc-list-btn { padding:5px 12px; border-radius:20px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; background:var(--bg); color:var(--text); border:1px solid var(--border); }
     .fc-list-btn.share { color:#1535c4; border-color:rgba(21,53,196,0.25); }
     .fc-list-btn.del { color:#b91c1c; border-color:rgba(248,113,113,0.3); }
-    .fc-add-btn { width:100%; padding:12px; border-radius:12px; border:1.5px dashed #c4b5fd; background:none; color:#6d28d9; font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; margin-bottom:12px; }
-    .fc-add-btn:active { background:#f5f3ff; }
     .fc-done { text-align:center; padding:20px 0 8px; }
     .fc-done-icon { font-size:36px; margin-bottom:8px; }
     .fc-done-text { font-size:15px; font-weight:800; color:#5b21b6; }
@@ -18356,11 +18364,12 @@ function showFcUploadForm() {
   document.getElementById('fc-vid').style.display = 'none';
   document.getElementById('fc-preview-wrap').style.display = 'none';
   document.getElementById('fc-done').style.display = 'none';
+  const placeholder = document.getElementById('fc-upload-placeholder');
+  if (placeholder) placeholder.style.display = '';
+  const box = document.getElementById('fc-upload-box');
+  if (box) box.classList.remove('has-media');
   const btn = document.getElementById('fc-submit-btn');
-  btn.style.display = ''; btn.disabled = false; btn.textContent = '관리자에게 제출하기';
-  document.getElementById('fc-upload-form').style.display = '';
-  const addBtn = document.getElementById('fc-add-btn');
-  if (addBtn) addBtn.textContent = '접기 ▲';
+  if (btn) { btn.style.display = ''; btn.disabled = false; btn.textContent = '관리자에게 제출하기'; }
 }
 
 function toggleFcUploadForm() {
@@ -18387,16 +18396,7 @@ function renderFamilyCertList() {
   const rows = _familyCertAllRows.length ? _familyCertAllRows : (latest ? [latest] : []);
   if (!rows.length) {
     listEl.innerHTML = '';
-    showFcUploadForm();
     return;
-  }
-  // Collapse form if list has items (let user toggle)
-  const formEl = document.getElementById('fc-upload-form');
-  const doneEl = document.getElementById('fc-done');
-  if (formEl && doneEl && doneEl.style.display === 'none') {
-    formEl.style.display = 'none';
-    const addBtn = document.getElementById('fc-add-btn');
-    if (addBtn) addBtn.textContent = '+ 사진 · 영상 추가 제출하기';
   }
   listEl.innerHTML = rows.map(rawRow => {
     const row = normalizeFamilyCertRow(rawRow);
@@ -18639,6 +18639,8 @@ function handleFcFileSelect(input) {
   const imgEl = document.getElementById('fc-img');
   const vidEl = document.getElementById('fc-vid');
   const wrapEl = document.getElementById('fc-preview-wrap');
+  const placeholder = document.getElementById('fc-upload-placeholder');
+  const box = document.getElementById('fc-upload-box');
   const objUrl = URL.createObjectURL(file);
   if (file.type.startsWith('image/')) {
     imgEl.src = objUrl; imgEl.style.display = 'block';
@@ -18648,6 +18650,18 @@ function handleFcFileSelect(input) {
     imgEl.style.display = 'none';
   }
   wrapEl.style.display = 'block';
+  if (placeholder) placeholder.style.display = 'none';
+  if (box) box.classList.add('has-media');
+}
+
+function shareFamilyCertFromForm() {
+  if (IS_GUEST) { flashGuestBanner(); return; }
+  const row = getCurrentFamilyCertLatestRow();
+  if (!row?.media_url) {
+    showToast('먼저 관리자에게 제출한 인증 파일이 필요해요.');
+    return;
+  }
+  shareCurrentFamilyCertToCommunity();
 }
 
 async function submitFamilyCertFromIndex() {
@@ -18696,10 +18710,15 @@ async function submitFamilyCertFromIndex() {
       submitted_at: submittedAt,
       status: 'pending',
     }, empId);
-    btn.style.display = 'none';
     document.getElementById('fc-done').style.display = 'block';
     renderChallenge();
-    refreshCurrentFamilyCertLatest({ force: true, silent: true }).then(() => renderFamilyCertList()).catch(err => console.warn('[family-cert/post-submit-sync]', err));
+    refreshCurrentFamilyCertLatest({ force: true, silent: true }).then(() => {
+      renderFamilyCertList();
+      setTimeout(() => {
+        document.getElementById('fc-done').style.display = 'none';
+        showFcUploadForm();
+      }, 2000);
+    }).catch(err => console.warn('[family-cert/post-submit-sync]', err));
   } catch (err) {
     console.error('[submitFamilyCertFromIndex]', err);
     btn.disabled = false; btn.textContent = '관리자에게 제출하기';
@@ -20549,24 +20568,26 @@ async function init() {
       <button type="button" onclick="closeFamilyCertModal()" style="background:none;border:none;font-size:20px;color:var(--text-secondary);cursor:pointer;padding:0">✕</button>
     </div>
 
-    <div class="fc-info-notice">
-      가족 운동 인증이 승인되면 챌린지 보너스 <strong>100포인트</strong>가 자동 지급됩니다.
-    </div>
-
-    <div id="fc-list" class="fc-list"></div>
-
-    <button type="button" class="fc-add-btn" id="fc-add-btn" onclick="toggleFcUploadForm()">+ 사진 · 영상 추가 제출하기</button>
+    <div class="fc-info-text">가족 운동 인증이 승인되면 챌린지 보너스 <strong>100포인트</strong>가 자동 지급됩니다.</div>
 
     <!-- 업로드 폼 -->
-    <div id="fc-upload-form" style="display:none">
-      <div id="fc-preview-wrap" class="fc-preview-wrap">
-        <img id="fc-img" class="fc-media-preview" style="display:none" alt="인증 미리보기">
-        <video id="fc-vid" class="fc-media-preview" controls style="display:none"></video>
-      </div>
-      <label class="fc-file-label" for="fc-file-input">
-        📁 사진 / 영상 선택
+    <div id="fc-upload-form">
+      <div class="fc-upload-box" id="fc-upload-box" onclick="document.getElementById('fc-file-input').click()">
+        <div id="fc-upload-placeholder" class="fc-upload-placeholder">
+          <div class="fc-upload-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
+              <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+          </div>
+          <div class="fc-upload-label">사진 또는 영상을 선택해주세요</div>
+        </div>
+        <div id="fc-preview-wrap" class="fc-preview-wrap">
+          <img id="fc-img" class="fc-media-preview" style="display:none" alt="인증 미리보기">
+          <video id="fc-vid" class="fc-media-preview" controls style="display:none"></video>
+        </div>
         <input type="file" id="fc-file-input" accept="image/*,video/*" style="display:none" onchange="handleFcFileSelect(this)">
-      </label>
+      </div>
       <textarea class="fc-memo" id="fc-memo" rows="2" placeholder="한 줄 메모 (선택사항)"></textarea>
       <div class="fc-consent">
         <div class="fc-consent-copy">제출한 사진 및 영상은 병원 홍보 영상 또는 관련 홍보 콘텐츠에 활용될 수 있습니다.</div>
@@ -20575,13 +20596,19 @@ async function init() {
           <span>사진 및 영상이 병원 홍보영상에 사용될 수 있음에 동의합니다 <span style="color:var(--accent)">*</span></span>
         </label>
       </div>
-      <button type="button" class="fc-submit-btn" id="fc-submit-btn" onclick="submitFamilyCertFromIndex()">관리자에게 제출하기</button>
+      <div class="fc-btn-row">
+        <button type="button" class="fc-submit-btn" id="fc-submit-btn" onclick="submitFamilyCertFromIndex()">관리자에게 제출하기</button>
+        <button type="button" class="fc-comm-btn" onclick="shareFamilyCertFromForm()">커뮤니티에 공유</button>
+      </div>
       <div id="fc-done" class="fc-done" style="display:none">
         <div class="fc-done-icon">✅</div>
         <div class="fc-done-text">인증 제출 완료!</div>
         <div class="fc-done-sub">관리자 승인 후 100포인트가 자동 지급됩니다.</div>
       </div>
     </div>
+
+    <hr class="fc-divider">
+    <div id="fc-list" class="fc-list"></div>
   </div>
 </div>
 
