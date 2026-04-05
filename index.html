@@ -8140,12 +8140,19 @@ function getCurrentRewardPoints() {
 function reconcileTotalPointsFromRecords(opts = {}) {
   if (IS_GUEST) return false;
   const currentPoints = Number(S.user.points || 0);
-  const nextTotal = currentPoints;
+  const derivedTotal = getRecordDerivedTotalPoints();
+  const canReconcileFromRecords = _challengeRewardMode || !hasPointSpendHistory();
+  const nextPoints = canReconcileFromRecords
+    ? Math.max(currentPoints, derivedTotal)
+    : currentPoints;
+  const pointsChanged = nextPoints !== currentPoints;
+  if (pointsChanged) S.user.points = nextPoints;
+  const nextTotal = nextPoints;
   const totalChanged = nextTotal !== Number(S.user.totalPoints || 0);
-  if (!totalChanged) return false;
+  if (!pointsChanged && !totalChanged) return false;
   S.user.totalPoints = nextTotal;
   save({ skipRemote: true });
-  if (opts.syncRemote) forceSyncPoints({ includePoints: false });
+  if (opts.syncRemote) forceSyncPoints({ includePoints: pointsChanged });
   return true;
 }
 
