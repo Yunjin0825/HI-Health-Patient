@@ -6636,7 +6636,7 @@ const PUSH_DEFAULT_URL  = './index.html#community';
 const HOME_PUSH_PROMPT_DISMISSED_KEY = 'hi_home_push_prompt_dismissed';
 const HOME_PUSH_PROMPT_SESSION_KEY   = 'hi_home_push_prompt_seen';
 const AUTO_COMMENT_FN   = 'https://nbnmvvobehjitophkqmu.supabase.co/functions/v1/auto-comment';
-const SW_VERSION        = '20260405-008';
+const SW_VERSION        = '20260405-009';
 const SW_UPDATE_POLL_MS = 60 * 1000;
 const CHALLENGE_PEOPLE_CACHE_KEY = 'hi_health_people_cache_v1';
 let _swControllerReloaded = false;
@@ -7015,20 +7015,13 @@ document.addEventListener('visibilitychange', () => {
 async function refreshUserPointsFromServer() {
   if (!_db || !S.deviceId || IS_GUEST) return;
   try {
-    const { data } = await _db.from('users').select('points').eq('deviceId', S.deviceId).maybeSingle();
+    const { data } = await _db.from('users').select('points,totalPoints').eq('deviceId', S.deviceId).maybeSingle();
     if (!data) return;
-    const srvPts   = Number(data.points)       || 0;
-    const srvTotal = Number(data.totalPoints || data.points) || 0;
+    const srvPts = Number(data.points || data.totalPoints) || 0;
     const prevPts = Number(S.user.points || 0);
     const prevTotal = Number(S.user.totalPoints || 0);
-    const hasTrackedPointRecords = !!localStorage.getItem(STORAGE_KEY)
-      && Array.isArray(S.workouts)
-      && Array.isArray(S.glucoseRecords);
-    const nextTotal = hasTrackedPointRecords
-      ? Math.max(srvTotal, srvPts, getRecordDerivedTotalPoints())
-      : srvTotal;
     S.user.points = srvPts;
-    S.user.totalPoints = nextTotal;
+    S.user.totalPoints = srvPts;
     _lastKnownServerPts = srvPts;
     const reconciled = reconcileTotalPointsFromRecords({ syncRemote: true });
     const finalPts = Number(S.user.points || 0);
@@ -8054,6 +8047,7 @@ function save(opts = {}) {
       empId: S.user.empId || '',
       dept: S.user.dept || '',
       points: S.user.points,
+      totalPoints: Math.max(0, Number(S.user.points || 0) || 0),
       streak: S.user.streak,
       nickname: resolvedNickname,
       registrationId: S.user.registrationId || '',
@@ -8141,12 +8135,7 @@ function hasPointSpendHistory() {
 function getCurrentRewardPoints() {
   const currentPoints = Math.max(0, Number(S.user?.points || 0));
   const derivedTotal = getRecordDerivedTotalPoints();
-  const totalPoints = Math.max(
-    currentPoints,
-    Number(S.user?.totalPoints || 0),
-    derivedTotal
-  );
-  if (_challengeRewardMode) return totalPoints;
+  if (_challengeRewardMode) return currentPoints;
   if (IS_GUEST || hasPointSpendHistory()) return currentPoints;
   return Math.max(currentPoints, derivedTotal);
 }
@@ -8161,11 +8150,7 @@ function reconcileTotalPointsFromRecords(opts = {}) {
     : currentPoints;
   const pointsChanged = nextPoints !== currentPoints;
   if (pointsChanged) S.user.points = nextPoints;
-  const nextTotal = Math.max(
-    derivedTotal,
-    nextPoints,
-    Number(S.user.totalPoints || 0),
-  );
+  const nextTotal = nextPoints;
   const totalChanged = nextTotal !== Number(S.user.totalPoints || 0);
   if (!pointsChanged && !totalChanged) return false;
   S.user.totalPoints = nextTotal;
@@ -8178,9 +8163,10 @@ function reconcileTotalPointsFromRecords(opts = {}) {
 function forceSyncPoints(opts = {}) {
   if (!_db || !S.deviceId) return;
   const includePoints = opts.includePoints !== false;
-  const payload = includePoints
-    ? { points: S.user.points }
-    : {};
+  const payload = {
+    totalPoints: Math.max(0, Number(S.user.points || 0) || 0),
+  };
+  if (includePoints) payload.points = S.user.points;
   if (!Object.keys(payload).length) return;
   _db.from('users')
     .update(payload)
@@ -8945,8 +8931,8 @@ async function hydrateAccountFromRemote(empId, fallbackName = '') {
       avatar: normalizeAvatar(u.avatar || S.user.avatar),
       empId: u.empId || normalizedEmpId,
       dept: u.dept || S.user.dept || '',
-      points: Number(u.points) || 0,
-      totalPoints: Number(u.totalPoints || u.points) || 0,
+      points: Number(u.points || u.totalPoints || u.totalpoints) || 0,
+      totalPoints: Number(u.points || u.totalPoints || u.totalpoints) || 0,
       streak: Number(u.streak) || 0,
       tags: normalizeUserTags(S.user.tags),
       communityStarBadge: !!u.communityStarBadge,
@@ -9034,8 +9020,8 @@ function load() {
     }
     S.user = { ...S.user, ...d.user };
     S.user.tags = normalizeUserTags(S.user.tags);
-    // 기존 사용자 마이그레이션: totalPoints 없으면 현재 points로 초기화
-    if (!S.user.totalPoints) S.user.totalPoints = S.user.points;
+    // 누적포인트는 보유포인트와 동일하게 유지
+    S.user.totalPoints = Number(S.user.points || 0) || 0;
     if (typeof S.user.levelCardShares !== 'number') S.user.levelCardShares = 0;
     S.workouts = mapWorkoutRecords(d.workouts || [], []);
     S.posts = d.posts || JSON.parse(JSON.stringify(MOCK_POSTS_SEED));
@@ -10069,13 +10055,17 @@ function earnedAchs() {
   });
 }
 function getCurrentLeagueAlltimePoints() {
-  return Math.max(0, Number(S.user.totalPoints || 0) || getCurrentLeaguePoints());
+  return Math.max(0, Number(S.user.points || 0) || getCurrentLeaguePoints());
+}
+
+function hasLeagueUsersLoaded() {
+  return Number.isFinite(Number(_leagueCache.usersFetchedAt)) && Number(_leagueCache.usersFetchedAt) > 0;
 }
 
 function myLeagueRank() {
   if (!canJoinLeagueRanking()) return null;
   const tab = S.leagueTab;
-  const base = (_realLeagueUsers && _realLeagueUsers.length) ? _realLeagueUsers : [];
+  const base = Array.isArray(_realLeagueUsers) ? _realLeagueUsers : [];
   const myPtsVal = tab === 'weekly'
     ? myWeekPts()
     : tab === 'alltime'
@@ -11546,8 +11536,8 @@ function renderHome() {
     : '최고 레벨 달성';
 
   // Quick action subtitles
-  const _base = (_realLeagueUsers && _realLeagueUsers.length) ? _realLeagueUsers : [];
-  const _leagueReady = !!(_realLeagueUsers && _realLeagueUsers.length);
+  const _base = Array.isArray(_realLeagueUsers) ? _realLeagueUsers : [];
+  const _leagueReady = hasLeagueUsersLoaded() && !_leagueFetching;
   if (!canJoinLeagueRanking()) {
     document.getElementById('rank-quick-label').textContent = '';
     document.getElementById('my-rank-quick').textContent = '운동 기록 후 참여';
@@ -15030,15 +15020,21 @@ function getCurrentLeaguePoints() {
 
 function buildRealLeagueUsers(allUsers, allRegs, alltimePtsByDevice = {}, cumulativePtsByDevice = {}, wPtsByDevice = {}, streakByDevice = {}) {
   if (!allUsers || !allUsers.length) {
-    _realLeagueUsers = null;
+    _realLeagueUsers = [];
     return;
   }
 
-  const filtered = allUsers.filter(u => u.deviceId !== S.deviceId && u.name && !LEAGUE_EXCLUDE_EMPIDS.includes((u.empId || '').toUpperCase()));
-  if (!filtered.length) {
-    _realLeagueUsers = null;
-    return;
-  }
+  const currentDeviceId = String(S.deviceId || '').trim();
+  const currentEmpId = normalizeEmpIdValue(S.user.empId || ACTIVE_EMPID || '');
+  const filtered = allUsers.filter(u => {
+    const deviceId = String(u?.deviceId || '').trim();
+    const empId = normalizeEmpIdValue(u?.empId);
+    const displayName = String(u?.nickname || u?.name || '').trim();
+    if (!displayName) return false;
+    if (empId && LEAGUE_EXCLUDE_EMPIDS.includes(empId)) return false;
+    if ((currentDeviceId && deviceId === currentDeviceId) || (currentEmpId && empId === currentEmpId)) return false;
+    return true;
+  });
 
   const regEmpIds = new Set();
   const regDeviceIds = new Set();
@@ -15060,9 +15056,9 @@ function buildRealLeagueUsers(allUsers, allRegs, alltimePtsByDevice = {}, cumula
   });
 
   _realLeagueUsers = filtered.map(u => ({
-    id: u.empId || u.deviceId,
-    deviceId: u.deviceId,
-    name: u.nickname || u.name,
+    id: String(u.empId || u.deviceId || u.nickname || u.name || '').trim(),
+    deviceId: String(u.deviceId || '').trim(),
+    name: String(u.nickname || u.name || '').trim(),
     avatar: u.avatar || AVATARS[0],
     lv: getLevel(Math.max(0, Number(cumulativePtsByDevice[String(u.deviceId || '').trim()]) || Number(alltimePtsByDevice[String(u.deviceId || '').trim()]) || 0)).lv,
     pts: Math.max(0, Number(alltimePtsByDevice[String(u.deviceId || '').trim()]) || 0),
@@ -15075,7 +15071,7 @@ function buildRealLeagueUsers(allUsers, allRegs, alltimePtsByDevice = {}, cumula
     isChallenger:
       regEmpIds.has(normChallengeEmpId(u.empId)) ||
       (!normChallengeEmpId(u.empId) && regDeviceIds.has(normChallengeId(u.deviceId))),
-    tags: typeof u.tags === 'string' ? u.tags.split(',').filter(Boolean) : (u.tags || []),
+    tags: normalizeUserTags(u.tags),
   }));
 }
 
@@ -15121,8 +15117,8 @@ async function fetchLeagueData(opts = {}) {
       canReuseUsers
         ? Promise.resolve(null)
         : Promise.all([
-            _db.from('users').select('empId,name,nickname,avatar,points,totalPoints,tags,deviceId,streak'),
-            _db.from('registrations').select('id,empId,deviceId,status'),
+            _db.from('users').select('*'),
+            _db.from('registrations').select('id,"empId","deviceId",status'),
           ]),
       needWeekly && !canReuseWeekly
         ? Promise.all([
@@ -15141,9 +15137,13 @@ async function fetchLeagueData(opts = {}) {
     if (userBundle) {
       const [usersRes, regsRes] = userBundle;
       if (usersRes?.error) throw usersRes.error;
-      if (regsRes?.error) throw regsRes.error;
       allUsers = usersRes?.data || [];
-      allRegs = regsRes?.data || [];
+      if (regsRes?.error) {
+        console.warn('[fetchLeagueData/registrations]', regsRes.error);
+        allRegs = [];
+      } else {
+        allRegs = regsRes?.data || [];
+      }
       const [alltimeWRes, alltimeGRes] = alltimeBundle || [];
       if (alltimeWRes?.error) throw alltimeWRes.error;
       if (alltimeGRes?.error) throw alltimeGRes.error;
@@ -15168,7 +15168,10 @@ async function fetchLeagueData(opts = {}) {
         const did = String(u.deviceId || '').trim();
         if (!did) return;
         if (!totalPtsByDevice[did]) totalPtsByDevice[did] = Math.max(0, Number(u.points) || 0);
-        cumulativePtsByDevice[did] = Math.max(0, Number(u.totalPoints || 0) || Number(u.points) || Number(totalPtsByDevice[did]) || 0);
+        cumulativePtsByDevice[did] = Math.max(
+          0,
+          Number(u.points || u.totalPoints || u.totalpoints || 0) || Number(totalPtsByDevice[did]) || 0
+        );
         if (!(did in streakByDevice)) streakByDevice[did] = Number(u.streak) || 0;
       });
       _leagueCache.users = allUsers;
@@ -15249,7 +15252,7 @@ function renderLeague() {
       wPts: myWeekPts(), streak: Number(S.user.streak) || 0, change:0, isNew:false, isMe: true, isChallenger: isRegistered,
       tags: S.user.tags || [],
     };
-    const baseUsers = (_realLeagueUsers && _realLeagueUsers.length) ? _realLeagueUsers : [];
+    const baseUsers = Array.isArray(_realLeagueUsers) ? _realLeagueUsers : [];
     const challengers = [
       ...baseUsers.filter(u => u.isChallenger).map(u => ({ ...u, isMe: false })),
       ...(isRegistered && canJoinLeague && !LEAGUE_EXCLUDE_EMPIDS.includes((S.user.empId || ACTIVE_EMPID || '').trim().toUpperCase()) ? [me] : []),
@@ -15321,7 +15324,7 @@ function renderLeague() {
   }
 
   // ── 일반 랭킹 ──
-  const baseUsers = (_realLeagueUsers && _realLeagueUsers.length) ? _realLeagueUsers : MOCK_USERS;
+  const baseUsers = Array.isArray(_realLeagueUsers) ? _realLeagueUsers : MOCK_USERS;
   const myLeaguePts = getCurrentLeaguePoints();
   const myAlltimePts = getCurrentLeagueAlltimePoints();
   const myPts  = currentTab === 'weekly' ? myWeekPts() : currentTab === 'alltime' ? myAlltimePts : myLeaguePts;
@@ -18335,7 +18338,7 @@ async function updateCurrentUserPointFieldsRemote(touchedAt = new Date().toISOSt
     .from('users')
     .update({
       points: Math.max(0, Number(S.user.points) || 0),
-      totalPoints: Math.max(0, Number(S.user.totalPoints || 0) || 0),
+      totalPoints: Math.max(0, Number(S.user.points || 0) || 0),
       lastactiveat: touchedAt,
     })
     .eq('deviceId', S.deviceId);
@@ -18429,7 +18432,7 @@ async function refreshCurrentUserPointsFromRemote() {
 
   const { data, error } = await _db
     .from('users')
-    .select('deviceId,empId,name,nickname,dept,avatar,points,tags,lastactiveat')
+    .select('deviceId,empId,name,nickname,dept,avatar,points,totalPoints,tags,lastactiveat')
     .or(filters.join(','));
   if (error) throw error;
 
@@ -18441,8 +18444,8 @@ async function refreshCurrentUserPointsFromRemote() {
   S.user.empId = remoteUser.empId || S.user.empId;
   S.user.dept = remoteUser.dept || S.user.dept;
   S.user.avatar = normalizeAvatar(remoteUser.avatar || S.user.avatar);
-  S.user.points = Number(remoteUser.points) || 0;
-  S.user.totalPoints = Math.max(Number(remoteUser.points) || 0, Number(S.user.totalPoints || 0));
+  S.user.points = Number(remoteUser.points || remoteUser.totalPoints || remoteUser.totalpoints) || 0;
+  S.user.totalPoints = Number(S.user.points || 0) || 0;
   S.user.tags = normalizeUserTags(S.user.tags);
   save();
   renderHeader();
