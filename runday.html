@@ -182,69 +182,77 @@
       background: #ffffff;
     }
     .runday-dday-card {
-      padding: 0;
-      background: #ffffff;
-      border: 0;
-      box-shadow: none;
+      padding: 20px 18px 18px;
+      background: #111111;
+      border-radius: 18px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.3);
     }
     .runday-dday-heading {
-      margin-bottom: 20px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #f5a623;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 16px;
     }
     .runday-dday-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 10px;
     }
     .runday-dday-unit {
-      position: relative;
-      overflow: visible;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+    }
+    .runday-dday-digits {
+      display: flex;
+      gap: 4px;
+    }
+    .runday-dday-digit {
+      width: 44px;
+      height: 58px;
+      background: #222222;
       border-radius: 8px;
-      background: linear-gradient(180deg, #262626 0%, #1b1b1b 100%);
-      border: 1px solid #111111;
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.05),
-        inset 0 -14px 24px rgba(0,0,0,0.35),
-        0 3px 0 rgba(0,0,0,0.28),
-        0 10px 18px rgba(15, 23, 42, 0.14);
-      padding: 18px 8px 12px;
-      text-align: center;
-    }
-    .runday-dday-unit::before,
-    .runday-dday-unit::after {
-      content: "";
-      position: absolute;
-      top: -10px;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: #d9dce3;
-      border: 3px solid #43454d;
-      box-shadow: inset 0 1px 1px rgba(255,255,255,0.4);
-    }
-    .runday-dday-unit::before {
-      left: 14px;
-    }
-    .runday-dday-unit::after {
-      right: 14px;
-    }
-    .runday-dday-num {
-      font-family: Impact, Haettenschweiler, "Arial Black", sans-serif;
-      font-size: 42px;
-      line-height: 0.95;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 38px;
       font-weight: 900;
-      font-variant-numeric: tabular-nums;
       color: #ffffff;
-      letter-spacing: -0.06em;
-      text-shadow:
-        0 1px 0 rgba(255,255,255,0.22),
-        0 2px 8px rgba(255,255,255,0.08);
+      font-variant-numeric: tabular-nums;
+      position: relative;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.07);
+    }
+    .runday-dday-digit::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0; top: 50%;
+      height: 1.5px;
+      background: rgba(0,0,0,0.55);
+    }
+    .runday-dday-sep {
+      font-size: 32px;
+      font-weight: 900;
+      color: rgba(255,255,255,0.2);
+      line-height: 1;
+      padding-top: 13px;
     }
     .runday-dday-unit-label {
-      margin-top: 8px;
       font-size: 10px;
       font-weight: 700;
-      color: #f7b500;
-      letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.45);
+      letter-spacing: 1px;
+    }
+    .runday-dday-done {
+      font-size: 28px;
+      font-weight: 900;
+      color: #ffffff;
+      text-align: center;
+      padding: 8px 0;
     }
 
     /* ─── WHY SECTION ────────────────────────── */
@@ -1655,19 +1663,30 @@
 </div>
 
 <div class="hero-dday-wrap">
-  <div class="section-title runday-dday-heading" id="runday-dday-title">런데이까지 남은 시간</div>
   <div class="runday-dday-card" id="runday-dday-card">
-    <div class="runday-dday-grid">
+    <div class="runday-dday-heading" id="runday-dday-title">HI RUN DAY COUNTDOWN</div>
+    <div class="runday-dday-grid" id="runday-dday-grid">
       <div class="runday-dday-unit">
-        <div class="runday-dday-num" id="runday-dday-days">0</div>
+        <div class="runday-dday-digits">
+          <div class="runday-dday-digit" id="runday-dday-d0">0</div>
+          <div class="runday-dday-digit" id="runday-dday-d1">0</div>
+        </div>
         <div class="runday-dday-unit-label">일</div>
       </div>
+      <div class="runday-dday-sep">:</div>
       <div class="runday-dday-unit">
-        <div class="runday-dday-num" id="runday-dday-hours">0</div>
+        <div class="runday-dday-digits">
+          <div class="runday-dday-digit" id="runday-dday-h0">0</div>
+          <div class="runday-dday-digit" id="runday-dday-h1">0</div>
+        </div>
         <div class="runday-dday-unit-label">시간</div>
       </div>
+      <div class="runday-dday-sep">:</div>
       <div class="runday-dday-unit">
-        <div class="runday-dday-num" id="runday-dday-minutes">0</div>
+        <div class="runday-dday-digits">
+          <div class="runday-dday-digit" id="runday-dday-m0">0</div>
+          <div class="runday-dday-digit" id="runday-dday-m1">0</div>
+        </div>
         <div class="runday-dday-unit-label">분</div>
       </div>
     </div>
@@ -2562,20 +2581,23 @@
   }
 
   function renderRunDayCountdownCard() {
-    const daysEl = document.getElementById('runday-dday-days');
-    const hoursEl = document.getElementById('runday-dday-hours');
-    const minutesEl = document.getElementById('runday-dday-minutes');
+    const grid = document.getElementById('runday-dday-grid');
     const titleEl = document.getElementById('runday-dday-title');
-    if (!daysEl || !hoursEl || !minutesEl || !titleEl) return;
+    if (!grid) return;
     const countdown = getRunDayCountdownParts();
-    daysEl.textContent = String(countdown.days).padStart(2, '0');
-    hoursEl.textContent = String(countdown.hours).padStart(2, '0');
-    minutesEl.textContent = String(countdown.minutes).padStart(2, '0');
-    if (!countdown.done) {
-      titleEl.textContent = '런데이까지 남은 시간';
+    if (countdown.done) {
+      if (titleEl) titleEl.textContent = 'HI RUN DAY';
+      grid.innerHTML = '<div class="runday-dday-done">🏃 런데이 시작!</div>';
       return;
     }
-    titleEl.textContent = '런데이 시작';
+    const pad = n => String(n).padStart(2, '0');
+    const ds = pad(countdown.days);
+    const hs = pad(countdown.hours);
+    const ms = pad(countdown.minutes);
+    const setDigit = (id, ch) => { const el = document.getElementById(id); if (el) el.textContent = ch; };
+    setDigit('runday-dday-d0', ds[0]); setDigit('runday-dday-d1', ds[1]);
+    setDigit('runday-dday-h0', hs[0]); setDigit('runday-dday-h1', hs[1]);
+    setDigit('runday-dday-m0', ms[0]); setDigit('runday-dday-m1', ms[1]);
   }
 
   let runDayCountdownTimer = null;
