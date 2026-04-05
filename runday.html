@@ -476,6 +476,9 @@
     .family-mission-wrap {
       margin-top: 16px;
     }
+    .family-mission-section-title {
+      margin-bottom: 12px;
+    }
     .family-mission-card {
       padding: 18px;
       border-radius: 20px;
@@ -623,7 +626,7 @@
     }
     .family-mission-btn.primary {
       grid-column: 1 / -1;
-      background: linear-gradient(135deg,#fb923c,#f97316);
+      background: #1535c4;
       color: #fff;
       box-shadow: none;
     }
@@ -1991,6 +1994,7 @@
     </div>
   </div>
   <div class="family-mission-wrap" id="family-mission-wrap">
+    <div class="section-title family-mission-section-title">가족과 함께 운동해요</div>
     <div class="family-mission-card" id="family-mission-card"></div>
   </div>
 </div>
@@ -2662,13 +2666,10 @@
         : `<div class="family-mission-preview"><img src="${mediaUrl}" alt="가족 운동 인증" onclick="openFamilyMissionMedia()"></div>`
       : '';
     card.innerHTML = `
-      <div class="section-title-row" style="margin-bottom:12px">
-        <div class="section-title" style="font-size:15px;font-weight:700;margin-bottom:0">가족과 함께 운동해요</div>
-        <div class="family-mission-reward">${row ? '+100P 완료' : '+100P'}</div>
-      </div>
       ${row
         ? `<div class="family-mission-meta">
              <span class="family-mission-status ${status.cls}">${status.label}</span>
+             <span class="family-mission-reward">+100P 완료</span>
              ${submittedAt ? `<span class="together-time-sub" style="margin:0">${submittedAt} 업로드</span>` : ''}
            </div>
            ${previewHtml}
@@ -2678,7 +2679,8 @@
              <button type="button" class="family-mission-btn delete" onclick="deleteFamilyMission()">삭제</button>
              <button type="button" class="family-mission-btn" onclick="shareFamilyMission()">커뮤니티 공유</button>
            </div>`
-        : `<div class="family-mission-sub">사진 또는 영상 인증 시 <strong>+100P</strong> 추가 지급</div>
+        : `<div class="family-mission-meta"><span class="family-mission-reward">+100P</span></div>
+           <div class="family-mission-sub">사진 또는 영상 인증 시 <strong>+100P</strong> 추가 지급</div>
            <div class="family-mission-actions">
              <button type="button" class="family-mission-btn primary" onclick="openFamilyMissionUpload()">가족 사진 · 영상 올리기</button>
            </div>`}

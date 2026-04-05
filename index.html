@@ -4483,7 +4483,7 @@
     }
     .ch-family-spotlight-btn.primary {
       grid-column:1/-1;
-      background:linear-gradient(135deg,#fb923c,#f97316);
+      background:#1535c4;
       color:#fff;
       box-shadow:none;
     }
@@ -11054,7 +11054,7 @@ function buildInlineRundayScript(source = '') {
     "if (window.parent && window.parent !== window) {\n        window.parent.postMessage({ type: 'RUNDAY_IMAGE_PREVIEW_CLOSE' }, '*');\n      }",
     "if (window.parent && window.parent !== window) {\n        window.parent.postMessage({ type: 'RUNDAY_IMAGE_PREVIEW_CLOSE' }, '*');\n      } else {\n        window.dispatchEvent(new CustomEvent('hi:runday-preview-close'));\n      }"
   );
-  return `(function () {\nif (window.RundayInline?.__mounted) return;\n${code}\nconst inlineExports = {\n  openRundayProfile,\n  openCourseDetail,\n  closeCourseDetail,\n  toggleFam,\n  addFamilyMember,\n  removeFamilyMember,\n  updateFamilyMember,\n  nikeGoTo,\n  nbGoTo,\n  toggleBrand,\n  openImgPreview,\n  previewNav,\n  closeImgPreview,\n  submitReg,\n  editReg,\n  cancelReg,\n  bootstrapChallengePage,\n  setRundayPageActive,\n  loadPeople,\n  checkExisting,\n  loadChallengeConfig,\n  syncInitialIdentity,\n};\nwindow.RundayInline = { __mounted: true, ...inlineExports };\nObject.assign(window, inlineExports);\n})();`;
+  return `(function () {\nif (window.RundayInline?.__mounted) return;\n${code}\nconst inlineExports = {\n  openRundayProfile,\n  openCourseDetail,\n  closeCourseDetail,\n  toggleFam,\n  addFamilyMember,\n  removeFamilyMember,\n  updateFamilyMember,\n  nikeGoTo,\n  nbGoTo,\n  toggleBrand,\n  openImgPreview,\n  previewNav,\n  closeImgPreview,\n  submitReg,\n  editReg,\n  cancelReg,\n  bootstrapChallengePage,\n  setRundayPageActive,\n  loadPeople,\n  checkExisting,\n  loadChallengeConfig,\n  syncInitialIdentity,\n  openFamilyMissionUpload,\n  openFamilyMissionMedia,\n  deleteFamilyMission,\n  shareFamilyMission,\n  renderFamilyMissionCard,\n};\nwindow.RundayInline = { __mounted: true, ...inlineExports };\nObject.assign(window, inlineExports);\n})();`;
 }
 
 function mountInlineChallengeHtml(page, html) {
@@ -18910,11 +18910,11 @@ function renderChallenge() {
       : `<div class="ch-family-cert-preview"><img class="ch-family-cert-media" src="${familyCertMediaUrl}" alt="${familyCertImageAlt}" onclick="openPhotoLightbox('${familyCertMediaUrl}','${familyCertImageAlt}')"></div>`
     : '';
   const familyCertActionHtml = `
+    <div class="card-header" style="margin-bottom:10px">
+      <span class="card-title">가족과 함께 운동해요</span>
+      <div class="ch-family-spotlight-reward">${familyCertRow ? '+100P 완료' : '+100P'}</div>
+    </div>
     <div class="ch-family-spotlight-card">
-      <div class="card-header" style="margin-bottom:12px">
-        <span class="card-title">가족과 함께 운동해요</span>
-        <div class="ch-family-spotlight-reward">${familyCertRow ? '+100P 완료' : '+100P'}</div>
-      </div>
       ${familyCertRow
         ? `<div class="ch-family-spotlight-meta">
              <span class="badge ${familyCertStatus.cls}">${familyCertStatus.label}</span>
