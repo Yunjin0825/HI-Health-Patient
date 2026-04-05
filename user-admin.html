@@ -1107,6 +1107,16 @@
 <!-- TOAST -->
 <div class="toast-wrap" id="toast-wrap"></div>
 
+<!-- 가족인증 포인트 지급 팝업 -->
+<div class="modal-bg" id="famcert-reward-modal">
+  <div class="modal" style="max-width:340px;text-align:center">
+    <div style="font-size:36px;margin-bottom:12px">🎉</div>
+    <div class="modal-title" id="famcert-reward-modal-title" style="text-align:center;font-size:18px"></div>
+    <p id="famcert-reward-modal-body" style="color:#4B5563;font-size:14px;margin:8px 0 20px"></p>
+    <button class="cbtn grn" style="width:100%;padding:12px" onclick="closeFamCertRewardModal()">확인</button>
+  </div>
+</div>
+
 <!-- 포인트 조정 팝업 -->
 <div class="pts-popup" id="pts-popup">
   <button class="pts-popup-close" onclick="closePtsPopup()">✕</button>
@@ -5641,14 +5651,16 @@ async function reviewFamCert(id, status) {
       certRow.reward_message = rewardBlockedMessage;
     }
   }
-  const toastMsg = (status === 'approved' && rewardLimitReached)
-    ? `인증 승인 완료 ✓ 포인트는 최대 ${FAMILY_CERT_REWARD_LIMIT}회까지만 지급됩니다`
-    : status === 'approved'
-      ? `인증 승인 및 ${FAMILY_CERT_REWARD_POINTS}포인트 지급 완료 ✓`
-      : `인증 ${label} 완료 ✓`;
   showLoading(false);
-  toast(toastMsg);
   await loadAll({ silent: true });
+  if (status === 'approved' && rewardMeta) {
+    const recipientUser = GD.users.find(u => String(u?.deviceId || '').trim() === rewardMeta.userDeviceId);
+    showFamCertRewardModal(recipientUser?.name || '해당 이용자', FAMILY_CERT_REWARD_POINTS);
+  } else if (status === 'approved' && rewardLimitReached) {
+    toast(`인증 승인 완료 ✓ 포인트는 최대 ${FAMILY_CERT_REWARD_LIMIT}회까지만 지급됩니다`);
+  } else {
+    toast(`인증 ${label} 완료 ✓`);
+  }
 }
 
 async function deleteFamCert(id) {
@@ -6172,6 +6184,18 @@ function showLoading(on) {
 
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');
+}
+
+let _famCertRewardModalShown = false;
+function showFamCertRewardModal(name, points) {
+  if (_famCertRewardModalShown) return;
+  _famCertRewardModalShown = true;
+  document.getElementById('famcert-reward-modal-title').textContent = '포인트 지급 완료!';
+  document.getElementById('famcert-reward-modal-body').textContent = `${name}님께 ${points}포인트가 지급되었습니다.`;
+  document.getElementById('famcert-reward-modal').classList.add('open');
+}
+function closeFamCertRewardModal() {
+  document.getElementById('famcert-reward-modal').classList.remove('open');
 }
 
 function toast(msg, dur = 3000) {
