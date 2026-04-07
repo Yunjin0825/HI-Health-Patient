@@ -3421,6 +3421,12 @@
     .league-rank-badge.streak-milestone::before {
       content:'';
     }
+    .league-rank-badge.comm-star {
+      background:#FCE4EC; color:#c2185b; border-color:#f48fb1;
+    }
+    .league-rank-badge.giver-star {
+      background:#FFF3E0; color:#e65100; border-color:#ffb74d;
+    }
     .lb-level-icon {
       width:22px; height:22px; flex-shrink:0;
       display:inline-flex; align-items:center; justify-content:center;
@@ -7924,9 +7930,9 @@ const ACHIEVEMENTS_DATA = [
   { id:'a5', name:'30회 달성',     desc:'운동 30회를 기록했어요',       goal:30,   key:'totalWorkouts',    img:'images/badge5.png', color:'#E1BEE7' },
   { id:'a6', name:'포인트 왕',     desc:'총 1000 포인트 달성',          goal:1000, key:'points',            img:'images/badge6.png', color:'#FFF3CD' },
   { id:'a7', name:'레전드',        desc:'레벨 6에 도달했어요',          goal:6,    key:'level',             img:'images/badge7.png', color:'#C5CAE9' },
-  { id:'a8', name:'커뮤니티 스타', desc:'리그에서 글을 가장 많이 올린 사람',    goal:0, key:'topPoster',      img:'images/badge8.png',       color:'#FCE4EC' },
-  { id:'a9', name:'공유 스타',     desc:'레벨 카드를 3번 공유했어요',            goal:3, key:'levelCardShares', img:'images/badge_run.png',    color:'#E0F2FE' },
-  { id:'a10', name:'공감왕',       desc:'리그에서 공감 스티커를 가장 많이 단 사람', goal:0, key:'topGiver',     img:'images/badge_cheer.svg',  color:'#FFF3E0' },
+  { id:'a8', name:'커뮤니티 스타', desc:'커뮤니티에 글 5개 올리기',     goal:5,  key:'totalPosts',     img:'images/badge8.png',      color:'#FCE4EC' },
+  { id:'a9', name:'공유 스타',     desc:'레벨 카드를 3번 공유했어요',   goal:3,  key:'levelCardShares', img:'images/badge_run.png',   color:'#E0F2FE' },
+  { id:'a10', name:'공감왕',       desc:'공감 스티커 50번 누르기',      goal:50, key:'stickersGiven',  img:'images/badge_cheer.svg', color:'#FFF3E0' },
 ];
 
 const MOCK_USERS = [];
@@ -10131,13 +10137,13 @@ function updateStreak() {
 function earnedAchs() {
   const lv = getLevel(S.user.totalPoints || S.user.points).lv;
   return ACHIEVEMENTS_DATA.filter(a => {
-    if (a.key === 'topPoster') return !IS_GUEST && _communityTopPosterDeviceId && _communityTopPosterDeviceId === S.deviceId;
-    if (a.key === 'topGiver')  return !IS_GUEST && _communityTopGiverDeviceId  && _communityTopGiverDeviceId  === S.deviceId;
     const val = a.key === 'totalWorkouts' ? totalWorkouts()
               : a.key === 'streak'        ? S.user.streak
               : a.key === 'points'        ? (S.user.totalPoints || S.user.points)
               : a.key === 'level'         ? lv
               : a.key === 'stickersReceived' ? S.user.stickersReceived
+              : a.key === 'stickersGiven' ? (S.user.stickersGiven || 0)
+              : a.key === 'totalPosts'    ? (S.posts || []).filter(p => p.deviceId === S.deviceId).length
               : a.key === 'levelCardShares' ? (S.user.levelCardShares || 0)
               : 0;
     return val >= a.goal;
@@ -10473,6 +10479,7 @@ function getLeagueStreakMilestoneLabel(streak = 0) {
 
 function renderLeagueEntryBadgesHtml(entry, badgeState = {}, tab = S.leagueTab) {
   const key = getLeagueEntryKey(entry);
+  const did = entry?.deviceId || '';
   const badges = [];
   const streakMilestoneLabel = getLeagueStreakMilestoneLabel(entry?.streak);
   const isStreakKing = key && badgeState.streakKingKey === key;
@@ -10487,6 +10494,13 @@ function renderLeagueEntryBadgesHtml(entry, badgeState = {}, tab = S.leagueTab) 
   }
   if (streakMilestoneLabel && !isStreakKing) {
     badges.push(`<span class="league-rank-badge streak-milestone">${streakMilestoneLabel}</span>`);
+  }
+  // 커뮤니티 스타 / 공감왕 — 커뮤니티 탭 로드 후 동적 계산된 값 사용
+  if (did && _communityTopPosterDeviceId && did === _communityTopPosterDeviceId) {
+    badges.push('<span class="league-rank-badge comm-star">⭐ 커뮤니티 스타</span>');
+  }
+  if (did && _communityTopGiverDeviceId && did === _communityTopGiverDeviceId) {
+    badges.push('<span class="league-rank-badge giver-star">💖 공감왕</span>');
   }
   return badges.length ? `<span class="league-rank-badges">${badges.join('')}</span>` : '';
 }
@@ -15449,6 +15463,10 @@ async function fetchLeagueData(opts = {}) {
 }
 
 function renderLeague() {
+  // 커뮤니티 스타 / 공감왕 — S.posts 기반으로 즉시 계산 (커뮤니티 탭 미방문 시 대비)
+  if (!_communityTopPosterDeviceId && (S.posts || []).length) {
+    _calcCommunityRankBadges(S.posts, null);
+  }
   const tab = S.leagueTab;
   const canJoinLeague = canJoinLeagueRanking();
   if (tab === 'challenger' && !hasActiveChallengeRegistration()) {
@@ -15905,10 +15923,12 @@ let _communityReactionCache = { stickerMap: {}, myReactionMap: {}, commentMap: {
 const COMMUNITY_CACHE_TTL = 2 * 60 * 1000; // 2분
 
 // 커뮤니티 스타(최다 게시자) / 공감왕(최다 스티커 발신자) 동적 계산
+// - remotePosts: 서버에서 받은 posts 배열 (없으면 S.posts 사용)
+// - allReactions: 서버에서 받은 reactions 배열 (없으면 스킵)
 function _calcCommunityRankBadges(remotePosts, allReactions) {
-  // 커뮤니티 스타: 로드된 게시글 중 가장 많이 쓴 사람
+  // 커뮤니티 스타: 게시글 수 기준 1위
   const postCnt = {};
-  (remotePosts || []).forEach(p => {
+  (remotePosts || S.posts || []).forEach(p => {
     if (!p.deviceId || isBotDeviceId(p.deviceId)) return;
     postCnt[p.deviceId] = (postCnt[p.deviceId] || 0) + 1;
   });
@@ -15919,21 +15939,22 @@ function _calcCommunityRankBadges(remotePosts, allReactions) {
   _communityTopPosterDeviceId = topPoster;
   _communityTopPosterCount = topPosterCount;
 
-  // 공감왕: 로드된 반응 중 가장 많이 스티커를 단 사람
-  const giverCnt = {};
-  (allReactions || []).forEach(r => {
-    if (!r.deviceId) return;
-    giverCnt[r.deviceId] = (giverCnt[r.deviceId] || 0) + 1;
-  });
-  let topGiver = null, topGiverCount = 0;
-  for (const [did, cnt] of Object.entries(giverCnt)) {
-    if (cnt > topGiverCount) { topGiverCount = cnt; topGiver = did; }
+  // 공감왕: 스티커 발신 수 기준 1위 (reactions 데이터 있을 때만 갱신)
+  if (allReactions) {
+    const giverCnt = {};
+    allReactions.forEach(r => {
+      if (!r.deviceId) return;
+      giverCnt[r.deviceId] = (giverCnt[r.deviceId] || 0) + 1;
+    });
+    let topGiver = null, topGiverCount = 0;
+    for (const [did, cnt] of Object.entries(giverCnt)) {
+      if (cnt > topGiverCount) { topGiverCount = cnt; topGiver = did; }
+    }
+    _communityTopGiverDeviceId = topGiver;
+    _communityTopGiverCount = topGiverCount;
+    // 내 공감 횟수 동기화
+    S.user.stickersGiven = Math.max(giverCnt[S.deviceId] || 0, S.user.stickersGiven || 0);
   }
-  _communityTopGiverDeviceId = topGiver;
-  _communityTopGiverCount = topGiverCount;
-
-  // 내가 스티커를 단 총 횟수 동기화 (공감왕 배지 탭 진행도 표시용)
-  S.user.stickersGiven = giverCnt[S.deviceId] || S.user.stickersGiven || 0;
 }
 
 async function fetchCommunityPosts() {
@@ -16976,32 +16997,12 @@ function renderRewards() {
   document.getElementById('ach-list').innerHTML = ACHIEVEMENTS_DATA.map(a => {
     const isEarned = !!earned.find(e => e.id === a.id);
     const lv = getLevel(S.user.totalPoints || S.user.points);
-    // 동적 랭킹 배지 (커뮤니티 스타 / 공감왕) 특수 렌더링
-    if (a.key === 'topPoster' || a.key === 'topGiver') {
-      const myCount = a.key === 'topPoster'
-        ? (S.posts || []).filter(p => p.deviceId === S.deviceId).length
-        : (S.user.stickersGiven || 0);
-      const topCount = a.key === 'topPoster' ? _communityTopPosterCount : _communityTopGiverCount;
-      const label = a.key === 'topPoster' ? `내 글 ${myCount}개` : `내 공감 ${myCount}번`;
-      const pct = topCount > 0 ? Math.min(100, Math.round((myCount / topCount) * 100)) : 0;
-      return `
-        <div class="ach-item ${isEarned ? '' : 'locked'}">
-          <div class="ach-badge ${isEarned ? 'earned' : 'pending'}"><img src="${a.img}" alt="${a.name}"></div>
-          <div class="ach-info">
-            <div class="ach-name">${a.name}${isEarned ? ' 👑' : ''}</div>
-            <div class="ach-desc">${a.desc}</div>
-            ${!isEarned ? `
-              <div class="ach-prog-bar"><div class="ach-prog-fill" style="width:${pct}%"></div></div>
-            ` : ''}
-          </div>
-          ${!isEarned ? `<div style="font-size:11px;color:var(--text-secondary);text-align:right;min-width:36px">${label}</div>` : ''}
-        </div>
-      `;
-    }
     const curVal = a.key === 'totalWorkouts' ? totalWorkouts()
                  : a.key === 'streak'        ? S.user.streak
                  : a.key === 'points'        ? (S.user.totalPoints || S.user.points)
                  : a.key === 'level'         ? lv.lv
+                 : a.key === 'stickersGiven' ? (S.user.stickersGiven || 0)
+                 : a.key === 'totalPosts'    ? (S.posts || []).filter(p => p.deviceId === S.deviceId).length
                  : a.key === 'levelCardShares' ? (S.user.levelCardShares || 0)
                  : (S.user.stickersReceived || 0);
     const pct = Math.min(100, Math.round((curVal/a.goal)*100));
