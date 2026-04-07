@@ -15408,6 +15408,7 @@ async function fetchLeagueData(opts = {}) {
         streakByDevice[did] = computeStreakFromTsList(tsList);
       });
       // workouts에 없는 유저는 users.points / streak으로 폴백
+      // 가족인증 등 직접 지급된 보너스(users.points - 운동합산)를 챌린지 포인트에도 반영
       allUsers.forEach(u => {
         const did = String(u.deviceId || '').trim();
         if (!did) return;
@@ -15421,6 +15422,11 @@ async function fetchLeagueData(opts = {}) {
           serverTotalPoints,
           activityPoints
         );
+        // 운동 기록 외 직접 지급 포인트(가족인증 등) → 챌린지 포인트에도 반영
+        const bonusPoints = Math.max(0, serverPoints - activityPoints);
+        if (bonusPoints > 0) {
+          challengePtsByDevice[did] = (challengePtsByDevice[did] || 0) + bonusPoints;
+        }
         if (!(did in streakByDevice)) streakByDevice[did] = Number(u.streak) || 0;
       });
       _leagueCache.users = allUsers;
