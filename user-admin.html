@@ -181,6 +181,7 @@
     .pts-popup{position:fixed;z-index:9999;background:var(--card);border-radius:var(--r);box-shadow:0 8px 32px rgba(0,0,0,.18);padding:18px 20px;min-width:260px;display:none;}
     .pts-popup-name{font-size:13px;font-weight:700;margin-bottom:2px;}
     .pts-popup-cur{font-size:22px;font-weight:800;color:var(--p);margin-bottom:14px;}
+    .pts-popup-sub{font-size:11px;color:var(--t3);margin:-10px 0 14px;}
     .pts-popup-row{display:flex;gap:6px;align-items:center;}
     .pts-popup-close{position:absolute;top:10px;right:12px;background:none;border:none;font-size:16px;cursor:pointer;color:var(--t3);}
     .badge.pts{cursor:pointer;transition:opacity .15s;}
@@ -1126,6 +1127,7 @@
   <button class="pts-popup-close" onclick="closePtsPopup()">✕</button>
   <div class="pts-popup-name" id="pts-popup-name"></div>
   <div class="pts-popup-cur" id="pts-popup-cur"></div>
+  <div class="pts-popup-sub" id="pts-popup-sub" style="display:none"></div>
   <div class="pts-popup-row">
     <input class="dp-inp" type="number" id="adj-val" placeholder="조정값" style="width:88px;padding:7px 10px">
     <button class="cbtn grn" onclick="adjPoints(1)">+ 추가</button>
@@ -2892,6 +2894,7 @@ function filteredUsers() {
 function sortedUsers(arr) {
   const sort = document.getElementById('u-sort')?.value || 'name';
   const woCnt = {}, strk = {}, lastWorkoutTsMap = {};
+  const pointMaps = getAdminPointBreakdownMaps();
   GD.workouts.forEach(w => {
     woCnt[w.deviceId] = (woCnt[w.deviceId]||0)+1;
     lastWorkoutTsMap[w.deviceId] = Math.max(lastWorkoutTsMap[w.deviceId] || 0, getAdminRecordTsValue(w));
@@ -3046,15 +3049,33 @@ function clearSel() {
   closePtsPopup();
 }
 
+function renderPtsPopupSummary(user, pointMaps = null) {
+  const u = user || (selDeviceId ? GD.users.find(x => x.deviceId === selDeviceId) : null);
+  const curEl = document.getElementById('pts-popup-cur');
+  const subEl = document.getElementById('pts-popup-sub');
+  if (!u || !curEl || !subEl) return;
+  const maps = pointMaps && typeof pointMaps === 'object' ? pointMaps : getAdminPointBreakdownMaps();
+  const visiblePoints = getAdminUsersTabPoints(u, maps);
+  const balancePoints = getAdminBalancePoints(u);
+  curEl.textContent = visiblePoints.toLocaleString() + 'p';
+  if (visiblePoints !== balancePoints) {
+    subEl.textContent = `실제 조정 잔액 ${balancePoints.toLocaleString()}p`;
+    subEl.style.display = '';
+  } else {
+    subEl.textContent = '';
+    subEl.style.display = 'none';
+  }
+}
+
 function openPtsPopup(deviceId, e) {
   selDeviceId = deviceId;
   const u = GD.users.find(x => x.deviceId === deviceId);
   if (!u) return;
-  const balancePoints = getAdminBalancePoints(u);
+  const pointMaps = getAdminPointBreakdownMaps();
   selectUser(deviceId, u.name || '');
   const popup = document.getElementById('pts-popup');
   document.getElementById('pts-popup-name').textContent = u.name || '(이름없음)';
-  document.getElementById('pts-popup-cur').textContent = balancePoints.toLocaleString() + 'p';
+  renderPtsPopupSummary(u, pointMaps);
   document.getElementById('adj-val').value = '';
   popup.style.display = 'block';
   // 클릭 위치 기준으로 팝업 위치 결정
@@ -3189,7 +3210,7 @@ async function adjPoints(sign) {
   if (result.error) { toast('실패: ' + result.error.message); return; }
   u.points = Number(result.points) || newPts;
   if (result.appliedTotalPoints) u.totalPoints = Number(result.totalPoints) || newTotalPoints;
-  document.getElementById('pts-popup-cur').textContent = getAdminBalancePoints(u).toLocaleString() + 'p';
+  renderPtsPopupSummary(u);
   document.getElementById('adj-val').value = '';
   renderStats(); renderUsers();
   toast((sign > 0 ? '+' : '') + (sign * v) + 'p 조정 완료' + (result.appliedTotalPoints ? '' : ' (누적포인트 동기화는 제외됨)'));
