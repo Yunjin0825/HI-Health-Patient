@@ -15958,7 +15958,7 @@ function _calcCommunityRankBadges(remotePosts, allReactions) {
   if (allReactions) {
     const giverCnt = {};
     allReactions.forEach(r => {
-      if (!r.deviceId) return;
+      if (!r.deviceId || isBotDeviceId(r.deviceId)) return;
       giverCnt[r.deviceId] = (giverCnt[r.deviceId] || 0) + 1;
     });
     let topGiver = null, topGiverCount = 0;
