@@ -15408,25 +15408,16 @@ async function fetchLeagueData(opts = {}) {
         streakByDevice[did] = computeStreakFromTsList(tsList);
       });
       // workouts에 없는 유저는 users.points / streak으로 폴백
-      // 가족인증 등 직접 지급된 보너스(users.points - 운동합산)를 챌린지 포인트에도 반영
+      // 레벨별·전체기록 탭: users.points 기준 (운동+혈당+가족인증+관리자부여 포함)
+      // 이번주·챌린지 탭: 운동+혈당만 (workouts/glucose 테이블 합산)
       allUsers.forEach(u => {
         const did = String(u.deviceId || '').trim();
         if (!did) return;
         const serverPoints = Math.max(0, Number(u.points || 0) || 0);
-        const serverTotalPoints = Math.max(0, Number(u.totalPoints || u.totalpoints || 0) || 0);
         const activityPoints = Math.max(0, Number(totalPtsByDevice[did]) || 0);
         if (!totalPtsByDevice[did]) totalPtsByDevice[did] = serverPoints;
-        cumulativePtsByDevice[did] = Math.max(
-          0,
-          serverPoints,
-          serverTotalPoints,
-          activityPoints
-        );
-        // 운동 기록 외 직접 지급 포인트(가족인증 등) → 챌린지 포인트에도 반영
-        const bonusPoints = Math.max(0, serverPoints - activityPoints);
-        if (bonusPoints > 0) {
-          challengePtsByDevice[did] = (challengePtsByDevice[did] || 0) + bonusPoints;
-        }
+        // 전체/레벨용 누적 포인트: users.points 우선 (가족인증·관리자 부여 포함)
+        cumulativePtsByDevice[did] = Math.max(0, serverPoints, activityPoints);
         if (!(did in streakByDevice)) streakByDevice[did] = Number(u.streak) || 0;
       });
       _leagueCache.users = allUsers;
