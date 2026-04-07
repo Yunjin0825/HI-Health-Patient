@@ -2517,7 +2517,7 @@ function getAdminLocalDateKey(d = new Date()) {
   return `${y}-${m}-${day}`;
 }
 
-function getAdminWeeklyPointsMap(workouts = GD.workouts, weekStartTs = getAdminLeagueWeekStartTs()) {
+function getAdminWeeklyPointsMap(workouts = GD.workouts, glucose = GD.glucose, weekStartTs = getAdminLeagueWeekStartTs()) {
   const byDeviceId = {};
   (workouts || []).forEach(w => {
     const ts = getAdminRecordTsValue(w);
@@ -2525,6 +2525,13 @@ function getAdminWeeklyPointsMap(workouts = GD.workouts, weekStartTs = getAdminL
     const deviceId = String(w?.deviceId || '').trim();
     if (!deviceId) return;
     byDeviceId[deviceId] = (byDeviceId[deviceId] || 0) + (Number(w?.points) || 0);
+  });
+  (glucose || []).forEach(g => {
+    const ts = getAdminRecordTsValue(g);
+    if (!ts || ts < weekStartTs) return;
+    const deviceId = String(g?.deviceId || '').trim();
+    if (!deviceId) return;
+    byDeviceId[deviceId] = (byDeviceId[deviceId] || 0) + (Number(g?.points) || 0);
   });
   return byDeviceId;
 }
@@ -2545,13 +2552,18 @@ function getAdminRecordCountMaps(workouts = GD.workouts, glucose = GD.glucose) {
   return { workoutCountByDeviceId, glucoseCountByDeviceId };
 }
 
-function getAdminActivityPointsMap(workouts = GD.workouts, glucose = GD.glucose) {
+function getAdminWorkoutPointsMap(workouts = GD.workouts) {
   const byDeviceId = {};
   (workouts || []).forEach(w => {
     const deviceId = String(w?.deviceId || '').trim();
     if (!deviceId) return;
     byDeviceId[deviceId] = (byDeviceId[deviceId] || 0) + (Number(w?.points) || 0);
   });
+  return byDeviceId;
+}
+
+function getAdminGlucosePointsMap(glucose = GD.glucose) {
+  const byDeviceId = {};
   (glucose || []).forEach(g => {
     const deviceId = String(g?.deviceId || '').trim();
     if (!deviceId) return;
@@ -2560,11 +2572,31 @@ function getAdminActivityPointsMap(workouts = GD.workouts, glucose = GD.glucose)
   return byDeviceId;
 }
 
-function getAdminEffectivePoints(u, activityPointsMap = getAdminActivityPointsMap()) {
+function getAdminPointBreakdownMaps(workouts = GD.workouts, glucose = GD.glucose) {
+  return {
+    workoutPointsByDeviceId: getAdminWorkoutPointsMap(workouts),
+    glucosePointsByDeviceId: getAdminGlucosePointsMap(glucose),
+  };
+}
+
+function getAdminActivityPointsMap(workouts = GD.workouts, glucose = GD.glucose) {
+  const { workoutPointsByDeviceId, glucosePointsByDeviceId } = getAdminPointBreakdownMaps(workouts, glucose);
+  const byDeviceId = { ...workoutPointsByDeviceId };
+  Object.entries(glucosePointsByDeviceId).forEach(([deviceId, points]) => {
+    byDeviceId[deviceId] = (byDeviceId[deviceId] || 0) + (Number(points) || 0);
+  });
+  return byDeviceId;
+}
+
+function getAdminEffectivePoints(u, pointMaps = null) {
   const deviceId = String(u?.deviceId || '').trim();
   const rawPoints = Math.max(0, Number(u?.points) || 0);
-  const recordPoints = deviceId ? Math.max(0, Number(activityPointsMap[deviceId]) || 0) : 0;
-  return Math.max(rawPoints, recordPoints);
+  const maps = pointMaps && typeof pointMaps === 'object' && (pointMaps.workoutPointsByDeviceId || pointMaps.glucosePointsByDeviceId)
+    ? pointMaps
+    : getAdminPointBreakdownMaps();
+  const workoutPoints = deviceId ? Math.max(0, Number(maps.workoutPointsByDeviceId?.[deviceId]) || 0) : 0;
+  const glucosePoints = deviceId ? Math.max(0, Number(maps.glucosePointsByDeviceId?.[deviceId]) || 0) : 0;
+  return Math.max(rawPoints, workoutPoints) + glucosePoints;
 }
 
 function getAdminAlltimeLeaguePoints(u) {
@@ -2593,21 +2625,54 @@ function populateAdminLeagueLevelFilter() {
 
 function getAdminLeagueEntries() {
   const weekPts = getAdminWeeklyPointsMap();
+  const pointMaps = getAdminPointBreakdownMaps();
   const { workoutCountByDeviceId, glucoseCountByDeviceId } = getAdminRecordCountMaps();
-  return GD.users
+  const groups = new Map();
+
+  GD.users
     .filter(u => !USER_LIST_EXCLUDE_EMPIDS.includes((u.empId || '').trim().toUpperCase()))
-    .map(u => {
-      const pts = getAdminAlltimeLeaguePoints(u);
+    .forEach(u => {
+      const deviceId = String(u?.deviceId || '').trim();
+      const empId = String(u?.empId || '').trim().toUpperCase();
+      const key = empId ? `emp:${empId}` : (deviceId ? `device:${deviceId}` : '');
+      if (!key) return;
+      if (!groups.has(key)) {
+        groups.set(key, {
+          representative: null,
+          representativeTs: 0,
+          deviceIds: new Set(),
+          maxServerPoints: 0,
+          isChallenger: false,
+        });
+      }
+      const group = groups.get(key);
+      const activeTs = getUserLastActiveTs(u);
+      if (!group.representative || activeTs >= group.representativeTs) {
+        group.representative = u;
+        group.representativeTs = activeTs;
+      }
+      if (deviceId) group.deviceIds.add(deviceId);
+      group.maxServerPoints = Math.max(group.maxServerPoints, Math.max(0, Number(u?.points) || 0));
+      group.isChallenger = group.isChallenger || isChallenger(u);
+    });
+
+  return [...groups.values()]
+    .map(group => {
+      const representative = group.representative || {};
+      const deviceIds = [...group.deviceIds];
+      const workoutPoints = deviceIds.reduce((sum, deviceId) => sum + (Math.max(0, Number(pointMaps.workoutPointsByDeviceId?.[deviceId]) || 0)), 0);
+      const glucosePoints = deviceIds.reduce((sum, deviceId) => sum + (Math.max(0, Number(pointMaps.glucosePointsByDeviceId?.[deviceId]) || 0)), 0);
+      const pts = Math.max(group.maxServerPoints, workoutPoints) + glucosePoints;
       const level = getAdminLevel(pts);
-      const deviceId = String(u.deviceId || '').trim();
       return {
-        ...u,
+        ...representative,
+        deviceId: String(representative.deviceId || deviceIds[0] || '').trim(),
         pts,
-        wPts: weekPts[deviceId] || 0,
-        workoutCount: workoutCountByDeviceId[deviceId] || 0,
-        glucoseCount: glucoseCountByDeviceId[deviceId] || 0,
+        wPts: deviceIds.reduce((sum, deviceId) => sum + (Math.max(0, Number(weekPts[deviceId]) || 0)), 0),
+        workoutCount: deviceIds.reduce((sum, deviceId) => sum + (Number(workoutCountByDeviceId[deviceId]) || 0), 0),
+        glucoseCount: deviceIds.reduce((sum, deviceId) => sum + (Number(glucoseCountByDeviceId[deviceId]) || 0), 0),
         level,
-        isChallenger: isChallenger(u),
+        isChallenger: group.isChallenger,
       };
     })
     .filter(u => (u.name || u.empId || u.deviceId));
@@ -2812,7 +2877,7 @@ function filteredUsers() {
 function sortedUsers(arr) {
   const sort = document.getElementById('u-sort')?.value || 'name';
   const woCnt = {}, strk = {}, lastWorkoutTsMap = {};
-  const activityPointsMap = getAdminActivityPointsMap();
+  const pointMaps = getAdminPointBreakdownMaps();
   GD.workouts.forEach(w => {
     woCnt[w.deviceId] = (woCnt[w.deviceId]||0)+1;
     lastWorkoutTsMap[w.deviceId] = Math.max(lastWorkoutTsMap[w.deviceId] || 0, getAdminRecordTsValue(w));
@@ -2825,7 +2890,7 @@ function sortedUsers(arr) {
       : (Number(u.streak) || 0);
   });
   return [...arr].sort((a, b) => {
-    if (sort === 'points')   return getAdminEffectivePoints(b, activityPointsMap) - getAdminEffectivePoints(a, activityPointsMap);
+    if (sort === 'points')   return getAdminEffectivePoints(b, pointMaps) - getAdminEffectivePoints(a, pointMaps);
     if (sort === 'lastActive') return getUserLastActiveTs(b, lastWorkoutTsMap) - getUserLastActiveTs(a, lastWorkoutTsMap);
     if (sort === 'workouts') return (woCnt[b.deviceId]||0) - (woCnt[a.deviceId]||0);
     if (sort === 'streak')   return (strk[b.deviceId]||0) - (strk[a.deviceId]||0);
@@ -2862,7 +2927,7 @@ function computeAdminStreakByDevice(workouts = GD.workouts) {
 function renderUsers() {
   const dupIds = getDupEmpIds();
   const woCnt = {}, lastWorkoutTsMap = {};
-  const activityPointsMap = getAdminActivityPointsMap();
+  const pointMaps = getAdminPointBreakdownMaps();
   const streakByDevice = computeAdminStreakByDevice();
   GD.workouts.forEach(w => {
     woCnt[w.deviceId] = (woCnt[w.deviceId]||0)+1;
@@ -2911,7 +2976,7 @@ function renderUsers() {
 
   tbody.innerHTML = page.map((u, i) => {
     const rank = uPage * PAGE + i + 1;
-    const effectivePoints = getAdminEffectivePoints(u, activityPointsMap);
+    const effectivePoints = getAdminEffectivePoints(u, pointMaps);
     const rc = rank === 1 ? 'g1' : rank === 2 ? 'g2' : rank === 3 ? 'g3' : '';
     const bad = isBadName(u.name);
     const dup = dupIds.has((u.empId||'').trim());
@@ -3351,11 +3416,11 @@ async function restoreUsersFromActivity() {
 async function deleteDuplicates() {
   const dupIds = getDupEmpIds();
   if (!dupIds.size) { toast('중복 이용자 없음'); return; }
-  const activityPointsMap = getAdminActivityPointsMap();
+  const pointMaps = getAdminPointBreakdownMaps();
   const toDelete = [];
   dupIds.forEach(empId => {
     const group = GD.users.filter(u => (u.empId||'').trim() === empId)
-      .sort((a,b) => getAdminEffectivePoints(b, activityPointsMap) - getAdminEffectivePoints(a, activityPointsMap));
+      .sort((a,b) => getAdminEffectivePoints(b, pointMaps) - getAdminEffectivePoints(a, pointMaps));
     group.slice(1).forEach(u => toDelete.push(u));
   });
   if (!confirm(`중복 계정 ID 이용자 ${toDelete.length}명 삭제\n(각 계정 ID별 포인트 최고 계정 유지)\n\n${toDelete.map(u => `• ${u.name||'(없음)'} (${u.empId})`).join('\n')}\n\n계속하시겠습니까?`)) return;
@@ -3547,8 +3612,8 @@ function updateWorkoutBackfillMeta() {
   const duration = Number(document.getElementById('wo-add-duration')?.value) || 0;
   const exId = document.getElementById('wo-add-type')?.value || 'custom';
   const user = GD.users.find(u => String(u.deviceId || '').trim() === deviceId) || null;
-  const activityPointsMap = getAdminActivityPointsMap();
-  const currentPoints = user ? getAdminEffectivePoints(user, activityPointsMap) : 0;
+  const pointMaps = getAdminPointBreakdownMaps();
+  const currentPoints = user ? getAdminEffectivePoints(user, pointMaps) : 0;
   const streakByDevice = computeAdminStreakByDevice();
   const currentStreak = user
     ? ((streakByDevice[deviceId] ?? Number(user.streak)) || 0)
@@ -5627,7 +5692,7 @@ function isFamCertApprovedWithoutReward(row) {
 function pickFamCertRewardUser(rows, targetEmpId = '', targetDeviceId = '') {
   const normalizedEmpId = normRegEmpId(targetEmpId);
   const normalizedDeviceId = String(targetDeviceId || '').trim();
-  const activityPointsMap = getAdminActivityPointsMap();
+  const pointMaps = getAdminPointBreakdownMaps();
   return [...(rows || [])].sort((a, b) => {
     const aEmp = normRegEmpId(a?.empId);
     const bEmp = normRegEmpId(b?.empId);
@@ -5640,8 +5705,8 @@ function pickFamCertRewardUser(rows, targetEmpId = '', targetDeviceId = '') {
       + (normalizedDeviceId && bDevice === normalizedDeviceId ? 1 : 0)
       + (bEmp ? 1 : 0);
     if (bScore !== aScore) return bScore - aScore;
-    const aEffectivePoints = getAdminEffectivePoints(a, activityPointsMap);
-    const bEffectivePoints = getAdminEffectivePoints(b, activityPointsMap);
+    const aEffectivePoints = getAdminEffectivePoints(a, pointMaps);
+    const bEffectivePoints = getAdminEffectivePoints(b, pointMaps);
     if (bEffectivePoints !== aEffectivePoints) return bEffectivePoints - aEffectivePoints;
     const aTs = Date.parse(a?.lastactiveat || a?.updatedAt || a?.updatedat || 0) || 0;
     const bTs = Date.parse(b?.lastactiveat || b?.updatedAt || b?.updatedat || 0) || 0;

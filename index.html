@@ -6672,7 +6672,7 @@ const PUSH_DEFAULT_URL  = './index.html#community';
 const HOME_PUSH_PROMPT_DISMISSED_KEY = 'hi_home_push_prompt_dismissed';
 const HOME_PUSH_PROMPT_SESSION_KEY   = 'hi_home_push_prompt_seen';
 const AUTO_COMMENT_FN   = 'https://nbnmvvobehjitophkqmu.supabase.co/functions/v1/auto-comment';
-const SW_VERSION        = '20260407-001';
+const SW_VERSION        = '20260407-002';
 const SW_UPDATE_POLL_MS = 15 * 60 * 1000;
 const CHALLENGE_PEOPLE_CACHE_KEY = 'hi_health_people_cache_v1';
 // Keep self-registration sync lean because this query can fire on login/focus recovery paths.
@@ -15166,6 +15166,26 @@ function buildLeagueAlltimePointsMap(workoutRows = [], glucoseRows = []) {
   return byDeviceId;
 }
 
+function buildLeagueWorkoutPointsMap(workoutRows = []) {
+  const byDeviceId = {};
+  (workoutRows || []).forEach(row => {
+    const deviceId = String(row?.deviceId || '').trim();
+    if (!deviceId) return;
+    byDeviceId[deviceId] = (byDeviceId[deviceId] || 0) + (Number(row?.points) || 0);
+  });
+  return byDeviceId;
+}
+
+function buildLeagueGlucosePointsMap(glucoseRows = []) {
+  const byDeviceId = {};
+  (glucoseRows || []).forEach(row => {
+    const deviceId = String(row?.deviceId || '').trim();
+    if (!deviceId) return;
+    byDeviceId[deviceId] = (byDeviceId[deviceId] || 0) + (Number(row?.points) || 0);
+  });
+  return byDeviceId;
+}
+
 function buildLeagueChallengePointsMap(workoutRows = [], glucoseRows = [], startTs = CHALLENGE_START_TS) {
   const byDeviceId = {};
   (workoutRows || []).forEach(row => {
@@ -15260,6 +15280,20 @@ function buildRealLeagueUsers(allUsers, allRegs, alltimePtsByDevice = {}, challe
   _realLeagueUsers = [...grouped.values()].map(group => {
     const representative = group.representative || {};
     const deviceIds = [...group.deviceIds].filter(Boolean);
+    const sumGroupMetric = metricMap => deviceIds.reduce((sum, deviceId) => {
+      return sum + Math.max(0, Number(metricMap?.[deviceId]) || 0);
+    }, 0);
+    const maxGroupMetric = metricMap => deviceIds.reduce((max, deviceId) => {
+      return Math.max(max, Math.max(0, Number(metricMap?.[deviceId]) || 0));
+    }, 0);
+    const mergedPts = sumGroupMetric(alltimePtsByDevice);
+    const mergedChallengePts = sumGroupMetric(challengePtsByDevice);
+    const mergedWeeklyPts = sumGroupMetric(wPtsByDevice);
+    const mergedCumulativePts = Math.max(mergedPts, maxGroupMetric(cumulativePtsByDevice));
+    const mergedStreak = Math.max(
+      Number(representative?.streak) || 0,
+      deviceIds.reduce((max, deviceId) => Math.max(max, Number(streakByDevice?.[deviceId]) || 0), 0)
+    );
     const bestDeviceId = deviceIds.sort((a, b) => {
       const aEffective = Math.max(
         0,
@@ -15282,18 +15316,6 @@ function buildRealLeagueUsers(allUsers, allRegs, alltimePtsByDevice = {}, challe
       if (String(representative.deviceId || '').trim() === b) return 1;
       return 0;
     })[0] || String(representative.deviceId || '').trim();
-    const mergedPts = Math.max(0, Number(alltimePtsByDevice?.[bestDeviceId]) || 0);
-    const mergedChallengePts = Math.max(0, Number(challengePtsByDevice?.[bestDeviceId]) || 0);
-    const mergedWeeklyPts = Math.max(0, Number(wPtsByDevice?.[bestDeviceId]) || 0);
-    const mergedCumulativePts = Math.max(
-      0,
-      Number(cumulativePtsByDevice?.[bestDeviceId]) || 0,
-      mergedPts
-    );
-    const mergedStreak = Math.max(
-      Number(streakByDevice?.[bestDeviceId]) || 0,
-      Number(representative?.streak) || 0
-    );
     return {
       id: String(group.empId || representative.deviceId || representative.nickname || representative.name || '').trim(),
       deviceId: String(bestDeviceId || representative.deviceId || '').trim(),
@@ -15391,6 +15413,8 @@ async function fetchLeagueData(opts = {}) {
       if (alltimeWRes?.error) throw alltimeWRes.error;
       if (alltimeGRes?.error) throw alltimeGRes.error;
       // 운동+혈당 합산으로 누적 포인트 계산, streak는 운동 기준 유지
+      const workoutPtsByDevice = buildLeagueWorkoutPointsMap(alltimeWRes?.data || []);
+      const glucosePtsByDevice = buildLeagueGlucosePointsMap(alltimeGRes?.data || []);
       totalPtsByDevice = buildLeagueAlltimePointsMap(alltimeWRes?.data || [], alltimeGRes?.data || []);
       challengePtsByDevice = buildLeagueChallengePointsMap(alltimeWRes?.data || [], alltimeGRes?.data || []);
       const tsByDevice = {};
@@ -15414,10 +15438,14 @@ async function fetchLeagueData(opts = {}) {
         const did = String(u.deviceId || '').trim();
         if (!did) return;
         const serverPoints = Math.max(0, Number(u.points || 0) || 0);
+        const workoutPoints = Math.max(0, Number(workoutPtsByDevice[did]) || 0);
+        const glucosePoints = Math.max(0, Number(glucosePtsByDevice[did]) || 0);
         const activityPoints = Math.max(0, Number(totalPtsByDevice[did]) || 0);
         if (!totalPtsByDevice[did]) totalPtsByDevice[did] = serverPoints;
-        // 전체/레벨용 누적 포인트: users.points 우선 (가족인증·관리자 부여 포함)
-        cumulativePtsByDevice[did] = Math.max(0, serverPoints, activityPoints);
+        // 전체/레벨용 누적 포인트:
+        // users.points에는 관리자/가족인증/운동 누적이 반영된 값을 기준으로 두고,
+        // 혈당은 기록 테이블 합산을 별도로 더해 누락되지 않게 보정한다.
+        cumulativePtsByDevice[did] = Math.max(0, Math.max(serverPoints, workoutPoints, activityPoints - glucosePoints) + glucosePoints);
         if (!(did in streakByDevice)) streakByDevice[did] = Number(u.streak) || 0;
       });
       _leagueCache.users = allUsers;
@@ -18743,6 +18771,7 @@ async function refreshCurrentUserPointsFromRemote() {
   S.user.avatar = normalizeAvatar(remoteUser.avatar || S.user.avatar);
   S.user.points = Number(remoteUser.points) || 0;
   S.user.totalPoints = Number(S.user.points || 0) || 0;
+  _lastKnownServerPts = Number(remoteUser.points) || 0;
   S.user.tags = normalizeUserTags(S.user.tags);
   save();
   renderHeader();
