@@ -7924,8 +7924,9 @@ const ACHIEVEMENTS_DATA = [
   { id:'a5', name:'30회 달성',     desc:'운동 30회를 기록했어요',       goal:30,   key:'totalWorkouts',    img:'images/badge5.png', color:'#E1BEE7' },
   { id:'a6', name:'포인트 왕',     desc:'총 1000 포인트 달성',          goal:1000, key:'points',            img:'images/badge6.png', color:'#FFF3CD' },
   { id:'a7', name:'레전드',        desc:'레벨 6에 도달했어요',          goal:6,    key:'level',             img:'images/badge7.png', color:'#C5CAE9' },
-  { id:'a8', name:'커뮤니티 스타', desc:'응원 스티커 50개 받기',        goal:50,   key:'stickersReceived',  img:'images/badge8.png', color:'#FCE4EC' },
-  { id:'a9', name:'공유 스타',     desc:'레벨 카드를 3번 공유했어요',   goal:3,    key:'levelCardShares',   img:'images/badge_run.png', color:'#E0F2FE' },
+  { id:'a8', name:'커뮤니티 스타', desc:'리그에서 글을 가장 많이 올린 사람',    goal:0, key:'topPoster',      img:'images/badge8.png',       color:'#FCE4EC' },
+  { id:'a9', name:'공유 스타',     desc:'레벨 카드를 3번 공유했어요',            goal:3, key:'levelCardShares', img:'images/badge_run.png',    color:'#E0F2FE' },
+  { id:'a10', name:'공감왕',       desc:'리그에서 공감 스티커를 가장 많이 단 사람', goal:0, key:'topGiver',     img:'images/badge_cheer.svg',  color:'#FFF3E0' },
 ];
 
 const MOCK_USERS = [];
@@ -8009,7 +8010,7 @@ const WEEK_DAYS = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
 ════════════════════════════════════════ */
 let S = {
   deviceId: null,
-  user: { name:'', nickname:'', avatar:AVATARS[0], empId:'', dept:'', points:0, totalPoints:0, streak:0, stickersReceived:0, levelCardShares:0, registrationId:null, tags:[], communityStarBadge:false },
+  user: { name:'', nickname:'', avatar:AVATARS[0], empId:'', dept:'', points:0, totalPoints:0, streak:0, stickersReceived:0, stickersGiven:0, levelCardShares:0, registrationId:null, tags:[], communityStarBadge:false },
   workouts: [],
   posts: JSON.parse(JSON.stringify(MOCK_POSTS_SEED)),
   redeemedRewards: [],
@@ -9127,7 +9128,6 @@ function load() {
     S.glucoseRecords = mapGlucoseRecords(d.glucoseRecords || [], []);
     S.todayLog = d.todayLog || null;
     reconcileTotalPointsFromRecords();
-    hydrateCommStarState();
   } catch(e) {}
 }
 
@@ -10131,6 +10131,8 @@ function updateStreak() {
 function earnedAchs() {
   const lv = getLevel(S.user.totalPoints || S.user.points).lv;
   return ACHIEVEMENTS_DATA.filter(a => {
+    if (a.key === 'topPoster') return !IS_GUEST && _communityTopPosterDeviceId && _communityTopPosterDeviceId === S.deviceId;
+    if (a.key === 'topGiver')  return !IS_GUEST && _communityTopGiverDeviceId  && _communityTopGiverDeviceId  === S.deviceId;
     const val = a.key === 'totalWorkouts' ? totalWorkouts()
               : a.key === 'streak'        ? S.user.streak
               : a.key === 'points'        ? (S.user.totalPoints || S.user.points)
@@ -15854,7 +15856,7 @@ function renderCommunity() {
           <div class="post-info">
             <div class="post-title-line">
               <span class="post-uname">${p.name}</span>
-              ${_communityStarDeviceIds.has(p.deviceId) ? `<span class="comm-star-badge">⭐ 커뮤니티 스타</span>` : ''}
+              ${_communityTopPosterDeviceId && _communityTopPosterDeviceId === p.deviceId ? `<span class="comm-star-badge">⭐ 커뮤니티 스타</span>` : ''}${_communityTopGiverDeviceId && _communityTopGiverDeviceId === p.deviceId ? `<span class="comm-star-badge" style="background:#fff3e0;color:#e65100;border-color:#ffb74d">💖 공감왕</span>` : ''}
               <div class="post-meta">
                 ${!isBotDeviceId(p.deviceId) ? `<span class="post-lv-icon">${lv.icon}</span><span>${lv.name}</span><span>·</span>` : ''}
                 <span>${p.time}</span>
@@ -15902,33 +15904,55 @@ async function fetchAdminPosts() {
 let _communityReactionCache = { stickerMap: {}, myReactionMap: {}, commentMap: {}, ts: 0 };
 const COMMUNITY_CACHE_TTL = 2 * 60 * 1000; // 2분
 
+// 커뮤니티 스타(최다 게시자) / 공감왕(최다 스티커 발신자) 동적 계산
+function _calcCommunityRankBadges(remotePosts, allReactions) {
+  // 커뮤니티 스타: 로드된 게시글 중 가장 많이 쓴 사람
+  const postCnt = {};
+  (remotePosts || []).forEach(p => {
+    if (!p.deviceId || isBotDeviceId(p.deviceId)) return;
+    postCnt[p.deviceId] = (postCnt[p.deviceId] || 0) + 1;
+  });
+  let topPoster = null, topPosterCount = 0;
+  for (const [did, cnt] of Object.entries(postCnt)) {
+    if (cnt > topPosterCount) { topPosterCount = cnt; topPoster = did; }
+  }
+  _communityTopPosterDeviceId = topPoster;
+  _communityTopPosterCount = topPosterCount;
+
+  // 공감왕: 로드된 반응 중 가장 많이 스티커를 단 사람
+  const giverCnt = {};
+  (allReactions || []).forEach(r => {
+    if (!r.deviceId) return;
+    giverCnt[r.deviceId] = (giverCnt[r.deviceId] || 0) + 1;
+  });
+  let topGiver = null, topGiverCount = 0;
+  for (const [did, cnt] of Object.entries(giverCnt)) {
+    if (cnt > topGiverCount) { topGiverCount = cnt; topGiver = did; }
+  }
+  _communityTopGiverDeviceId = topGiver;
+  _communityTopGiverCount = topGiverCount;
+
+  // 내가 스티커를 단 총 횟수 동기화 (공감왕 배지 탭 진행도 표시용)
+  S.user.stickersGiven = giverCnt[S.deviceId] || S.user.stickersGiven || 0;
+}
+
 async function fetchCommunityPosts() {
   if (!_db) return;
   try {
-    if (!COMMUNITY_STAR_REMOTE_DISABLED) {
-      // 커뮤니티 스타 배지 보유자 목록 로드 (피드 뱃지 표시용)
-      _db.from('users').select('deviceId').eq('communityStarBadge', true)
-        .then(({ data: starRows, error }) => {
-          if (error) {
-            if (!isCommunityStarBadgeColumnError(error)) console.warn('[commstar/list]', error);
-            return;
-          }
-          if (starRows?.length) {
-            starRows.forEach(r => { if (r.deviceId) _communityStarDeviceIds.add(r.deviceId); });
-          }
-        });
-    }
-
     // 1단계: posts만 먼저 → 즉시 렌더
     const { data: postsData } = await _db.from('posts').select('*').order('ts', { ascending: false }).limit(30);
     const remotePosts = postsData || [];
     const targetPostIds = remotePosts.map(p => String(Number(p?.id) || p?.id)).filter(Boolean);
     const targetPostIdSet = new Set(targetPostIds);
 
+    // 커뮤니티 스타 → 게시글만으로 즉시 계산
+    _calcCommunityRankBadges(remotePosts, null);
+
     const cacheAge = Date.now() - _communityReactionCache.ts;
     if (cacheAge < COMMUNITY_CACHE_TTL && _communityReactionCache.ts > 0) {
       // 캐시 유효 → 캐시된 반응·댓글로 바로 렌더
-      const { stickerMap, myReactionMap, commentMap } = _communityReactionCache;
+      const { stickerMap, myReactionMap, commentMap, allReactions: cachedRx } = _communityReactionCache;
+      if (cachedRx) _calcCommunityRankBadges(remotePosts, cachedRx);
       targetPostIds.forEach(pid => {
         if (myReactionMap[pid]?.length) S.myReactions[pid] = [...myReactionMap[pid]];
         else delete S.myReactions[pid];
@@ -15945,8 +15969,9 @@ async function fetchCommunityPosts() {
         _db.from('reactions').select('*').in('postId', targetPostIds),
         _db.from('post_comments').select('postId,id,userName,body,ts,deviceId').in('postId', targetPostIds).order('ts', { ascending: true }),
       ]);
+      const allReactions = rp.data || [];
       const stickerMap = {}, myReactionMap = {}, commentMap = {};
-      (rp.data || []).forEach(r => {
+      allReactions.forEach(r => {
         const pid = String(r.postId);
         if (!stickerMap[pid]) stickerMap[pid] = { cheer:0, love:0, congrats:0, cool:0, together:0 };
         if (r.stickerId in stickerMap[pid]) stickerMap[pid][r.stickerId]++;
@@ -15961,7 +15986,9 @@ async function fetchCommunityPosts() {
         if (myReactionMap[pid]?.length) S.myReactions[pid] = [...myReactionMap[pid]];
         else delete S.myReactions[pid];
       });
-      _communityReactionCache = { stickerMap, myReactionMap, commentMap, ts: Date.now() };
+      // 공감왕 → 반응 데이터 들어온 뒤 재계산
+      _calcCommunityRankBadges(remotePosts, allReactions);
+      _communityReactionCache = { stickerMap, myReactionMap, commentMap, allReactions, ts: Date.now() };
       _applyRemotePostsToState(remotePosts, stickerMap, commentMap, targetPostIdSet);
     }
 
@@ -16368,6 +16395,7 @@ function react(buttonEl, postId, stickerId) {
     myR.push(stickerId);
     post.stickers[stickerId] = (post.stickers[stickerId]||0) + 1;
     playStickerBurst(buttonEl, stickerId);
+    S.user.stickersGiven = (S.user.stickersGiven || 0) + 1;
     if (_db) _db.from('reactions').upsert(
       { postId: String(postId), deviceId: S.deviceId, stickerId },
       { onConflict: 'postId,deviceId,stickerId' }
@@ -16378,68 +16406,13 @@ function react(buttonEl, postId, stickerId) {
 }
 
 /* ════════════════════════════════════════
-   COMMUNITY STAR BADGE
+   커뮤니티 스타 / 공감왕 — 동적 랭킹 배지
 ════════════════════════════════════════ */
-let _communityStarDeviceIds = new Set();
-const COMMUNITY_STAR_GOAL = 50;
-// Temporary kill switch while Supabase is unstable; keep local UI but stop extra badge-related reads/writes.
-const COMMUNITY_STAR_REMOTE_DISABLED = true;
-
-function isCommunityStarBadgeColumnError(error) {
-  const message = String(error?.message || error || '');
-  return /communityStarBadge|column .* does not exist|Could not find the '.*' column/i.test(message);
-}
-
-async function syncStickersReceivedFromRemote() {
-  if (COMMUNITY_STAR_REMOTE_DISABLED) return;
-  if (!_db || !S.deviceId || IS_GUEST) return;
-  try {
-    // 내 게시글 ID 목록 조회
-    const { data: myPosts, error: postsErr } = await _db
-      .from('posts')
-      .select('id')
-      .eq('deviceId', S.deviceId);
-    if (postsErr) return;
-    const myPostIds = (myPosts || []).map(p => String(p.id));
-    if (!myPostIds.length) {
-      S.user.stickersReceived = 0;
-      checkAndGrantCommunityStarBadge();
-      return;
-    }
-    // 내 게시글에 달린 reactions 수 집계
-    const { data: reactions, error: reactErr } = await _db
-      .from('reactions')
-      .select('id')
-      .in('postId', myPostIds);
-    if (reactErr) return;
-    S.user.stickersReceived = (reactions || []).length;
-    checkAndGrantCommunityStarBadge();
-  } catch (e) {
-    console.warn('[commstar/sync]', e);
-  }
-}
-
-function checkAndGrantCommunityStarBadge() {
-  if (COMMUNITY_STAR_REMOTE_DISABLED) return;
-  if (IS_GUEST) return;
-  if (S.user.stickersReceived < COMMUNITY_STAR_GOAL) return;
-  if (S.user.communityStarBadge) return; // 이미 달성
-  S.user.communityStarBadge = true;
-  _communityStarDeviceIds.add(S.deviceId);
-  if (_db) {
-    _db.from('users')
-      .update({ communityStarBadge: true })
-      .eq('deviceId', S.deviceId)
-      .then(({ error }) => {
-        if (error && !isCommunityStarBadgeColumnError(error)) console.warn('[commstar/grant]', error);
-      });
-  }
-  // 팝업은 기기당 최초 1회만
-  if (!localStorage.getItem('cs_modal_shown_' + S.deviceId)) {
-    localStorage.setItem('cs_modal_shown_' + S.deviceId, '1');
-    setTimeout(() => showCommunityStarModal(), 600);
-  }
-}
+// fetchCommunityPosts 호출 시 동적으로 계산됨
+let _communityTopPosterDeviceId = null;
+let _communityTopPosterCount    = 0;
+let _communityTopGiverDeviceId  = null;
+let _communityTopGiverCount     = 0;
 
 function showCommunityStarModal() {
   document.getElementById('cs-overlay')?.classList.remove('pm-hidden');
@@ -16447,11 +16420,6 @@ function showCommunityStarModal() {
 
 function closeCommunityStarModal() {
   document.getElementById('cs-overlay')?.classList.add('pm-hidden');
-}
-
-// 앱 시작 시 이미 달성한 경우 Set 초기화
-function hydrateCommStarState() {
-  if (S.user.communityStarBadge) _communityStarDeviceIds.add(S.deviceId);
 }
 
 const _trashSvgSm = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>`;
@@ -17008,11 +16976,34 @@ function renderRewards() {
   document.getElementById('ach-list').innerHTML = ACHIEVEMENTS_DATA.map(a => {
     const isEarned = !!earned.find(e => e.id === a.id);
     const lv = getLevel(S.user.totalPoints || S.user.points);
+    // 동적 랭킹 배지 (커뮤니티 스타 / 공감왕) 특수 렌더링
+    if (a.key === 'topPoster' || a.key === 'topGiver') {
+      const myCount = a.key === 'topPoster'
+        ? (S.posts || []).filter(p => p.deviceId === S.deviceId).length
+        : (S.user.stickersGiven || 0);
+      const topCount = a.key === 'topPoster' ? _communityTopPosterCount : _communityTopGiverCount;
+      const label = a.key === 'topPoster' ? `내 글 ${myCount}개` : `내 공감 ${myCount}번`;
+      const pct = topCount > 0 ? Math.min(100, Math.round((myCount / topCount) * 100)) : 0;
+      return `
+        <div class="ach-item ${isEarned ? '' : 'locked'}">
+          <div class="ach-badge ${isEarned ? 'earned' : 'pending'}"><img src="${a.img}" alt="${a.name}"></div>
+          <div class="ach-info">
+            <div class="ach-name">${a.name}${isEarned ? ' 👑' : ''}</div>
+            <div class="ach-desc">${a.desc}</div>
+            ${!isEarned ? `
+              <div class="ach-prog-bar"><div class="ach-prog-fill" style="width:${pct}%"></div></div>
+            ` : ''}
+          </div>
+          ${!isEarned ? `<div style="font-size:11px;color:var(--text-secondary);text-align:right;min-width:36px">${label}</div>` : ''}
+        </div>
+      `;
+    }
     const curVal = a.key === 'totalWorkouts' ? totalWorkouts()
                  : a.key === 'streak'        ? S.user.streak
                  : a.key === 'points'        ? (S.user.totalPoints || S.user.points)
                  : a.key === 'level'         ? lv.lv
-                 : S.user.stickersReceived;
+                 : a.key === 'levelCardShares' ? (S.user.levelCardShares || 0)
+                 : (S.user.stickersReceived || 0);
     const pct = Math.min(100, Math.round((curVal/a.goal)*100));
     return `
       <div class="ach-item ${isEarned ? '' : 'locked'}">
@@ -21860,7 +21851,6 @@ async function init() {
   window.addEventListener('hi:loggedin', () => setTimeout(() => {
     syncFamilyCertRewardStatus().catch(err => console.warn('[family-cert/reward-sync]', err));
     refreshCurrentFamilyCertLatest({ force: true, silent: true }).catch(err => console.warn('[family-cert/latest-login-sync]', err));
-    syncStickersReceivedFromRemote().catch(err => console.warn('[commstar/login-sync]', err));
   }, 1800));
   window.addEventListener('focus', () => {
     if (!(S.user?.empId || ACTIVE_EMPID)) return;
