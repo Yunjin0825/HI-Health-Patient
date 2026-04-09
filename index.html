@@ -6915,7 +6915,10 @@ let _leagueCache = {
   regs: null,
   totalPtsByDevice: null,
   challengePtsByDevice: null,
-  cumulativePtsByDevice: null,
+  workoutPtsByDevice: null,
+  glucosePtsByDevice: null,
+  familyCertPointsByEmpId: null,
+  familyCertPointsByDeviceId: null,
   streakByDevice: null,
   usersFetchedAt: 0,
   wPtsByDevice: null,
@@ -10172,6 +10175,13 @@ function getLeagueAlltimeBonusPoints(serverPoints = 0, activityPoints = 0) {
 function getLeagueAlltimePointsFromParts(serverPoints = 0, activityPoints = 0) {
   const normalizedActivityPoints = Math.max(0, Number(activityPoints) || 0);
   return normalizedActivityPoints + getLeagueAlltimeBonusPoints(serverPoints, normalizedActivityPoints);
+}
+
+function getLeagueLeaderboardAlltimePoints(serverPoints = 0, workoutPoints = 0, glucosePoints = 0) {
+  const normalizedServerPoints = Math.max(0, Number(serverPoints) || 0);
+  const normalizedWorkoutPoints = Math.max(0, Number(workoutPoints) || 0);
+  const normalizedGlucosePoints = Math.max(0, Number(glucosePoints) || 0);
+  return Math.max(0, Math.max(normalizedServerPoints, normalizedWorkoutPoints) + normalizedGlucosePoints);
 }
 
 function getCurrentLeagueAlltimePoints() {
@@ -15173,7 +15183,10 @@ function resetLeagueCache() {
     regs: null,
     totalPtsByDevice: null,
     challengePtsByDevice: null,
-    cumulativePtsByDevice: null,
+    workoutPtsByDevice: null,
+    glucosePtsByDevice: null,
+    familyCertPointsByEmpId: null,
+    familyCertPointsByDeviceId: null,
     streakByDevice: null,
     usersFetchedAt: 0,
     wPtsByDevice: null,
@@ -15471,10 +15484,9 @@ async function fetchLeagueData(opts = {}) {
         const workoutPoints = Math.max(0, Number(workoutPtsByDevice[did]) || 0);
         const glucosePoints = Math.max(0, Number(glucosePtsByDevice[did]) || 0);
         if (!totalPtsByDevice[did]) totalPtsByDevice[did] = serverPoints;
-        const activityPoints = workoutPoints + glucosePoints;
         // 전체/레벨용 누적 포인트:
-        // 운동+혈당 합계에 서버에만 남아있는 추가 포인트(관리자 조정, 가족인증 등)만 더한다.
-        cumulativePtsByDevice[did] = getLeagueAlltimePointsFromParts(serverPoints, activityPoints);
+        // 리그 목록은 혈당이 서버 보정분에 가려지지 않도록 운동 포인트와 분리해 합산한다.
+        cumulativePtsByDevice[did] = getLeagueLeaderboardAlltimePoints(serverPoints, workoutPoints, glucosePoints);
         if (!(did in streakByDevice)) streakByDevice[did] = Number(u.streak) || 0;
       });
       _leagueCache.users = allUsers;
@@ -20886,6 +20898,7 @@ async function doAppLogin() {
   repairChRegNote();
   updateStreak();
   save();
+  syncBadgeCountToDb();
   sessionStorage.setItem('hi_session_empid', ACTIVE_EMPID);
   // IS_RUN_MODE(챌린지 직원)는 항상 localStorage에 저장 (카카오톡 인앱브라우저 세션 유실 방지)
   if (keepLogin || IS_RUN_MODE) {
@@ -21086,6 +21099,7 @@ async function init() {
     await syncMyChallengeRegistrationWithOptions({ pruneMissingRemote: true });
     updateStreak();
     save();
+    syncBadgeCountToDb();
     renderHeader();
     renderHome();
     window.dispatchEvent(new Event('hi:loggedin'));
