@@ -11941,8 +11941,7 @@ function renderExerciseHistory() {
   if (monthNav && !hasAny) monthNav.classList.remove('show');
   const allWorkouts = _woTypeFilter === 'all' ? S.workouts : S.workouts.filter(w => w.exId === _woTypeFilter);
   if (_woViewMode === 'recent') {
-    const totalPtsAll = allWorkouts.reduce((s, w) => s + (w.points || 0), 0);
-    document.getElementById('wo-total-badge').textContent = '총 ' + S.workouts.length + '회 · ' + totalPtsAll + 'P';
+    document.getElementById('wo-total-badge').textContent = '총 ' + S.workouts.length + '회';
     if (!allWorkouts.length) {
       wo.innerHTML = '';
       return;
