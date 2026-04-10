@@ -2599,7 +2599,11 @@ function getAdminServerPointsMap(users = GD.users) {
 }
 
 function getAdminAlltimePointsFromValues(serverPoints = 0, workoutPoints = 0, glucosePoints = 0) {
-  return Math.max(0, Number(serverPoints) || 0);
+  return Math.max(
+    0,
+    Number(serverPoints) || 0,
+    (Number(workoutPoints) || 0) + (Number(glucosePoints) || 0)
+  );
 }
 
 function getAdminPointBreakdownMaps(workouts = GD.workouts, glucose = GD.glucose, users = GD.users) {
@@ -2639,28 +2643,40 @@ function getAdminActivityPointsMap(workouts = GD.workouts, glucose = GD.glucose)
   return getAdminPointBreakdownMaps(workouts, glucose).activityPointsByDeviceId;
 }
 
+function getAdminResolvedPoints(u, pointMaps = null) {
+  const deviceId = String(u?.deviceId || '').trim();
+  const maps = pointMaps || getAdminPointBreakdownMaps();
+  const computedPoints = deviceId
+    ? Math.max(0, Number(maps?.alltimePointsByDeviceId?.[deviceId]) || 0)
+    : 0;
+  return Math.max(
+    Math.max(0, Number(u?.points) || 0),
+    computedPoints
+  );
+}
+
 function getAdminEffectivePoints(u, pointMaps = null) {
-  return getAdminBalancePoints(u);
+  return getAdminResolvedPoints(u, pointMaps);
 }
 
-function getAdminAlltimeLeaguePoints(u) {
-  return getAdminEffectivePoints(u);
+function getAdminAlltimeLeaguePoints(u, pointMaps = null) {
+  return getAdminEffectivePoints(u, pointMaps);
 }
 
-function getAdminBalancePoints(u) {
-  return Math.max(0, Number(u?.points) || 0);
+function getAdminBalancePoints(u, pointMaps = null) {
+  return getAdminResolvedPoints(u, pointMaps);
 }
 
-function getAdminCurrentRewardBalancePoints(u) {
-  return getAdminBalancePoints(u);
+function getAdminCurrentRewardBalancePoints(u, pointMaps = null) {
+  return getAdminBalancePoints(u, pointMaps);
 }
 
-function getAdminBalanceTotalPoints(u) {
-  return getAdminCurrentRewardBalancePoints(u);
+function getAdminBalanceTotalPoints(u, pointMaps = null) {
+  return getAdminCurrentRewardBalancePoints(u, pointMaps);
 }
 
 function getAdminUsersTabPoints(u, pointMaps = null) {
-  return getAdminBalancePoints(u);
+  return getAdminBalancePoints(u, pointMaps);
 }
 
 function getAdminLevelLeagueMeta(u) {
@@ -3235,9 +3251,10 @@ async function adjPoints(sign) {
   const u = GD.users.find(x => x.deviceId === selDeviceId);
   if (!u) return;
   if (u.__derived) { toast('임시 이용자는 포인트 조정이 불가합니다. users 생성 후 진행해주세요.'); return; }
-  const currentPoints = getAdminBalancePoints(u);
+  const pointMaps = getAdminPointBreakdownMaps();
+  const currentPoints = getAdminBalancePoints(u, pointMaps);
   const newPts = Math.max(0, currentPoints + sign * v);
-  const baseTotalPoints = getAdminBalanceTotalPoints(u);
+  const baseTotalPoints = getAdminBalanceTotalPoints(u, pointMaps);
   const newTotalPoints = Math.max(0, baseTotalPoints + sign * v);
   showLoading(true);
   const result = await updateUserPointsFields(selDeviceId, newPts, newTotalPoints);
@@ -3682,7 +3699,8 @@ function updateWorkoutBackfillMeta() {
   const duration = Number(document.getElementById('wo-add-duration')?.value) || 0;
   const exId = document.getElementById('wo-add-type')?.value || 'custom';
   const user = GD.users.find(u => String(u.deviceId || '').trim() === deviceId) || null;
-  const currentPoints = user ? getAdminBalancePoints(user) : 0;
+  const pointMaps = getAdminPointBreakdownMaps();
+  const currentPoints = user ? getAdminBalancePoints(user, pointMaps) : 0;
   const streakByDevice = computeAdminStreakByDevice();
   const currentStreak = user
     ? ((streakByDevice[deviceId] ?? Number(user.streak)) || 0)
@@ -3757,9 +3775,10 @@ async function submitWorkoutBackfill() {
     ts: String(workoutTs),
   };
   const nextStreak = computeAdminStreakByDevice([...GD.workouts, workoutPayload])[deviceId] || 0;
-  const currentPoints = getAdminBalancePoints(user);
+  const pointMaps = getAdminPointBreakdownMaps();
+  const currentPoints = getAdminBalancePoints(user, pointMaps);
   const nextPoints = Math.max(0, currentPoints + points);
-  const baseTotalPoints = getAdminBalanceTotalPoints(user);
+  const baseTotalPoints = getAdminBalanceTotalPoints(user, pointMaps);
   const nextTotalPoints = Math.max(0, baseTotalPoints + points);
   const currentLastActiveTs = getUserLastActiveTs(user);
   const touchTs = Math.max(currentLastActiveTs || 0, workoutTs);
@@ -6197,7 +6216,9 @@ async function reviewFamCert(id, status) {
       rewardLimitReached = true;
       rewardBlockedMessage = `가족 운동 인증 보상은 최대 ${FAMILY_CERT_REWARD_LIMIT}회까지 지급되어 이번 승인 건은 포인트가 지급되지 않았습니다.`;
     } else {
-      const prevPoints = Number(targetRes.user.points) || 0;
+      const pointMaps = getAdminPointBreakdownMaps();
+      const targetUser = GD.users.find(u => String(u?.deviceId || '').trim() === String(targetRes.user?.deviceId || '').trim()) || targetRes.user;
+      const prevPoints = getAdminBalancePoints(targetUser, pointMaps);
       const nextPoints = prevPoints + FAMILY_CERT_REWARD_POINTS;
       const prevTotalPoints = prevPoints;
       const nextTotalPoints = prevTotalPoints + FAMILY_CERT_REWARD_POINTS;

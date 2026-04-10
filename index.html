@@ -8251,7 +8251,13 @@ function getCurrentRewardPoints() {
 
 function migrateLegacyRewardPointModel(opts = {}) {
   if (IS_GUEST) return false;
-  const nextPoints = Math.max(0, Number(S.user?.points ?? S.user?.totalPoints || 0) || 0);
+  const derivedTotal = getRecordDerivedTotalPoints();
+  const basePoints = Number((S.user?.points ?? S.user?.totalPoints ?? 0)) || 0;
+  const nextPoints = Math.max(
+    0,
+    basePoints,
+    derivedTotal
+  );
   const currentPoints = Math.max(0, Number(S.user?.points || 0) || 0);
   const currentTotal = Math.max(0, Number(S.user?.totalPoints || 0) || 0);
   const pointsChanged = nextPoints !== currentPoints;
@@ -8268,10 +8274,7 @@ function reconcileTotalPointsFromRecords(opts = {}) {
   if (IS_GUEST) return false;
   const currentPoints = Number(S.user.points || 0);
   const derivedTotal = getRecordDerivedTotalPoints();
-  const canReconcileFromRecords = !hasPointSpendHistory();
-  const nextPoints = canReconcileFromRecords
-    ? Math.max(currentPoints, derivedTotal)
-    : currentPoints;
+  const nextPoints = Math.max(currentPoints, derivedTotal);
   const pointsChanged = nextPoints !== currentPoints;
   const totalChanged = nextPoints !== Number(S.user.totalPoints || 0);
   if (pointsChanged) S.user.points = nextPoints;
