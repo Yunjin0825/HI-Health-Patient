@@ -441,12 +441,13 @@
               <th>운동</th>
               <th>혈당</th>
               <th>이번주</th>
+              <th>챌린지</th>
               <th>전체기록</th>
               <th>상태</th>
               <th>마지막 활동</th>
             </tr></thead>
             <tbody id="lg-tbody">
-              <tr><td class="empty-cell" colspan="11">불러오는 중...</td></tr>
+              <tr><td class="empty-cell" colspan="12">불러오는 중...</td></tr>
             </tbody>
           </table>
         </div>
@@ -2530,6 +2531,27 @@ function getAdminLocalDateKey(d = new Date()) {
   return `${y}-${m}-${day}`;
 }
 
+const ADMIN_CHALLENGE_START_TS = new Date('2026-03-25T00:00:00+09:00').getTime();
+
+function getAdminChallengePointsMap(workouts = GD.workouts, glucose = GD.glucose, startTs = ADMIN_CHALLENGE_START_TS) {
+  const byDeviceId = {};
+  (workouts || []).forEach(w => {
+    const ts = getAdminRecordTsValue(w);
+    if (!ts || ts < startTs) return;
+    const deviceId = String(w?.deviceId || '').trim();
+    if (!deviceId) return;
+    byDeviceId[deviceId] = (byDeviceId[deviceId] || 0) + (Number(w?.points) || 0);
+  });
+  (glucose || []).forEach(g => {
+    const ts = getAdminRecordTsValue(g);
+    if (!ts || ts < startTs) return;
+    const deviceId = String(g?.deviceId || '').trim();
+    if (!deviceId) return;
+    byDeviceId[deviceId] = (byDeviceId[deviceId] || 0) + (Number(g?.points) || 0);
+  });
+  return byDeviceId;
+}
+
 function getAdminWeeklyPointsMap(workouts = GD.workouts, glucose = GD.glucose, weekStartTs = getAdminLeagueWeekStartTs()) {
   const byDeviceId = {};
   (workouts || []).forEach(w => {
@@ -2701,6 +2723,7 @@ function populateAdminLeagueLevelFilter() {
 
 function getAdminLeagueEntries() {
   const weekPts = getAdminWeeklyPointsMap();
+  const challengePts = getAdminChallengePointsMap();
   const pointMaps = getAdminPointBreakdownMaps();
   const { workoutCountByDeviceId, glucoseCountByDeviceId } = getAdminRecordCountMaps();
   const groups = new Map();
@@ -2743,6 +2766,7 @@ function getAdminLeagueEntries() {
         deviceId: String(representative.deviceId || deviceIds[0] || '').trim(),
         pts,
         wPts: deviceIds.reduce((sum, deviceId) => sum + (Math.max(0, Number(weekPts[deviceId]) || 0)), 0),
+        chPts: deviceIds.reduce((sum, deviceId) => sum + (Math.max(0, Number(challengePts[deviceId]) || 0)), 0),
         workoutCount: deviceIds.reduce((sum, deviceId) => sum + (Number(workoutCountByDeviceId[deviceId]) || 0), 0),
         glucoseCount: deviceIds.reduce((sum, deviceId) => sum + (Number(glucoseCountByDeviceId[deviceId]) || 0), 0),
         level,
@@ -2764,6 +2788,8 @@ function getAdminLeagueSortedEntries(tab = adminLeagueTab) {
 
   if (tab === 'weekly') {
     rows.sort((a, b) => (b.wPts - a.wPts) || (b.pts - a.pts) || (a.name || '').localeCompare(b.name || '', 'ko'));
+  } else if (tab === 'challenger') {
+    rows.sort((a, b) => (b.chPts - a.chPts) || (b.pts - a.pts) || (a.name || '').localeCompare(b.name || '', 'ko'));
   } else if (tab === 'level') {
     rows.sort((a, b) => (b.level.lv - a.level.lv) || (b.pts - a.pts) || (b.wPts - a.wPts) || (a.name || '').localeCompare(b.name || '', 'ko'));
   } else {
@@ -2800,7 +2826,7 @@ function renderAdminLeague() {
 
   if (!tbody) return;
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td class="empty-cell" colspan="11">표시할 리그 이용자가 없습니다</td></tr>';
+    tbody.innerHTML = '<tr><td class="empty-cell" colspan="12">표시할 리그 이용자가 없습니다</td></tr>';
     return;
   }
 
@@ -2818,6 +2844,7 @@ function renderAdminLeague() {
       <td>${(Number(u.workoutCount) || 0).toLocaleString('ko-KR')}건</td>
       <td>${(Number(u.glucoseCount) || 0).toLocaleString('ko-KR')}건</td>
       <td><span class="badge pts">+${(Number(u.wPts) || 0).toLocaleString()}p</span></td>
+      <td><span class="badge pts">+${(Number(u.chPts) || 0).toLocaleString()}p</span></td>
       <td><span class="badge pts">+${(Number(u.pts) || 0).toLocaleString()}p</span></td>
       <td>${stateBadge}</td>
       <td>${activeCell(u)}</td>
