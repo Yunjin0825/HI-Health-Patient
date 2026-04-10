@@ -7082,6 +7082,12 @@ async function loadAppConfig() {
         _challengeRewardMode = row.value === 'true';
       } else if (row.key === 'ch_deadline') {
         challengeConfigChanged = setChallengeDeadlineFromConfig(row.value) || challengeConfigChanged;
+      } else if (row.key === 'force_reload') {
+        const seenKey = 'hi_force_reload_seen_' + row.value;
+        if (row.value && !sessionStorage.getItem(seenKey)) {
+          sessionStorage.setItem(seenKey, '1');
+          location.reload();
+        }
       }
     });
     if (challengeConfigChanged) {

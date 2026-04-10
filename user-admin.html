@@ -1057,6 +1057,14 @@
           <span id="admin-challenge-reward-label" style="font-size:13px;font-weight:600;color:var(--t3)">로딩중...</span>
         </div>
       </div>
+      <!-- 강제 새로고침 -->
+      <div class="shop-config-bar" style="margin-top:14px;border-top:1px solid var(--border);padding-top:18px">
+        <div>
+          <div class="shop-config-title">🔄 강제 새로고침</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:2px">앱을 열어둔 모든 유저를 다음 포커스 시 자동 새로고침합니다</div>
+        </div>
+        <button class="cbtn pri" onclick="triggerForceReload()">실행</button>
+      </div>
       <!-- 전체 초기화 -->
       <div class="shop-config-bar" style="margin-top:14px;border-top:1px solid var(--border);padding-top:18px">
         <div>
@@ -6586,6 +6594,19 @@ async function applyChallengeRewardToggle() {
   } catch(e) {
     renderChallengeRewardUI(!enabled);
     toast('저장 실패: ' + formatAppConfigError(e));
+  }
+}
+
+async function triggerForceReload() {
+  if (!confirm('모든 유저를 강제 새로고침 하시겠습니까?\n앱을 열고 있는 유저는 다음 포커스 시 자동으로 새로고침됩니다.')) return;
+  if (!db) return;
+  try {
+    const token = Date.now().toString();
+    const { error } = await saveAdminAppConfigValue('force_reload', token);
+    if (error) throw error;
+    toast('✅ 강제 새로고침 신호 전송 완료');
+  } catch(e) {
+    toast('실패: ' + (e?.message || String(e)));
   }
 }
 
