@@ -11941,7 +11941,8 @@ function renderExerciseHistory() {
   if (monthNav && !hasAny) monthNav.classList.remove('show');
   const allWorkouts = _woTypeFilter === 'all' ? S.workouts : S.workouts.filter(w => w.exId === _woTypeFilter);
   if (_woViewMode === 'recent') {
-    document.getElementById('wo-total-badge').textContent = '총 ' + S.workouts.length + '회';
+    const totalPtsAll = allWorkouts.reduce((s, w) => s + (w.points || 0), 0);
+    document.getElementById('wo-total-badge').textContent = '총 ' + S.workouts.length + '회 · ' + totalPtsAll + 'P';
     if (!allWorkouts.length) {
       wo.innerHTML = '';
       return;
@@ -16054,7 +16055,7 @@ async function fetchCommunityPosts() {
       if (!targetPostIds.length) return;
       const [rp, cmp] = await Promise.all([
         _db.from('reactions').select('*').in('postId', targetPostIds),
-        _db.from('post_comments').select('postId,id,userName,body,ts,deviceId').in('postId', targetPostIds).order('ts', { ascending: true }),
+        _db.from('post_comments').select('postId,id,userName,avatar,body,ts,deviceId').in('postId', targetPostIds).order('ts', { ascending: true }),
       ]);
       const allReactions = rp.data || [];
       const stickerMap = {}, myReactionMap = {}, commentMap = {};
@@ -16067,7 +16068,7 @@ async function fetchCommunityPosts() {
       (cmp.data || []).forEach(c => {
         const pid = String(c.postId);
         if (!commentMap[pid]) commentMap[pid] = [];
-        commentMap[pid].push({ id: c.id, name: c.userName || '익명', avatar: botAvatar(c.deviceId) || AVATARS[0], lv: 1, body: c.body || '', time: c.ts ? new Date(Number(c.ts)).toLocaleDateString('ko-KR') : '', ts: c.ts ? Number(c.ts) : Date.now(), deviceId: c.deviceId || '' });
+        commentMap[pid].push({ id: c.id, name: c.userName || '익명', avatar: botAvatar(c.deviceId) || c.avatar || AVATARS[0], lv: 1, body: c.body || '', time: c.ts ? new Date(Number(c.ts)).toLocaleDateString('ko-KR') : '', ts: c.ts ? Number(c.ts) : Date.now(), deviceId: c.deviceId || '' });
       });
       targetPostIds.forEach(pid => {
         if (myReactionMap[pid]?.length) S.myReactions[pid] = [...myReactionMap[pid]];
@@ -16407,6 +16408,7 @@ function submitComment() {
     postId: String(_commentPostId),
     deviceId: S.deviceId,
     userName: displayName,
+    avatar: S.user.avatar || '',
     body,
     ts: commentId,
   }, { onConflict: 'id' }).then(() => {});
