@@ -3151,7 +3151,7 @@ async function updateUserPointsFields(deviceId, nextPoints, nextTotalPoints, tou
     || null;
   const resolveTargetUser = async () => {
     if (normalizedDeviceId) {
-      const existsRes = await db.from('users').select('deviceId,empId,name,points,totalPoints,lastactiveat').eq('deviceId', normalizedDeviceId);
+      const existsRes = await db.from('users').select('deviceId,empId,name,points,lastactiveat').eq('deviceId', normalizedDeviceId);
       if (existsRes.error) return { error: existsRes.error, user: null };
       const directUser = pickFamCertRewardUser(existsRes.data || [], normalizedEmpId, normalizedDeviceId);
       if (directUser?.deviceId) return { error: null, user: directUser };
@@ -3161,7 +3161,7 @@ async function updateUserPointsFields(deviceId, nextPoints, nextTotalPoints, tou
     }
     const lookupRes = await db
       .from('users')
-      .select('deviceId,empId,name,points,totalPoints,lastactiveat')
+      .select('deviceId,empId,name,points,lastactiveat')
       .or(buildAdminEmpIdFilters('empId', [normalizedEmpId]).join(','));
     if (lookupRes.error) return { error: lookupRes.error, user: null };
     const picked = pickFamCertRewardUser(lookupRes.data || [], normalizedEmpId, normalizedDeviceId)
@@ -3204,7 +3204,7 @@ async function updateUserPointsFields(deviceId, nextPoints, nextTotalPoints, tou
         appliedTotalPoints: !!result?.appliedTotalPoints,
         deviceId: targetDeviceId,
         points: Number(result?.points) || Math.max(0, Number(nextPoints) || 0),
-        totalPoints: Number(result?.totalPoints) || Math.max(0, Number(nextTotalPoints) || 0),
+        totalPoints: Number(result?.points) || Math.max(0, Number(nextPoints) || 0),
       };
     } catch (e) {
       console.warn('[points] admin function fallback:', e);
@@ -3213,7 +3213,6 @@ async function updateUserPointsFields(deviceId, nextPoints, nextTotalPoints, tou
 
   const pointsPayload = {
     points: Math.max(0, Number(nextPoints) || 0),
-    totalPoints: Math.max(0, Number(nextPoints) || 0),
     lastactiveat: touchedAt,
   };
   const pointsRes = await db.from('users')
@@ -3225,7 +3224,7 @@ async function updateUserPointsFields(deviceId, nextPoints, nextTotalPoints, tou
 
   const verifyPointsRes = await db
     .from('users')
-    .select('deviceId,empId,points,totalPoints,lastactiveat')
+    .select('deviceId,empId,points,lastactiveat')
     .eq('deviceId', targetDeviceId)
     .maybeSingle();
   if (verifyPointsRes.error) {
@@ -3240,7 +3239,7 @@ async function updateUserPointsFields(deviceId, nextPoints, nextTotalPoints, tou
     appliedTotalPoints: true,
     deviceId: targetDeviceId,
     points: Math.max(0, Number(verifyPointsRes.data?.points) || 0),
-    totalPoints: Math.max(0, Number(verifyPointsRes.data?.totalPoints) || 0),
+    totalPoints: Math.max(0, Number(verifyPointsRes.data?.points) || 0),
   };
 }
 

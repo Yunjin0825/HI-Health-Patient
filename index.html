@@ -7111,9 +7111,9 @@ document.addEventListener('visibilitychange', () => {
 async function refreshUserPointsFromServer() {
   if (!_db || !S.deviceId || IS_GUEST) return;
   try {
-    const { data } = await _db.from('users').select('points,totalPoints').eq('deviceId', S.deviceId).maybeSingle();
+    const { data } = await _db.from('users').select('points').eq('deviceId', S.deviceId).maybeSingle();
     if (!data) return;
-    const srvPts = Number(data.points ?? data.totalPoints) || 0;
+    const srvPts = Number(data.points) || 0;
     const prevPts = Number(S.user.points || 0);
     const prevTotal = Number(S.user.totalPoints || 0);
     const seenPts = readSeenBonusSyncPoints();
@@ -8146,7 +8146,6 @@ function save(opts = {}) {
       empId: S.user.empId || '',
       dept: S.user.dept || '',
       points: S.user.points,
-      totalPoints: Math.max(0, Number(S.user.points || 0) || 0),
       streak: S.user.streak,
       nickname: resolvedNickname,
       registrationId: S.user.registrationId || '',
@@ -8183,14 +8182,13 @@ function save(opts = {}) {
                     ? (payload.points - _lastKnownServerPts)
                     : 0;
                   if (pointDelta !== 0) {
-                    _db.from('users').select('points,totalPoints').eq('deviceId', S.deviceId).maybeSingle()
+                    _db.from('users').select('points').eq('deviceId', S.deviceId).maybeSingle()
                       .then(({ data: srvRow }) => {
                         const srvPts = Number(srvRow?.points) || 0;
                         const mergedPts = Math.max(0, srvPts + pointDelta);
                         const mergedPayload = {
                           ...payloadNoPts,
                           points: mergedPts,
-                          totalPoints: mergedPts,
                         };
                         _db.from('users').update(mergedPayload).eq('deviceId', S.deviceId)
                           .then(({ error: e3 }) => {
@@ -8293,7 +8291,6 @@ function forceSyncPoints(opts = {}) {
     app_version: SW_VERSION,
   };
   if (includePoints) payload.points = S.user.points;
-  if (includePoints || opts.includeTotalPoints) payload.totalPoints = Math.max(0, Number(S.user.points || 0) || 0);
   if (!Object.keys(payload).length) return;
   _db.from('users')
     .update(payload)
@@ -12958,7 +12955,7 @@ function deleteWorkout(id) {
           await deleteRemoteRecordById('workouts', targetId, [wo?.deviceId, S.deviceId]);
           // 포인트 차감을 users 테이블에 즉시 반영
           if (S.deviceId) {
-            await _db.from('users').update({ points: S.user.points, totalPoints: S.user.points, streak: S.user.streak, app_version: SW_VERSION })
+            await _db.from('users').update({ points: S.user.points, streak: S.user.streak, app_version: SW_VERSION })
               .eq('deviceId', S.deviceId);
           }
         } catch (e) {
@@ -18722,7 +18719,6 @@ async function updateCurrentUserPointFieldsRemote(touchedAt = new Date().toISOSt
     .from('users')
     .update({
       points: Math.max(0, Number(S.user.points) || 0),
-      totalPoints: Math.max(0, Number(S.user.points || 0) || 0),
       app_version: SW_VERSION,
       lastactiveat: touchedAt,
     })
@@ -18817,7 +18813,7 @@ async function refreshCurrentUserPointsFromRemote() {
 
   const { data, error } = await _db
     .from('users')
-    .select('deviceId,empId,name,nickname,dept,avatar,points,totalPoints,tags,lastactiveat')
+    .select('deviceId,empId,name,nickname,dept,avatar,points,tags,lastactiveat')
     .or(filters.join(','));
   if (error) throw error;
 
@@ -18829,7 +18825,7 @@ async function refreshCurrentUserPointsFromRemote() {
   S.user.empId = remoteUser.empId || S.user.empId;
   S.user.dept = remoteUser.dept || S.user.dept;
   S.user.avatar = normalizeAvatar(remoteUser.avatar || S.user.avatar);
-  S.user.points = Number(remoteUser.points ?? remoteUser.totalPoints) || 0;
+  S.user.points = Number(remoteUser.points) || 0;
   S.user.totalPoints = Number(S.user.points || 0) || 0;
   _lastKnownServerPts = Number(remoteUser.points) || 0;
   S.user.tags = normalizeUserTags(S.user.tags);

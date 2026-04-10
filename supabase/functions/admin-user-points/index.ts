@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
 
     const { data: user, error: userError } = await db
       .from("users")
-      .select("deviceId,points,totalPoints")
+      .select("deviceId,points")
       .eq("deviceId", normalizedDeviceId)
       .maybeSingle();
     if (userError) return json({ error: userError.message }, 500);
@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
 
     const { error: pointsError } = await db
       .from("users")
-      .update({ points: nextPoints, totalPoints: nextTotalPoints, lastactiveat: updatedAt })
+      .update({ points: nextPoints, lastactiveat: updatedAt })
       .eq("deviceId", normalizedDeviceId);
     if (pointsError) return json({ error: pointsError.message }, 500);
 
