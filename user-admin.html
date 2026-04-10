@@ -2651,8 +2651,12 @@ function getAdminBalancePoints(u) {
   return Math.max(0, Number(u?.points) || 0);
 }
 
+function getAdminCurrentRewardBalancePoints(u) {
+  return getAdminBalancePoints(u);
+}
+
 function getAdminBalanceTotalPoints(u) {
-  return Math.max(getAdminBalancePoints(u), Math.max(0, Number(u?.totalPoints) || 0));
+  return getAdminCurrentRewardBalancePoints(u);
 }
 
 function getAdminUsersTabPoints(u, pointMaps = null) {
@@ -3131,7 +3135,7 @@ async function updateUserPointsFields(deviceId, nextPoints, nextTotalPoints, tou
     || null;
   const resolveTargetUser = async () => {
     if (normalizedDeviceId) {
-      const existsRes = await db.from('users').select('deviceId,empId,name,points,lastactiveat').eq('deviceId', normalizedDeviceId);
+      const existsRes = await db.from('users').select('deviceId,empId,name,points,totalPoints,lastactiveat').eq('deviceId', normalizedDeviceId);
       if (existsRes.error) return { error: existsRes.error, user: null };
       const directUser = pickFamCertRewardUser(existsRes.data || [], normalizedEmpId, normalizedDeviceId);
       if (directUser?.deviceId) return { error: null, user: directUser };
@@ -3141,7 +3145,7 @@ async function updateUserPointsFields(deviceId, nextPoints, nextTotalPoints, tou
     }
     const lookupRes = await db
       .from('users')
-      .select('deviceId,empId,name,points,lastactiveat')
+      .select('deviceId,empId,name,points,totalPoints,lastactiveat')
       .or(buildAdminEmpIdFilters('empId', [normalizedEmpId]).join(','));
     if (lookupRes.error) return { error: lookupRes.error, user: null };
     const picked = pickFamCertRewardUser(lookupRes.data || [], normalizedEmpId, normalizedDeviceId)
@@ -6195,7 +6199,7 @@ async function reviewFamCert(id, status) {
     } else {
       const prevPoints = Number(targetRes.user.points) || 0;
       const nextPoints = prevPoints + FAMILY_CERT_REWARD_POINTS;
-      const prevTotalPoints = Math.max(Number(targetRes.user.totalPoints || 0), prevPoints);
+      const prevTotalPoints = prevPoints;
       const nextTotalPoints = prevTotalPoints + FAMILY_CERT_REWARD_POINTS;
       const userRes = await updateUserPointsFields(targetRes.user.deviceId, nextPoints, nextTotalPoints, reviewedAt, {
         empId: targetRes.empId,
@@ -6563,8 +6567,8 @@ function renderChallengeRewardUI(enabled) {
   thumb?.classList.toggle('on', enabled);
   if (label) label.textContent = enabled ? '운영 중' : '비활성화';
   if (status) status.textContent = enabled
-    ? '🟢 챌린지 기간 — 포인트 달성 시 차감 없이 신청 가능 (직원 전용)'
-    : '🔴 일반 모드 — 포인트 차감 방식으로 운영됩니다';
+    ? '🟢 챌린지 보상 운영중 — 직원 전용 보상이 노출되고, 신청 후에도 포인트는 유지됩니다'
+    : '🔴 일반 모드 — 일반 보상이 노출되고, 신청 후에도 포인트는 유지됩니다';
 }
 
 async function applyChallengeRewardToggle() {

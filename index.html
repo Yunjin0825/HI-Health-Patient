@@ -5600,7 +5600,7 @@
             <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
           </svg>
         </div>
-        <div><div class="qi-title">보상</div><div class="qi-sub" id="pts-quick">보유 0p</div></div>
+        <div><div class="qi-title">보상</div><div class="qi-sub" id="pts-quick">누적 포인트 0p</div></div>
       </button>
     </div>
 
@@ -6240,7 +6240,7 @@
     <div class="balance-card">
       <div class="bal-left">
         <div class="bal-head">
-          <p class="bal-label">보유 포인트</p>
+          <p class="bal-label">누적 포인트</p>
           <span class="hero-tag bal-challenge-badge" id="bal-challenge-badge">챌린지 운영중</span>
         </div>
         <p class="bal-amt"><span id="bal-display">0</span><span class="bal-unit">p</span></p>
@@ -7048,7 +7048,7 @@ const SHOP_PRODUCTS = [
 
 // 구매 기능 활성화 여부 — Supabase app_config 테이블에서 로드
 let _shopPurchaseEnabled = false;
-// 챌린지 보상 모드 — 포인트 차감 없이 달성 시 신청 (직원 전용)
+// 챌린지 보상 모드 — 직원 전용 챌린지 보상 UI/노출 제어
 let _challengeRewardMode = false;
 const SHOP_PURCHASE_NOTICE = '현재 구매 기능이 비활성화되어 있어요. 직접 구매를 원하시면 커뮤니케이션에 문의해주세요.';
 const SHOP_PURCHASE_TOAST = '현재 구매 기능이 비활성화되어 있어요.';
@@ -7111,9 +7111,9 @@ document.addEventListener('visibilitychange', () => {
 async function refreshUserPointsFromServer() {
   if (!_db || !S.deviceId || IS_GUEST) return;
   try {
-    const { data } = await _db.from('users').select('points').eq('deviceId', S.deviceId).maybeSingle();
+    const { data } = await _db.from('users').select('points,totalPoints').eq('deviceId', S.deviceId).maybeSingle();
     if (!data) return;
-    const srvPts = Number(data.points) || 0;
+    const srvPts = Number(data.points ?? data.totalPoints) || 0;
     const prevPts = Number(S.user.points || 0);
     const prevTotal = Number(S.user.totalPoints || 0);
     const seenPts = readSeenBonusSyncPoints();
@@ -8179,22 +8179,24 @@ function save(opts = {}) {
                   // 행은 있으나 서버 포인트가 더 높음 (관리자 보너스 등)
                   // 클라이언트가 새로 획득한 포인트 delta를 서버 값에 더해 병합
                   const { points: _p, ...payloadNoPts } = payload;
-                  const earnedDelta = (_lastKnownServerPts !== null)
-                    ? Math.max(0, payload.points - _lastKnownServerPts)
+                  const pointDelta = (_lastKnownServerPts !== null)
+                    ? (payload.points - _lastKnownServerPts)
                     : 0;
-                  if (earnedDelta > 0) {
-                    _db.from('users').select('points').eq('deviceId', S.deviceId).maybeSingle()
+                  if (pointDelta !== 0) {
+                    _db.from('users').select('points,totalPoints').eq('deviceId', S.deviceId).maybeSingle()
                       .then(({ data: srvRow }) => {
                         const srvPts = Number(srvRow?.points) || 0;
-                        const mergedPts = srvPts + earnedDelta;
+                        const mergedPts = Math.max(0, srvPts + pointDelta);
                         const mergedPayload = {
                           ...payloadNoPts,
                           points: mergedPts,
+                          totalPoints: mergedPts,
                         };
                         _db.from('users').update(mergedPayload).eq('deviceId', S.deviceId)
                           .then(({ error: e3 }) => {
                             if (e3) { console.error('[syncUser/merge-pts]', e3); return; }
                             S.user.points = mergedPts;
+                            S.user.totalPoints = mergedPts;
                             _lastKnownServerPts = mergedPts;
                             save({ skipRemote: true });
                             refreshVisiblePointUi();
@@ -8231,26 +8233,52 @@ function hasPointSpendHistory() {
   return (S.rewardHistory || []).some(item => Number(item?.cost || 0) > 0);
 }
 
+function getRewardHistorySpentPoints(history = S.rewardHistory) {
+  return (history || []).reduce((sum, item) => {
+    const status = String(item?.status || '').trim().toLowerCase();
+    if (status === 'cancelled') return sum;
+    return sum + Math.max(0, Number(item?.cost) || 0);
+  }, 0);
+}
+
+function getCurrentRewardBalancePoints() {
+  return Math.max(0, Number(S.user?.points || 0) || 0);
+}
+
 function getCurrentRewardPoints() {
-  return getCurrentLeagueAlltimePoints();
+  return getCurrentRewardBalancePoints();
+}
+
+function migrateLegacyRewardPointModel(opts = {}) {
+  if (IS_GUEST) return false;
+  const nextPoints = Math.max(0, Number(S.user?.points ?? S.user?.totalPoints || 0) || 0);
+  const currentPoints = Math.max(0, Number(S.user?.points || 0) || 0);
+  const currentTotal = Math.max(0, Number(S.user?.totalPoints || 0) || 0);
+  const pointsChanged = nextPoints !== currentPoints;
+  const totalChanged = nextPoints !== currentTotal;
+  if (!pointsChanged && !totalChanged) return false;
+  S.user.points = nextPoints;
+  S.user.totalPoints = nextPoints;
+  save({ skipRemote: true });
+  if (opts.syncRemote) forceSyncPoints();
+  return true;
 }
 
 function reconcileTotalPointsFromRecords(opts = {}) {
   if (IS_GUEST) return false;
   const currentPoints = Number(S.user.points || 0);
   const derivedTotal = getRecordDerivedTotalPoints();
-  const canReconcileFromRecords = _challengeRewardMode || !hasPointSpendHistory();
+  const canReconcileFromRecords = !hasPointSpendHistory();
   const nextPoints = canReconcileFromRecords
     ? Math.max(currentPoints, derivedTotal)
     : currentPoints;
   const pointsChanged = nextPoints !== currentPoints;
+  const totalChanged = nextPoints !== Number(S.user.totalPoints || 0);
   if (pointsChanged) S.user.points = nextPoints;
-  const nextTotal = nextPoints;
-  const totalChanged = nextTotal !== Number(S.user.totalPoints || 0);
   if (!pointsChanged && !totalChanged) return false;
-  S.user.totalPoints = nextTotal;
+  S.user.totalPoints = nextPoints;
   save({ skipRemote: true });
-  if (opts.syncRemote) forceSyncPoints({ includePoints: pointsChanged });
+  if (opts.syncRemote) forceSyncPoints({ includePoints: pointsChanged || totalChanged });
   return true;
 }
 
@@ -8259,10 +8287,10 @@ function forceSyncPoints(opts = {}) {
   if (!_db || !S.deviceId) return;
   const includePoints = opts.includePoints !== false;
   const payload = {
-    totalPoints: Math.max(0, Number(S.user.points || 0) || 0),
     app_version: SW_VERSION,
   };
   if (includePoints) payload.points = S.user.points;
+  if (includePoints || opts.includeTotalPoints) payload.totalPoints = Math.max(0, Number(S.user.points || 0) || 0);
   if (!Object.keys(payload).length) return;
   _db.from('users')
     .update(payload)
@@ -9046,8 +9074,8 @@ async function hydrateAccountFromRemote(empId, fallbackName = '') {
       avatar: normalizeAvatar(u.avatar || S.user.avatar),
       empId: u.empId || normalizedEmpId,
       dept: u.dept || S.user.dept || '',
-      points: Number(u.points || u.totalPoints || u.totalpoints) || 0,
-      totalPoints: Number(u.points || u.totalPoints || u.totalpoints) || 0,
+      points: Number(u.points ?? u.totalPoints ?? u.totalpoints) || 0,
+      totalPoints: Number(u.points ?? u.totalPoints ?? u.totalpoints) || 0,
       streak: Number(u.streak) || 0,
       tags: normalizeUserTags(S.user.tags),
       communityStarBadge: !!u.communityStarBadge,
@@ -9128,7 +9156,6 @@ function load() {
     }
     S.user = { ...S.user, ...d.user };
     S.user.tags = normalizeUserTags(S.user.tags);
-    // 누적포인트는 보유포인트와 동일하게 유지
     S.user.totalPoints = Number(S.user.points || 0) || 0;
     if (typeof S.user.levelCardShares !== 'number') S.user.levelCardShares = 0;
     S.workouts = mapWorkoutRecords(d.workouts || [], []);
@@ -11702,7 +11729,7 @@ function renderHome() {
   }
   const rewardPoints = getCurrentRewardPoints();
   const canRedeem = REWARDS_DATA.some(r => !S.redeemedRewards.includes(r.id) && !S.pendingRewards.includes(r.id) && rewardPoints >= r.cost);
-  document.getElementById('pts-quick').textContent = '총 보유 ' + rewardPoints + 'p' + (canRedeem ? ' · 교환 가능' : '');
+  document.getElementById('pts-quick').textContent = '누적 포인트 ' + rewardPoints + 'p' + (canRedeem ? ' · 교환 가능' : '');
   const woCnt = (S.workouts || []).length;
   const glCnt = (S.glucoseRecords || []).length;
   document.getElementById('rec-quick').textContent = (woCnt === 0 && glCnt === 0) ? '기록을 시작해보세요' : '운동 ' + woCnt + '회 · 혈당 ' + glCnt + '회';
@@ -16953,12 +16980,10 @@ function renderRewards() {
   document.getElementById('bal-display').textContent = points;
   const balSub = document.getElementById('bal-sub');
   const balChallengeBadge = document.getElementById('bal-challenge-badge');
-  if (balSub) balSub.textContent = _challengeRewardMode
-    ? '챌린지 기간에는 교환 신청 후에도 포인트가 차감되지 않아요. 예: 300P 보상을 신청해도 포인트는 그대로 유지돼요.'
-    : '포인트로 다양한 혜택을 누리세요';
+  if (balSub) balSub.textContent = '누적 포인트 기준으로 보상을 신청할 수 있고, 신청 후에도 포인트는 그대로 유지돼요.';
   if (balChallengeBadge) {
     balChallengeBadge.style.display = _challengeRewardMode ? 'inline-flex' : 'none';
-    balChallengeBadge.innerHTML = `${renderNamedSvgIcon('medal', { size:'11px', color:'#fff' })}<span>챌린지 기간 · 차감 없음</span>`;
+    balChallengeBadge.innerHTML = `${renderNamedSvgIcon('medal', { size:'11px', color:'#fff' })}<span>챌린지 보상 운영중</span>`;
   }
   const availableCount = REWARDS_DATA.filter(r => !S.redeemedRewards.includes(r.id) && !S.pendingRewards.includes(r.id) && points >= r.cost).length;
   const doneCount = REWARDS_DATA.filter(r => S.redeemedRewards.includes(r.id)).length;
@@ -17119,13 +17144,16 @@ function renderRewards() {
         history.map(h => {
           const dateStr = h.ts ? new Date(h.ts).toLocaleDateString('ko-KR', { month:'numeric', day:'numeric' }) : '';
           const doneDateStr = h.doneTs ? new Date(h.doneTs).toLocaleDateString('ko-KR', { month:'numeric', day:'numeric' }) : '';
+          const status = String(h.status || '').trim().toLowerCase();
+          const badgeClass = status === 'done' ? 'os-done' : status === 'cancelled' ? 'os-cancelled' : 'os-pending';
+          const badgeLabel = status === 'done' ? '교환 완료' : status === 'cancelled' ? '취소됨' : '처리 대기';
           return `<div class="reward-hist-item">
             <div style="flex:1">
               <div class="reward-hist-name">${h.name}</div>
               <div class="reward-hist-cost">${h.cost}p${dateStr ? ' · ' + dateStr + ' 신청' : ''}${doneDateStr ? ' · ' + doneDateStr + ' 완료' : ''}</div>
             </div>
-            <span class="order-status-badge ${h.status === 'done' ? 'os-done' : 'os-pending'}">
-              ${h.status === 'done' ? '교환 완료' : '처리 대기'}
+            <span class="order-status-badge ${badgeClass}">
+              ${badgeLabel}
             </span>
           </div>`;
         }).join('');
@@ -17140,13 +17168,11 @@ function redeemReward(id) {
   if (S.pendingRewards.includes(id))  { haptic('error'); showToast('이미 신청 처리 중이에요'); return; }
   if (getCurrentRewardPoints() < r.cost) { haptic('error'); showToast('⚠️ 포인트가 부족해요 (필요: ' + r.cost + 'p)'); return; }
 
-  if (!_challengeRewardMode) S.user.points -= r.cost;
   S.pendingRewards.push(id);
   if (!S.rewardHistory) S.rewardHistory = [];
   const orderId = 'REW-' + String(Date.now()).slice(-8);
   S.rewardHistory.unshift({ id, name: r.name, cost: r.cost, status: 'pending', ts: Date.now(), orderId });
   save();
-  if (!_challengeRewardMode) forceSyncPoints();
   renderHeader();
   haptic('success');
 
@@ -17165,7 +17191,7 @@ function redeemReward(id) {
     orderedAt: new Date().toISOString(),
   });
 
-  showToast(_challengeRewardMode ? '🎁 신청 완료! 직원 확인 후 수령하세요' : '✅ 교환 신청 완료! 직원 확인 후 수령하세요');
+  showToast('✅ 교환 신청 완료! 직원 확인 후 수령하세요');
   renderRewards();
 }
 
@@ -17179,7 +17205,7 @@ function confirmReward(id) {
 async function syncRewardStatus() {
   if (!_db || !S.deviceId) return;
   const { data } = await _db.from('orders')
-    .select('id, status, items')
+    .select('id, status, items, total, orderedAt')
     .eq('deviceId', S.deviceId)
     .eq('pickup', '포인트교환');
   if (!data || !data.length) return;
@@ -17189,18 +17215,38 @@ async function syncRewardStatus() {
     if (typeof items === 'string') { try { items = JSON.parse(items); } catch { return; } }
     const rewardId = (items?.[0]?.id) || null;
     if (!rewardId) return;
-    if (order.status === 'completed') {
-      if (!S.redeemedRewards.includes(rewardId)) { S.redeemedRewards.push(rewardId); changed = true; }
-      S.pendingRewards = S.pendingRewards.filter(x => x !== rewardId);
-      const hist = (S.rewardHistory || []).find(h => h.id === rewardId && h.orderId === order.id);
-      if (hist && hist.status !== 'done') { hist.status = 'done'; hist.doneTs = Date.now(); changed = true; }
-    } else if (order.status === 'cancelled') {
-      S.pendingRewards = S.pendingRewards.filter(x => x !== rewardId);
-      S.redeemedRewards = S.redeemedRewards.filter(x => x !== rewardId);
+    const rewardName = String(items?.[0]?.name || (REWARDS_DATA.find(x => x.id === rewardId)?.name || '보상'));
+    let hist = (S.rewardHistory || []).find(h => h.orderId === order.id) || null;
+    const status = String(order.status || '').trim().toLowerCase();
+    if (!hist) {
+      hist = { id: rewardId, name: rewardName, cost: Math.max(0, Number(items?.[0]?.price || order.total) || 0), status: status === 'completed' ? 'done' : status === 'cancelled' ? 'cancelled' : 'pending', ts: order.orderedAt ? Date.parse(order.orderedAt) || Date.now() : Date.now(), orderId: order.id };
+      if (!S.rewardHistory) S.rewardHistory = [];
+      S.rewardHistory.unshift(hist);
       changed = true;
     }
+    if (status === 'completed') {
+      if (!S.redeemedRewards.includes(rewardId)) { S.redeemedRewards.push(rewardId); changed = true; }
+      S.pendingRewards = S.pendingRewards.filter(x => x !== rewardId);
+      if (hist && hist.status !== 'done') { hist.status = 'done'; hist.doneTs = Date.now(); changed = true; }
+    } else if (status === 'cancelled') {
+      S.pendingRewards = S.pendingRewards.filter(x => x !== rewardId);
+      S.redeemedRewards = S.redeemedRewards.filter(x => x !== rewardId);
+      if (hist && hist.status !== 'cancelled') {
+        hist.status = 'cancelled';
+        hist.cancelledTs = Date.now();
+      }
+      changed = true;
+    } else {
+      if (!S.pendingRewards.includes(rewardId)) { S.pendingRewards.push(rewardId); changed = true; }
+      if (hist && hist.status !== 'pending') { hist.status = 'pending'; changed = true; }
+      S.redeemedRewards = S.redeemedRewards.filter(x => x !== rewardId);
+    }
   });
-  if (changed) { save(); renderRewards(); }
+  if (changed) {
+    save();
+    refreshVisiblePointUi();
+    renderRewards();
+  }
 }
 
 function openRewardForm() {
@@ -18768,7 +18814,7 @@ async function refreshCurrentUserPointsFromRemote() {
 
   const { data, error } = await _db
     .from('users')
-    .select('deviceId,empId,name,nickname,dept,avatar,points,tags,lastactiveat')
+    .select('deviceId,empId,name,nickname,dept,avatar,points,totalPoints,tags,lastactiveat')
     .or(filters.join(','));
   if (error) throw error;
 
@@ -18780,7 +18826,7 @@ async function refreshCurrentUserPointsFromRemote() {
   S.user.empId = remoteUser.empId || S.user.empId;
   S.user.dept = remoteUser.dept || S.user.dept;
   S.user.avatar = normalizeAvatar(remoteUser.avatar || S.user.avatar);
-  S.user.points = Number(remoteUser.points) || 0;
+  S.user.points = Number(remoteUser.points ?? remoteUser.totalPoints) || 0;
   S.user.totalPoints = Number(S.user.points || 0) || 0;
   _lastKnownServerPts = Number(remoteUser.points) || 0;
   S.user.tags = normalizeUserTags(S.user.tags);
