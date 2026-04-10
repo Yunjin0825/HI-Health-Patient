@@ -12004,11 +12004,9 @@ function renderExerciseHistory() {
 
   wo.innerHTML = days.map(day => {
     const dws = dayMap[day].sort((a, b) => b.ts - a.ts);
-    const totalPts = dws.reduce((s, w) => s + w.points, 0);
     return `
       <div class="wo-day-group">
         <span class="wo-day-label">${month + 1}월 ${day}일</span>
-        <span class="wo-day-pts">+${totalPts}p · ${dws.length}회</span>
       </div>
       ${dws.map(w => workoutItemHTML(w)).join('')}
     `;
