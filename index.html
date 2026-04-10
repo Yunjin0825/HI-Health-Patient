@@ -3427,17 +3427,11 @@
     .league-rank-badge.giver-star {
       color:var(--text);
     }
-    .league-rank-badge.badge-king {
-      color:var(--text);
-    }
     .league-rank-badge.comm-star::before {
       content:'✦';
     }
     .league-rank-badge.giver-star::before {
       content:'♡';
-    }
-    .league-rank-badge.badge-king::before {
-      content:'◇';
     }
     .lb-level-icon {
       width:22px; height:22px; flex-shrink:0;
@@ -9548,7 +9542,7 @@ async function shareLevelCard() {
           S.user.levelCardShares = (S.user.levelCardShares || 0) + 1;
           save();
           const newBadge = earnedAchs().find(a => !prevShareEarned.includes(a.id));
-          if (newBadge) { syncBadgeCountToDb(); setTimeout(() => { haptic('success'); showCelebration('badge', newBadge); }, 500); }
+          if (newBadge) { setTimeout(() => { haptic('success'); showCelebration('badge', newBadge); }, 500); }
         } catch(e) {
           if (e.name !== 'AbortError') showToast('공유에 실패했어요');
         }
@@ -9563,7 +9557,7 @@ async function shareLevelCard() {
         S.user.levelCardShares = (S.user.levelCardShares || 0) + 1;
         save();
         const newBadge = earnedAchs().find(a => !prevShareEarned.includes(a.id));
-        if (newBadge) { syncBadgeCountToDb(); setTimeout(() => { haptic('success'); showCelebration('badge', newBadge); }, 500); }
+        if (newBadge) { setTimeout(() => { haptic('success'); showCelebration('badge', newBadge); }, 500); }
       }
     }, 'image/png');
   } catch(e) {
@@ -10477,7 +10471,6 @@ function getLeagueBadgeState(entries = [], tab = S.leagueTab) {
   const badgeState = {
     risingKingKey: '',
     streakKingKey: '',
-    badgeKingKeys: new Set(),
     newKeys: new Set(),
   };
   if (!Array.isArray(entries) || !entries.length) return badgeState;
@@ -10508,16 +10501,6 @@ function getLeagueBadgeState(entries = [], tab = S.leagueTab) {
       return compareLeagueEntriesByMetric(a, b, getLeagueMetricForTab(tab));
     })[0];
   if (streakKing) badgeState.streakKingKey = getLeagueEntryKey(streakKing);
-
-  // 배지왕: 획득 배지 수 공동 1위 모두 표시
-  const maxBadgeCount = entries.reduce((max, entry) => {
-    return Math.max(max, Number(entry?.badgeCount) || 0);
-  }, 0);
-  if (maxBadgeCount > 0) {
-    entries
-      .filter(entry => (Number(entry?.badgeCount) || 0) === maxBadgeCount)
-      .forEach(entry => badgeState.badgeKingKeys.add(getLeagueEntryKey(entry)));
-  }
 
   return badgeState;
 }
@@ -10555,10 +10538,6 @@ function renderLeagueEntryBadgesHtml(entry, badgeState = {}, tab = S.leagueTab) 
   }
   if (did && _communityTopGiverDeviceId && did === _communityTopGiverDeviceId) {
     badges.push('<span class="league-rank-badge giver-star">공감왕</span>');
-  }
-  // 배지왕
-  if (key && badgeState.badgeKingKeys instanceof Set && badgeState.badgeKingKeys.has(key)) {
-    badges.push('<span class="league-rank-badge badge-king">배지왕</span>');
   }
   return badges.length ? `<span class="league-rank-badges">${badges.join('')}</span>` : '';
 }
@@ -12865,7 +12844,6 @@ async function logExercise() {
 
     // Check new badges
     const newBadges = earnedAchs().filter(a => !prevEarnedIds.has(a.id));
-    if (newBadges.length) syncBadgeCountToDb();
 
     // Check level up
     const totalPoints = getCurrentLeagueAlltimePoints();
@@ -15310,14 +15288,12 @@ function buildRealLeagueUsers(allUsers, allRegs, alltimePtsByDevice = {}, challe
         deviceIds: new Set(),
         representative: null,
         representativeTs: 0,
-        maxBadgeCount: 0,
         tags: new Set(),
         isChallenger: false,
       });
     }
     const group = grouped.get(groupKey);
     if (deviceId) group.deviceIds.add(deviceId);
-    group.maxBadgeCount = Math.max(group.maxBadgeCount, Number(u?.badge_count) || 0);
     normalizeUserTags(u.tags).forEach(tag => group.tags.add(tag));
     group.isChallenger = group.isChallenger
       || regEmpIds.has(empId)
@@ -15376,7 +15352,6 @@ function buildRealLeagueUsers(allUsers, allRegs, alltimePtsByDevice = {}, challe
       totalPts: mergedCumulativePts,
       wPts: mergedWeeklyPts,
       streak: mergedStreak,
-      badgeCount: Math.max(0, Number(group.maxBadgeCount) || 0),
       change: 0,
       isNew: false,
       isMe: false,
@@ -15554,7 +15529,6 @@ function renderLeague() {
   if (!_communityTopPosterDeviceId && (S.posts || []).length) {
     _calcCommunityRankBadges(S.posts, null);
   }
-  const myBadgeCount = typeof earnedAchs === 'function' ? earnedAchs().length : 0;
   const tab = S.leagueTab;
   const canJoinLeague = canJoinLeagueRanking();
   if (tab === 'challenger' && !hasActiveChallengeRegistration()) {
@@ -15578,7 +15552,6 @@ function renderLeague() {
       id:0, name: myDisplayName() + ' (나)', avatar: S.user.avatar,
       lv: myLeagueLv.lv, pts: getCurrentLeaguePoints(), chPts: myLeaguePts,
       wPts: myWeekPts(), streak: Number(S.user.streak) || 0, change:0, isNew:false, isMe: true, isChallenger: isRegistered,
-      badgeCount: myBadgeCount,
       tags: S.user.tags || [],
     };
     const baseUsers = Array.isArray(_realLeagueUsers) ? _realLeagueUsers : [];
@@ -15671,7 +15644,6 @@ function renderLeague() {
     totalPts: myAlltimePts,
     wPts: myWeekPts(),
     streak: Number(S.user.streak) || 0,
-    badgeCount: myBadgeCount,
     change:0, isNew:false, isMe: true, tags: S.user.tags || [],
   };
   const myLvNum = getLevel(myLvPoints).lv;
@@ -16519,7 +16491,6 @@ function react(buttonEl, postId, stickerId) {
       if (!localStorage.getItem(seenKey)) {
         localStorage.setItem(seenKey, '1');
         const giverAch = ACHIEVEMENTS_DATA.find(a => a.id === 'a10');
-        syncBadgeCountToDb();
         setTimeout(() => { haptic('success'); showCelebration('badge', giverAch); }, 400);
       }
     }
@@ -16532,14 +16503,6 @@ function react(buttonEl, postId, stickerId) {
   save();
 }
 
-/* ════════════════════════════════════════
-   배지 수 DB 동기화
-════════════════════════════════════════ */
-function syncBadgeCountToDb() {
-  if (IS_GUEST || !_db || !S.deviceId) return;
-  const count = earnedAchs().length;
-  _db.from('users').update({ badge_count: count }).eq('deviceId', S.deviceId).then(() => {});
-}
 
 /* ════════════════════════════════════════
    커뮤니티 스타 / 공감왕 — 동적 랭킹 배지
@@ -20910,7 +20873,6 @@ async function doAppLogin() {
   repairChRegNote();
   updateStreak();
   save();
-  syncBadgeCountToDb();
   sessionStorage.setItem('hi_session_empid', ACTIVE_EMPID);
   // IS_RUN_MODE(챌린지 직원)는 항상 localStorage에 저장 (카카오톡 인앱브라우저 세션 유실 방지)
   if (keepLogin || IS_RUN_MODE) {
@@ -21111,7 +21073,6 @@ async function init() {
     await syncMyChallengeRegistrationWithOptions({ pruneMissingRemote: true });
     updateStreak();
     save();
-    syncBadgeCountToDb();
     renderHeader();
     renderHome();
     window.dispatchEvent(new Event('hi:loggedin'));
