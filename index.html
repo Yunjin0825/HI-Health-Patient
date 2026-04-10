@@ -15939,7 +15939,6 @@ function renderCommunity() {
           <div class="post-info">
             <div class="post-title-line">
               <span class="post-uname">${p.name}</span>
-              ${_communityTopGiverDeviceId && _communityTopGiverDeviceId === p.deviceId ? `<span class="comm-star-badge" style="background:#fff3e0;color:#e65100;border-color:#ffb74d">💖 공감왕</span>` : ''}
               <div class="post-meta">
                 ${!isBotDeviceId(p.deviceId) ? `<span class="post-lv-icon">${lv.icon}</span><span>${lv.name}</span><span>·</span>` : ''}
                 <span>${p.time}</span>
