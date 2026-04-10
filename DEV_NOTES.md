@@ -7,6 +7,12 @@
 
 ## 🐛 오류 / 이슈
 
+### [2026-04-10] 관리자 이용자 포인트 표시 기준 혼선
+**증상**: 관리자, 리그, 보상 화면에서 같은 사람의 누적 포인트가 서로 다르게 보여 혼선이 생김
+**원인**: 일부 화면은 `users.points`를 쓰고, 일부 화면은 운동/혈당 합산 보정값(`getAdminEffectivePoints`, `getCurrentLeagueAlltimePoints`, 리그 캐시 누적 계산)을 따로 사용하고 있었음
+**해결**: `누적 포인트 = users.points`로 기준을 통일. 관리자 `이용자`/리그/보상 계산을 모두 같은 값으로 맞추고, 관리자 포인트 조정 시 `totalPoints`도 함께 동기화되도록 수정
+**관련 파일**: `index.html`, `user-admin.html`, `supabase/functions/admin-user-points/index.ts`
+
 ### [2026-04-05] 가족인증 승인 시 포인트 지급 실패
 **증상**: 가족인증 승인 버튼을 누르면 "포인트 지급 실패" 메시지가 뜨고 승인이 안 됨
 **원인**: 챌린지만 신청하고 앱에 로그인한 적 없는 사용자는 `users` 테이블에 레코드가 없음. `resolveFamCertRewardTarget`이 이 경우 GD.users fallback에서 `__derived` 임시 유저(deviceId가 `'emp:A1234'` 같은 가짜값)를 반환. `updateUserPointsFields`가 가짜 deviceId로 DB 업데이트를 시도 → 0행 갱신 → verify 실패 → 에러 반환 → 승인 자체가 차단됨

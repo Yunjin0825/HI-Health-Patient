@@ -388,7 +388,7 @@
               <th>닉네임</th>
               <th>계정 ID</th>
               <th>부서</th>
-              <th>포인트</th>
+              <th>누적 포인트</th>
               <th>운동</th>
               <th>연속</th>
               <th>마지막 활동</th>
@@ -2599,10 +2599,7 @@ function getAdminServerPointsMap(users = GD.users) {
 }
 
 function getAdminAlltimePointsFromValues(serverPoints = 0, workoutPoints = 0, glucosePoints = 0) {
-  const normalizedServerPoints = Math.max(0, Number(serverPoints) || 0);
-  const normalizedWorkoutPoints = Math.max(0, Number(workoutPoints) || 0);
-  const normalizedGlucosePoints = Math.max(0, Number(glucosePoints) || 0);
-  return Math.max(0, Math.max(normalizedServerPoints, normalizedWorkoutPoints) + normalizedGlucosePoints);
+  return Math.max(0, Number(serverPoints) || 0);
 }
 
 function getAdminPointBreakdownMaps(workouts = GD.workouts, glucose = GD.glucose, users = GD.users) {
@@ -2643,15 +2640,7 @@ function getAdminActivityPointsMap(workouts = GD.workouts, glucose = GD.glucose)
 }
 
 function getAdminEffectivePoints(u, pointMaps = null) {
-  const deviceId = String(u?.deviceId || '').trim();
-  const rawPoints = Math.max(0, Number(u?.points) || 0);
-  const maps = pointMaps && typeof pointMaps === 'object' && (pointMaps.workoutPointsByDeviceId || pointMaps.glucosePointsByDeviceId)
-    ? pointMaps
-    : getAdminPointBreakdownMaps();
-  const workoutPoints = deviceId ? Math.max(0, Number(maps.workoutPointsByDeviceId?.[deviceId]) || 0) : 0;
-  const glucosePoints = deviceId ? Math.max(0, Number(maps.glucosePointsByDeviceId?.[deviceId]) || 0) : 0;
-  const serverPoints = deviceId ? Math.max(0, Number(maps.serverPointsByDeviceId?.[deviceId] ?? rawPoints) || 0) : rawPoints;
-  return getAdminAlltimePointsFromValues(serverPoints, workoutPoints, glucosePoints);
+  return getAdminBalancePoints(u);
 }
 
 function getAdminAlltimeLeaguePoints(u) {
@@ -2667,7 +2656,7 @@ function getAdminBalanceTotalPoints(u) {
 }
 
 function getAdminUsersTabPoints(u, pointMaps = null) {
-  return getAdminEffectivePoints(u, pointMaps);
+  return getAdminBalancePoints(u);
 }
 
 function getAdminLevelLeagueMeta(u) {
@@ -3102,17 +3091,10 @@ function renderPtsPopupSummary(user, pointMaps = null) {
   const curEl = document.getElementById('pts-popup-cur');
   const subEl = document.getElementById('pts-popup-sub');
   if (!u || !curEl || !subEl) return;
-  const maps = pointMaps && typeof pointMaps === 'object' ? pointMaps : getAdminPointBreakdownMaps();
-  const visiblePoints = getAdminUsersTabPoints(u, maps);
-  const balancePoints = getAdminBalancePoints(u);
+  const visiblePoints = getAdminUsersTabPoints(u, pointMaps);
   curEl.textContent = visiblePoints.toLocaleString() + 'p';
-  if (visiblePoints !== balancePoints) {
-    subEl.textContent = `실제 조정 기준 ${balancePoints.toLocaleString()}p`;
-    subEl.style.display = '';
-  } else {
-    subEl.textContent = '';
-    subEl.style.display = 'none';
-  }
+  subEl.textContent = '';
+  subEl.style.display = 'none';
 }
 
 function openPtsPopup(deviceId, e) {
@@ -3211,6 +3193,7 @@ async function updateUserPointsFields(deviceId, nextPoints, nextTotalPoints, tou
 
   const pointsPayload = {
     points: Math.max(0, Number(nextPoints) || 0),
+    totalPoints: Math.max(0, Number(nextPoints) || 0),
     lastactiveat: touchedAt,
   };
   const pointsRes = await db.from('users')
@@ -3222,7 +3205,7 @@ async function updateUserPointsFields(deviceId, nextPoints, nextTotalPoints, tou
 
   const verifyPointsRes = await db
     .from('users')
-    .select('deviceId,empId,points,lastactiveat')
+    .select('deviceId,empId,points,totalPoints,lastactiveat')
     .eq('deviceId', targetDeviceId)
     .maybeSingle();
   if (verifyPointsRes.error) {
@@ -3234,10 +3217,10 @@ async function updateUserPointsFields(deviceId, nextPoints, nextTotalPoints, tou
 
   return {
     error: null,
-    appliedTotalPoints: false,
+    appliedTotalPoints: true,
     deviceId: targetDeviceId,
-    points: Math.max(0, Number(nextPoints) || 0),
-    totalPoints: Math.max(0, Number(nextTotalPoints) || 0),
+    points: Math.max(0, Number(verifyPointsRes.data?.points) || 0),
+    totalPoints: Math.max(0, Number(verifyPointsRes.data?.totalPoints) || 0),
   };
 }
 
@@ -3257,11 +3240,11 @@ async function adjPoints(sign) {
   showLoading(false);
   if (result.error) { toast('실패: ' + result.error.message); return; }
   u.points = Number(result.points) || newPts;
-  if (result.appliedTotalPoints) u.totalPoints = Number(result.totalPoints) || newTotalPoints;
+  u.totalPoints = Number(result.totalPoints) || newTotalPoints;
   renderPtsPopupSummary(u);
   document.getElementById('adj-val').value = '';
   renderStats(); renderUsers();
-  toast((sign > 0 ? '+' : '') + (sign * v) + 'p 조정 완료' + (result.appliedTotalPoints ? '' : ' (누적포인트 동기화는 제외됨)'));
+  toast((sign > 0 ? '+' : '') + (sign * v) + 'p 조정 완료');
 }
 
 function buildAdminEmpIdFilters(column, values = []) {
@@ -3807,7 +3790,7 @@ async function submitWorkoutBackfill() {
       ts: workoutTs,
     });
     user.points = Number(pointResult.points) || nextPoints;
-    if (pointResult.appliedTotalPoints) user.totalPoints = Number(pointResult.totalPoints) || nextTotalPoints;
+    user.totalPoints = Number(pointResult.totalPoints) || nextTotalPoints;
     user.streak = nextStreak;
     if (!user.lastactiveat || touchTs >= getUserLastActiveTs(user)) {
       user.lastactiveat = touchedAt;
@@ -6277,7 +6260,7 @@ async function reviewFamCert(id, status) {
     const linkedUser = GD.users.find(u => String(u?.deviceId || '').trim() === rewardMeta.userDeviceId);
     if (linkedUser) {
       linkedUser.points = rewardMeta.nextPoints;
-      if (rewardMeta.appliedTotalPoints) linkedUser.totalPoints = rewardMeta.nextTotalPoints;
+      linkedUser.totalPoints = rewardMeta.nextTotalPoints;
     }
   }
   if (certRow) {
