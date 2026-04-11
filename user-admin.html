@@ -1656,7 +1656,7 @@ const ADMIN_LEAGUE_LEVELS = [
 ];
 let ADMIN_PW = localStorage.getItem('hi_admin_pw') || '1111'; // 비밀번호 변경용 (하위호환)
 let db = null;
-let GD = { users:[], workouts:[], posts:[], glucose:[], registrations:[], pushSubscriptions:[], orders:[], adminPosts:[], adminPostViews:[] };
+let GD = { users:[], workouts:[], posts:[], glucose:[], registrations:[], pushSubscriptions:[], orders:[], adminPosts:[] };
 let selDeviceId = '';
 let ADMIN_AUTH_KEY = '';
 let _userDetailDirty = false;
@@ -1710,7 +1710,7 @@ function doLogout() {
   document.getElementById('login-screen').style.display = '';
   document.getElementById('admin').style.display = 'none';
   document.getElementById('pw-input').value = '';
-  GD = { users:[], workouts:[], posts:[], glucose:[], registrations:[], pushSubscriptions:[], orders:[], adminPosts:[], adminPostViews:[] };
+  GD = { users:[], workouts:[], posts:[], glucose:[], registrations:[], pushSubscriptions:[], orders:[], adminPosts:[] };
   selDeviceId = '';
   if (_pollTimer) clearInterval(_pollTimer);
   _pollTimer = null;
@@ -1824,10 +1824,6 @@ function setupRealtime() {
   _rtChannels.push(ch);
 }
 
-function isOptionalAdminTableError(error) {
-  const message = String(error?.message || error || '');
-  return /relation .* does not exist|Could not find the table|column .* does not exist|Could not find the '.*' column/i.test(message);
-}
 
 function deriveUsersFromActivity(workouts, posts, glucose, registrations, orders) {
   const map = new Map();
@@ -2318,7 +2314,6 @@ function buildDataSignature(data) {
     ]),
     orders: sortedRows(data.orders, ['id', 'deviceId', 'orderedAt', 'createdAt']),
     adminPosts: sortedRows(data.adminPosts, ['id', 'createdAt']),
-    adminPostViews: sortedRows(data.adminPostViews, ['id', 'content_id', 'device_id', 'emp_id', 'viewed_at']),
   });
 }
 
@@ -2374,10 +2369,6 @@ async function loadAll(opts = {}) {
       client.from('admin_posts').select('*').order('createdAt', { ascending: false }),
       'admin_posts'
     );
-    const apv = await withAdminLoadTimeout(
-      client.from('admin_post_views').select('id,content_id,device_id,emp_id,viewed_at').order('viewed_at', { ascending: false }),
-      'admin_post_views'
-    );
     if (db !== client) return;
     const queryErrors = [
       ['users', u.error],
@@ -2388,8 +2379,7 @@ async function loadAll(opts = {}) {
       ['push_subscriptions', ps.error],
       ['orders', o.error],
       ['admin_posts', ap.error],
-      ['admin_post_views', apv.error],
-    ].filter(([table, error]) => !!error && !(table === 'admin_post_views' && isOptionalAdminTableError(error)));
+    ].filter(([table, error]) => !!error);
     if (queryErrors.length) {
       const [table, error] = queryErrors[0];
       console.error(`[${table}]`, error);
@@ -2423,7 +2413,6 @@ async function loadAll(opts = {}) {
       pushSubscriptions: (ps.data || []).map(normalizePushSubscriptionRow),
       orders: nextOrders,
       adminPosts: ap.data || [],
-      adminPostViews: apv.error && isOptionalAdminTableError(apv.error) ? [] : (apv.data || []),
     };
     const nextSignature = buildDataSignature(nextData);
     const changed = nextSignature !== _lastDataSignature;
@@ -3595,7 +3584,6 @@ async function resetAllData() {
       { tbl:'push_logs', key:'id', optional:true },
       { tbl:'user_client_settings', key:'id', optional:true },
       { tbl:'admin_posts', key:'id', optional:true },
-      { tbl:'admin_post_views', key:'id', optional:true },
       { tbl:'users',    key:'deviceId' },
     ];
     for (const { tbl, key, optional } of defs) {
@@ -3604,7 +3592,7 @@ async function resetAllData() {
       const ids = data.map(r => r[key]);
       await deleteByIds(tbl, key, ids, optional);
     }
-    GD = { users:[], workouts:[], posts:[], glucose:[], registrations:[], orders:[], adminPosts: [], adminPostViews: [] };
+    GD = { users:[], workouts:[], posts:[], glucose:[], registrations:[], orders:[], adminPosts: [] };
     GD_famcert = [];
     selDeviceId = '';
     try {
@@ -5536,17 +5524,6 @@ function getAdminLinkedPostPreview(p) {
   return `#${postId} · ${linked.userName || '-'} · ${body}`;
 }
 
-function getAdminPostViewSummary(postId) {
-  const normalizedId = String(postId || '').trim();
-  const rows = (GD.adminPostViews || []).filter(row => String(row?.content_id || '').trim() === normalizedId);
-  const totalViews = rows.length;
-  const uniqueViewers = new Set(
-    rows
-      .map(row => String(row?.emp_id || row?.device_id || row?.id || '').trim().toUpperCase())
-      .filter(Boolean)
-  ).size;
-  return { totalViews, uniqueViewers };
-}
 
 function renderAdminPosts() {
   const tbody = document.getElementById('ap-tbody');
@@ -5562,11 +5539,10 @@ function renderAdminPosts() {
     const safeLinkedPostId = linkedPostId.replace(/'/g,'');
     const linkedPreview = getAdminLinkedPostPreview(p);
     const hasLinkedPost = !!GD.posts.find(x => String(x.id) === linkedPostId);
-    const viewSummary = getAdminPostViewSummary(p.id);
     return `<tr>
       <td class="td-date">${d}</td>
       <td><span class="badge ex">${cat}</span></td>
-      <td class="td-name">${p.title||'-'}<div style="margin-top:4px;font-size:11px;color:#94A3B8;font-weight:500">조회 ${viewSummary.totalViews} · ${viewSummary.uniqueViewers}명</div></td>
+      <td class="td-name">${p.title||'-'}</td>
       <td class="td-memo">${escHtml(stripAdminContentHtml(p.body || '-').substring(0,50) || '-')}</td>
       <td class="td-memo">
         ${linkedPreview}
@@ -5628,18 +5604,9 @@ async function deleteAdminPost(id) {
   if (!id || !confirm('이 공지를 삭제하시겠습니까?')) return;
   showLoading(true);
   const { error } = await db.from('admin_posts').delete().eq('id', id);
-  if (!error) {
-    const { error: viewError } = await db.from('admin_post_views').delete().eq('content_id', String(id));
-    if (viewError && !isOptionalAdminTableError(viewError)) {
-      showLoading(false);
-      toast('조회 기록 삭제 실패: ' + viewError.message);
-      return;
-    }
-  }
   showLoading(false);
   if (error) { toast('삭제 실패: ' + error.message); return; }
   GD.adminPosts = GD.adminPosts.filter(p => String(p.id) !== String(id));
-  GD.adminPostViews = (GD.adminPostViews || []).filter(v => String(v.content_id || '') !== String(id));
   renderAdminPosts();
   toast('공지 삭제 완료');
 }
