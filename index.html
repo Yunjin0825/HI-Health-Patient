@@ -16029,6 +16029,7 @@ function _calcCommunityRankBadges(remotePosts, allReactions) {
     });
     let topGiver = null, topGiverCount = 0;
     for (const [did, cnt] of Object.entries(giverCnt)) {
+      if (did === _communityTopPosterDeviceId) continue; // 커뮤니티스타와 동일인 제외
       if (cnt > topGiverCount) { topGiverCount = cnt; topGiver = did; }
     }
     _communityTopGiverDeviceId = topGiver;
