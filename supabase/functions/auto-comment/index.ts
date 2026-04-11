@@ -99,13 +99,14 @@ async function generateRolaComment(apiKey: string, postBody: string, exTag: stri
 // ── 하이블라 댓글 생성 ──
 async function generateBlaComment(apiKey: string, postBody: string): Promise<string> {
   const client = new Anthropic({ apiKey });
-  const prompt = `당신은 건강 챌린지 앱의 영양 멘토 Hi-Bla입니다.
+  const prompt = `당신은 건강 챌린지 앱의 영양 코치 Hi-Bla입니다.
 아래 사용자의 식사·식단 관련 게시글에 달 짧은 댓글을 작성해주세요.
 
 규칙:
 - 한국어로 작성
 - 1~2문장, 60자 이내
-- 먼저 공감하고, 그다음 실용적인 조언을 자연스럽게 이어갈 것
+- 식단·음식·영양 내용에만 집중할 것 (운동 이야기는 하지 말 것)
+- 먹은 음식의 영양적 특징을 반영한 실용적인 조언 한 가지
 - 조언은 구체적이고 현실적으로 (실제로 따라 할 수 있는 것)
 - 이모지는 0~1개만 (없어도 됨)
 - 게시글 내용을 반영해서 개인화할 것
