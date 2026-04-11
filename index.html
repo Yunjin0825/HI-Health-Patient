@@ -3426,6 +3426,7 @@
     }
     .league-rank-badge.giver-star {
       color:var(--text);
+      padding:2px 5px;
     }
     .league-rank-badge.comm-star::before {
       content:'✦';
@@ -15712,12 +15713,13 @@ function renderLeague() {
       </div>`;
   }
 
-  const lbSlice = list.slice(0, 20);
+  const lbLimit = currentTab === 'alltime' ? 30 : 20;
+  const lbSlice = list.slice(0, lbLimit);
   const canShowEstimatedMeRow = canJoinLeague
     && !LEAGUE_EXCLUDE_EMPIDS.includes((S.user.empId || ACTIVE_EMPID || '').trim().toUpperCase())
     && !meEntry
     && Number.isFinite(Number(displayMyRank))
-    && Number(displayMyRank) > 20;
+    && Number(displayMyRank) > lbLimit;
   const estimatedMeRow = canShowEstimatedMeRow ? {
     ...me,
     rank: Number(displayMyRank),
