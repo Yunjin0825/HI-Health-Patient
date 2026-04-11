@@ -1,4 +1,4 @@
-const CACHE = 'hi-health-v772';
+const CACHE = 'hi-health-v773';
 const STATIC_ASSETS = [
   './manifest.webmanifest',
   './icons/icon-192.png',
@@ -69,7 +69,7 @@ self.addEventListener('fetch', e => {
 function normalizeNotificationPayload(raw = {}) {
   const title = String(raw.title || 'HI Health');
   const body = String(raw.body || '새 알림이 도착했어요.');
-  const url = String(raw.url || './index.html');
+  const url = String(raw.url || './index.html?tab=community');
   return {
     title,
     options: {

@@ -20952,6 +20952,9 @@ async function doAppLogin() {
   if (new URLSearchParams(location.search).get('action') === 'run') {
     setTimeout(() => openRunTracker(), 600);
   }
+  // 푸시 알림 클릭 등: ?tab=xxx 으로 특정 탭 이동
+  const _tabParam = new URLSearchParams(location.search).get('tab');
+  if (_tabParam) setTimeout(() => navigate(_tabParam), 400);
   postToRunday({
     type: 'LOGIN',
     name: S.user.name,
