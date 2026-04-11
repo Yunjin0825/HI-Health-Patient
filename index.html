@@ -16022,6 +16022,9 @@ function _calcCommunityRankBadges(remotePosts, allReactions) {
     const giverCnt = {};
     allReactions.forEach(r => {
       if (!r.deviceId || isBotDeviceId(r.deviceId)) return;
+      // 어드민 계정(acct_EMPID) 제외
+      const empFromDevice = r.deviceId.startsWith('acct_') ? r.deviceId.slice(5).toUpperCase() : null;
+      if (empFromDevice && ADMIN_EMPIDS.includes(empFromDevice)) return;
       giverCnt[r.deviceId] = (giverCnt[r.deviceId] || 0) + 1;
     });
     let topGiver = null, topGiverCount = 0;
