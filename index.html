@@ -15563,7 +15563,7 @@ function renderLeague() {
   if (currentTab === 'challenger') {
     const isRegistered = hasActiveChallengeRegistration();
     const myLeaguePts = getCurrentChallengeLeaguePoints();
-    const myLeagueLv = getLevel(myLeaguePts);
+    const myLeagueLv = getLevel(getCurrentLeagueAlltimePoints()); // 레벨은 전체 포인트(보너스 포함) 기준
     const me = {
       id:0, name: myDisplayName() + ' (나)', avatar: S.user.avatar,
       deviceId: S.deviceId || '',
@@ -15649,15 +15649,15 @@ function renderLeague() {
   const myPts  = currentTab === 'weekly' ? myWeekPts() : currentTab === 'alltime' || currentTab === 'level' ? myAlltimePts : myLeaguePts;
   const myRank = myLeagueRank();
   const myLvPoints = currentTab === 'alltime' || currentTab === 'level' ? myAlltimePts : myLeaguePts;
-  const myLv   = getLevel(myLvPoints);
-  const myLvNumCard = getLevel(myLvPoints).lv;
+  const myLv   = getLevel(myAlltimePts); // 레벨은 항상 전체 포인트(보너스 포함) 기준
+  const myLvNumCard = getLevel(myAlltimePts).lv;
   const total  = currentTab === 'level' ? baseUsers.filter(u => u.lv === myLvNumCard).length + (canJoinLeague ? 1 : 0) : baseUsers.length + (canJoinLeague ? 1 : 0);
   const pct    = (canJoinLeague && myRank && total > 0) ? Math.round((myRank / total) * 100) : null;
 
   const me = {
     id:(S.user.empId || S.deviceId || 'me').toString(), name: myDisplayName() + ' (나)', avatar: S.user.avatar,
     deviceId: S.deviceId || '',
-    lv: getLevel(myLvPoints).lv,
+    lv: getLevel(myAlltimePts).lv, // 레벨은 항상 전체 포인트(보너스 포함) 기준
     pts: myLeaguePts,
     totalPts: myAlltimePts,
     wPts: myWeekPts(),
