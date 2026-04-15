@@ -2710,6 +2710,39 @@ function populateAdminLeagueLevelFilter() {
   sel.value = [...sel.options].some(o => o.value === prev) ? prev : '';
 }
 
+function getAdminCommunityBadgeDeviceIds() {
+  // 커뮤니티스타: 게시글 수 1위 (봇·관리자 제외)
+  const postCnt = {};
+  (GD.posts || []).forEach(p => {
+    if (!p.deviceId || isBotAuthor(p)) return;
+    const empFromDevice = p.deviceId.startsWith('acct_') ? p.deviceId.slice(5).toUpperCase() : null;
+    if (empFromDevice && ADMIN_EMPIDS.includes(empFromDevice)) return;
+    postCnt[p.deviceId] = (postCnt[p.deviceId] || 0) + 1;
+  });
+  let topPoster = null, topPosterCnt = 0;
+  for (const [did, cnt] of Object.entries(postCnt)) {
+    if (cnt > topPosterCnt) { topPosterCnt = cnt; topPoster = did; }
+  }
+
+  // 공감왕: 스티커 발신 수 1위 (봇·관리자·커뮤니티스타 제외), reactions 있을 때만
+  let topGiver = null, topGiverCnt = 0;
+  if (GD_badgeReactions && GD_badgeReactions.length) {
+    const giverCnt = {};
+    (GD_badgeReactions || []).forEach(r => {
+      const did = String(r?.deviceId || r?.deviceid || '').trim();
+      if (!did) return;
+      const empFromDevice = did.startsWith('acct_') ? did.slice(5).toUpperCase() : null;
+      if (empFromDevice && ADMIN_EMPIDS.includes(empFromDevice)) return;
+      if (did === topPoster) return; // 커뮤니티스타 동일인 제외
+      giverCnt[did] = (giverCnt[did] || 0) + 1;
+    });
+    for (const [did, cnt] of Object.entries(giverCnt)) {
+      if (cnt > topGiverCnt) { topGiverCnt = cnt; topGiver = did; }
+    }
+  }
+  return { commStar: topPoster, giverStar: topGiver };
+}
+
 function getAdminLeagueEntries() {
   const weekPts = getAdminWeeklyPointsMap();
   const challengePts = getAdminChallengePointsMap();
@@ -2819,14 +2852,18 @@ function renderAdminLeague() {
     return;
   }
 
+  const { commStar, giverStar } = getAdminCommunityBadgeDeviceIds();
   tbody.innerHTML = rows.map((u, idx) => {
     const rankClass = idx === 0 ? 'g1' : idx === 1 ? 'g2' : idx === 2 ? 'g3' : '';
     const stateBadge = u.isChallenger
       ? '<span class="badge ch">챌린저</span>'
       : '<span class="badge can">일반</span>';
+    const did = String(u.deviceId || '').trim();
+    const commBadge = (did && commStar && did === commStar) ? '<span class="badge" style="background:#EDE9FE;color:#7C3AED;margin-left:4px">✦커뮤니티스타</span>' : '';
+    const giverBadge = (did && giverStar && did === giverStar) ? '<span class="badge" style="background:#FCE7F3;color:#DB2777;margin-left:4px">♡공감왕</span>' : '';
     return `<tr>
       <td><span class="rank ${rankClass}">${idx + 1}</span></td>
-      <td class="td-name">${escHtml(u.name || '(이름없음)')}</td>
+      <td class="td-name">${escHtml(u.name || '(이름없음)')}${commBadge}${giverBadge}</td>
       <td>${escHtml(u.empId || '-')}</td>
       <td>${escHtml(u.dept || '-')}</td>
       <td><span class="badge ex">Lv.${u.level.lv} ${escHtml(u.level.name)}</span></td>
