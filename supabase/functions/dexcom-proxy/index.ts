@@ -4,7 +4,7 @@ const DEXCOM_SERVERS = [
 ];
 
 const CORS = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://hi-fertility-health.com',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
