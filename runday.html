@@ -1710,6 +1710,52 @@
     .toast.out { animation: tout 0.25s ease forwards; }
     @keyframes tin  { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:translateY(0) } }
     @keyframes tout { to   { opacity:0; transform:translateY(4px) } }
+
+    /* ─── CHALLENGE ENDED — RESULTS & DONATION ─── */
+    .results-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    .results-stat {
+      background: #fff; border-radius: 14px;
+      border: 1px solid #f0f0f4;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      padding: 16px 14px;
+    }
+    .results-stat-value {
+      font-size: 24px; font-weight: 800; color: #1e1047;
+      letter-spacing: -1px; margin-bottom: 3px; line-height: 1.15;
+    }
+    .results-stat-value .unit {
+      font-size: 13px; font-weight: 600; color: #6b7280; letter-spacing: 0;
+    }
+    .results-stat-label {
+      font-size: 11px; font-weight: 500; color: #9ca3af;
+    }
+
+    .donation-news-card {
+      background: #fff; border-radius: 14px;
+      border: 1px solid #f0f0f4;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      padding: 20px;
+    }
+    .donation-news-amount {
+      font-size: 30px; font-weight: 800; color: #1e1047;
+      letter-spacing: -1px; margin-bottom: 6px; line-height: 1.15;
+    }
+    .donation-news-amount .won { font-size: 16px; font-weight: 600; color: #6b7280; }
+    .donation-news-desc {
+      font-size: 12.5px; line-height: 1.7; color: #6b7280;
+      border-top: 1px solid #f3f4f6; margin-top: 14px; padding-top: 14px;
+    }
+    .donation-news-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 8px 0; border-bottom: 1px solid #f3f4f6;
+    }
+    .donation-news-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .donation-news-row-label { font-size: 12px; color: #9ca3af; }
+    .donation-news-row-value { font-size: 13px; font-weight: 700; color: #1e1047; }
+
+    .sch-dot.done { background: #22c55e !important; }
   </style>
 </head>
 <body>
@@ -1727,13 +1773,13 @@
     <div class="hero-copy">
       <div class="hero-title">HI <span class="t-run">RUN</span> DAY</div>
       <p class="hero-desc">
-        달리고, 기록하고, <strong>함께 기부해요</strong><br>
-        HI 8주년을 맞이하는 특별한 챌린지
+        51명이 함께 달리고, 기록하고, <strong>기부했어요</strong><br>
+        HI 8주년 챌린지가 마무리되었습니다
       </p>
       <div class="hero-chips">
-        <div class="chip"><span class="chip-dot" style="background:#22c55e"></span>3/25 워밍업</div>
-        <div class="chip"><span class="chip-dot" style="background:#6366f1"></span>4/5 페이스업</div>
-        <div class="chip"><span class="chip-dot" style="background:#a855f7"></span>4/15 RUN DAY</div>
+        <div class="chip"><span class="chip-dot" style="background:#22c55e"></span>워밍업 ✓</div>
+        <div class="chip"><span class="chip-dot" style="background:#6366f1"></span>페이스업 ✓</div>
+        <div class="chip"><span class="chip-dot" style="background:#a855f7"></span>RUN DAY ✓</div>
       </div>
     </div>
     <div class="hero-scroll">
@@ -1775,31 +1821,51 @@
 </div>
 
 
-<!-- ─── WHY ─────────────────────────────────── -->
-<div class="why-section">
-  <div class="why-kicker">Why Join</div>
-  <div class="why-title">참여해야 할 이유 3가지</div>
-  <div class="why-cards">
-    <div class="why-card">
-      <img src="images/avatars/av8.png?v=20260321-128" alt="건강 루틴" class="why-img warmup" decoding="async" onerror="if(this.dataset.err)return;this.dataset.err=1;this.src='images/avatars/av8.png'">
-      <div class="why-body">
-        <div class="why-card-title">건강한 루틴 만들기</div>
-        <div class="why-card-desc">운동 인증으로 루틴을 만들고, 혈당 기록으로 내 몸의 변화를 직접 느껴보세요.</div>
+<!-- ─── RESULTS ──────────────────────────────── -->
+<div class="section">
+  <div class="section-title">함께 만든 기록</div>
+  <div class="results-grid">
+    <div class="results-stat">
+      <div class="results-stat-value">51<span class="unit">명</span></div>
+      <div class="results-stat-label">함께 달린 직원</div>
+    </div>
+    <div class="results-stat">
+      <div class="results-stat-value">219.3<span class="unit">km</span></div>
+      <div class="results-stat-label">총 달린 거리</div>
+    </div>
+    <div class="results-stat">
+      <div class="results-stat-value">34,841<span class="unit">분</span></div>
+      <div class="results-stat-label">전 직원 운동 시간</div>
+    </div>
+    <div class="results-stat">
+      <div class="results-stat-value" style="font-size:18px;letter-spacing:-0.5px">5,677,100<span class="unit">원</span></div>
+      <div class="results-stat-label">기부금</div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── DONATION NEWS ─────────────────────────── -->
+<div class="section">
+  <div class="section-title">기부 소식</div>
+  <div class="donation-news-card">
+    <span class="fcard-badge" style="margin-bottom:12px;display:inline-flex">기부 완료</span>
+    <div class="donation-news-amount">5,677,100<span class="won">원</span></div>
+    <div>
+      <div class="donation-news-row">
+        <span class="donation-news-row-label">RUN DAY 달린 거리</span>
+        <span class="donation-news-row-value">219.3km</span>
+      </div>
+      <div class="donation-news-row">
+        <span class="donation-news-row-label">챌린지 기간 전 직원 운동</span>
+        <span class="donation-news-row-value">34,841분</span>
+      </div>
+      <div class="donation-news-row">
+        <span class="donation-news-row-label">참여 직원</span>
+        <span class="donation-news-row-value">51명</span>
       </div>
     </div>
-    <div class="why-card">
-      <img src="images/avatars/av13.png?v=20260321-128" alt="참여 혜택" class="why-img record" decoding="async" onerror="if(this.dataset.err)return;this.dataset.err=1;this.src='images/avatars/av13.png'">
-      <div class="why-body">
-        <div class="why-card-title">다양한 참여 혜택</div>
-        <div class="why-card-desc">러닝화 지급 · 사인북 · 특별 강연 · 함께 달리기까지, 참여할수록 더 풍성해집니다.</div>
-      </div>
-    </div>
-    <div class="why-card">
-      <img src="images/avatars/av16.png?v=20260321-128" alt="기부" class="why-img donate" decoding="async" onerror="if(this.dataset.err)return;this.dataset.err=1;this.src='images/avatars/av16.png'">
-      <div class="why-body">
-        <div class="why-card-title">달린 거리만큼 기부</div>
-        <div class="why-card-desc">RUN DAY에 직원들이 달린 거리가 전액 기부로 이어집니다.</div>
-      </div>
+    <div class="donation-news-desc">
+      HI RUN DAY에 직원들이 함께 달린 거리와 한 달간 전 직원이 운동해 온 시간이 기부로 이어졌습니다.
     </div>
   </div>
 </div>
@@ -1813,7 +1879,7 @@
 
       <div class="sch-item">
         <div class="sch-line-wrap">
-          <div class="sch-dot warmup">1</div>
+          <div class="sch-dot warmup done">✓</div>
         </div>
         <div class="sch-body">
           <div class="sch-date-row">
@@ -1830,7 +1896,7 @@
 
       <div class="sch-item">
         <div class="sch-line-wrap">
-          <div class="sch-dot main">2</div>
+          <div class="sch-dot main done">✓</div>
         </div>
         <div class="sch-body">
           <div class="sch-date-row">
@@ -1847,7 +1913,7 @@
 
       <div class="sch-item">
         <div class="sch-line-wrap">
-          <div class="sch-dot event">3</div>
+          <div class="sch-dot event done">✓</div>
         </div>
         <div class="sch-body">
           <div class="sch-date-row">
@@ -2760,8 +2826,13 @@
     if (!grid) return;
     const countdown = getRunDayCountdownParts();
     if (countdown.done) {
-      if (titleEl) titleEl.textContent = 'HI RUN DAY';
-      grid.innerHTML = '<div class="runday-dday-done">🏃 런데이 시작!</div>';
+      if (titleEl) titleEl.textContent = 'CHALLENGE COMPLETE';
+      grid.innerHTML = `
+        <div style="text-align:center;padding:10px 4px">
+          <div style="font-size:28px;font-weight:900;color:#1e1047;letter-spacing:-1px;margin-bottom:4px">HI RUN DAY</div>
+          <div style="font-size:13px;font-weight:600;color:#6366f1;margin-bottom:2px">2026년 4월 15일 · 선유도 → 여의도</div>
+          <div style="font-size:12px;color:#64748b">51명이 함께 달렸습니다 🎉</div>
+        </div>`;
       return;
     }
     const pad = n => String(n).padStart(2, '0');

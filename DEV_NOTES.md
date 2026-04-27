@@ -7,6 +7,18 @@
 
 ## 🐛 오류 / 이슈
 
+### [2026-04-27] Stored XSS — 커뮤니티 게시글/댓글/관리자 패널
+**증상**: 보안 검토에서 발견. 실제 악용 전 수정
+**원인**: Supabase에서 가져온 사용자 데이터(게시글 본문·이름·태그, 댓글 본문·이름, 관리자 exTag)가 `innerHTML`에 이스케이프 없이 삽입됨. `escHtmlComm()` / `escHtml()` 함수가 이미 존재했지만 커뮤니티 피드/댓글 렌더링 코드에 미적용 상태였음
+**해결**: 6곳 모두 이스케이프 함수 적용
+- `index.html:15958` — `p.name` → `escHtmlComm(p.name)`
+- `index.html:15967` — 태그 `t` → `escHtmlComm(t)`
+- `index.html:15968` — `p.body` → `escHtmlComm(p.body)`
+- `index.html:16397` — `c.name` → `escHtmlComm(c.name)`
+- `index.html:16398` — `c.body` → `escHtmlComm(c.body)`
+- `user-admin.html:4586,4590,4614,4615` — `p.body`, `p.exTag`, `p.userName`, `p.body` → `escHtml(...)` 적용
+**관련 파일**: `index.html`, `user-admin.html`
+
 ### [2026-04-10] 관리자 이용자 포인트 표시 기준 혼선
 **증상**: 관리자, 리그, 보상 화면에서 같은 사람의 누적 포인트가 서로 다르게 보여 혼선이 생김
 **원인**: 일부 화면은 `users.points`를 쓰고, 일부 화면은 운동/혈당 합산 보정값(`getAdminEffectivePoints`, `getCurrentLeagueAlltimePoints`, 리그 캐시 누적 계산)을 따로 사용하고 있었음
@@ -134,6 +146,19 @@
 ---
 
 ## 🚧 작업 (Task)
+
+### #7 ✅ 완료 [2026-04-19] 챌린지 탭 결과/기부 소식으로 개편 — Claude
+**목표**: 챌린지 종료 후 결과 위주 화면으로 개편 + 기부 소식 카드 추가
+**현재 상태**:
+- `runday.html` 히어로 문구를 종료 후 메시지로 업데이트
+- D-Day 카운트다운 완료 메시지를 "HI RUN DAY 완료" 형식으로 개선
+- 결과 섹션 추가: 51명 / 219.3km / 34,841분 / 기부금 4개 수치 그리드
+- 기부 소식 카드 추가: 5,677,100원 강조 + breakdown (219.3km · 34,841분)
+- Why section(참여 이유 3가지) 제거
+- 타임라인 3단계 모두 ✓ 완료 표시
+- 히어로 칩 모두 ✓ 완료 표시
+- 캐시 버전 v776으로 업데이트
+**관련 파일**: `runday.html`, `sw.js`
 
 ### #6 🔵 진행중 [2026-04-05] 커뮤니티 스타 배지 시스템 구축 — Claude
 **목표**: 커뮤니티 스타 배지 수상자에게 특별 선물을 증정하기 위한 앱/어드민 구조 구축

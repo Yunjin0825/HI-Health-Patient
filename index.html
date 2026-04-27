@@ -15955,7 +15955,7 @@ function renderCommunity() {
           <div class="post-av"${p.deviceId === 'hi_ai_bot' ? ' style="padding:5px;box-sizing:border-box"' : ''}>${avHTML(p.avatar)}</div>
           <div class="post-info">
             <div class="post-title-line">
-              <span class="post-uname">${p.name}</span>
+              <span class="post-uname">${escHtmlComm(p.name)}</span>
               <div class="post-meta">
                 ${!isBotDeviceId(p.deviceId) ? `<span class="post-lv-icon">${lv.icon}</span><span>${lv.name}</span><span>·</span>` : ''}
                 <span>${p.time}</span>
@@ -15964,8 +15964,8 @@ function renderCommunity() {
           </div>
           ${p.userId === 0 ? `<button type="button" class="post-edit" onclick="editPost(${p.id})" title="게시물 수정">${_editSvgSm}</button><button type="button" class="post-del" style="margin-left:2px" onclick="deletePost(${p.id})" title="게시물 삭제">${_trashSvgSm}</button>` : ''}
         </div>
-        ${(() => { const tags = Array.isArray(p.userTags) ? p.userTags : typeof p.userTags === 'string' ? p.userTags.split(',').filter(Boolean) : []; return tags.length ? `<div class="post-tags-row">${tags.map(t => `<span class="profile-tag">${t}</span>`).join('')}</div>` : ''; })()}
-        <div class="post-body">${p.body}</div>
+        ${(() => { const tags = Array.isArray(p.userTags) ? p.userTags : typeof p.userTags === 'string' ? p.userTags.split(',').filter(Boolean) : []; return tags.length ? `<div class="post-tags-row">${tags.map(t => `<span class="profile-tag">${escHtmlComm(t)}</span>`).join('')}</div>` : ''; })()}
+        <div class="post-body">${escHtmlComm(p.body)}</div>
         ${p.sharePhoto ? `<div class="post-photo-wrap"><img class="post-photo" src="${p.sharePhoto}" alt="운동 사진"></div>` : ''}
         ${p.shareHealth ? buildPostHealthHtml(p.shareHealth) : ''}
         <div class="sticker-row">${stickersHtml}</div>
@@ -16394,8 +16394,8 @@ function renderCommentList() {
     return `<div class="cm-item">
       <span class="cm-av"${c.deviceId === 'hi_ai_bot' ? ' style="padding:5px;box-sizing:border-box"' : c.deviceId === 'hi_ai_bot_bla' ? ' style="padding:3px;box-sizing:border-box"' : ''}>${avHTML(c.avatar)}</span>
       <div class="cm-bubble">
-        <div class="cm-name">${c.name}${!isBotDeviceId(c.deviceId) ? ` <span style="font-weight:400;color:var(--text-secondary)">${clv.icon}</span>` : ''}</div>
-        <div class="cm-body">${c.body}</div>
+        <div class="cm-name">${escHtmlComm(c.name)}${!isBotDeviceId(c.deviceId) ? ` <span style="font-weight:400;color:var(--text-secondary)">${clv.icon}</span>` : ''}</div>
+        <div class="cm-body">${escHtmlComm(c.body)}</div>
         <div class="cm-time">${c.time}</div>
       </div>
     </div>`;

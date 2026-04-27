@@ -1644,8 +1644,8 @@ function getRegRequestSummaryText(r) {
 /* ══════════════════════════════════════════════
    STATE
 ══════════════════════════════════════════════ */
-const ADMIN_EMPIDS = ['1111','A1803'];
-const USER_LIST_EXCLUDE_EMPIDS = ['1111']; // 이용자 목록에서 제외할 관리자 전용 계정
+const ADMIN_EMPIDS = ['A1803'];
+const USER_LIST_EXCLUDE_EMPIDS = ['A1803']; // 이용자 목록에서 제외할 관리자 전용 계정
 const ADMIN_LEAGUE_LEVELS = [
   { lv: 1, name: '새싹', min: 0 },
   { lv: 2, name: '햇살', min: 200 },
@@ -4583,11 +4583,11 @@ function renderPosts() {
   tbody.innerHTML = page.map(p => {
     const d = new Date(Number(p.ts)||0);
     const ds = p.ts ? `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}` : '-';
-    const preview = (p.body||'').substring(0, 60) + ((p.body||'').length > 60 ? '…' : '');
+    const preview = escHtml((p.body||'').substring(0, 60)) + ((p.body||'').length > 60 ? '…' : '');
     const safeId = String(p.id).replace(/'/g,'');
     return `<tr>
       <td class="td-date">${ds}</td>
-      <td>${p.exTag ? `<span class="badge ex">${p.exTag}</span>` : '-'}</td>
+      <td>${p.exTag ? `<span class="badge ex">${escHtml(p.exTag)}</span>` : '-'}</td>
       <td class="td-memo">${preview}</td>
       <td>
         <div style="display:flex;gap:4px">
@@ -4609,10 +4609,10 @@ async function showPostDetail(id) {
   _poModalPostId = String(id);
   const d = new Date(Number(p.ts)||0);
   const rows = [
-    ['작성자', p.userName||'-'],
+    ['작성자', escHtml(p.userName||'-')],
     ['날짜', p.ts ? d.toLocaleString('ko-KR') : '-'],
-    ['운동 태그', p.exTag||'-'],
-    ['내용', p.body||'-'],
+    ['운동 태그', escHtml(p.exTag||'-')],
+    ['내용', escHtml(p.body||'-')],
   ];
   document.getElementById('po-modal-body').innerHTML = rows.map(([l,v]) =>
     `<div class="detail-row"><div class="detail-label">${l}</div><div class="detail-value">${v}</div></div>`).join('');
