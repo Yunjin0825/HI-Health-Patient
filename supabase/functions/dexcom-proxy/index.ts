@@ -104,7 +104,7 @@ Deno.serve(async (req: Request) => {
       return json({ error: '로그인 실패. 덱스콤 아이디/비밀번호를 확인해주세요. (계정이 없거나 공유 기능이 비활성화됐을 수 있어요)' }, 401);
     }
     if (!finalResult) {
-      return json({ readings: [], debug: lastDebug.trim() });
+      return json({ readings: [] });
     }
     return json(finalResult);
   } catch (e) {

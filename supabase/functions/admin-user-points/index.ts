@@ -11,14 +11,15 @@ const json = (data: unknown, status = 200) =>
     headers: { ...CORS, "Content-Type": "application/json" },
   });
 
-const ADMIN_EMPIDS = new Set(["1111", "A1803"]);
+const ADMIN_EMPIDS = new Set(["A1803"]);
 
 function isAllowedAdminKey(value: unknown) {
   const raw = String(value || "").trim();
   if (!raw) return false;
   const upper = raw.toUpperCase();
   if (ADMIN_EMPIDS.has(upper)) return true;
-  const adminPassword = String(Deno.env.get("HI_ADMIN_PASSWORD") || "1111").trim();
+  const adminPassword = (Deno.env.get("HI_ADMIN_PASSWORD") || "").trim();
+  if (!adminPassword) return false;
   return raw === adminPassword;
 }
 

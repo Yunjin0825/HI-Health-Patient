@@ -1654,7 +1654,7 @@ const ADMIN_LEAGUE_LEVELS = [
   { lv: 5, name: '챔피언', min: 2000 },
   { lv: 6, name: '레전드', min: 4000 },
 ];
-let ADMIN_PW = localStorage.getItem('hi_admin_pw') || '1111'; // 비밀번호 변경용 (하위호환)
+let ADMIN_PW = localStorage.getItem('hi_admin_pw') || '';
 let db = null;
 let GD = { users:[], workouts:[], posts:[], glucose:[], registrations:[], pushSubscriptions:[], orders:[], adminPosts:[] };
 let selDeviceId = '';
