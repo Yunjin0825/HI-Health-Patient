@@ -15,8 +15,8 @@ const APP_URL  = "https://hi-fertility-health.com/index.html";
 const MY_EMP_ID = "";  // ← 사번 입력 (예: "A001") - 기록 표시용, 없어도 됨
 // ══════════════════════════════════
 
-const SUPABASE_URL = "https://nbnmvvobehjitophkqmu.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ibm12dm9iZWhqaXRvcGhrcW11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3Nzk4NzQsImV4cCI6MjA4ODM1NTg3NH0.iZS4JvhHUqv4ZMPxm9STit6xqVp2JA5H55M8Wmd1yjY";
+const SUPABASE_URL = "https://xyfxznhhvrnzbykrrqau.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5Znh6bmhodnJuemJ5a3JycWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyOTQyOTEsImV4cCI6MjA5Mjg3MDI5MX0.b0wby-kvXSHQgXjOmG1FNbL1YrbZDSyswIJqjWHxwIs";
 
 const BASE_URL = APP_URL.replace(/\/index\.html.*$/, '');
 const RUN_URL  = APP_URL + "?action=run";

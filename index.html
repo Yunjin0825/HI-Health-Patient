@@ -6669,14 +6669,14 @@ function myDisplayName() {
   return getResolvedProfileNickname() || S.user.name || identityName || '';
 }
 /* ── Supabase 설정 (Supabase 콘솔 > Project Settings > API 에서 복사) ── */
-const SUPABASE_URL      = 'https://nbnmvvobehjitophkqmu.supabase.co';       // Project URL
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ibm12dm9iZWhqaXRvcGhrcW11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3Nzk4NzQsImV4cCI6MjA4ODM1NTg3NH0.iZS4JvhHUqv4ZMPxm9STit6xqVp2JA5H55M8Wmd1yjY';  // anon public key
+const SUPABASE_URL      = 'https://xyfxznhhvrnzbykrrqau.supabase.co';       // Project URL
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5Znh6bmhodnJuemJ5a3JycWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyOTQyOTEsImV4cCI6MjA5Mjg3MDI5MX0.b0wby-kvXSHQgXjOmG1FNbL1YrbZDSyswIJqjWHxwIs';  // anon public key
 const PUSH_PUBLIC_KEY   = 'BEaMexe-bw1jM31PgeQdkkZeqs29Ls1KIMY-TViYgH2dPqg_v7tRRObOpRUTGu5-ZgH13qR_ZTtxeOWh9_vnhTk';
 const PUSH_TABLE        = 'push_subscriptions';
 const PUSH_DEFAULT_URL  = './index.html#community';
 const HOME_PUSH_PROMPT_DISMISSED_KEY = 'hi_home_push_prompt_dismissed';
 const HOME_PUSH_PROMPT_SESSION_KEY   = 'hi_home_push_prompt_seen';
-const AUTO_COMMENT_FN   = 'https://nbnmvvobehjitophkqmu.supabase.co/functions/v1/auto-comment';
+const AUTO_COMMENT_FN   = 'https://xyfxznhhvrnzbykrrqau.supabase.co/functions/v1/auto-comment';
 const SW_VERSION        = '20260411-001';
 const SW_UPDATE_POLL_MS = 15 * 60 * 1000;
 const CHALLENGE_PEOPLE_CACHE_KEY = 'hi_health_people_cache_v1';
@@ -21771,7 +21771,7 @@ async function init() {
     showToast('달리기 기록이 입력됐어요! 운동 기록하기를 눌러 저장하세요 🏃');
   }
   // ── Dexcom G7 Integration ──
-  const DEXCOM_FN = 'https://nbnmvvobehjitophkqmu.supabase.co/functions/v1/dexcom-proxy';
+  const DEXCOM_FN = 'https://xyfxznhhvrnzbykrrqau.supabase.co/functions/v1/dexcom-proxy';
   let _dexTimer = null;
   function parseDexcomReadingTime(rawTime) {
     const raw = String(rawTime || '').trim();
